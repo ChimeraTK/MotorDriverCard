@@ -1,36 +1,44 @@
+#include <sstream>
+
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "MultiVariableRegister.h"
 
+using namespace mtca4u;
+
 /* The test is also supposed to test the  ADD_VARIABLE makro,
  * so we have to define a couple of classes with different variable patters.
+ * We always use three variables and call them First, Second and Third so the 
+ * tests can be templated.
  */
 
-/** Class with two variables, not connected and not at bytes 0 and 31.
+/** Class with three variables, not connected and not at bytes 0 and 31.
  */
-class TwoVariablesNotConnectedRegister : public MultiVariableRegister {
+class ThreeVariablesNotConnectedRegister : public MultiVariableRegister {
 public:
-   ADD_VARIABLE(First, 2, 15);
-   ADD_VARIABLE(Second, 18, 28);
+  ADD_VARIABLE(First, 2, 15);
+  ADD_VARIABLE(Second, 18, 23);
+  ADD_VARIABLE(Third, 26, 28);
 };
 
-/** Class with two variables, not connected but including bytes 0 and 31.
- */
-class TwoVariablesNotConnectedEdgesRegister : public MultiVariableRegister {
-public:
-   ADD_VARIABLE(First, 0, 13);
-   ADD_VARIABLE(Second, 21, 31);
-};
+///** Class with three variables, not connected but including bytes 0 and 31.
+// */
+//class ThreeVariablesNotConnectedEdgesRegister : public MultiVariableRegister {
+//public:
+//  ADD_VARIABLE(First, 0, 13);
+//  ADD_VARIABLE(Second, 15,20);
+//  ADD_VARIABLE(Third, 21, 31);
+//};
 
-/** Class with three variables, contiguous, not bytes 0 and 31.
- */
-class ThreeVariablesContiguousRegister : public MultiVariableRegister {
-public:
-  ADD_VARIABLE(First, 3, 13);
-  ADD_VARIABLE(Second, 14, 17);
-  ADD_VARIABLE(Third, 18, 30);
-};
+///** Class with three variables, contiguous, not bytes 0 and 31.
+// */
+//class ThreeVariablesContiguousRegister : public MultiVariableRegister {
+//public:
+//  ADD_VARIABLE(First, 3, 13);
+//  ADD_VARIABLE(Second, 14, 17);
+//  ADD_VARIABLE(Third, 18, 30);
+//};
 
 /** Class with three variables, contiguous, bytes 0 and 31.
  */
@@ -41,26 +49,27 @@ public:
    ADD_VARIABLE(Third, 19, 31);
 };
 
-/** Class with single and multi bit variables, contiguous, bytes 0 and 31.
- */
-class SingleMultiBitContiguousRegister : public MultiVariableRegister {
-public:
-   ADD_VARIABLE(FirstBit, 0, 0);
-   ADD_VARIABLE(SecondBit, 1, 1);
-   ADD_VARIABLE(Alpha, 2, 17);
-   ADD_VARIABLE(ThirdBit, 18, 18);
-   ADD_VARIABLE(Beta, 19, 30);
-   ADD_VARIABLE(FourthBit, 31, 31);
-};
+// not needed as we are testing with patterns as initial values for the data word
+///** Class with single and multi bit variables, contiguous, bytes 0 and 31.
+// */
+//class SingleMultiBitContiguousRegister : public MultiVariableRegister {
+//public:
+//   ADD_VARIABLE(FirstBit, 0, 0);
+//   ADD_VARIABLE(SecondBit, 1, 1);
+//   ADD_VARIABLE(Alpha, 2, 17);
+//   ADD_VARIABLE(ThirdBit, 18, 18);
+//   ADD_VARIABLE(Beta, 19, 30);
+//   ADD_VARIABLE(FourthBit, 31, 31);
+//};
 
 
 /** Class with single bit variables, not contiguous, bytes 0 and 31.
  */
 class SingleBitNotConnectedRegister : public MultiVariableRegister {
 public:
-   ADD_VARIABLE(FirstBit, 0, 0);
-   ADD_VARIABLE(SecondBit, 15, 15);
-   ADD_VARIABLE(ThirdBit, 31, 31);
+   ADD_VARIABLE(First, 0, 0);
+   ADD_VARIABLE(Second, 15, 15);
+   ADD_VARIABLE(Third, 31, 31);
 };
 
 
@@ -71,6 +80,7 @@ public:
  *  The tests should be run in the order stated here.
  *  Order dependencies are implemented in the teste suite.
  */
+template <class T>
 class MultiVariableRegisterTest
 {
  public:
@@ -93,22 +103,32 @@ class MultiVariableRegisterTest
   void testGetSubWord();
 
  private:
-  //  DoubleVariableRegister _doubleVariableRegister;
+  T _testRegister;
+  std::list<unsigned int> patterns;
+
+  void testSetSubWordWithPattern(unsigned int initalDataWord, unsigned int first,
+				 unsigned int second, unsigned int third,
+				 unsigned int expectedDataWord);
+
+  void testGetSubWordWithPattern(unsigned int dataWord, unsigned int expectedFirst,
+				 unsigned int expectedSecond,
+				 unsigned int expectedThird);
 };
 
+template <class T>
 class MultiVariableRegisterTestSuite : public test_suite {
 public:
   MultiVariableRegisterTestSuite()
     : test_suite(" MultiVariableRegister test suite") {
         // add member function test cases to a test suite
-        boost::shared_ptr<MultiVariableRegisterTest> multiVariableRegister( new MultiVariableRegisterTest );
+        boost::shared_ptr<MultiVariableRegisterTest<T> > multiVariableRegister( new MultiVariableRegisterTest<T> );
 
-	test_case*  inputMaskTestCase = BOOST_TEST_CASE( &MultiVariableRegisterTest::testInputMask );
-	test_case*  outputMaskTestCase = BOOST_TEST_CASE( &MultiVariableRegisterTest::testOutputMask );
+	test_case*  inputMaskTestCase = BOOST_TEST_CASE( &MultiVariableRegisterTest<T>::testInputMask );
+	test_case*  outputMaskTestCase = BOOST_TEST_CASE( &MultiVariableRegisterTest<T>::testOutputMask );
 
-        test_case* getSetTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableRegisterTest::testGetSetDataWord, multiVariableRegister );
-        test_case* setSubWordTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableRegisterTest::testSetSubWord, multiVariableRegister );
-        test_case* getSubWordTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableRegisterTest::testGetSubWord, multiVariableRegister );
+        test_case* getSetTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableRegisterTest<T>::testGetSetDataWord, multiVariableRegister );
+        test_case* setSubWordTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableRegisterTest<T>::testSetSubWord, multiVariableRegister );
+        test_case* getSubWordTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableRegisterTest<T>::testGetSubWord, multiVariableRegister );
 
 	setSubWordTestCase->depends_on( getSetTestCase );
 	setSubWordTestCase->depends_on( inputMaskTestCase );
@@ -123,20 +143,23 @@ public:
         add( setSubWordTestCase );
         add( getSubWordTestCase );
   }
-private:
-  
 };
 
 // Although the compiler complains that argc and argv are not used they 
 // cannot be commented out. This somehow changes the signature and linking fails.
-//test_suite*
-//init_unit_test_suite( int argc, char* argv[] )
 test_suite*
 init_unit_test_suite( int argc, char* argv[] )
 {
   framework::master_test_suite().p_name.value = "MultiVariableRegisterTest";
+  
+  framework::master_test_suite().add( 
+      new MultiVariableRegisterTestSuite<ThreeVariablesNotConnectedRegister> );
+  framework::master_test_suite().add( 
+      new MultiVariableRegisterTestSuite<ThreeVariablesContiguousEdgesRegister> );
+  framework::master_test_suite().add( 
+      new MultiVariableRegisterTestSuite<SingleBitNotConnectedRegister> );
 
-  return new MultiVariableRegisterTestSuite;
+  return 0;
 }
 
 //test_suite*
@@ -148,7 +171,8 @@ init_unit_test_suite( int argc, char* argv[] )
 
 // The implementations of the individual tests
 
-void MultiVariableRegisterTest::testInputMask() {
+template <class T> 
+void MultiVariableRegisterTest<T>::testInputMask() {
   // we test some start values somewhere 'in the middle' plus 0 and 31 (edge values, 
   // special cases) plus 1 and 30 (to avoid off by one errors), in all combinations
   BOOST_CHECK( INPUT_MASK(4, 14)  == 0x7FF );
@@ -168,7 +192,8 @@ void MultiVariableRegisterTest::testInputMask() {
   BOOST_CHECK( INPUT_MASK(1, 30)  == 0x3FFFFFFF );
 }
 
-void MultiVariableRegisterTest::testOutputMask() {
+template <class T> 
+void MultiVariableRegisterTest<T>::testOutputMask() {
   // Test the same cases as input mask
   BOOST_CHECK( OUTPUT_MASK(4, 14)  == 0x7FF0 );
   BOOST_CHECK( OUTPUT_MASK(4, 15)  == 0xFFF0 );
@@ -187,14 +212,127 @@ void MultiVariableRegisterTest::testOutputMask() {
   BOOST_CHECK( OUTPUT_MASK(1, 30)  == 0x7FFFFFFE );
 }
 
-MultiVariableRegisterTest::MultiVariableRegisterTest() {
+template <class T>
+MultiVariableRegisterTest<T>::MultiVariableRegisterTest() {
 }
 
-void MultiVariableRegisterTest::testGetSetDataWord() {
+template <class T>
+void MultiVariableRegisterTest<T>::testGetSetDataWord() {
+  // this test has to be the first one, so we can check on the initial value 0
+  // as a first step.
+  BOOST_CHECK( _testRegister.getDataWord() == 0 );
+
+  // test different changing bit patterns
+  // bit pattern 1111...
+  _testRegister.setDataWord(0xFFFFFFFF);
+  BOOST_CHECK( _testRegister.getDataWord() == 0xFFFFFFFF );
+  
+  // bit patter 0101....
+  _testRegister.setDataWord(0x55555555);
+  BOOST_CHECK( _testRegister.getDataWord() == 0x55555555 );
+
+  // bit pattern 1010...
+  _testRegister.setDataWord(0xAAAAAAAA);
+  BOOST_CHECK( _testRegister.getDataWord() == 0xAAAAAAAA );  
+
+  // bit pattern 0000...
+  _testRegister.setDataWord(0x0);
+  BOOST_CHECK( _testRegister.getDataWord() == 0x0 );  
 }
 
-void MultiVariableRegisterTest::testSetSubWord() {
+// the test are always the same:
+// initial pattern 0, first = 0, second= ..0101 , third = 111..
+// initial pattern FFF.., first = 111..., second= ..1010 , third = 0
+// initial pattern 0101..., first = ...1010, second = 0, third = ...0101
+// initial pattern 1010..., first = ...0101, second = 1111..., third = ...1010
+// they have to be hand-coded for each class implementation
+// for the last two tests we put in the full 32 bit pattern (too long for the
+// variable content) to test the cropping (only the bits belonging to the variable
+// must be overwritten)
+
+template <>
+void MultiVariableRegisterTest<ThreeVariablesNotConnectedRegister>::testSetSubWord() {
+
+  testSetSubWordWithPattern( 0x00000000, 0,          0x15,       0x7,        0x1C540000);
+  testSetSubWordWithPattern( 0xFFFFFFFF, 0x3FFF,     0x2A,       0,          0xE3ABFFFF);
+  testSetSubWordWithPattern( 0x55555555, 0xAAAAAAAA, 0,          0x55555555, 0x5501AAA9);
+  testSetSubWordWithPattern( 0xAAAAAAAA, 0x55555555, 0xFFFFFFFF, 0xAAAAAAAA, 0xAAFE5556);
 }
 
-void MultiVariableRegisterTest::testGetSubWord() {
+template <>
+void MultiVariableRegisterTest<ThreeVariablesContiguousEdgesRegister>::testSetSubWord() {
+
+  testSetSubWordWithPattern( 0x00000000, 0,          0x5,     0x1FFF,     0xFFFA8000);
+  testSetSubWordWithPattern( 0xFFFFFFFF, 0x7FFF,     0xA,     0,          0x00057FFF);
+  testSetSubWordWithPattern( 0x55555555, 0xAAAAAAAA, 0,       0x55555555, 0xAAA82AAA);
+  testSetSubWordWithPattern( 0xAAAAAAAA, 0x55555555, 0xFFFFFFFF, 0xAAAAAAAA, 0x5557D555);
+}
+
+template <>
+void MultiVariableRegisterTest<SingleBitNotConnectedRegister>::testSetSubWord() {
+
+  testSetSubWordWithPattern( 0x00000000, 0,   0x1, 0x1, 0x80008000);
+  testSetSubWordWithPattern( 0xFFFFFFFF, 0x1, 0x0, 0x0, 0x7FFF7FFF);
+  testSetSubWordWithPattern( 0x55555555, 0xAAAAAAAA, 0,          0x55555555, 0xD5555554);
+  testSetSubWordWithPattern( 0xAAAAAAAA, 0x55555555, 0xFFFFFFFF, 0xAAAAAAAA, 0x2AAAAAAB);
+}
+
+// we start from the initial patterns and extraxt the sub words
+template <>
+void MultiVariableRegisterTest<ThreeVariablesNotConnectedRegister>::testGetSubWord() {
+  testGetSubWordWithPattern( 0,          0,      0,    0);
+  testGetSubWordWithPattern( 0xFFFFFFFF, 0x3FFF, 0x3F, 0x7);
+  testGetSubWordWithPattern( 0x55555555, 0x1555, 0x15, 0x5);
+  testGetSubWordWithPattern( 0xAAAAAAAA, 0x2AAA, 0x2A, 0x2);  
+}
+
+template <>
+void MultiVariableRegisterTest<ThreeVariablesContiguousEdgesRegister>::testGetSubWord() {
+  testGetSubWordWithPattern( 0,          0,      0,    0);
+  testGetSubWordWithPattern( 0xFFFFFFFF, 0x7FFF, 0xF,  0x1FFF);
+  testGetSubWordWithPattern( 0x55555555, 0x5555, 0xA,  0xAAA);
+  testGetSubWordWithPattern( 0xAAAAAAAA, 0x2AAA, 0x5,  0x1555);  
+}
+
+template <>
+void MultiVariableRegisterTest<SingleBitNotConnectedRegister>::testGetSubWord() {
+  testGetSubWordWithPattern( 0,          0,      0,    0);
+  testGetSubWordWithPattern( 0xFFFFFFFF, 0x1,    0x1,  0x1);
+  testGetSubWordWithPattern( 0x55555555, 0x1,    0x0,  0x0);
+  testGetSubWordWithPattern( 0xAAAAAAAA, 0x0,    0x1,  0x1);  
+}
+
+template <class T>
+void MultiVariableRegisterTest<T>::testSetSubWordWithPattern(
+						    unsigned int initalDataWord,
+						    unsigned int first,
+						    unsigned int second,
+						    unsigned int third,
+						    unsigned int expectedDataWord) {
+  _testRegister.setDataWord(initalDataWord);
+  _testRegister.setFirst(first);
+  _testRegister.setSecond(second);
+  _testRegister.setThird(third);
+
+  std::stringstream errorMessage;
+  errorMessage << std::hex << "0x" << _testRegister.getDataWord() << " != " 
+	       << expectedDataWord;
+  BOOST_CHECK_MESSAGE( _testRegister.getDataWord() == expectedDataWord ,
+		       errorMessage.str());
+}
+
+template <class T>
+void MultiVariableRegisterTest<T>::testGetSubWordWithPattern(
+                                                    unsigned int dataWord,
+						    unsigned int expectedFirst,
+						    unsigned int expectedSecond,
+						    unsigned int expectedThird) {
+  _testRegister.setDataWord(dataWord);
+
+  std::stringstream errorMessage;
+  errorMessage << std::hex << "test pattern 0x" << dataWord;
+  BOOST_CHECK_MESSAGE( _testRegister.getFirst() == expectedFirst, errorMessage.str());
+  BOOST_CHECK_MESSAGE( _testRegister.getSecond() == expectedSecond, errorMessage.str());
+  BOOST_CHECK_MESSAGE( _testRegister.getThird() ==expectedThird, errorMessage.str());
+
 }

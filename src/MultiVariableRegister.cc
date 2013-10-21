@@ -1,5 +1,7 @@
 #include "MultiVariableRegister.h"
 
+namespace mtca4u{
+
 MultiVariableRegister::MultiVariableRegister(unsigned int dataWord)
   : _dataWord(dataWord)
 {}
@@ -26,3 +28,5 @@ void MultiVariableRegister::setSubWord(unsigned int subWord,
 {
   _dataWord = (_dataWord & ~(inputMask << offset)) | ((subWord & inputMask) << offset);
 }
+
+}// namespace mtca4u
