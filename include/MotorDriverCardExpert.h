@@ -1,7 +1,7 @@
 #ifndef MTCA4U_MOTOR_DRIVER_CARD_EXPERT_H
 #define MTCA4U_MOTOR_DRIVER_CARD_EXPERT_H
 
-#include "TMC429Register.h"
+#include "TMC429Word.h"
 #include "MotorDriverCard.h"
 
 namespace mtca4u
@@ -12,16 +12,16 @@ namespace mtca4u
   class MotorDriverCardExpert: public MotorDriverCard{
   public:
     // the helper classes
-    class CoverPositionAndLength: public TMC429Register
+    class CoverPositionAndLength: public TMC429Word
     {
       public:
         ADD_VARIABLE(CoverLength, 0, 4);
 	ADD_VARIABLE(CoverPosition, 8, 13);
 	ADD_VARIABLE(CoverWaiting, 23, 23);
 	CoverPositionAndLength(unsigned int data){
-	  setSmda(0x3);
+	  setSMDA(0x3);
 	  setIDX_JDX(0x2);
-	  setData(data);
+	  setDATA(data);
 	}
     };
 
@@ -29,7 +29,7 @@ namespace mtca4u
      *  and in addition by using the "Polarities" field, so some bits can be 
      *  accessed by more than one function.
      */
-    class StepperMotorGlobalParameters : public TMC429Register
+    class StepperMotorGlobalParameters : public TMC429Word
     {
       public:
         ADD_VARIABLE(LastSteperMotorDriver, 0, 1);
@@ -47,13 +47,13 @@ namespace mtca4u
         ADD_VARIABLE(RefMux, 20, 20);
         ADD_VARIABLE(Mot1r, 21, 21);	
 	StepperMotorGlobalParameters(unsigned int data){
-	  setSmda(0x3);
+	  setSMDA(0x3);
 	  setIDX_JDX(0xF);
-	  setData(data);
+	  setDATA(data);
 	}
     };
 
-    class InterfaceConfiguration : public TMC429Register
+    class InterfaceConfiguration : public TMC429Word
     {
       public: 
         ADD_VARIABLE(Inv_ref, 0, 0);
@@ -67,11 +67,11 @@ namespace mtca4u
         ADD_VARIABLE(En_refr, 8, 8);
 	/// Constructor to define the correct address.
 	InterfaceConfiguration(unsigned int data){
-	  setSmda(0x3);
+	  setSMDA(0x3);
 	  setIDX_JDX(0x4);
-	  setData(data);
+	  setDATA(data);
 	}
-    }
+    };
 
     /// Expert function 
     virtual void setDatagramLowWord(unsigned int datagramLowWord) = 0;
@@ -91,11 +91,8 @@ namespace mtca4u
     virtual void setInterfaceConfiguration(
 		    InterfaceConfiguration const & interfaceConfiguration) = 0;
 
-     /// FIXME: expert or not?
-    virtual void setReferenceSwitchRegister(ReferenceSwitchData referenceSwitchData) = 0;
-
    /// Expert function: Power down the TCM429 chip
-    void powerDown() = 0;
+    virtual void powerDown() = 0;
  
   };
   

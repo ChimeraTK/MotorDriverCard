@@ -13,17 +13,19 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
 #skip -Weffc++ for the moment. It gives too many false positives
 set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized")
 
+FIND_PACKAGE(MtcaMappedDevice 00.04 REQUIRED)
+
 #currently boost is only needed for the tests
 
 FIND_PACKAGE(Boost COMPONENTS unit_test_framework)
 #ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
 message("Boost_UNIT_TEST_FRAMEWORK_FOUND " Boost_UNIT_TEST_FRAMEWORK_FOUND)
-IF(${Boost_UNIT_TEST_FRAMEWORK_FOUND})
+IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
   ENABLE_TESTING()
-ELSE(${Boost_UNIT_TEST_FRAMEWORK_FOUND})
+ELSE(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   message("Boost unit_test_framework not found, disabling testing")
-ENDIF(${Boost_UNIT_TEST_FRAMEWORK_FOUND})
+ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)

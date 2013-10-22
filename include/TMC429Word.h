@@ -1,13 +1,13 @@
-#ifndef MTCA4U_TMC429REGISTER_H
-#define MTCA4U_TMC429REGISTER_H
+#ifndef MTCA4U_TMC429WORD_H
+#define MTCA4U_TMC429WORD_H
 
-#include "MultiVariableRegister.h"
+#include "MultiVariableWord.h"
 
 namespace mtca4u{
   
-  /** A generic single value register of the TMC429 chip.
+  /** Structure of a generic single value register of the TMC429 chip.
    *  It implements the full maximum 24 bit data payload. For
-   *  shorter registers use an appropriate mask or range check
+   *  shorter data words use an appropriate mask or range check
    *  before setting the values to the data field.
    *  
    *  Classes inheriting from this generic class can provide 
@@ -19,11 +19,11 @@ namespace mtca4u{
    *
    *  We intentionally break the naming convention here and go for
    *  data sheed syntax. This also makes it easier to distiguisch 
-   *  MultiVariableRegister::getDataWord() (the full 32 bit content of the register)
-   *  from TMC429Register::getDATA() (the data payload sub word as described in the 
+   *  MultiVariableWord::getDataWord() (the full 32 bit content)
+   *  from TMC429Word::getDATA() (the data payload sub word as described in the 
    *  data sheet).
    */
-  class TMC429Register: public MultiVariableRegister
+  class TMC429Word: public MultiVariableWord
   {
     public:
       ADD_VARIABLE(SMDA, 29, 30 );
@@ -34,4 +34,4 @@ namespace mtca4u{
 
 }// namespace mtca4u
 
-#endif// MTCA4U_TMC429REGISTER_H
+#endif// MTCA4U_TMC429WORD_H

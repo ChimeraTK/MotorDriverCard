@@ -1,3 +1,8 @@
+#ifndef MTCA4U_MOTOR_CONTROLER_H
+#define MTCA4U_MOTOR_CONTROLER_H
+
+#include "TMC429Word.h"
+
 namespace mtca4u
 {
 
@@ -5,15 +10,15 @@ namespace mtca4u
    * A class to controll stepper motors using the DFMC-MD22 card.
    * This class represents all the functionality of one motor. 
    * 
-   * Note: Technically this controller class addresses registers of the
-   * TMC 429 motor controller chip (which can handle up to 3 motors) and
+   * Note: Technically this controler class addresses registers of the
+   * TMC 429 motor controler chip (which can handle up to 3 motors) and
    * the TMC 260 (261?) motor driver, which is indiviual for each motor.
    * On the software side these implementation details are not important.
-   * Think of this class as a virtual controller with integrated driver.
+   * Think of this class as a virtual controler with integrated driver.
    * 
    * @author Martin Killenberg <martin.killenberg@desy.de>
    */
-  class MotorController{
+  class MotorControler{
 
   public:
     
@@ -23,70 +28,77 @@ namespace mtca4u
       static const unsigned int INCREMENTAL = 1;
     };
 
-    /** A helper class which contains the variables of the acceleration treshold register.
-     *
+    /** A helper class which contains the variables of the
+     *  acceleration treshold register.
      */
-    class AccelerationThresholdData : public MultiVariableWord<4>
+    class AccelerationThresholdData : public TMC429Word
     {
     public:
-      unsigned int getCoilCurrentScaleFactorBelowThreshold();
-      unsigned int getCoilCurrentScaleFactorAboveThreshold();
-      unsigned int getCoilCurrentScaleFactorAtRest();
-      unsigned int getAccelerationThreshold();
+      ADD_VARIABLE(CurrentScalingBelowThreshold,
+		   CURRENT_SCALING_BELOW_THRESHOLD_START_BIT,
+		   CURRENT_SCALING_BELOW_THRESHOLD_STOP_BIT);
+      ADD_VARIABLE(CurrentScalingAboveThreshold,
+		   CURRENT_SCALING_ABOVE_THRESHOLD_START_BIT,
+		   CURRENT_SCALING_ABOVE_THRESHOLD_STOP_BIT);
+      ADD_VARIABLE(CurrentScalingAtRest,
+		   CURRENT_SCALING_AT_REST_START_BIT,
+		   CURRENT_SCALING_AT_REST_STOP_BIT);
+      ADD_VARIABLE(AccelerationThreshold,
+		   ACCELERATION_THRESHOLD_START_BIT,
+		   ACCELERATION_THRESHOLD_STOP_BIT);
 
-      void setCoilCurrentScaleFactorBelowThreshold(unsigned int coilCurrentScaleFactorBelowThreshold);
-      void setCoilCurrentScaleFactorAboveThreshold(unsigned int coilCurrentScaleFactorAboveThreshold);
-      void setCoilCurrentScaleFactorAtRest(unsigned int coilCurrentScaleFactorAtRest);
-      void setAccelerationThreshold(unsigned int accelerationThreshold);
-
-
-      /// Get the data word with the data members in the correct bit sequence of the register.
-      /// FIXME: from the base class
-      //unsigned int getDataWord();
-      // idem: void setDataWord(unsigned int dataWord);
-
-      /// Convenience constructor with default values
-      AccelerationThresholdData(unsigned char coilCurrentScaleFactorBelowThreshold,
-				unsigned char coilCurrentScaleFactorAboveThreshold,
-				unsigned char coilCurrentScaleFactorAtRest;
-				unsigned short accelerationThreshold);
-
-      /// Constructor to initialise the struct from a data word
-      AccelerationThresholdData(unsigned int dataWord);
+      /// Constructor which initialises the IDX correctly
+      AccelerationThresholdData(){
+	setIDX_JDX( IDX_ACCELERATION_THRESHOLD );
+      }
+      
     };
 
-    /** A helper struct to represent contents of the the proportionality factor register.
+    /** A helper class to represent contents of the 
+     *  proportionality factor register.
+     *  Note: Bit 15, which is always 1, is not represented.
      */
-    struct ProportionalityFactorData : public MultiVariableWord<2>
+    class ProportionalityFactorData : public TMC429Word
     {
-      unsigned int getMultiplicationParameter();
-      unsigned int getDivisionParameter();
+    public:
+      ADD_VARIABLE(MultiplicationParameter,
+		   MULTIPLICATION_PARAMETER_START_BIT,
+		   MULTIPLICATION_PARAMETER_STOP_BIT);
 
-      void getMultiplicationParameter(unsigned int multiplicationParameter);
-      void getDivisionParameter(unsigned int divisionParameter);
+      ADD_VARIABLE(DivisionParameter,
+		   DIVISION_PARAMETER_START_BIT,
+		   DIVISION_PARAMETER_STOP_BIT);
 
-      /// Convenience constructor with default values
-      ProportionalityFactorData(unsigned char multiplicationFactor,
-				unsigned char divisionFactor);      
-
-      /// Constructor to initialise the struct from a data word
-      ProportionalityFactorData(unsigned int dataWord);
+      /// Constructor to initialise the IDX correctly
+      ProportionalityFactorData(){
+	setIDX_JDX( IDX_PROPORTIONALITY_FACTORS );	
+      }
     };
     
+    //FIXME implement all the types correctly. To make it compile we
+    // start with typedefs
+    typedef TMC429Word ReferenceConfigAndRampModeData;
+    typedef TMC429Word InterruptData;
+    typedef TMC429Word DividersAndMicroStepResolutionData;
+    typedef TMC429Word DriverControlData;
+    typedef TMC429Word ChopperControlData;
+    typedef TMC429Word CoolStepControlData;
+    typedef TMC429Word StallGuardControlData;
+    typedef TMC429Word DriverConfigData;
+
     /**
      * The constructor requires a reference to the MotorDriverCard it is
      * living on.
      */
-    MotorController( MotorDriverCard & driverCard );
+    MotorControler( MotorDriverCard & driverCard );
 
     // via direct register access in the fpga
 
-    void setActualPosition(unsigned int steps);
     void setActualSpeed(unsigned int stepsPerFIXME); //FIXME = read only?
     void setActualAcceleration(unsigned int stepsPerSquareFIXME);
     void setAccelerationThreshold(unsigned int accelerationTreshold); //lower or upper threshold?
     void setEnabled(bool enable=true); //< Enable or disable the motor driver chip
-    void setDecoderReadoutMode(unsignd int decoderReadoutMode);
+    void setDecoderReadoutMode(unsigned int decoderReadoutMode);
 
     unsigned int getActualPosition(); //< Get the actual position in steps
     unsigned int getActualSpeed(); //< Get the actual speed in steps per FIXME
@@ -100,7 +112,7 @@ namespace mtca4u
     
     bool isEnabled(); //< Check whether the motor driver chip is enabled
     
-    // via spi to the tmc429 motor controller
+    // via spi to the tmc429 motor controler
     void setTartetPosition(unsigned int steps);
     /// Set the actual position counter for a recalibration of the actual position
     void setActualPosition(unsigned int steps);
@@ -137,7 +149,7 @@ namespace mtca4u
            
  
   protected:
-     /// The driver card this motor controller is living on.
+     /// The driver card this motor controler is living on.
      MotorDriverCard & _driverCard;
 
      //FIXME: These variables have to be stored uniquely inter process
@@ -148,5 +160,6 @@ namespace mtca4u
      
  };
 
-
 }// namespace mtca4u
+
+#endif // MTCA4U_MOTOR_CONTROLER_H

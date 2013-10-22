@@ -2,6 +2,10 @@
 #define MTCA4U_MOTOR_DRIVER_CARD_IMPL_H
 
 #include "MotorDriverCardExpert.h"
+#include "MotorControler.h"
+#include "PowerMonitor.h"
+
+#include <devMap.h>
 
 namespace mtca4u
 {
@@ -58,8 +62,8 @@ namespace mtca4u
     // As we do not want to care about cleaning up we use scoped pointers.
     std::vector[boost::scoped_ptr<MotorController>] _motorControlers;
  
-    unsigned int SPIControlWriteAddress;
-    unsigned int SPIControlReadbackAddress;
+    unsigned int _SPIControlWriteAddress;
+    unsigned int _SPIControlReadbackAddress;
   };
   
 }// namespace mtca4u
