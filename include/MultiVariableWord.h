@@ -1,5 +1,5 @@
-#ifndef MTAC4U_MULTI_VARIABLE_REGISTER_H
-#define MTAC4U_MULTI_VARIABLE_REGISTER_H
+#ifndef MTAC4U_MULTI_VARIABLE_WORD_H
+#define MTAC4U_MULTI_VARIABLE_WORD_H
 
 /** Generate an input mask from the position of the first and the last bit 
  *  of the mask. The input mask is the mask applied to an input word which is 
@@ -52,7 +52,7 @@ unsigned int getVoltage();
   
 namespace mtca4u{
 
-/** The MultiVariableRegister encodes and decodes multiple short
+/** The MultiVariableWord encodes and decodes multiple short
  *  words into one unsigned int.
  *
  *  Example: A 32 bit word is interpreted as two values.
@@ -67,7 +67,7 @@ namespace mtca4u{
 // doxygen description in several blocks to work around a bug in doxygen.
 /**
 \verbatim
-class ThresholdRegister: public MultiVariableRegister {
+class TwoThresholdsWord: public MultiVariableWord {
     ADD_VARIABLE(LowerThreshold, 0, 10);
     ADD_VARIABLE(UpperThreshold, 13, 23);
 };
@@ -87,11 +87,11 @@ unsigned int getUpperThreshold();
  * at compile time for maximum performance. They are not needed in the further code,
  * which only uses the generated getter and setter functions.
  */
-class MultiVariableRegister{
+class MultiVariableWord{
  public:
   /** The constructor allows to set the data word on construction.
    */
-  MultiVariableRegister(unsigned int dataWord = 0);
+  MultiVariableWord(unsigned int dataWord = 0);
 
   /** Get the encoded 32 bit data word. */
   unsigned int getDataWord();
@@ -135,4 +135,4 @@ class MultiVariableRegister{
 
 
 }// namespace mtca4u
-#endif // MTAC4U_MULTI_VARIABLE_REGISTER_H
+#endif // MTAC4U_MULTI_VARIABLE_WORD_H

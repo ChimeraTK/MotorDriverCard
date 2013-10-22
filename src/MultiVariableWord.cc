@@ -1,28 +1,28 @@
-#include "MultiVariableRegister.h"
+#include "MultiVariableWord.h"
 
 namespace mtca4u{
 
-MultiVariableRegister::MultiVariableRegister(unsigned int dataWord)
+MultiVariableWord::MultiVariableWord(unsigned int dataWord)
   : _dataWord(dataWord)
 {}
 
-unsigned int MultiVariableRegister::getDataWord()
+unsigned int MultiVariableWord::getDataWord()
 {
   return _dataWord;
 }
 
-void MultiVariableRegister::setDataWord(unsigned int dataWord)
+void MultiVariableWord::setDataWord(unsigned int dataWord)
 {
   _dataWord = dataWord;
 }
 
-unsigned int MultiVariableRegister::getSubWord(unsigned int outputMask,
+unsigned int MultiVariableWord::getSubWord(unsigned int outputMask,
 					       unsigned char offset)
 {
   return (_dataWord & outputMask) >> offset;
 }
 
-void MultiVariableRegister::setSubWord(unsigned int subWord,
+void MultiVariableWord::setSubWord(unsigned int subWord,
 				       unsigned int inputMask,
 				       unsigned char offset)
 {

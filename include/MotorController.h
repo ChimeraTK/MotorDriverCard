@@ -26,7 +26,7 @@ namespace mtca4u
     /** A helper class which contains the variables of the acceleration treshold register.
      *
      */
-    class AccelerationThresholdData : public MultiVariableRegister<4>
+    class AccelerationThresholdData : public MultiVariableWord<4>
     {
     public:
       unsigned int getCoilCurrentScaleFactorBelowThreshold();
@@ -57,7 +57,7 @@ namespace mtca4u
 
     /** A helper struct to represent contents of the the proportionality factor register.
      */
-    struct ProportionalityFactorData : public MultiVariableRegister<2>
+    struct ProportionalityFactorData : public MultiVariableWord<2>
     {
       unsigned int getMultiplicationParameter();
       unsigned int getDivisionParameter();
