@@ -26,6 +26,7 @@ namespace mtca4u{
   class TMC429Word: public MultiVariableWord
   {
     public:
+      TMC429Word(unsigned int dataWord = 0): MultiVariableWord(dataWord){}
       ADD_VARIABLE(SMDA, 29, 30 );
       ADD_VARIABLE(IDX_JDX, 25, 28 );
       ADD_VARIABLE(RW , 24, 24);

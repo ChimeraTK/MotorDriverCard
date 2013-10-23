@@ -9,6 +9,17 @@ namespace mtca4u
   class MotorControler;
   class PowerMonitor;
 
+  class MotorDriverException: public exBase {
+  public:
+    
+    enum {  WRONG_MOTOR_ID };
+    
+    MotorDriverException(const std::string & message, unsigned int id):
+      exBase(message, id) {}
+    virtual ~MotorDriverException() throw(){}
+  };
+
+
   /**
    * A class to access the DFMC-MD22 motor driver card, which provides two 
    * MotorControlers.

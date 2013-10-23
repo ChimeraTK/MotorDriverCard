@@ -14,6 +14,7 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
 set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized")
 
 FIND_PACKAGE(MtcaMappedDevice 00.04 REQUIRED)
+include_directories(${MtcaMappedDevice_INCLUDE_DIRS})
 
 #currently boost is only needed for the tests
 
@@ -50,6 +51,7 @@ endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
+target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES})
 
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
