@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "DummyDevice.h"
 #include "NotImplementedException.h"
 #include <MtcaMappedDevice/mapFileParser.h>
@@ -62,33 +64,33 @@ namespace mtca4u{
   void DummyDevice::openDev(const std::string &mappingFileName,
 			    int /* perm */, devConfigBase* /* pConfig */){
     _registerMapping = mapFileParser().parse(mappingFileName);
-    populateRegisterMap();
-    opened=false;
+    resizeBarContents();
+    opened=true;
   }
 
-  void DummyDevice::populateRegisterMap(){
+  void DummyDevice::resizeBarContents(){
+    std::map< uint8_t, size_t > barSizes = getBarSizesInBytesFromRegisterMapping();
+    for (std::map< uint8_t, size_t >::const_iterator barSizeIter = barSizes.begin();
+	 barSizeIter != barSizes.end(); ++barSizeIter){
+      _barContents[barSizeIter->first].resize(barSizeIter->second / sizeof(int32_t));
+    }
+  }
+
+  std::map< uint8_t, size_t > DummyDevice::getBarSizesInBytesFromRegisterMapping(){
+    std::map< uint8_t, size_t > barSizes;
     for (mapFile::const_iterator mappingElementIter = _registerMapping->begin();
 	 mappingElementIter <  _registerMapping->end(); ++mappingElementIter ) {
-      addOrResizeRegister( *mappingElementIter );
-    }     
+      barSizes[mappingElementIter->reg_bar] = 
+	std::max( barSizes[mappingElementIter->reg_bar],
+		  static_cast<size_t> (mappingElementIter->reg_address +
+				       mappingElementIter->reg_size ) );
+    }
+    return barSizes;
   }
-
-  void DummyDevice::addOrResizeRegister( mapFile::mapElem const & mappingElement ){
-    std::map< uint64_t, FakeRegister >::iterator targetEnty = 
-      _registers.find( calculateVirtualRegisterAddress( mappingElement.reg_address,
-							mappingElement.reg_bar ) );
-
-    if (targetEnty == _registers.end()){
-      
-    }
-    else{
-    }
-      
-   }
 
   void DummyDevice::closeDev(){
     _registerMapping = ptrmapFile(0);
-    _registers.clear();
+    _barContents.clear();
     opened=false;
   }
 
