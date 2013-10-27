@@ -69,23 +69,29 @@ namespace mtca4u{
   }
 
   void DummyDevice::resizeBarContents(){
-    std::map< uint8_t, size_t > barSizes = getBarSizesInBytesFromRegisterMapping();
-    for (std::map< uint8_t, size_t >::const_iterator barSizeIter = barSizes.begin();
-	 barSizeIter != barSizes.end(); ++barSizeIter){
-      _barContents[barSizeIter->first].resize(barSizeIter->second / sizeof(int32_t));
+    std::map< uint8_t, size_t > barSizesInBytes 
+      = getBarSizesInBytesFromRegisterMapping();
+
+    for (std::map< uint8_t, size_t >::const_iterator barSizeInBytesIter 
+	   = barSizesInBytes.begin();
+	 barSizeInBytesIter != barSizesInBytes.end(); ++barSizeInBytesIter){
+      
+      //the size of the vector is in words, not in bytes -> convert fist
+      _barContents[barSizeInBytesIter->first].resize(
+	barSizeInBytesIter->second / sizeof(int32_t));
     }
   }
 
   std::map< uint8_t, size_t > DummyDevice::getBarSizesInBytesFromRegisterMapping(){
-    std::map< uint8_t, size_t > barSizes;
+    std::map< uint8_t, size_t > barSizesInBytes;
     for (mapFile::const_iterator mappingElementIter = _registerMapping->begin();
 	 mappingElementIter <  _registerMapping->end(); ++mappingElementIter ) {
-      barSizes[mappingElementIter->reg_bar] = 
-	std::max( barSizes[mappingElementIter->reg_bar],
+      barSizesInBytes[mappingElementIter->reg_bar] = 
+	std::max( barSizesInBytes[mappingElementIter->reg_bar],
 		  static_cast<size_t> (mappingElementIter->reg_address +
 				       mappingElementIter->reg_size ) );
     }
-    return barSizes;
+    return barSizesInBytes;
   }
 
   void DummyDevice::closeDev(){

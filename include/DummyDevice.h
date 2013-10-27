@@ -82,6 +82,11 @@ namespace mtca4u{
     void resizeBarContents();
     std::map< uint8_t, size_t > getBarSizesInBytesFromRegisterMapping();
 
+    typedef std::pair<uint64_t, uint64_t>  AddressRange;
+    std::multimap< AddressRange, boost::function<void(void)> > _writeCallbackFunctions;
+
+    void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange );
+
     //void populateRegisterMap();
     //void addOrResizeRegister( mapFile::mapElem const & mappingElement );
   };
