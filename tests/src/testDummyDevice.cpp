@@ -58,9 +58,6 @@ class  FakeRegisterTestSuite : public test_suite{
     add( BOOST_TEST_CASE( &FakeRegisterTest::testReadWrite ) );
     add( BOOST_TEST_CASE( &FakeRegisterTest::testReadOnly ) );
     add( BOOST_CLASS_TEST_CASE( &FakeRegisterTest::testWriteCallbackFunction, fakeRegisterTest ) );
-
-    //add( BOOST_TEST_CASE( DummyDeviceTest::testCalculateVirtualRegisterAddress ) );
-    //add( openCloseTestCase );
   }
 };
 
@@ -81,7 +78,7 @@ init_unit_test_suite( int argc, char* argv[] )
 {
    framework::master_test_suite().p_name.value = "DummyDevice test suite";
    framework::master_test_suite().add(new FakeRegisterTestSuite);
-   //   framework::master_test_suite().add(new DummyDeviceTestSuite);
+   framework::master_test_suite().add(new DummyDeviceTestSuite);
 
    return NULL;
 }
@@ -150,8 +147,20 @@ void FakeRegisterTest::increaseDataWord(){
 
 void DummyDeviceTest::testOpenClose(){
   _dummyDevice.openDev(TEST_MAPPING_FILE);
-  // there have to be eight entries in the registers map
-  BOOST_CHECK( _dummyDevice._registers.size() == 8 );
+
+  // there has to be bars 0 and 2  with sizes 0x48 and 0x400
+  BOOST_CHECK( _dummyDevice._barContents.size() == 2 );
+  std::map< uint8_t, std::vector<int32_t> >::const_iterator bar0Iter =
+    _dummyDevice._barContents.find(0);
+  BOOST_REQUIRE( bar0Iter != _dummyDevice._barContents.end() );
+  BOOST_CHECK( bar0Iter->second.size() == 0x12 );
+
+  std::map< uint8_t, std::vector<int32_t> >::const_iterator bar2Iter =
+    _dummyDevice._barContents.find(2);
+  BOOST_REQUIRE( bar2Iter != _dummyDevice._barContents.end() );
+  BOOST_CHECK( bar2Iter->second.size() == 0x400 );
+  
+
   // the "prtmapFile" has an implicit converion to bool to check 
   // if it points to NULL
   BOOST_CHECK( _dummyDevice._registerMapping );
@@ -160,7 +169,7 @@ void DummyDeviceTest::testOpenClose(){
   _dummyDevice.closeDev();
   // The map has to be empty and the reference counting pointer to the 
   // mapping has to point to NULL.
-  BOOST_CHECK( _dummyDevice._registers.empty() );
+  BOOST_CHECK( _dummyDevice._barContents.empty() );
   BOOST_CHECK( _dummyDevice._registerMapping == false );
   BOOST_CHECK( _dummyDevice.isOpen() == false );
 }

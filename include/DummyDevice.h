@@ -76,11 +76,14 @@ namespace mtca4u{
 	uint8_t bar);
 							 
   protected:
-    std::map< uint64_t, FakeRegister > _registers;
+    std::map< uint8_t, std::vector<int32_t> > _barContents;
     ptrmapFile _registerMapping;
 
-    void populateRegisterMap();
-    void addOrResizeRegister( mapFile::mapElem const & mappingElement );
+    void resizeBarContents();
+    std::map< uint8_t, size_t > getBarSizesInBytesFromRegisterMapping();
+
+    //void populateRegisterMap();
+    //void addOrResizeRegister( mapFile::mapElem const & mappingElement );
   };
 
 }//namespace mtca4u
