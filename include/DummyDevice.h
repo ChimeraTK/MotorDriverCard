@@ -3,51 +3,48 @@
 
 #include <vector>
 #include <map>
+#include <list>
+#include <set>
 
 #include <boost/function.hpp>
 
 #include <MtcaMappedDevice/devBase.h>
+#include <MtcaMappedDevice/exBase.h>
 #include <MtcaMappedDevice/mapFile.h>
 
 namespace mtca4u{
   
+  ///fixme: there should only be one type of exception for all devices. Otherwise you will never be able to
+  /// interpret the enum in an exception from a pointer to exBase.
+  class DummyDeviceException : public exBase {
+  public:
+    enum {WRONG_SIZE};
+    DummyDeviceException(const std::string &message, unsigned int exceptionID)
+      : exBase( message, exceptionID ){}
+  };
+
+
   /** The dummy device opens a mapping file instead of a device, and
    *  implements all registers defined in the mapping file im memory.
    *  Like this it mimiks the real PCIe device.
    * 
    *  Deriving from this class, you can write dedicated implementations
    *  with special functionality.
+   *  For this purpose one can register write callback function which are
+   *  executed if a certain register (or range of registers) is written.
+   *  For instance: Writing to a START_DAQ register
+   *  can fill a data buffer with dummy values which can be read back.
+   *  For each call of writeReg or writeArea the callback function is called once.
+   *  If you require the callback function to be executed after each
+   *  register change, use writeReg multiple times instead of writeArea.
+   *  
+   *  Registers can be set read only. In this
+   *  case a write operation will just be ignored and no callback
+   *  function is executed.
    */
   class DummyDevice : public devBase
   {
   public:
-
-    /** Implementation of a (set of) registers in memory. 
-     *  The data content is stored as a vector, so we can do
-     *  range checking.
-     *
-     *  The register can be set read only. In this
-     *  case a write operation will just be ignored.
-     *
-     *  The write callback function provides an interface to implement
-     *  functionality. For instance: Writing to a START_DAQ register
-     *  can fill a data buffer with dummy values which can be read back.
-     */
-    class FakeRegister{
-      std::vector<int> _dataContent;
-      bool _isReadOnly;
-      boost::function<void(void)> _writeCallbackFunction;
-
-    public:
-      FakeRegister(size_t sizeInWords_);
-      void write(int32_t dataWord, size_t offsetInWords = 0);
-      int32_t read(size_t offsetInWords = 0);
-      void setReadOnly(bool isReadOnly_ = true);
-      bool isReadOnly();
-      void setWriteCallbackFunction(
-	    boost::function<void(void)> _writeCallbackFunction );
-      size_t sizeInWords();
-    };
 
     DummyDevice();
     virtual ~DummyDevice();
@@ -76,19 +73,21 @@ namespace mtca4u{
 	uint8_t bar);
 							 
   protected:
+    typedef std::pair<uint64_t, uint64_t>  AddressRange;
+
     std::map< uint8_t, std::vector<int32_t> > _barContents;
+    std::set< uint64_t > _writeOnlyAddresses;
+    std::multimap< AddressRange, boost::function<void(void)> > _writeCallbackFunctions;
     ptrmapFile _registerMapping;
 
     void resizeBarContents();
-    std::map< uint8_t, size_t > getBarSizesInBytesFromRegisterMapping();
-
-    typedef std::pair<uint64_t, uint64_t>  AddressRange;
-    std::multimap< AddressRange, boost::function<void(void)> > _writeCallbackFunctions;
-
-    void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange );
-
-    //void populateRegisterMap();
-    //void addOrResizeRegister( mapFile::mapElem const & mappingElement );
+    std::map< uint8_t, size_t > getBarSizesInBytesFromRegisterMapping() const;
+    void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange ) const;
+    std::list< boost::function<void(void)> > findCallbackFunctionsForAddressRange(AddressRange addressRange);
+    void setReadOnly( AddressRange addressRange );
+    void setWriteCallbackFunction( AddressRange addressRange,
+				   boost::function<void(void)>  const & writeCallbackFunction );
+    static void checkSizeIsMultipleOfWordSize(size_t size);
   };
 
 }//namespace mtca4u
