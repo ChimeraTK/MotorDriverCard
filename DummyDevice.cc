@@ -188,35 +188,45 @@ namespace mtca4u{
   }
 
   void DummyDevice::readReg(uint32_t regOffset, int32_t* data, uint8_t bar){
-    TRY_REGISTER_ACCESS( *data = _barContents[bar].at(regOffset); );
+    TRY_REGISTER_ACCESS( *data = _barContents[bar].at(regOffset/sizeof(int32_t)); );
  }
 
   void DummyDevice::writeReg(uint32_t regOffset, int32_t data, uint8_t bar){
-    TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset) = data; );
+    TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset/sizeof(int32_t)) = data; );
   }
 
   void DummyDevice::readArea(uint32_t regOffset, int32_t* data, size_t size,
 			     uint8_t bar){
-    throw NotImplementedException("DummyDevice::readArea is not implemented yet.");
+    checkSizeIsMultipleOfWordSize( size );
+    unsigned int wordBaseIndex = regOffset/sizeof(uint32_t);
+    for (unsigned int wordIndex = 0; wordIndex < size/sizeof(uint32_t); ++wordIndex){
+      TRY_REGISTER_ACCESS( data[wordIndex] = _barContents[bar].at(wordBaseIndex+wordIndex); );
+    }
   }
 
   void DummyDevice::writeArea(uint32_t regOffset, int32_t* data, size_t size,
 			      uint8_t bar){
-    throw NotImplementedException("DummyDevice::writeArea is not implemented yet.");
+    checkSizeIsMultipleOfWordSize( size );
+    unsigned int wordBaseIndex = regOffset/sizeof(uint32_t);
+    for (unsigned int wordIndex = 0; wordIndex < size/sizeof(uint32_t); ++wordIndex){
+      TRY_REGISTER_ACCESS( _barContents[bar].at(wordBaseIndex+wordIndex) = data[wordIndex]; );
+    }
   }
 
   void DummyDevice::readDMA(uint32_t regOffset, int32_t* data, size_t size,
 			    uint8_t bar){
-    throw NotImplementedException("DummyDevice::readDMA is not implemented yet.");
+    return readArea(regOffset, data, size, bar);
   }
 
-  void DummyDevice::writeDMA(uint32_t regOffset, int32_t* data, size_t size,
-			     uint8_t bar){
+  void DummyDevice::writeDMA(uint32_t /* regOffset */, int32_t* /* data */, size_t /* size */,
+			     uint8_t /* bar */){
     throw NotImplementedException("DummyDevice::writeDMA is not implemented yet.");
   }
 
   void DummyDevice::readDeviceInfo(std::string* devInfo){
-    throw NotImplementedException("DummyDevice::readDeviceInfo is not implemented yet.");
+    std::stringstream info;
+    info << "DummyDevice with mapping file " << _registerMapping->getMapFileName();
+    *devInfo=info.str();
   }
 
   uint64_t DummyDevice::calculateVirtualRegisterAddress( uint32_t registerOffsetInBar,
