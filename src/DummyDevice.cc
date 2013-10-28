@@ -1,8 +1,21 @@
 #include <algorithm>
+#include <sstream>
 
 #include "DummyDevice.h"
 #include "NotImplementedException.h"
 #include <MtcaMappedDevice/mapFileParser.h>
+
+//macro to avoid code duplication
+#define TRY_REGISTER_ACCESS(COMMAND)\
+    try{\
+      COMMAND\
+    }catch( std::out_of_range & outOfRangeException ){\
+      std::stringstream errorMessage;\
+      errorMessage << "Invalid address offset " << regOffset \
+		   << " in bar " << bar << "."\
+		   << "Caught out_of_range exception: " << outOfRangeException.what();\
+      throw DummyDeviceException(errorMessage.str(), DummyDeviceException::INVALID_ADDRESS);\
+    }
 
 // Valid bar numbers are 0 to 5 , so they must be contained
 // in three bits.
@@ -129,6 +142,10 @@ namespace mtca4u{
 
   void DummyDevice::openDev(const std::string &mappingFileName,
 			    int /* perm */, devConfigBase* /* pConfig */){
+    if (opened){
+      throw DummyDeviceException("Device is already open.", DummyDeviceException::ALREADY_OPEN);
+    }
+
     _registerMapping = mapFileParser().parse(mappingFileName);
     resizeBarContents();
     opened=true;
@@ -144,7 +161,7 @@ namespace mtca4u{
       
       //the size of the vector is in words, not in bytes -> convert fist
       _barContents[barSizeInBytesIter->first].resize(
-	barSizeInBytesIter->second / sizeof(int32_t));
+	  barSizeInBytesIter->second / sizeof(int32_t), 0);
     }
   }
 
@@ -161,17 +178,21 @@ namespace mtca4u{
   }
 
   void DummyDevice::closeDev(){
+    if (!opened){
+      throw DummyDeviceException("Device is already closed.", DummyDeviceException::ALREADY_CLOSED);
+    }
+
     _registerMapping = ptrmapFile(0);
     _barContents.clear();
     opened=false;
   }
 
   void DummyDevice::readReg(uint32_t regOffset, int32_t* data, uint8_t bar){
-    throw NotImplementedException("DummyDevice::readReg is not implemented yet.");
-  }
+    TRY_REGISTER_ACCESS( *data = _barContents[bar].at(regOffset); );
+ }
 
   void DummyDevice::writeReg(uint32_t regOffset, int32_t data, uint8_t bar){
-    throw NotImplementedException("DummyDevice::writeReg is not implemented yet.");
+    TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset) = data; );
   }
 
   void DummyDevice::readArea(uint32_t regOffset, int32_t* data, size_t size,

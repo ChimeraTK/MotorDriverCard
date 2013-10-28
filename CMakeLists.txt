@@ -11,7 +11,7 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
  
 #set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
 #skip -Weffc++ for the moment. It gives too many false positives
-set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized")
+set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized --coverage ")
 
 FIND_PACKAGE(MtcaMappedDevice 00.04 REQUIRED)
 include_directories(${MtcaMappedDevice_INCLUDE_DIRS})

@@ -18,7 +18,7 @@ namespace mtca4u{
   /// interpret the enum in an exception from a pointer to exBase.
   class DummyDeviceException : public exBase {
   public:
-    enum {WRONG_SIZE};
+    enum {WRONG_SIZE, ALREADY_OPEN, ALREADY_CLOSED, INVALID_ADDRESS};
     DummyDeviceException(const std::string &message, unsigned int exceptionID)
       : exBase( message, exceptionID ){}
   };
