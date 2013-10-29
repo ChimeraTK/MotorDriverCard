@@ -34,10 +34,13 @@ public:
 
   static void testCalculateVirtualAddress();
   static void testCheckSizeIsMultipleOfWordSize();
+  static void testAddressRange();
   void testOpenClose();
   void testReadWriteSingleWordRegister();
   /// The read function can be readDMA or readArea, the writeFunction is always writeArea.
   /// WriteDMA probably does not make sense at all. 
+  /// The argument is a pointer to a member function of the DummyDevice class, which 
+  /// returns void and takes uint32_t, int32_t*, size_t, uint8_t as arguments.
   void testReadWriteMultiWordRegister(void(DummyDevice::* readFunction)(uint32_t, int32_t*, size_t, uint8_t));
   void testWriteDMA();
   void testReadDeviceInfo();
@@ -61,8 +64,16 @@ class  DummyDeviceTestSuite : public test_suite{
   DummyDeviceTestSuite() : test_suite("DummyDevice test suite"){
     boost::shared_ptr<DummyDeviceTest> dummyDeviceTest( new DummyDeviceTest );
     
-    test_case* openCloseTestCase = BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testOpenClose, dummyDeviceTest );
+    // Pointers to test cases with dependencies. All other test cases are added directly.
+    test_case* readOnlyTestCase = BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadOnly, dummyDeviceTest );
+    test_case* writeCallbackFunctionsTestCase = BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteCallbackFunctions, dummyDeviceTest );
 
+    // we use the setup from the read-only test to check that the callback function is not executed if the register is not writeable.
+    writeCallbackFunctionsTestCase->depends_on(readOnlyTestCase);
+
+    // As boost test cases need nullary functions (working with parameters would not work with function pointers)
+    // we create them by binding readArea and readDMA to the testReadWriteMultiWordRegister function of the
+    // dummyDeviceTest instance.
     boost::function<void(void)> testReadWriteArea 
       = boost::bind( &DummyDeviceTest::testReadWriteMultiWordRegister,
 		     dummyDeviceTest, &DummyDevice::readArea);
@@ -73,9 +84,10 @@ class  DummyDeviceTestSuite : public test_suite{
 
     add( BOOST_TEST_CASE( DummyDeviceTest::testCalculateVirtualAddress ) );
     add( BOOST_TEST_CASE( DummyDeviceTest::testCheckSizeIsMultipleOfWordSize ) );
-    add( openCloseTestCase );
+    add( BOOST_TEST_CASE( DummyDeviceTest::testAddressRange ) );
+    add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testOpenClose, dummyDeviceTest ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadWriteSingleWordRegister, dummyDeviceTest ) );
-    add( BOOST_TEST_CASE( testReadWriteArea ) );
+    add( BOOST_TEST_CASE( testReadWriteArea ) ); // not BOOST_CLASS_TEST_CASE as the functions are already bound to the instance
     add( BOOST_TEST_CASE( testReadWriteDMA ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteDMA, dummyDeviceTest ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadDeviceInfo, dummyDeviceTest ) );
@@ -323,5 +335,33 @@ void DummyDeviceTest::testReadOnly(){
 }
 
 void DummyDeviceTest::testWriteCallbackFunctions(){
-  BOOST_FAIL("test not impemented yet");
+  BOOST_FAIL("test not implemented yet");
+}
+
+void DummyDeviceTest::testAddressRange(){
+  DummyDevice::AddressRange range24_8_0( 24, 8, 0 );
+
+  BOOST_CHECK( range24_8_0.offset == 24 );
+  BOOST_CHECK( range24_8_0.sizeInBytes == 8 );
+  BOOST_CHECK( range24_8_0.bar == 0 );
+
+  DummyDevice::AddressRange range24_8_1( 24, 8, 1 ); // larger bar
+  DummyDevice::AddressRange range12_8_1( 12, 8, 1 ); // larger bar, smaller offset
+  DummyDevice::AddressRange range28_8_0( 28, 8, 0 ); // larger offset
+  DummyDevice::AddressRange range28_8_1( 28, 8, 1 ); // larger bar, larger offset
+  DummyDevice::AddressRange range24_12_0( 24, 12, 0 ); // different size, compares equal with range1
+  
+  // compare 24_8_0 with the other cases as left argument
+  BOOST_CHECK(  (range24_8_0 < range24_8_1) );
+  BOOST_CHECK(  (range24_8_0 < range12_8_1) );
+  BOOST_CHECK(  (range24_8_0 < range28_8_0) );
+  BOOST_CHECK(  (range24_8_0 < range28_8_1) );
+  BOOST_CHECK( !(range24_8_0 < range24_12_0) );
+
+  // compare 24_8_0 with the other cases as right argument
+  BOOST_CHECK( !(range24_8_1 < range24_8_0) );
+  BOOST_CHECK( !(range12_8_1 < range24_8_0) );
+  BOOST_CHECK( !(range28_8_0 < range24_8_0) );
+  BOOST_CHECK( !(range28_8_1 < range24_8_0) );
+  BOOST_CHECK( !(range24_12_0 < range24_8_0) );
 }

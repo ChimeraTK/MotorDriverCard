@@ -73,7 +73,16 @@ namespace mtca4u{
 	uint8_t bar);
 							 
   protected:
-    typedef std::pair<uint64_t, uint64_t>  AddressRange;
+    struct AddressRange{
+      const uint32_t offset;
+      const uint32_t sizeInBytes;
+      const uint8_t bar;
+      AddressRange( uint32_t offset_,  size_t sizeInBytes_, uint8_t bar_ ) 
+        : offset( offset_ ), sizeInBytes( sizeInBytes_ ), bar( bar_ ){}
+      bool operator<(AddressRange const & right) const {
+	return ( bar == right.bar ? ( offset < right.offset ) : bar < right.bar );
+      }
+    };
 
     std::map< uint8_t, std::vector<int32_t> > _barContents;
     std::set< uint64_t > _writeOnlyAddresses;
