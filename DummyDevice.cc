@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <sstream>
 
+#include <boost/lambda/lambda.hpp>
+
 #include "DummyDevice.h"
 #include "NotImplementedException.h"
 #include <MtcaMappedDevice/mapFileParser.h>
@@ -196,6 +198,7 @@ namespace mtca4u{
       return;
     }
     TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset/sizeof(int32_t)) = data; );
+    runWriteCallbackFunctionsForAddressRange( AddressRange(regOffset, sizeof(int32_t), bar) );
   }
 
   void DummyDevice::readArea(uint32_t regOffset, int32_t* data, size_t size,
@@ -217,6 +220,7 @@ namespace mtca4u{
       }
       TRY_REGISTER_ACCESS( _barContents[bar].at(wordBaseIndex+wordIndex) = data[wordIndex]; );
     }
+    runWriteCallbackFunctionsForAddressRange( AddressRange(regOffset, size, bar) );
   }
 
   void DummyDevice::readDMA(uint32_t regOffset, int32_t* data, size_t size,
@@ -254,7 +258,7 @@ namespace mtca4u{
     }
   }
 
-  bool  DummyDevice::isReadOnly( uint32_t offset, uint8_t bar ){
+  bool  DummyDevice::isReadOnly( uint32_t offset, uint8_t bar ) const{
     uint64_t virtualAddress = calculateVirtualAddress( offset, bar );
     return (  _writeOnlyAddresses.find(virtualAddress) != _writeOnlyAddresses.end() );
   }
@@ -265,5 +269,60 @@ namespace mtca4u{
 	std::pair< AddressRange, boost::function<void(void)> >(addressRange, writeCallbackFunction) );
   }
 
+  void  DummyDevice::runWriteCallbackFunctionsForAddressRange( AddressRange addressRange ){
+    std::list< boost::function<void(void)> > callbackFunctionsForThisRange = 
+      findCallbackFunctionsForAddressRange(addressRange);
+    for( std::list< boost::function<void(void)> >::iterator functionIter = callbackFunctionsForThisRange.begin();
+    	 functionIter != callbackFunctionsForThisRange.end(); ++functionIter ){
+      (*functionIter)();
+    }
+  }
+
+  std::list< boost::function<void(void)> > DummyDevice::findCallbackFunctionsForAddressRange(
+                                                                          AddressRange addressRange){
+    // as callback functions are not sortable, we want to loop the multimap only once.
+    // FIXME: If the same function is registered more than one, it may be executed multiple times
+
+    // we only want the start address of the range, so we set size to 0
+    AddressRange firstAddressInBar( 0, 0, addressRange.bar );
+    AddressRange endAddress( addressRange.offset + addressRange.sizeInBytes, 0, addressRange.bar );
+
+    std::multimap< AddressRange, boost::function<void(void)> >::iterator startIterator = 
+      _writeCallbackFunctions.lower_bound( firstAddressInBar );
+
+    std::multimap< AddressRange, boost::function<void(void)> >::iterator endIterator = 
+      _writeCallbackFunctions.lower_bound( endAddress );
+    
+    std::list< boost::function<void(void)> > returnList;
+    for( std::multimap< AddressRange, boost::function<void(void)> >::iterator callbackIter = startIterator;
+	 callbackIter != endIterator; ++callbackIter){      
+      if (isWriteRangeOverlap(callbackIter->first, addressRange) ){
+	returnList.push_back(callbackIter->second);
+      }
+    }
+    
+    return returnList;
+  }
+
+  bool DummyDevice::isWriteRangeOverlap( AddressRange firstRange, AddressRange secondRange){
+    if (firstRange.bar != secondRange.bar){
+      return false;
+    }
+
+    uint32_t startAddress = std::max( firstRange.offset, secondRange.offset );
+    uint32_t endAddress = std::min( firstRange.offset  + firstRange.sizeInBytes,
+				    secondRange.offset + secondRange.sizeInBytes );
+    
+    // if at least one register is writeable there is an overlap of writeable registers
+    for ( uint32_t address = startAddress; address < endAddress; address += sizeof(int32_t) ){
+      if ( isReadOnly(address, firstRange.bar)==false ){
+	return true;
+      }
+    }
+
+    // we looped all possile registers, none is writeable
+    return false;
+  }
+ 
 
 }// namespace mtca4u
