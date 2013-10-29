@@ -46,6 +46,7 @@ public:
   void testReadDeviceInfo();
   void testReadOnly();
   void testWriteCallbackFunctions();
+  void testIsWriteRangeOverlap();  
 
 private:
   TestableDummyDevice _dummyDevice;
@@ -54,9 +55,9 @@ private:
 
   // stuff for the callback function test
   int a, b, c;
-  void increaseA(){ ++a; }
-  void increaseB(){ ++b; }
-  void increaseC(){ ++c; }
+  void increaseA(){ ++a;}
+  void increaseB(){ ++b;}
+  void increaseC(){ ++c;}
 };
 
 class  DummyDeviceTestSuite : public test_suite{
@@ -93,6 +94,7 @@ class  DummyDeviceTestSuite : public test_suite{
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadDeviceInfo, dummyDeviceTest ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadOnly, dummyDeviceTest ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteCallbackFunctions, dummyDeviceTest ) );
+    add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testIsWriteRangeOverlap, dummyDeviceTest ) );
   }
 };
 
@@ -335,7 +337,60 @@ void DummyDeviceTest::testReadOnly(){
 }
 
 void DummyDeviceTest::testWriteCallbackFunctions(){
-  BOOST_FAIL("test not implemented yet");
+  // We just require the first bar to be 12 registers long. 
+  // Everything else would overcomplicate this test. For a real
+  // application one would always use register names from mapping,
+  // but this is not the purpose of this test.
+
+  // from the previous test we know that adresses 32, 40 and 44 are write only
+
+  BOOST_REQUIRE( _dummyDevice._barContents[0].size() >= 13 );
+  a=0; b=0; c=0;
+  _dummyDevice.setWriteCallbackFunction( DummyDevice::AddressRange( 36, 4, 0 ),
+					 boost::bind( &DummyDeviceTest::increaseA, this ) );
+  _dummyDevice.setWriteCallbackFunction( DummyDevice::AddressRange( 28, 24, 0 ),
+					 boost::bind( &DummyDeviceTest::increaseB, this ) );
+  _dummyDevice.setWriteCallbackFunction( DummyDevice::AddressRange( 20, 12, 0 ),
+					 boost::bind( &DummyDeviceTest::increaseC, this ) );
+ 
+  // test single writes
+  int32_t dataWord(42);
+  _dummyDevice.writeReg( 12, dataWord, 0 );// nothing
+  BOOST_CHECK(a==0); BOOST_CHECK(b==0); BOOST_CHECK(c==0);
+
+  _dummyDevice.writeReg( 20, dataWord, 0 ); // c
+  BOOST_CHECK(a==0); BOOST_CHECK(b==0); BOOST_CHECK(c==1);
+  _dummyDevice.writeReg( 24, dataWord, 0 );// c
+  BOOST_CHECK(a==0); BOOST_CHECK(b==0); BOOST_CHECK(c==2);
+  _dummyDevice.writeReg( 28, dataWord, 0 );// bc
+  BOOST_CHECK(a==0); BOOST_CHECK(b==1); BOOST_CHECK(c==3);
+  _dummyDevice.writeReg( 32, dataWord, 0 );// read only
+  BOOST_CHECK(a==0); BOOST_CHECK(b==1); BOOST_CHECK(c==3);
+  _dummyDevice.writeReg( 36, dataWord, 0 );// ab
+  BOOST_CHECK(a==1); BOOST_CHECK(b==2); BOOST_CHECK(c==3);
+  _dummyDevice.writeReg( 40, dataWord, 0 );// read only
+  BOOST_CHECK(a==1); BOOST_CHECK(b==2); BOOST_CHECK(c==3);
+  _dummyDevice.writeReg( 44, dataWord, 0 );// read only
+  BOOST_CHECK(a==1); BOOST_CHECK(b==2); BOOST_CHECK(c==3);
+  _dummyDevice.writeReg( 48, dataWord, 0 );// b
+  BOOST_CHECK(a==1); BOOST_CHECK(b==3); BOOST_CHECK(c==3);
+
+  std::vector<int32_t> dataContents(8, 42); // eight words, each with content 42
+  a=0; b=0; c=0;
+  _dummyDevice.writeArea( 20, &(dataContents[0]), 32, 0 ); // abc
+  BOOST_CHECK(a==1); BOOST_CHECK(b==1); BOOST_CHECK(c==1);
+  _dummyDevice.writeArea( 20, &(dataContents[0]), 8, 0 ); // c
+  BOOST_CHECK(a==1); BOOST_CHECK(b==1); BOOST_CHECK(c==2);
+  _dummyDevice.writeArea( 20, &(dataContents[0]), 12, 0 ); // bc
+  BOOST_CHECK(a==1); BOOST_CHECK(b==2); BOOST_CHECK(c==3);
+  _dummyDevice.writeArea( 28, &(dataContents[0]), 24, 0 ); // abc
+  BOOST_CHECK(a==2); BOOST_CHECK(b==3); BOOST_CHECK(c==4);
+  _dummyDevice.writeArea( 32, &(dataContents[0]), 16, 0 ); // ab
+  BOOST_CHECK(a==3); BOOST_CHECK(b==4); BOOST_CHECK(c==4);
+  _dummyDevice.writeArea( 40, &(dataContents[0]), 8, 0 ); // readOnly
+  BOOST_CHECK(a==3); BOOST_CHECK(b==4); BOOST_CHECK(c==4);
+  _dummyDevice.writeArea( 4, &(dataContents[0]), 8, 0 ); // nothing
+  BOOST_CHECK(a==3); BOOST_CHECK(b==4); BOOST_CHECK(c==4);
 }
 
 void DummyDeviceTest::testAddressRange(){
@@ -364,4 +419,13 @@ void DummyDeviceTest::testAddressRange(){
   BOOST_CHECK( !(range28_8_0 < range24_8_0) );
   BOOST_CHECK( !(range28_8_1 < range24_8_0) );
   BOOST_CHECK( !(range24_12_0 < range24_8_0) );
+}
+
+void DummyDeviceTest::testIsWriteRangeOverlap(){
+  // the only test not covered by the writeCallbackFunction test:
+  // An overlapping range in different bars
+  bool overlap = _dummyDevice.isWriteRangeOverlap( 
+		    DummyDevice::AddressRange( 0, 12, 0 ),
+		    DummyDevice::AddressRange( 0, 12, 1 ) );
+  BOOST_CHECK( overlap == false );
 }

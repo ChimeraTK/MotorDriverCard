@@ -38,7 +38,7 @@ namespace mtca4u{
    *  If you require the callback function to be executed after each
    *  register change, use writeReg multiple times instead of writeArea.
    *  
-   *  Registers can be set read only. In this
+   *  Registers can be set to read-only mode. In this
    *  case a write operation will just be ignored and no callback
    *  function is executed.
    */
@@ -49,6 +49,8 @@ namespace mtca4u{
     DummyDevice();
     virtual ~DummyDevice();
              
+    /// The file name has to be a mapping file, not a device file.
+    /// Permissons and config are ignored.
     virtual void openDev(const std::string &mappingFileName,
 			 int perm = O_RDWR, devConfigBase* pConfig = NULL);
     virtual void closeDev();
@@ -68,6 +70,8 @@ namespace mtca4u{
     
     virtual void readDeviceInfo(std::string* devInfo);
 
+    /// A virtual address is an address is a virtual 64 bit address space
+    /// which contains all bars.
     static uint64_t calculateVirtualAddress(
 	uint32_t registerOffsetInBar,
 	uint8_t bar);
@@ -91,12 +95,14 @@ namespace mtca4u{
 
     void resizeBarContents();
     std::map< uint8_t, size_t > getBarSizesInBytesFromRegisterMapping() const;
-    void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange ) const;
+    void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange );
     std::list< boost::function<void(void)> > findCallbackFunctionsForAddressRange(AddressRange addressRange);
     void setReadOnly( uint32_t offset,  uint8_t bar, size_t sizeInWords);
-    bool isReadOnly( uint32_t offset, uint8_t bar );
+    bool isReadOnly( uint32_t offset, uint8_t bar ) const;
     void setWriteCallbackFunction( AddressRange addressRange,
 				   boost::function<void(void)>  const & writeCallbackFunction );
+    /// returns true if the ranges overlap and at least one of the overlapping registers can be written
+    bool isWriteRangeOverlap( AddressRange firstRange, AddressRange secondRange);
     static void checkSizeIsMultipleOfWordSize(size_t sizeInBytes);
   };
 
