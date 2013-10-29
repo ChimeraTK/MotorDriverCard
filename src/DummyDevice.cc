@@ -125,7 +125,7 @@ namespace mtca4u{
 
 //  void DummyDevice::addOrResizeRegister( mapFile::mapElem const & mappingElement ){
 //    checkSizeIsMultipleOfFour( mappingElement.reg_size );
-//    uint64_t targetAddress = calculateVirtualRegisterAddress( mappingElement.reg_address,
+//    uint64_t targetAddress = calculateVirtualAddress( mappingElement.reg_address,
 //							      mappingElement.reg_bar );
 //
 //    _registers[targetAddress].ensureMinimumSize( mappingElement.reg_size / sizeof(int32_t) );
@@ -192,14 +192,17 @@ namespace mtca4u{
  }
 
   void DummyDevice::writeReg(uint32_t regOffset, int32_t data, uint8_t bar){
+    if (isReadOnly( regOffset, bar ) ){
+      return;
+    }
     TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset/sizeof(int32_t)) = data; );
   }
 
   void DummyDevice::readArea(uint32_t regOffset, int32_t* data, size_t size,
 			     uint8_t bar){
     checkSizeIsMultipleOfWordSize( size );
-    unsigned int wordBaseIndex = regOffset/sizeof(uint32_t);
-    for (unsigned int wordIndex = 0; wordIndex < size/sizeof(uint32_t); ++wordIndex){
+    unsigned int wordBaseIndex = regOffset/sizeof(int32_t);
+    for (unsigned int wordIndex = 0; wordIndex < size/sizeof(int32_t); ++wordIndex){
       TRY_REGISTER_ACCESS( data[wordIndex] = _barContents[bar].at(wordBaseIndex+wordIndex); );
     }
   }
@@ -207,8 +210,11 @@ namespace mtca4u{
   void DummyDevice::writeArea(uint32_t regOffset, int32_t* data, size_t size,
 			      uint8_t bar){
     checkSizeIsMultipleOfWordSize( size );
-    unsigned int wordBaseIndex = regOffset/sizeof(uint32_t);
-    for (unsigned int wordIndex = 0; wordIndex < size/sizeof(uint32_t); ++wordIndex){
+    unsigned int wordBaseIndex = regOffset/sizeof(int32_t);
+    for (unsigned int wordIndex = 0; wordIndex < size/sizeof(int32_t); ++wordIndex){
+      if (isReadOnly( regOffset + wordIndex*sizeof(int32_t), bar ) ){
+	continue;
+      }
       TRY_REGISTER_ACCESS( _barContents[bar].at(wordBaseIndex+wordIndex) = data[wordIndex]; );
     }
   }
@@ -229,16 +235,28 @@ namespace mtca4u{
     *devInfo=info.str();
   }
 
-  uint64_t DummyDevice::calculateVirtualRegisterAddress( uint32_t registerOffsetInBar,
+  uint64_t DummyDevice::calculateVirtualAddress( uint32_t registerOffsetInBar,
 							 uint8_t bar){
     return (static_cast<uint64_t>(bar & BAR_MASK) << BAR_POSITION_IN_VIRTUAL_REGISTER) | 
            (static_cast<uint64_t> (registerOffsetInBar));
   }
 
-  void DummyDevice::checkSizeIsMultipleOfWordSize(size_t size){
-    if (size % sizeof(int32_t) ){	
+  void DummyDevice::checkSizeIsMultipleOfWordSize(size_t sizeInBytes){
+    if (sizeInBytes % sizeof(int32_t) ){	
       throw( DummyDeviceException("Read/write size has to be a multiple of 4", DummyDeviceException::WRONG_SIZE) );
     }
+  }
+
+  void DummyDevice::setReadOnly(uint32_t offset, uint8_t bar, size_t sizeInWords){
+    for (size_t i = 0; i < sizeInWords; ++i){
+      uint64_t virtualAddress = calculateVirtualAddress( offset + i*sizeof(int32_t), bar );
+      _writeOnlyAddresses.insert(virtualAddress);
+    }
+  }
+
+  bool  DummyDevice::isReadOnly( uint32_t offset, uint8_t bar ){
+    uint64_t virtualAddress = calculateVirtualAddress( offset, bar );
+    return (  _writeOnlyAddresses.find(virtualAddress) != _writeOnlyAddresses.end() );
   }
   
 }// namespace mtca4u

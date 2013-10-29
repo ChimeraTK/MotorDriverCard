@@ -30,9 +30,9 @@ class TestableDummyDevice : public DummyDevice
 
 class DummyDeviceTest{
 public:
-  DummyDeviceTest(){}
+  DummyDeviceTest(): a(0), b(0), c(0) {}
 
-  static void testCalculateVirtualRegisterAddress();
+  static void testCalculateVirtualAddress();
   static void testCheckSizeIsMultipleOfWordSize();
   void testOpenClose();
   void testReadWriteSingleWordRegister();
@@ -41,11 +41,19 @@ public:
   void testReadWriteMultiWordRegister(void(DummyDevice::* readFunction)(uint32_t, int32_t*, size_t, uint8_t));
   void testWriteDMA();
   void testReadDeviceInfo();
+  void testReadOnly();
+  void testWriteCallbackFunctions();
 
 private:
   TestableDummyDevice _dummyDevice;
   void freshlyOpenDevice();
   friend class DummyDeviceTestSuite;
+
+  // stuff for the callback function test
+  int a, b, c;
+  void increaseA(){ ++a; }
+  void increaseB(){ ++b; }
+  void increaseC(){ ++c; }
 };
 
 class  DummyDeviceTestSuite : public test_suite{
@@ -63,7 +71,7 @@ class  DummyDeviceTestSuite : public test_suite{
       = boost::bind( &DummyDeviceTest::testReadWriteMultiWordRegister,
 		     dummyDeviceTest, &DummyDevice::readDMA);
 
-    add( BOOST_TEST_CASE( DummyDeviceTest::testCalculateVirtualRegisterAddress ) );
+    add( BOOST_TEST_CASE( DummyDeviceTest::testCalculateVirtualAddress ) );
     add( BOOST_TEST_CASE( DummyDeviceTest::testCheckSizeIsMultipleOfWordSize ) );
     add( openCloseTestCase );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadWriteSingleWordRegister, dummyDeviceTest ) );
@@ -71,6 +79,8 @@ class  DummyDeviceTestSuite : public test_suite{
     add( BOOST_TEST_CASE( testReadWriteDMA ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteDMA, dummyDeviceTest ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadDeviceInfo, dummyDeviceTest ) );
+    add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadOnly, dummyDeviceTest ) );
+    add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteCallbackFunctions, dummyDeviceTest ) );
   }
 };
 
@@ -83,14 +93,14 @@ init_unit_test_suite( int argc, char* argv[] )
    return NULL;
 }
 
-void DummyDeviceTest::testCalculateVirtualRegisterAddress(){
-  BOOST_CHECK(  DummyDevice::calculateVirtualRegisterAddress( 0, 0 ) == 0UL );
-  BOOST_CHECK(  DummyDevice::calculateVirtualRegisterAddress( 0x35, 0 ) == 0x35UL );
-  BOOST_CHECK(  DummyDevice::calculateVirtualRegisterAddress( 0x67875, 0x3 ) == 0x3000000000067875UL );
-  BOOST_CHECK(  DummyDevice::calculateVirtualRegisterAddress( 0, 0x4 ) == 0x4000000000000000UL );
+void DummyDeviceTest::testCalculateVirtualAddress(){
+  BOOST_CHECK(  DummyDevice::calculateVirtualAddress( 0, 0 ) == 0UL );
+  BOOST_CHECK(  DummyDevice::calculateVirtualAddress( 0x35, 0 ) == 0x35UL );
+  BOOST_CHECK(  DummyDevice::calculateVirtualAddress( 0x67875, 0x3 ) == 0x3000000000067875UL );
+  BOOST_CHECK(  DummyDevice::calculateVirtualAddress( 0, 0x4 ) == 0x4000000000000000UL );
 
   // the first bit of the bar has to be cropped
-  BOOST_CHECK(  DummyDevice::calculateVirtualRegisterAddress( 0x123, 0xD ) == 0x5000000000000123UL );
+  BOOST_CHECK(  DummyDevice::calculateVirtualAddress( 0x123, 0xD ) == 0x5000000000000123UL );
 }
 
 void DummyDeviceTest::testCheckSizeIsMultipleOfWordSize(){
@@ -263,3 +273,55 @@ void DummyDeviceTest::testReadDeviceInfo(){
 			      + TEST_MAPPING_FILE) );
 }
 
+void DummyDeviceTest::testReadOnly(){
+  freshlyOpenDevice();
+
+  mapFile::mapElem mappingElement;
+  _dummyDevice._registerMapping->getRegisterInfo (CLOCK_MUX_REGISTER_STRING, mappingElement);
+
+  uint32_t offset =  mappingElement.reg_address;
+  uint8_t bar =  mappingElement.reg_bar;
+  size_t sizeInBytes =  mappingElement.reg_size;
+  size_t sizeInWords =  mappingElement.reg_size / sizeof(int32_t);
+  std::stringstream errorMessage;
+  errorMessage << "This register should have 4 words. "
+	       << "If you changed your mapping you have to adapt "
+	       << "the testReadOnly() test.";
+  BOOST_REQUIRE_MESSAGE(sizeInWords == 4, errorMessage.str());
+
+  std::vector<int32_t> dataContent(sizeInBytes);
+  for( unsigned int index = 0; index < dataContent.size(); ++index ){
+    dataContent[index] = static_cast<int32_t>((index+1) * (index+1));
+  }
+  _dummyDevice.writeArea(offset, &(dataContent[0]), sizeInBytes, bar);
+  _dummyDevice.setReadOnly( offset, bar, 1);
+  
+  // the actual test: write 42 to all registers, register 0 must not change, all others have to
+  std::for_each( dataContent.begin(), dataContent.end(), boost::lambda::_1 = 42);
+  _dummyDevice.writeArea(offset, &(dataContent[0]), sizeInBytes, bar);
+  std::for_each( dataContent.begin(), dataContent.end(), boost::lambda::_1 = -1);
+  _dummyDevice.readArea(offset, &(dataContent[0]), sizeInBytes, bar);
+  BOOST_CHECK( dataContent[0] == 1 );
+  BOOST_CHECK( dataContent[1] == 42 );
+  BOOST_CHECK( dataContent[2] == 42 );
+  BOOST_CHECK( dataContent[3] == 42 );
+
+  // also set the last two words to read only. Now only the second word has to change.
+  _dummyDevice.setReadOnly( offset + 2*sizeof(int32_t),  bar, 2);
+   std::for_each( dataContent.begin(), dataContent.end(), boost::lambda::_1 = 29);
+   // also test with single write operations
+   for(size_t index = 0; index < sizeInWords; ++index){
+     _dummyDevice.writeReg(offset + index*sizeof(int32_t), dataContent[index], bar);
+   }
+
+  std::for_each( dataContent.begin(), dataContent.end(), boost::lambda::_1 = -1);
+  _dummyDevice.readArea(offset, &(dataContent[0]), sizeInBytes, bar);
+  BOOST_CHECK( dataContent[0] == 1 );
+  BOOST_CHECK( dataContent[1] == 29 );
+  BOOST_CHECK( dataContent[2] == 42 );
+  BOOST_CHECK( dataContent[3] == 42 );  
+}
+
+void DummyDeviceTest::testWriteCallbackFunctions(){
+  BOOST_FAIL("test not impemented yet");
+}

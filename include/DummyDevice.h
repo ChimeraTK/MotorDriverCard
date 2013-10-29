@@ -68,7 +68,7 @@ namespace mtca4u{
     
     virtual void readDeviceInfo(std::string* devInfo);
 
-    static uint64_t calculateVirtualRegisterAddress(
+    static uint64_t calculateVirtualAddress(
 	uint32_t registerOffsetInBar,
 	uint8_t bar);
 							 
@@ -84,10 +84,11 @@ namespace mtca4u{
     std::map< uint8_t, size_t > getBarSizesInBytesFromRegisterMapping() const;
     void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange ) const;
     std::list< boost::function<void(void)> > findCallbackFunctionsForAddressRange(AddressRange addressRange);
-    void setReadOnly( AddressRange addressRange );
+    void setReadOnly( uint32_t offset,  uint8_t bar, size_t sizeInWords);
+    bool isReadOnly( uint32_t offset, uint8_t bar );
     void setWriteCallbackFunction( AddressRange addressRange,
 				   boost::function<void(void)>  const & writeCallbackFunction );
-    static void checkSizeIsMultipleOfWordSize(size_t size);
+    static void checkSizeIsMultipleOfWordSize(size_t sizeInBytes);
   };
 
 }//namespace mtca4u
