@@ -259,4 +259,11 @@ namespace mtca4u{
     return (  _writeOnlyAddresses.find(virtualAddress) != _writeOnlyAddresses.end() );
   }
   
+  void  DummyDevice::setWriteCallbackFunction( AddressRange addressRange,
+					       boost::function<void(void)>  const & writeCallbackFunction ){
+    _writeCallbackFunctions.insert(
+	std::pair< AddressRange, boost::function<void(void)> >(addressRange, writeCallbackFunction) );
+  }
+
+
 }// namespace mtca4u
