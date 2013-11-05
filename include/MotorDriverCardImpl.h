@@ -5,7 +5,6 @@
 #include <boost/scoped_ptr.hpp>
 
 #include <MtcaMappedDevice/devMap.h>
-#include <MtcaMappedDevice/dmapFilesParser.h>
 
 #include "MotorDriverCardExpert.h"
 #include "MotorControler.h"
@@ -31,8 +30,8 @@ namespace mtca4u
      */
     /// For the time being we require a working version of MtcaMappedDevice in addition 
     /// to the configuration
-    MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > & mappedDevice,
-			MotorDriverConfiguration & motorDriverConfiguration);
+    MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+			MotorDriverConfiguration const & motorDriverConfiguration);
 
     MotorControler & getMotorControler(unsigned int motorControlerID);
     
@@ -61,6 +60,7 @@ namespace mtca4u
 		  PositionCompareInterruptData const & positionCompareInterruptData);
 
     void powerDown();
+    MotorDriverCard::ReferenceSwitchData getReferenceSwitchRegister();
 
   private:
     // Motor controlers need dynamic allocation. So we cannot store them directly.

@@ -4,8 +4,8 @@
 
 namespace mtca4u{
 
-  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > & mappedDevice,
-				   MotorDriverConfiguration & motorDriverConfiguration)
+  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+					   MotorDriverConfiguration const & motorDriverConfiguration)
     : _mappedDevice(mappedDevice),
       _spiControlWriteRegister( 
            mappedDevice->getRegObject( SPI_CONTROL_WRITE_ADDRESS_STRING )) ,
@@ -99,6 +99,10 @@ namespace mtca4u{
   }
 
   void MotorDriverCardImpl::powerDown(){
+  }
+
+  MotorDriverCard::ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
+    return MotorDriverCard::ReferenceSwitchData(0);
   }
 
 }// namespace mtca4u
