@@ -9,6 +9,7 @@
 #include "MotorDriverCardExpert.h"
 #include "MotorControler.h"
 #include "PowerMonitor.h"
+#include "TMC429Words.h"
 
 namespace mtca4u
 {
@@ -20,8 +21,6 @@ namespace mtca4u
     // the helper classes
     struct MotorDriverConfiguration{};
     
-    typedef TMC429Word PositionCompareInterruptData;
-
     //FIXME: move constructor to impl
     /* how to construct?
        a) using the device and subdevice ID?
@@ -60,14 +59,14 @@ namespace mtca4u
 		  PositionCompareInterruptData const & positionCompareInterruptData);
 
     void powerDown();
-    MotorDriverCard::ReferenceSwitchData getReferenceSwitchRegister();
+    ReferenceSwitchData getReferenceSwitchRegister();
 
   private:
     // Motor controlers need dynamic allocation. So we cannot store them directly.
     // As we do not want to care about cleaning up we use scoped pointers.
     // FIXME: should they be shared pointers? What about the copy constructor?
     // scoped pointers cannot be copied.    
-    std::vector< boost::scoped_ptr<MotorControler> > _motorControlers;
+    std::vector< boost::shared_ptr<MotorControler> > _motorControlers;
 
     boost::shared_ptr< devMap<devBase> > _mappedDevice;
 
@@ -76,7 +75,7 @@ namespace mtca4u
 
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
-    TMC429Word spiRead( unsigned int smda, unsigned int idx_jdx );
+    TMC429OutputWord spiRead( unsigned int smda, unsigned int idx_jdx );
 
     void spiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
   };

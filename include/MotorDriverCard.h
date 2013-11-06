@@ -1,8 +1,8 @@
 #ifndef MTCA4U_MOTOR_DRIVER_CARD_H
 #define MTCA4U_MOTOR_DRIVER_CARD_H
 
-#include "TMC429Word.h"
-#include "DFMC-MD22_Constants.h"
+#include "TMC429Words.h"
+#include "DFMC_MD22Constants.h"
 
 namespace mtca4u
 {
@@ -12,7 +12,7 @@ namespace mtca4u
   class MotorDriverException: public exBase {
   public:
     
-    enum {  WRONG_MOTOR_ID };
+    enum {  WRONG_MOTOR_ID, SPI_READ_TIMEOUT };
     
     MotorDriverException(const std::string & message, unsigned int id):
       exBase(message, id) {}
@@ -26,25 +26,6 @@ namespace mtca4u
    */
   class MotorDriverCard{
   public:
-    /** Nested helper class to describe the reference switch register.
-     */
-    class ReferenceSwitchData : public TMC429Word
-    {
-      public: 
-        ADD_VARIABLE(Right1, 0, 0);
-        ADD_VARIABLE(Left1, 1, 1);
-        ADD_VARIABLE(Right2, 2, 2);
-        ADD_VARIABLE(Left2, 3, 3);
-        ADD_VARIABLE(Right3, 4, 4);
-        ADD_VARIABLE(Left3, 5, 6);
-	/// Constructor to define the correct address.
-	ReferenceSwitchData(unsigned int data = 0){
-	  setSMDA(SMDA_COMMON);
-	  setIDX_JDX(JDX_REFERENCE_SWITCH);
-	  setDATA(data);	
-	}
-    };
-
     /** Get acces to one of the two motor controlers on this board. 
      *  Valid IDs are 0 and 1.
      *  Throws a MotorDriverException if the ID is invalid.

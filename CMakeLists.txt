@@ -37,7 +37,7 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 #each file gives a new executable. This section has to be adapted if this should change.
 if(TESTING_IS_ENABLED)
   include_directories(${Boost_INCLUDE_DIR})
-  include_directories(${CMAKE_SOURCE_DIR}/tests/include})
+  include_directories(${CMAKE_SOURCE_DIR}/tests/include)
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testSources)
   foreach( testSourceFile ${testSources})
     #NAME_WE means the base name without path and (longest) extension

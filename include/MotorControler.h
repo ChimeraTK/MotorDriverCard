@@ -1,7 +1,7 @@
 #ifndef MTCA4U_MOTOR_CONTROLER_H
 #define MTCA4U_MOTOR_CONTROLER_H
 
-#include "TMC429Word.h"
+#include "TMC429Words.h"
 
 namespace mtca4u
 {
@@ -28,63 +28,6 @@ namespace mtca4u
       static const unsigned int INCREMENTAL = 1;
     };
 
-    /** A helper class which contains the variables of the
-     *  acceleration treshold register.
-     */
-    class AccelerationThresholdData : public TMC429Word
-    {
-    public:
-      ADD_VARIABLE(CurrentScalingBelowThreshold,
-		   CURRENT_SCALING_BELOW_THRESHOLD_START_BIT,
-		   CURRENT_SCALING_BELOW_THRESHOLD_STOP_BIT);
-      ADD_VARIABLE(CurrentScalingAboveThreshold,
-		   CURRENT_SCALING_ABOVE_THRESHOLD_START_BIT,
-		   CURRENT_SCALING_ABOVE_THRESHOLD_STOP_BIT);
-      ADD_VARIABLE(CurrentScalingAtRest,
-		   CURRENT_SCALING_AT_REST_START_BIT,
-		   CURRENT_SCALING_AT_REST_STOP_BIT);
-      ADD_VARIABLE(AccelerationThreshold,
-		   ACCELERATION_THRESHOLD_START_BIT,
-		   ACCELERATION_THRESHOLD_STOP_BIT);
-
-      /// Constructor which initialises the IDX correctly
-      AccelerationThresholdData(){
-	setIDX_JDX( IDX_ACCELERATION_THRESHOLD );
-      }
-      
-    };
-
-    /** A helper class to represent contents of the 
-     *  proportionality factor register.
-     *  Note: Bit 15, which is always 1, is not represented.
-     */
-    class ProportionalityFactorData : public TMC429Word
-    {
-    public:
-      ADD_VARIABLE(MultiplicationParameter,
-		   MULTIPLICATION_PARAMETER_START_BIT,
-		   MULTIPLICATION_PARAMETER_STOP_BIT);
-
-      ADD_VARIABLE(DivisionParameter,
-		   DIVISION_PARAMETER_START_BIT,
-		   DIVISION_PARAMETER_STOP_BIT);
-
-      /// Constructor to initialise the IDX correctly
-      ProportionalityFactorData(){
-	setIDX_JDX( IDX_PROPORTIONALITY_FACTORS );	
-      }
-    };
-    
-    //FIXME implement all the types correctly. To make it compile we
-    // start with typedefs
-    typedef TMC429Word ReferenceConfigAndRampModeData;
-    typedef TMC429Word InterruptData;
-    typedef TMC429Word DividersAndMicroStepResolutionData;
-    typedef TMC429Word DriverControlData;
-    typedef TMC429Word ChopperControlData;
-    typedef TMC429Word CoolStepControlData;
-    typedef TMC429Word StallGuardControlData;
-    typedef TMC429Word DriverConfigData;
 
     /**
      * The constructor requires a reference to the MotorDriverCard it is

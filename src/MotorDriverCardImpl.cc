@@ -1,6 +1,11 @@
 #include <boost/shared_ptr.hpp>
+#include <stdexcept>
+#include <sstream>
 
+#include "NotImplementedException.h"
 #include "MotorDriverCardImpl.h"
+
+#define INVALID_SPI_READBACK_VALUE 0xFFFFFFFF
 
 namespace mtca4u{
 
@@ -17,12 +22,16 @@ namespace mtca4u{
   }
 
   MotorControler & MotorDriverCardImpl::getMotorControler(unsigned int motorControlerID){
-    if (motorControlerID > 2){
-      throw MotorDriverException("motorControlerID too large", 
+    try{
+      return *(_motorControlers.at(motorControlerID));
+    }
+    catch(std::out_of_range &e){
+      std::stringstream errorMessage;
+      errorMessage << "motorControlerID " << motorControlerID << " is too large. "
+		   << e.what();
+      throw MotorDriverException(errorMessage.str(),
 				 MotorDriverException::WRONG_MOTOR_ID);
     }
-    
-    return *(_motorControlers[motorControlerID]);
   }
 
   PowerMonitor & MotorDriverCardImpl::getPowerMonitor(){
@@ -33,12 +42,12 @@ namespace mtca4u{
     return spiRead( SMDA_COMMON, JDX_CHIP_VERSION ).getDATA();
   }
 
-  TMC429Word MotorDriverCardImpl::spiRead( unsigned int smda, unsigned int idx_jdx )
+  TMC429OutputWord MotorDriverCardImpl::spiRead( unsigned int smda, unsigned int idx_jdx )
   {
     // Although the first half is almost identical to the spiWrite,
-    // the preparation of the TMC429Word is different. So we accept a little 
+    // the preparation of the TMC429InputWord is different. So we accept a little 
     // code duplication here.
-    TMC429Word readRequest;
+    TMC429InputWord readRequest;
     readRequest.setSMDA(smda);
     readRequest.setIDX_JDX(idx_jdx);
     readRequest.setRW(RW_READ);
@@ -50,15 +59,32 @@ namespace mtca4u{
     //FIXME: synchronise so readback value is valid
     
     int readbackValue;
-    _spiControlReadbackRegister.readReg( & readbackValue, sizeof(int));
+      _spiControlReadbackRegister.readReg( & readbackValue, sizeof(int));
+    // Wait until the correct data word appears in the readback register.
+    // Until the word has been transmitted from the controller to the FPGA whith the 
+    // PCIe end point, this word reads 0xFFFFFFFF.
+    // Limit the loop to 10 attempts with idle time in between
+    // FIXME: Hard coded number of attempts, time and invalid word
+    
+    size_t readbackLoopCounter;
+    for (readbackLoopCounter=0; 
+	 (static_cast<unsigned int>(readbackValue)!=INVALID_SPI_READBACK_VALUE) && (readbackLoopCounter < 10);
+	 ++readbackLoopCounter){
+      // sleep somehow
+      _spiControlReadbackRegister.readReg( & readbackValue, sizeof(int));
+    }
 
-    return TMC429Word(static_cast<unsigned int>(readbackValue));
+    if (static_cast<unsigned int>(readbackValue)==INVALID_SPI_READBACK_VALUE){
+      throw( MotorDriverException("spi read timed out", MotorDriverException::SPI_READ_TIMEOUT) ); 
+    }
+
+    return TMC429OutputWord(static_cast<unsigned int>(readbackValue));
   }
 
   void MotorDriverCardImpl::spiWrite( unsigned int smda, unsigned int idx_jdx, 
 				      unsigned int data )
   {
-    TMC429Word writeMe;
+    TMC429InputWord writeMe;
     writeMe.setSMDA(smda);
     writeMe.setIDX_JDX(idx_jdx);
     writeMe.setRW(RW_WRITE);
@@ -69,40 +95,49 @@ namespace mtca4u{
   }
 
   void MotorDriverCardImpl::setDatagramLowWord(unsigned int datagramLowWord){
+    throw NotImplementedException("setDatagramLowWord not implemented yet");
   }
 
   void MotorDriverCardImpl::setDatagramHighWord(unsigned int datagramHighWord){
+    throw NotImplementedException("setDatagramHighWord not implemented yet");
   }
    
   void MotorDriverCardImpl::setCoverPositionAndLength(
 		CoverPositionAndLength const & coverPositionAndLength){
+    throw NotImplementedException("setCoverPositionAndLength not implemented yet");
   }
 
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram){
+    throw NotImplementedException("setCoverDatagram not implemented yet");
   }
 
   
   void MotorDriverCardImpl::setStepperMotorGlobalParametersRegister(
 	   StepperMotorGlobalParameters const & stepperMotorGlobalParameters){
+    throw NotImplementedException("setStepperMotorGlobalParametersRegister not implemented yet");
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(
 	   InterfaceConfiguration const & interfaceConfiguration){
+    throw NotImplementedException("setInterfaceConfiguration not implemented yet");
   }
 
   void MotorDriverCardImpl::setPositionCompareRegister(
            unsigned int positionCompareWord){
+    throw NotImplementedException("setPositionCompareRegister not implemented yet");
   }
 
   void MotorDriverCardImpl::setPositionCompareInterruptRegister(
 	   PositionCompareInterruptData const & positionCompareInterruptData){
-  }
+    throw NotImplementedException("setPositionCompareInterruptRegister not implemented yet"); 
+ }
 
   void MotorDriverCardImpl::powerDown(){
+    throw NotImplementedException("powerDown not implemented yet");
   }
 
-  MotorDriverCard::ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
-    return MotorDriverCard::ReferenceSwitchData(0);
+  ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
+    throw NotImplementedException("getReferenceSwitchRegister not implemented yet");
   }
 
 }// namespace mtca4u
