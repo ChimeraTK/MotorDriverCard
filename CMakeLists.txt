@@ -32,6 +32,12 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
+MACRO( COPY_MAPPING_FILES )
+  foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_broken.map )
+    configure_file( tests/${MAPPING_FILE} ${PROJECT_BINARY_DIR}/${MAPPING_FILE} copyonly)
+  endforeach( MAPPING_FILE )
+ENDMACRO( COPY_MAPPING_FILES )
+
 #Create the executables for automated unit testing.
 #Currently we assume that they are all tests contained in one file, so
 #each file gives a new executable. This section has to be adapted if this should change.
@@ -47,6 +53,8 @@ if(TESTING_IS_ENABLED)
     target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
     add_test(${excutableName} ${excutableName})
   endforeach( testSourceFile )
+
+  COPY_MAPPING_FILES()
 endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} )
