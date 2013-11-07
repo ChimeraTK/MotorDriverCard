@@ -16,6 +16,10 @@ void MultiVariableWord::setDataWord(unsigned int dataWord)
   _dataWord = dataWord;
 }
 
+bool MultiVariableWord::operator==(MultiVariableWord const & right){
+    return _dataWord==right._dataWord;
+}
+
 unsigned int MultiVariableWord::getSubWord(unsigned int outputMask,
 					       unsigned char offset) const
 {

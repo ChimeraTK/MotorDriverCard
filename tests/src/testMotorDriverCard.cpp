@@ -20,6 +20,7 @@ public:
   // the constructor might throw, better test it.
   void testConstructor();
   void testGetControlerChipVersion();
+  void testGetReferenceSwitchRegister();
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> motorDriverCard;
@@ -33,11 +34,12 @@ class  MotorDriverCardTestSuite : public test_suite{
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
     test_case* getControlerVersionTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetControlerChipVersion, motorDriverCardTest );
-
+    
     getControlerVersionTestCase->depends_on( constructorTestCase );
 
     add( constructorTestCase );
     add( getControlerVersionTestCase );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetReferenceSwitchRegister, motorDriverCardTest ) );
   }
 };
 
@@ -87,4 +89,9 @@ void MotorDriverCardTest::testConstructor(){
 
 void MotorDriverCardTest::testGetControlerChipVersion(){
   BOOST_CHECK( motorDriverCard->getControlerChipVersion() == CONTROLER_CHIP_VERSION );
+}
+
+void MotorDriverCardTest::testGetReferenceSwitchRegister(){
+  // seems like a self consistency test, but ReferenceSwitchData has been testes in testTMC429Words, and the data content should be 0
+  BOOST_CHECK( motorDriverCard->getReferenceSwitchRegister() == ReferenceSwitchData() );
 }

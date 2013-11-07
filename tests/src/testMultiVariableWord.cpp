@@ -96,6 +96,8 @@ class MultiVariableWordTest
    */
   static void testOutputMask();
 
+  static void testEqualsOperator();
+
   // FIXME: these could also be static
   void testGetSetDataWord();
 
@@ -126,6 +128,7 @@ public:
 
 	test_case*  inputMaskTestCase = BOOST_TEST_CASE( &MultiVariableWordTest<T>::testInputMask );
 	test_case*  outputMaskTestCase = BOOST_TEST_CASE( &MultiVariableWordTest<T>::testOutputMask );
+	test_case*  equalsOperatorTestCase = BOOST_TEST_CASE( &MultiVariableWordTest<T>::testEqualsOperator );
 
         test_case* getSetTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableWordTest<T>::testGetSetDataWord, multiVariableWord );
         test_case* setSubWordTestCase = BOOST_CLASS_TEST_CASE( &MultiVariableWordTest<T>::testSetSubWord, multiVariableWord );
@@ -139,6 +142,7 @@ public:
 
 	add( inputMaskTestCase );
         add( outputMaskTestCase );
+        add( equalsOperatorTestCase );
 
         add( getSetTestCase );
         add( setSubWordTestCase );
@@ -211,6 +215,16 @@ void MultiVariableWordTest<T>::testOutputMask() {
   BOOST_CHECK( OUTPUT_MASK(1, 31)  == 0xFFFFFFFE );
   BOOST_CHECK( OUTPUT_MASK(0, 30)  == 0x7FFFFFFF );
   BOOST_CHECK( OUTPUT_MASK(1, 30)  == 0x7FFFFFFE );
+}
+
+template <class T> 
+void MultiVariableWordTest<T>::testEqualsOperator() {
+  T firstWord; firstWord.setDataWord(25);
+  T secondWord; secondWord.setDataWord(25);
+  T thirdWord; thirdWord.setDataWord(26);
+
+  BOOST_CHECK( (firstWord==secondWord) == true );
+  BOOST_CHECK( (firstWord==thirdWord) == false );
 }
 
 template <class T>
