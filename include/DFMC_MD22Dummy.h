@@ -9,6 +9,16 @@ namespace mtca4u{
   public:
     void openDev(const std::string &mappingFileName,
 		 int perm = O_RDWR, devConfigBase* pConfig = NULL);
+    
+    /** According to the data sheet, all registers are set to 0,
+     *  except for the ChipVersion and the StepperMotorGlobalParameters register,
+     *  which are initialised to the chip version and Clk2_div=15, respectively.
+     */    
+    void setSPIRegistersForOperation();
+
+    /** Writes the test pattern spiAddress*spiAddress+13 to all registers.
+     */
+    void setSPIRegistersForTesting();
   private:
     // callback functions
     void handleSPIWrite();
@@ -23,7 +33,6 @@ namespace mtca4u{
     // internal and helper functions
     void writeContentToSpiRegister(unsigned int content, unsigned int spiAddress);
     void writeSpiContentToReadbackRegister(unsigned int spiAddress);
-    void prepareSPIRegisters();
   };
 }// namespace mtca4u
 

@@ -21,10 +21,13 @@ public:
   void testConstructor();
   void testGetControlerChipVersion();
   void testGetReferenceSwitchRegister();
+  void testGetDatagramLowWord();
+  void testSetDatagramLowWord();
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> motorDriverCard;
   std::string _mapFileName;
+  unsigned int testWordFromSpiAddress(unsigned int smda, unsigned int idx_jdx);
 };
 
 class  MotorDriverCardTestSuite : public test_suite{
@@ -34,12 +37,18 @@ class  MotorDriverCardTestSuite : public test_suite{
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
     test_case* getControlerVersionTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetControlerChipVersion, motorDriverCardTest );
+    test_case* getDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetDatagramLowWord, motorDriverCardTest );
+    test_case* setDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSetDatagramLowWord, motorDriverCardTest );
     
     getControlerVersionTestCase->depends_on( constructorTestCase );
+    setDatagramLowWordTestCase->depends_on( getDatagramLowWordTestCase );
 
     add( constructorTestCase );
     add( getControlerVersionTestCase );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetReferenceSwitchRegister, motorDriverCardTest ) );
+    add( getDatagramLowWordTestCase );
+    add( setDatagramLowWordTestCase );
+    
   }
 };
 
@@ -81,6 +90,7 @@ void MotorDriverCardTest::testConstructor(){
   mappedDevice->closeDev();
 
   dummyDevice->openDev( _mapFileName );
+  boost::dynamic_pointer_cast<DFMC_MD22Dummy>(dummyDevice)->setSPIRegistersForTesting();
   mappedDevice->openDev( dummyDevice, registerMapping );
   
   BOOST_CHECK_NO_THROW(  motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration )) );
@@ -88,10 +98,32 @@ void MotorDriverCardTest::testConstructor(){
 }
 
 void MotorDriverCardTest::testGetControlerChipVersion(){
-  BOOST_CHECK( motorDriverCard->getControlerChipVersion() == CONTROLER_CHIP_VERSION );
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_CHIP_VERSION);
+  BOOST_CHECK( motorDriverCard->getControlerChipVersion() == expectedContent );
 }
 
 void MotorDriverCardTest::testGetReferenceSwitchRegister(){
-  // seems like a self consistency test, but ReferenceSwitchData has been testes in testTMC429Words, and the data content should be 0
-  BOOST_CHECK( motorDriverCard->getReferenceSwitchRegister() == ReferenceSwitchData() );
+  // seems like a self consistency test, but ReferenceSwitchData has been testes in testTMC429Words, and the data content should be the test word
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_REFERENCE_SWITCH);  
+  BOOST_CHECK( motorDriverCard->getReferenceSwitchRegister() == ReferenceSwitchData(expectedContent) );
+}
+
+void MotorDriverCardTest::testGetDatagramLowWord(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_DATAGRAM_LOW_WORD);
+  BOOST_CHECK( motorDriverCard->getDatagramLowWord() == expectedContent );
+}
+
+void MotorDriverCardTest::testSetDatagramLowWord(){
+  motorDriverCard->setDatagramLowWord( 0xAAAAAAAA );
+  BOOST_CHECK( motorDriverCard->getDatagramLowWord() == 0xAAAAAA );
+}
+
+unsigned int MotorDriverCardTest::testWordFromSpiAddress(unsigned int smda,
+							 unsigned int idx_jdx){
+  unsigned int spiAddress = (smda << 4) | idx_jdx;
+  // the test word as defined in the DUMMY (independent implementation)
+  return spiAddress*spiAddress+13;
 }

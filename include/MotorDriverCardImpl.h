@@ -61,6 +61,8 @@ namespace mtca4u
     void powerDown();
     ReferenceSwitchData getReferenceSwitchRegister();
 
+    unsigned int getDatagramLowWord();
+
   private:
     // Motor controlers need dynamic allocation. So we cannot store them directly.
     // As we do not want to care about cleaning up we use scoped pointers.
