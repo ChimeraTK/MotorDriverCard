@@ -45,7 +45,7 @@ unsigned int getVoltage();
  *
  */
 #define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)\
-  unsigned int get ## VAR_NAME (){ \
+  unsigned int get ## VAR_NAME () const{ \
     return getSubWord( OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT ); } \
   void set ## VAR_NAME (unsigned int word){ \
     return setSubWord( word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT ); }
@@ -94,7 +94,7 @@ class MultiVariableWord{
   MultiVariableWord(unsigned int dataWord = 0);
 
   /** Get the encoded 32 bit data word. */
-  unsigned int getDataWord();
+  unsigned int getDataWord() const;
 
   /** Set the whole 32 bit data word. */
   void setDataWord(unsigned int dataWord);
@@ -110,7 +110,7 @@ class MultiVariableWord{
    *  is used to avoid unnecessary computations.
    */
   unsigned int getSubWord(unsigned int outputMask,
-			  unsigned char offset);
+			  unsigned char offset) const;
   
   /** Set the sub word at the width and position defined by input mask and offset.
    *  The input mask is the mask at the end of the data word

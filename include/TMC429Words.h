@@ -4,6 +4,9 @@
 #include "MultiVariableWord.h"
 #include "DFMC_MD22Constants.h"
 
+// All bits from the ADD_VARIABLE are only in this file. Their correctness is tested 
+// with a unit test (second, independent implementation of the same information).
+
 namespace mtca4u{
   
   /** Structure of a generic single value register of the TMC429 chip.
@@ -51,15 +54,15 @@ namespace mtca4u{
 
       ADD_VARIABLE(SM3, 28, 29 );
       ADD_VARIABLE(RS3, 29, 29 );
-      ADD_VARIABLE(xEqt3, 28, 28 );
+      ADD_VARIABLE(xEQt3, 28, 28 );
 
       ADD_VARIABLE(SM2, 26, 27 );
       ADD_VARIABLE(RS2, 27, 27 );
-      ADD_VARIABLE(xEqt2, 26, 26 );
+      ADD_VARIABLE(xEQt2, 26, 26 );
 
       ADD_VARIABLE(SM1, 24, 25 );
       ADD_VARIABLE(RS1, 25, 25 );
-      ADD_VARIABLE(xEqt1, 24, 24 );
+      ADD_VARIABLE(xEQt1, 24, 24 );
 
       ADD_VARIABLE(DATA, 0, 23);
   };
@@ -72,7 +75,7 @@ namespace mtca4u{
       ADD_VARIABLE(Right2, 2, 2);
       ADD_VARIABLE(Left2, 3, 3);
       ADD_VARIABLE(Right3, 4, 4);
-      ADD_VARIABLE(Left3, 5, 6);
+      ADD_VARIABLE(Left3, 5, 5);
       /// Constructor to define the correct address.
       ReferenceSwitchData(unsigned int data = 0){
 	setSMDA(SMDA_COMMON);
@@ -88,7 +91,7 @@ namespace mtca4u{
         ADD_VARIABLE(CoverLength, 0, 4);
 	ADD_VARIABLE(CoverPosition, 8, 13);
 	ADD_VARIABLE(CoverWaiting, 23, 23);
-	CoverPositionAndLength(unsigned int data){
+	CoverPositionAndLength(unsigned int data = 0){
 	  setSMDA(0x3);
 	  setIDX_JDX(0x2);
 	  setDATA(data);

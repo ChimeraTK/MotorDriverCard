@@ -78,6 +78,7 @@ namespace mtca4u
     TMC429OutputWord spiRead( unsigned int smda, unsigned int idx_jdx );
 
     void spiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
+    void spiWrite( TMC429InputWord const & writeWord );
   };
   
 }// namespace mtca4u

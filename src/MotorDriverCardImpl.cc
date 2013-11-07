@@ -52,12 +52,8 @@ namespace mtca4u{
     readRequest.setIDX_JDX(idx_jdx);
     readRequest.setRW(RW_READ);
 
-    // we need this intermediate variable because the write function needs a pointer
-    // to int.
-    int writeMe = static_cast<int>(readRequest.getDataWord());
-    _spiControlWriteRegister.writeReg(&writeMe, sizeof(int));
-    //FIXME: synchronise so readback value is valid
-    
+    spiWrite(readRequest);
+
     int readbackValue;
       _spiControlReadbackRegister.readReg( & readbackValue, sizeof(int));
     // Wait until the correct data word appears in the readback register.
@@ -89,8 +85,14 @@ namespace mtca4u{
     writeMe.setIDX_JDX(idx_jdx);
     writeMe.setRW(RW_WRITE);
     writeMe.setDATA(data);
+    
+    spiWrite(writeMe);
+  }
 
-    int temporaryWriteInt = static_cast<int>(writeMe.getDataWord());
+  void MotorDriverCardImpl::spiWrite( TMC429InputWord const & writeWord ){
+    // we need this intermediate variable because the write function needs a pointer
+    // to int.
+    int temporaryWriteInt = static_cast<int>(writeWord.getDataWord());
     _spiControlWriteRegister.writeReg( &temporaryWriteInt, sizeof(int));
   }
 
@@ -137,7 +139,7 @@ namespace mtca4u{
   }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
-    throw NotImplementedException("getReferenceSwitchRegister not implemented yet");
+    return spiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA();
   }
 
 }// namespace mtca4u
