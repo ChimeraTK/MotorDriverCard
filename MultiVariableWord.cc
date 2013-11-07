@@ -6,7 +6,7 @@ MultiVariableWord::MultiVariableWord(unsigned int dataWord)
   : _dataWord(dataWord)
 {}
 
-unsigned int MultiVariableWord::getDataWord()
+unsigned int MultiVariableWord::getDataWord() const
 {
   return _dataWord;
 }
@@ -17,7 +17,7 @@ void MultiVariableWord::setDataWord(unsigned int dataWord)
 }
 
 unsigned int MultiVariableWord::getSubWord(unsigned int outputMask,
-					       unsigned char offset)
+					       unsigned char offset) const
 {
   return (_dataWord & outputMask) >> offset;
 }
