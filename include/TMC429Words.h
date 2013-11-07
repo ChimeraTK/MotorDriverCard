@@ -92,8 +92,8 @@ namespace mtca4u{
 	ADD_VARIABLE(CoverPosition, 8, 13);
 	ADD_VARIABLE(CoverWaiting, 23, 23);
 	CoverPositionAndLength(unsigned int data = 0){
-	  setSMDA(0x3);
-	  setIDX_JDX(0x2);
+	  setSMDA(SMDA_COMMON);
+	  setIDX_JDX(JDX_COVER_POSITION_AND_LENGTH);
 	  setDATA(data);
 	}
     };
@@ -105,13 +105,13 @@ namespace mtca4u{
     class StepperMotorGlobalParameters : public TMC429InputWord
     {
       public:
-        ADD_VARIABLE(LastSteperMotorDriver, 0, 1);
+        ADD_VARIABLE(LastStepperMotorDriver, 0, 1);
         ADD_VARIABLE(Polarities, 2, 6);
 	// we break the naming convention here to stick with the data sheet
         ADD_VARIABLE(Polarity_nSCS_S, 2, 2);
         ADD_VARIABLE(Polarity_SCK_S,  3, 3);
         ADD_VARIABLE(Polarity_PH_AB,  4, 4);
-        ADD_VARIABLE(Polarity_FD,     5, 5);
+        ADD_VARIABLE(Polarity_FD_AB,  5, 5);
         ADD_VARIABLE(Polarity_DAC_AB, 6, 6);
 
         ADD_VARIABLE(CsCommonIndividual, 7, 7);
@@ -119,13 +119,15 @@ namespace mtca4u{
         ADD_VARIABLE(ContinuousUpdate, 16, 16);
         ADD_VARIABLE(RefMux, 20, 20);
         ADD_VARIABLE(Mot1r, 21, 21);	
-	StepperMotorGlobalParameters(unsigned int data){
-	  setSMDA(0x3);
-	  setIDX_JDX(0xF);
+	StepperMotorGlobalParameters(unsigned int data = 0){
+	  setSMDA(SMDA_COMMON);
+	  setIDX_JDX(JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
 	  setDATA(data);
 	}
     };
 
+    /** See TMC429 data sheet, page 33, table 10-2.
+     */
     class InterfaceConfiguration : public TMC429InputWord
     {
       public: 
@@ -139,9 +141,9 @@ namespace mtca4u{
         ADD_VARIABLE(Pos_comp_sel_1, 7, 7);
         ADD_VARIABLE(En_refr, 8, 8);
 	/// Constructor to define the correct address.
-	InterfaceConfiguration(unsigned int data){
-	  setSMDA(0x3);
-	  setIDX_JDX(0x4);
+	InterfaceConfiguration(unsigned int data = 0){
+	  setSMDA(SMDA_COMMON);
+	  setIDX_JDX(JDX_INTERFACE_CONFIGURATION);
 	  setDATA(data);
 	}
     };
@@ -154,18 +156,10 @@ namespace mtca4u{
     class AccelerationThresholdData : public TMC429InputWord
     {
     public:
-      ADD_VARIABLE(CurrentScalingBelowThreshold,
-		   CURRENT_SCALING_BELOW_THRESHOLD_START_BIT,
-		   CURRENT_SCALING_BELOW_THRESHOLD_STOP_BIT);
-      ADD_VARIABLE(CurrentScalingAboveThreshold,
-		   CURRENT_SCALING_ABOVE_THRESHOLD_START_BIT,
-		   CURRENT_SCALING_ABOVE_THRESHOLD_STOP_BIT);
-      ADD_VARIABLE(CurrentScalingAtRest,
-		   CURRENT_SCALING_AT_REST_START_BIT,
-		   CURRENT_SCALING_AT_REST_STOP_BIT);
-      ADD_VARIABLE(AccelerationThreshold,
-		   ACCELERATION_THRESHOLD_START_BIT,
-		   ACCELERATION_THRESHOLD_STOP_BIT);
+      ADD_VARIABLE(CurrentScalingBelowThreshold, 16, 18);
+      ADD_VARIABLE(CurrentScalingAboveThreshold, 20, 22);
+      ADD_VARIABLE(CurrentScalingAtRest, 12, 14);
+      ADD_VARIABLE(AccelerationThreshold, 0, 10);
 
       /// Constructor which initialises the IDX correctly
       AccelerationThresholdData(){
@@ -181,13 +175,8 @@ namespace mtca4u{
     class ProportionalityFactorData : public TMC429InputWord
     {
     public:
-      ADD_VARIABLE(MultiplicationParameter,
-		   MULTIPLICATION_PARAMETER_START_BIT,
-		   MULTIPLICATION_PARAMETER_STOP_BIT);
-
-      ADD_VARIABLE(DivisionParameter,
-		   DIVISION_PARAMETER_START_BIT,
-		   DIVISION_PARAMETER_STOP_BIT);
+      ADD_VARIABLE(DivisionParameter, 0, 3);
+      ADD_VARIABLE(MultiplicationParameter, 8, 14);
 
       /// Constructor to initialise the IDX correctly
       ProportionalityFactorData(){

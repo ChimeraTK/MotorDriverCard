@@ -41,7 +41,9 @@ namespace mtca4u{
 
     // the CLK2_DIV subword is 15, all other bits stay 0
     spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS );
-    _spiAddressSpace[spiAddress] = 15 << CLK2_DIV_START_BIT;
+    StepperMotorGlobalParameters globalParameters;
+    globalParameters.setClk2_div(15);
+    _spiAddressSpace[spiAddress] = globalParameters.getDATA();
   }
 
   void DFMC_MD22Dummy::handleSPIWrite(){

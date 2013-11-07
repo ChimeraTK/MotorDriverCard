@@ -1,4 +1,3 @@
-#include <sstream>
 #define BOOST_TEST_MODULE TMC429WordsTest
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
@@ -63,6 +62,46 @@ BOOST_AUTO_TEST_CASE( testCoverPositionAndLength ){
   BOOST_CHECK( createDataWordUsingSetterFunction<CoverPositionAndLength> ( &CoverPositionAndLength::setCoverPosition ) == 0x64003F00 );  
   BOOST_CHECK( createDataWordUsingSetterFunction<CoverPositionAndLength> ( &CoverPositionAndLength::setCoverWaiting )  == 0x64800000 );  
 }
+
+BOOST_AUTO_TEST_CASE( testStepperMotorGlobalParameters ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setLastStepperMotorDriver) == 0x7E000003);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarities)             == 0x7E00007C);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarity_nSCS_S)        == 0x7E000004);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarity_SCK_S)         == 0x7E000008);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarity_PH_AB)         == 0x7E000010);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarity_FD_AB)         == 0x7E000020);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarity_DAC_AB)        == 0x7E000040);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setCsCommonIndividual)     == 0x7E000080);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setClk2_div)               == 0x7E00FF00);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setContinuousUpdate)       == 0x7E010000);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setRefMux)                 == 0x7E100000);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setMot1r)                  == 0x7E200000);  
+}
+
+BOOST_AUTO_TEST_CASE( testInterfaceConfiguration ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setInv_ref)  == 0x68000001);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setSdo_int)  == 0x68000002);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setStepHalf) == 0x68000004);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setInv_stp)  == 0x68000008);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setInv_dir)  == 0x68000010);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setEs_sd)    == 0x68000020);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setPos_comp_sel_0) == 0x68000040);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setPos_comp_sel_1) == 0x68000080);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setEn_refr)  == 0x68000100);  
+}
+
+BOOST_AUTO_TEST_CASE( testAccelerationThresholdData ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<AccelerationThresholdData>(&AccelerationThresholdData::setAccelerationThreshold)        == 0x100007FF);
+  BOOST_CHECK( createDataWordUsingSetterFunction<AccelerationThresholdData>(&AccelerationThresholdData::setCurrentScalingAtRest)         == 0x10007000);
+  BOOST_CHECK( createDataWordUsingSetterFunction<AccelerationThresholdData>(&AccelerationThresholdData::setCurrentScalingBelowThreshold) == 0x10070000);
+  BOOST_CHECK( createDataWordUsingSetterFunction<AccelerationThresholdData>(&AccelerationThresholdData::setCurrentScalingAboveThreshold) == 0x10700000);
+}
+
+BOOST_AUTO_TEST_CASE( testProportionalityFactorData ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<ProportionalityFactorData>(&ProportionalityFactorData::setDivisionParameter)       == 0x1200000F);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ProportionalityFactorData>(&ProportionalityFactorData::setMultiplicationParameter) == 0x12007F00);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
