@@ -3,6 +3,7 @@
 #include "NotImplementedException.h"
 
 #include <boost/bind.hpp>
+#include <boost/lambda/lambda.hpp>
 
 #include "TMC429Words.h"
 
@@ -14,7 +15,8 @@ namespace mtca4u{
 			       devConfigBase* pConfig){
     DummyDevice::openDev(mappingFileName, perm, pConfig);
 
-    prepareSPIRegisters();
+    _spiAddressSpace.resize( SIZE_OF_SPI_ADDRESS_SPACE , 0 );
+    setSPIRegistersForOperation();
 
     mapFile::mapElem registerInformation;
     _registerMapping->getRegisterInfo( SPI_CONTROL_WRITE_ADDRESS_STRING, registerInformation );
@@ -32,8 +34,8 @@ namespace mtca4u{
 
   }
 
-  void DFMC_MD22Dummy::prepareSPIRegisters(){
-    _spiAddressSpace.resize( SIZE_OF_SPI_ADDRESS_SPACE , 0 );
+  void DFMC_MD22Dummy::setSPIRegistersForOperation(){
+    for_each( _spiAddressSpace.begin(), _spiAddressSpace.end(), boost::lambda::_1=0 );
 
     // Information from the data sheet:
     size_t spiAddress =  SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON, JDX_CHIP_VERSION );
@@ -44,6 +46,12 @@ namespace mtca4u{
     StepperMotorGlobalParameters globalParameters;
     globalParameters.setClk2_div(15);
     _spiAddressSpace[spiAddress] = globalParameters.getDATA();
+  }
+
+  void DFMC_MD22Dummy::setSPIRegistersForTesting(){
+    for( size_t i=0; i< _spiAddressSpace.size(); ++i ){
+      _spiAddressSpace[i]=i*i+13;
+    }
   }
 
   void DFMC_MD22Dummy::handleSPIWrite(){

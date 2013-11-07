@@ -97,7 +97,7 @@ namespace mtca4u{
   }
 
   void MotorDriverCardImpl::setDatagramLowWord(unsigned int datagramLowWord){
-    throw NotImplementedException("setDatagramLowWord not implemented yet");
+    spiWrite( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD, datagramLowWord );
   }
 
   void MotorDriverCardImpl::setDatagramHighWord(unsigned int datagramHighWord){
@@ -139,7 +139,11 @@ namespace mtca4u{
   }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
-    return spiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA();
+    return  ReferenceSwitchData(spiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
+  }
+
+  unsigned int MotorDriverCardImpl::getDatagramLowWord(){
+    return spiRead( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD ).getDATA();
   }
 
 }// namespace mtca4u
