@@ -12,25 +12,27 @@ namespace mtca4u
   class MotorDriverCardExpert: public MotorDriverCard{
   public:
 
-    /// Expert function 
     virtual void setDatagramLowWord(unsigned int datagramLowWord) = 0;
-    /// Expert function 
+    virtual unsigned int getDatagramLowWord() = 0;
+
     virtual void setDatagramHighWord(unsigned int datagramHighWord) = 0;
-    /// Expert function 
+    virtual unsigned int getDatagramHighWord() = 0;
+
     virtual void setCoverPositionAndLength(
 		    CoverPositionAndLength const & coverPositionAndLength) = 0;
-    /// Expert function 
+    virtual CoverPositionAndLength getCoverPositionAndLength() = 0;
+
     virtual void setCoverDatagram(unsigned int coverDatagram) = 0;
-    /// Expert function 
+    virtual unsigned int getCoverDatagram() = 0;
+
     virtual void setStepperMotorGlobalParametersRegister(
 		    StepperMotorGlobalParameters const & stepperMotorGlobalParameters) = 0;
+    virtual StepperMotorGlobalParameters getStepperMotorGlobalParametersRegister() = 0;
 
-    /// Expert function: Set the Interface configuration register of the
-    /// TCM429 chip
     virtual void setInterfaceConfiguration(
 		    InterfaceConfiguration const & interfaceConfiguration) = 0;
+    virtual InterfaceConfiguration getInterfaceConfiguration() = 0;
 
-   /// Expert function: Power down the TCM429 chip
     virtual void powerDown() = 0;
  
   };

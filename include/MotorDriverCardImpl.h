@@ -41,27 +41,40 @@ namespace mtca4u
     unsigned int getControlerChipVersion();
 
     void setDatagramLowWord(unsigned int datagramLowWord);
+    unsigned int getDatagramLowWord();
+
     void setDatagramHighWord(unsigned int datagramHighWord);
+    unsigned int getDatagramHighWord();
+
     void setCoverPositionAndLength(
                   CoverPositionAndLength const & coverPositionAndLength);
+    CoverPositionAndLength getCoverPositionAndLength();
+
     void setCoverDatagram(unsigned int coverDatagram);
+    unsigned int getCoverDatagram();
+
     void setStepperMotorGlobalParametersRegister(
 		  StepperMotorGlobalParameters const & stepperMotorGlobalParameters);
+    StepperMotorGlobalParameters getStepperMotorGlobalParametersRegister();
+
     void setInterfaceConfiguration(
                   InterfaceConfiguration const & interfaceConfiguration);
+    InterfaceConfiguration getInterfaceConfiguration();
+
     /// Very expert function only avaialble in the implementation. Usually
     /// the programmer should not have to touch this.
     void setPositionCompareRegister(unsigned int positionCompareWord); //??? data sheet is completely unclear
+    unsigned int getPositionCompareRegister(); //??? data sheet is completely unclear
 
     /// Very expert function only avaialble in the implementation. Usually
     /// the programmer should not have to touch this.
     void setPositionCompareInterruptRegister(
 		  PositionCompareInterruptData const & positionCompareInterruptData);
+    PositionCompareInterruptData getPositionCompareInterruptRegister();
 
     void powerDown();
     ReferenceSwitchData getReferenceSwitchRegister();
 
-    unsigned int getDatagramLowWord();
 
   private:
     // Motor controlers need dynamic allocation. So we cannot store them directly.

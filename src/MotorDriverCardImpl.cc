@@ -100,23 +100,42 @@ namespace mtca4u{
     spiWrite( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD, datagramLowWord );
   }
 
+  unsigned int MotorDriverCardImpl::getDatagramLowWord(){
+    return spiRead( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD ).getDATA();
+  }
+
   void MotorDriverCardImpl::setDatagramHighWord(unsigned int datagramHighWord){
-    throw NotImplementedException("setDatagramHighWord not implemented yet");
+    spiWrite( SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD, datagramHighWord );
   }
    
+  unsigned int MotorDriverCardImpl::getDatagramHighWord(){
+    return spiRead( SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD ).getDATA();
+  }
+
   void MotorDriverCardImpl::setCoverPositionAndLength(
 		CoverPositionAndLength const & coverPositionAndLength){
     throw NotImplementedException("setCoverPositionAndLength not implemented yet");
   }
 
+  CoverPositionAndLength MotorDriverCardImpl::getCoverPositionAndLength(){
+    throw NotImplementedException("getCoverPositionAndLength not implemented yet");
+  }
+
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram){
     throw NotImplementedException("setCoverDatagram not implemented yet");
   }
-
-  
+    
+  unsigned int MotorDriverCardImpl::getCoverDatagram(){
+    throw NotImplementedException("getCoverDatagram not implemented yet");
+  }
+ 
   void MotorDriverCardImpl::setStepperMotorGlobalParametersRegister(
 	   StepperMotorGlobalParameters const & stepperMotorGlobalParameters){
     throw NotImplementedException("setStepperMotorGlobalParametersRegister not implemented yet");
+  }
+
+  StepperMotorGlobalParameters MotorDriverCardImpl::getStepperMotorGlobalParametersRegister(){
+    throw NotImplementedException("getStepperMotorGlobalParametersRegister not implemented yet");
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(
@@ -124,13 +143,25 @@ namespace mtca4u{
     throw NotImplementedException("setInterfaceConfiguration not implemented yet");
   }
 
+  InterfaceConfiguration MotorDriverCardImpl::getInterfaceConfiguration(){
+    throw NotImplementedException("getInterfaceConfiguration not implemented yet");
+  }
+
   void MotorDriverCardImpl::setPositionCompareRegister(
            unsigned int positionCompareWord){
     throw NotImplementedException("setPositionCompareRegister not implemented yet");
   }
 
+  unsigned int MotorDriverCardImpl::getPositionCompareRegister(){
+    throw NotImplementedException("getPositionCompareRegister not implemented yet");
+  }
+
   void MotorDriverCardImpl::setPositionCompareInterruptRegister(
-	   PositionCompareInterruptData const & positionCompareInterruptData){
+	PositionCompareInterruptData const & positionCompareInterruptData ){
+    throw NotImplementedException("setPositionCompareInterruptRegister not implemented yet"); 
+ }
+
+  PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptRegister(){
     throw NotImplementedException("setPositionCompareInterruptRegister not implemented yet"); 
  }
 
@@ -140,10 +171,6 @@ namespace mtca4u{
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
     return  ReferenceSwitchData(spiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
-  }
-
-  unsigned int MotorDriverCardImpl::getDatagramLowWord(){
-    return spiRead( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD ).getDATA();
   }
 
 }// namespace mtca4u

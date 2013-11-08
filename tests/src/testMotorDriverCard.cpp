@@ -23,6 +23,8 @@ public:
   void testGetReferenceSwitchRegister();
   void testGetDatagramLowWord();
   void testSetDatagramLowWord();
+  void testGetDatagramHighWord();
+  void testSetDatagramHighWord();
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> motorDriverCard;
@@ -37,17 +39,22 @@ class  MotorDriverCardTestSuite : public test_suite{
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
     test_case* getControlerVersionTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetControlerChipVersion, motorDriverCardTest );
-    test_case* getDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetDatagramLowWord, motorDriverCardTest );
     test_case* setDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSetDatagramLowWord, motorDriverCardTest );
+    test_case* getDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetDatagramLowWord, motorDriverCardTest );
+    test_case* setDatagramHighWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSetDatagramHighWord, motorDriverCardTest );
+    test_case* getDatagramHighWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetDatagramHighWord, motorDriverCardTest );
     
     getControlerVersionTestCase->depends_on( constructorTestCase );
     setDatagramLowWordTestCase->depends_on( getDatagramLowWordTestCase );
+    setDatagramHighWordTestCase->depends_on( getDatagramHighWordTestCase );
 
     add( constructorTestCase );
     add( getControlerVersionTestCase );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetReferenceSwitchRegister, motorDriverCardTest ) );
     add( getDatagramLowWordTestCase );
     add( setDatagramLowWordTestCase );
+    add( getDatagramHighWordTestCase );
+    add( setDatagramHighWordTestCase );
     
   }
 };
@@ -127,3 +134,15 @@ unsigned int MotorDriverCardTest::testWordFromSpiAddress(unsigned int smda,
   // the test word as defined in the DUMMY (independent implementation)
   return spiAddress*spiAddress+13;
 }
+
+void MotorDriverCardTest::testGetDatagramHighWord(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_DATAGRAM_HIGH_WORD);
+  BOOST_CHECK( motorDriverCard->getDatagramHighWord() == expectedContent );
+}
+
+void MotorDriverCardTest::testSetDatagramHighWord(){
+  motorDriverCard->setDatagramHighWord( 0x55555555 );
+  BOOST_CHECK( motorDriverCard->getDatagramHighWord() == 0x555555 );
+}
+
