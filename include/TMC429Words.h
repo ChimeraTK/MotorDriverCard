@@ -27,8 +27,7 @@ namespace mtca4u{
    *  from TMC429InputWord::getDATA() (the data payload sub word as described in the 
    *  data sheet).
    */
-  class TMC429InputWord: public MultiVariableWord
-  {
+  class TMC429InputWord: public MultiVariableWord {
     public:
       TMC429InputWord(unsigned int dataWord = 0): MultiVariableWord(dataWord){}
       ADD_VARIABLE(RRS, 31, 31 );
@@ -43,8 +42,7 @@ namespace mtca4u{
    *  which contain the SPI address in case of an input word.
    *  See TMC429 data sheet, page 15, Table 7-4
    */
-  class TMC429OutputWord: public MultiVariableWord
-  {
+  class TMC429OutputWord: public MultiVariableWord {
     public:
       TMC429OutputWord(unsigned int dataWord = 0): MultiVariableWord(dataWord){}
       ADD_VARIABLE(STATUS_BITS, 24 ,31);
@@ -67,8 +65,7 @@ namespace mtca4u{
       ADD_VARIABLE(DATA, 0, 23);
   };
  
-  class ReferenceSwitchData : public TMC429InputWord
-  {
+  class ReferenceSwitchData : public TMC429InputWord {
     public: 
       ADD_VARIABLE(Right1, 0, 0);
       ADD_VARIABLE(Left1, 1, 1);
@@ -76,6 +73,7 @@ namespace mtca4u{
       ADD_VARIABLE(Left2, 3, 3);
       ADD_VARIABLE(Right3, 4, 4);
       ADD_VARIABLE(Left3, 5, 5);
+
       /// Constructor to define the correct address.
       ReferenceSwitchData(unsigned int data = 0){
 	setSMDA(tmc429::SMDA_COMMON);
@@ -85,12 +83,12 @@ namespace mtca4u{
   };
 
     // the helper classes
-    class CoverPositionAndLength: public TMC429InputWord
-    {
+    class CoverPositionAndLength: public TMC429InputWord {
       public:
         ADD_VARIABLE(CoverLength, 0, 4);
 	ADD_VARIABLE(CoverPosition, 8, 13);
 	ADD_VARIABLE(CoverWaiting, 23, 23);
+
 	CoverPositionAndLength(unsigned int data = 0){
 	  setSMDA(tmc429::SMDA_COMMON);
 	  setIDX_JDX(tmc429::JDX_COVER_POSITION_AND_LENGTH);
@@ -102,8 +100,7 @@ namespace mtca4u{
      *  and in addition by using the "Polarities" field, so some bits can be 
      *  accessed by more than one function.
      */
-    class StepperMotorGlobalParameters : public TMC429InputWord
-    {
+    class StepperMotorGlobalParameters : public TMC429InputWord {
       public:
         ADD_VARIABLE(LastStepperMotorDriver, 0, 1);
         ADD_VARIABLE(Polarities, 2, 6);
@@ -118,7 +115,8 @@ namespace mtca4u{
         ADD_VARIABLE(Clk2_div, 8, 15);
         ADD_VARIABLE(ContinuousUpdate, 16, 16);
         ADD_VARIABLE(RefMux, 20, 20);
-        ADD_VARIABLE(Mot1r, 21, 21);	
+        ADD_VARIABLE(Mot1r, 21, 21);
+	
 	StepperMotorGlobalParameters(unsigned int data = 0){
 	  setSMDA(tmc429::SMDA_COMMON);
 	  setIDX_JDX(tmc429::JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
@@ -128,8 +126,7 @@ namespace mtca4u{
 
     /** See TMC429 data sheet, page 33, table 10-2.
      */
-    class InterfaceConfiguration : public TMC429InputWord
-    {
+    class InterfaceConfiguration : public TMC429InputWord {
       public: 
         ADD_VARIABLE(Inv_ref, 0, 0);
         ADD_VARIABLE(Sdo_int, 1, 1);
@@ -153,8 +150,7 @@ namespace mtca4u{
     /** A helper class which contains the variables of the
      *  acceleration treshold register.
      */
-    class AccelerationThresholdData : public TMC429InputWord
-    {
+    class AccelerationThresholdData : public TMC429InputWord {
     public:
       ADD_VARIABLE(CurrentScalingBelowThreshold, 16, 18);
       ADD_VARIABLE(CurrentScalingAboveThreshold, 20, 22);
@@ -172,8 +168,7 @@ namespace mtca4u{
      *  proportionality factor register.
      *  Note: Bit 15, which is always 1, is not represented.
      */
-    class ProportionalityFactorData : public TMC429InputWord
-    {
+    class ProportionalityFactorData : public TMC429InputWord {
     public:
       ADD_VARIABLE(DivisionParameter, 0, 3);
       ADD_VARIABLE(MultiplicationParameter, 8, 14);
@@ -184,17 +179,62 @@ namespace mtca4u{
       }
     };
     
-    //FIXME implement all the types correctly. To make it compile we
-    // start with typedefs
-    typedef TMC429InputWord ReferenceConfigAndRampModeData;
-    typedef TMC429InputWord InterruptData;
-    typedef TMC429InputWord DividersAndMicroStepResolutionData;
-    typedef TMC429InputWord DriverControlData;
-    typedef TMC429InputWord ChopperControlData;
-    typedef TMC429InputWord CoolStepControlData;
-    typedef TMC429InputWord StallGuardControlData;
-    typedef TMC429InputWord DriverConfigData;
+    class ReferenceConfigAndRampModeData : public TMC429InputWord {
+    public:
+      ADD_VARIABLE(RampMode, 0, 1);
+      ADD_VARIABLE(ReferenceConfig, 8, 11);
+      ADD_VARIABLE(DISABLE_STOP_L, 8, 8);
+      ADD_VARIABLE(DISABLE_STOP_R, 9, 9);
+      ADD_VARIABLE(SOFT_STOP, 10, 10);
+      ADD_VARIABLE(REF_RnL, 11, 11);
+      ADD_VARIABLE(LatchedPosition, 16, 16);
+
+      /// Constructor to initialise the IDX correctly
+      ReferenceConfigAndRampModeData(){
+	setIDX_JDX( tmc429::IDX_REFERENCE_CONFIG_AND_RAMP_MODE );
+      }
+    };
+
+    class InterruptData : public TMC429InputWord {
+    public:
+      ADD_VARIABLE(InterruptFlags, 0, 7);
+      ADD_VARIABLE(INT_POS_END, 0, 0);
+      ADD_VARIABLE(INT_REF_WRONG, 1, 1);
+      ADD_VARIABLE(INT_REF_MISS, 2, 2);
+      ADD_VARIABLE(INT_STOP, 3, 3);
+      ADD_VARIABLE(INT_STOP_LEFT_LOW, 4, 4);
+      ADD_VARIABLE(INT_STOP_RIGHT_LOW, 5, 5);
+      ADD_VARIABLE(INT_STOP_LEFT_HIGH, 6, 6);
+      ADD_VARIABLE(INT_STOP_RIGHT_HIGH, 7, 7);
+
+      ADD_VARIABLE(MaskFlags, 8, 15);
+      ADD_VARIABLE(MASK_POS_END, 8, 8);
+      ADD_VARIABLE(MASK_REF_WRONG, 9, 9);
+      ADD_VARIABLE(MASK_REF_MISS, 10, 10);
+      ADD_VARIABLE(MASK_STOP, 11, 11);
+      ADD_VARIABLE(MASK_STOP_LEFT_LOW, 12, 12);
+      ADD_VARIABLE(MASK_STOP_RIGHT_LOW, 13, 13);
+      ADD_VARIABLE(MASK_STOP_LEFT_HIGH, 14, 14);
+      ADD_VARIABLE(MASK_STOP_RIGHT_HIGH, 15, 15);
+
+      /// Constructor to initialise the IDX correctly
+      InterruptData(){
+	setIDX_JDX( tmc429::IDX_INTERRUPT_MASK_AND_FLAGS );
+      }
+    };
+
+    class DividersAndMicroStepResolutionData : public TMC429InputWord {
+    public:
+      ADD_VARIABLE(MicroStepResolution, 0, 2);
+      ADD_VARIABLE(RampDivider, 8, 11);
+      ADD_VARIABLE(PulseDivider, 12, 15);
+
+      /// Constructor to initialise the IDX correctly
+      DividersAndMicroStepResolutionData(){
+	setIDX_JDX( tmc429::IDX_DIVIDERS_AND_MICRO_STEP_RESOLUTION );
+      }
+    };
 
 }// namespace mtca4u
 
-#endif// MTCA4U_TMC429WORD_H
+#endif// MTCA4U_TMC429WORDS_H

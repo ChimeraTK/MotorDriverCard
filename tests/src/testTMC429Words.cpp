@@ -109,6 +109,51 @@ BOOST_AUTO_TEST_CASE( testProportionalityFactorData ){
   BOOST_CHECK( createDataWordUsingSetterFunction<ProportionalityFactorData>(&ProportionalityFactorData::setMultiplicationParameter) == 0x12007F00);
 }
 
+BOOST_AUTO_TEST_CASE( testReferenceConfigAndRampModeData ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+		     &ReferenceConfigAndRampModeData::setRampMode)        == 0x14000003);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+		     &ReferenceConfigAndRampModeData::setReferenceConfig) == 0x14000F00);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+		     &ReferenceConfigAndRampModeData::setDISABLE_STOP_L)  == 0x14000100);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+                     &ReferenceConfigAndRampModeData::setDISABLE_STOP_R)  == 0x14000200);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+		     &ReferenceConfigAndRampModeData::setSOFT_STOP)       == 0x14000400);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+                     &ReferenceConfigAndRampModeData::setREF_RnL)         == 0x14000800);
+  BOOST_CHECK( createDataWordUsingSetterFunction<ReferenceConfigAndRampModeData>(
+                     &ReferenceConfigAndRampModeData::setLatchedPosition) == 0x14010000);
+}
+
+BOOST_AUTO_TEST_CASE( testInterruptData ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setInterruptFlags)      == 0x160000FF);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_POS_END)         == 0x16000001);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_REF_WRONG)       == 0x16000002);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_REF_MISS)        == 0x16000004);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_STOP)            == 0x16000008);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_STOP_LEFT_LOW)   == 0x16000010);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_STOP_RIGHT_LOW)  == 0x16000020);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_STOP_LEFT_HIGH)  == 0x16000040);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setINT_STOP_RIGHT_HIGH) == 0x16000080);
+
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMaskFlags)            == 0x1600FF00);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_POS_END)         == 0x16000100);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_REF_WRONG)       == 0x16000200);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_REF_MISS)        == 0x16000400);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_STOP)            == 0x16000800);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_STOP_LEFT_LOW)   == 0x16001000);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_STOP_RIGHT_LOW)  == 0x16002000);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_STOP_LEFT_HIGH)  == 0x16004000);
+  BOOST_CHECK( createDataWordUsingSetterFunction<InterruptData>(&InterruptData::setMASK_STOP_RIGHT_HIGH) == 0x16008000);
+}
+
+BOOST_AUTO_TEST_CASE( testDividersAndMicroStepResolutionData ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<DividersAndMicroStepResolutionData>(&DividersAndMicroStepResolutionData::setMicroStepResolution) == 0x18000007);
+  BOOST_CHECK( createDataWordUsingSetterFunction<DividersAndMicroStepResolutionData>(&DividersAndMicroStepResolutionData::setRampDivider)         == 0x18000F00);
+  BOOST_CHECK( createDataWordUsingSetterFunction<DividersAndMicroStepResolutionData>(&DividersAndMicroStepResolutionData::setPulseDivider)        == 0x1800F000);
+}
+
 /**
  * For those classes which set IDX / JDX in their constructor these constants are automatically testest with the tests above.
  * For the other constants do the tests here.

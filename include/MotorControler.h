@@ -1,7 +1,7 @@
 #ifndef MTCA4U_MOTOR_CONTROLER_H
 #define MTCA4U_MOTOR_CONTROLER_H
 
-#include "TMC429Words.h"
+#include "TMC260Words.h"
 
 namespace mtca4u
 {
@@ -12,7 +12,7 @@ namespace mtca4u
    * 
    * Note: Technically this controler class addresses registers of the
    * TMC 429 motor controler chip (which can handle up to 3 motors) and
-   * the TMC 260 (261?) motor driver, which is indiviual for each motor.
+   * the TMC 260 motor driver, which is indiviual for each motor.
    * On the software side these implementation details are not important.
    * Think of this class as a virtual controler with integrated driver.
    * 
