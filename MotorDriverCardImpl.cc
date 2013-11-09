@@ -4,10 +4,10 @@
 
 #include "NotImplementedException.h"
 #include "MotorDriverCardImpl.h"
-
-#define INVALID_SPI_READBACK_VALUE 0xFFFFFFFF
+using namespace mtca4u::tmc429;
 
 namespace mtca4u{
+  uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 					   MotorDriverConfiguration const & motorDriverConfiguration)

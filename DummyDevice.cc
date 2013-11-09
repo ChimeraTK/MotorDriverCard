@@ -19,13 +19,12 @@
       throw DummyDeviceException(errorMessage.str(), DummyDeviceException::INVALID_ADDRESS);\
     }
 
-// Valid bar numbers are 0 to 5 , so they must be contained
-// in three bits.
-#define BAR_MASK 0x7
-// the bar number is stored in bits 60 to 62
-#define BAR_POSITION_IN_VIRTUAL_REGISTER 60
-
 namespace mtca4u{
+  // Valid bar numbers are 0 to 5 , so they must be contained
+  // in three bits.
+  const unsigned int BAR_MASK = 0x7;
+  // the bar number is stored in bits 60 to 62
+  const unsigned int BAR_POSITION_IN_VIRTUAL_REGISTER = 60;
 
   //Noting to do, intentionally empty.
   DummyDevice::DummyDevice(){
