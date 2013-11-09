@@ -21,6 +21,12 @@ template<class T> unsigned int createDataWordUsingSetterFunction( void (T::* set
   return t.getDataWord();
 }
 
+unsigned int createDataWordFromIdxJdx( unsigned int idxJdx ){
+  TMC429InputWord inputWord;
+  inputWord.setIDX_JDX( idxJdx );
+  return inputWord.getDataWord();
+}
+
 BOOST_AUTO_TEST_SUITE( TMC429WordsTestSuite )
 
 BOOST_AUTO_TEST_CASE( testTMC429InputWord ){
@@ -102,24 +108,31 @@ BOOST_AUTO_TEST_CASE( testProportionalityFactorData ){
   BOOST_CHECK( createDataWordUsingSetterFunction<ProportionalityFactorData>(&ProportionalityFactorData::setMultiplicationParameter) == 0x12007F00);
 }
 
+/**
+ * For those classes which set IDX / JDX in their constructor these constants are automatically testest with the tests above.
+ * For the other constants do the tests here.
+ */
+BOOST_AUTO_TEST_CASE( testRemainingJDX ){
+  BOOST_CHECK( createDataWordFromIdxJdx( JDX_DATAGRAM_LOW_WORD ) == 0x00000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( JDX_DATAGRAM_HIGH_WORD ) == 0x02000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( JDX_COVER_DATAGRAM ) == 0x06000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( JDX_POSITION_COMPARE ) == 0x0A000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( JDX_POWER_DOWN ) == 0x10000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( JDX_CHIP_VERSION ) == 0x12000000 );
+}
+
+BOOST_AUTO_TEST_CASE( testRemainingIDX ){
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_TARGET_POSITION ) == 0x00000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_ACTUAL_POSITION ) == 0x02000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_MINIMUM_VELOCITY ) == 0x04000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_MAXIMUM_VELOCITY )== 0x06000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_TARGET_VELOCITY ) == 0x08000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_ACTUTAL_VELOCITY ) == 0x0A000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_MAXIMUM_ACCELERATION ) == 0x0C000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_ACTUAL_VELOCITY ) == 0x0E000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_DELTA_X_REFERENCE_TOLERANCE ) == 0x1A000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_POSITION_LATCHED ) == 0x1C000000 );
+  BOOST_CHECK( createDataWordFromIdxJdx( IDX_MICRO_STEP_COUNT ) == 0x1E000000 );
+}
 
 BOOST_AUTO_TEST_SUITE_END()
-
-//class ExampleClassTestSuite : public test_suite {
-//public:
-//  ExampleClassTestSuite(): test_suite("ExampleClass test suite") {
-//    add( BOOST_TEST_CASE( &testTMC429InputWord ) );
-//    add( BOOST_TEST_CASE( &testTMC429OutputWord ) );
-//    add( BOOST_TEST_CASE( &testReferenceSwitchData ) );
-//    add( BOOST_TEST_CASE( &testCoverPositionAndLength ) );
-//  }
-//};
-//
-//// Although the compiler complains that argc and argv are not used they 
-//// cannot be commented out. This somehow changes the signature and linking fails.
-//test_suite*
-//init_unit_test_suite( int argc, char* argv[] )
-//{
-//  framework::master_test_suite().p_name.value = "ExampleClass test suite";
-//  return new ExampleClassTestSuite;
-//}
