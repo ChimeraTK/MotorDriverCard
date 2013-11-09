@@ -7,6 +7,7 @@ using namespace boost::unit_test_framework;
 #include <MtcaMappedDevice/libmap.h>
 
 #include "DFMC_MD22Constants.h"
+using namespace mtca4u::tmc429;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
 #define BROKEN_MAP_FILE_NAME "DFMC_MD22_broken.map"

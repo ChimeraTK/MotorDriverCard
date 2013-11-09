@@ -2,7 +2,6 @@
 #define MTCA4U_MOTOR_DRIVER_CARD_H
 
 #include "TMC429Words.h"
-#include "DFMC_MD22Constants.h"
 
 namespace mtca4u
 {

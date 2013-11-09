@@ -4,6 +4,7 @@ using namespace boost::unit_test_framework;
 
 #include "TMC429Words.h"
 using namespace mtca4u;
+using namespace mtca4u::tmc429;
 
 /** This function is used to evaluate that the bit pattern given in
  *  ADD_VARIABLE is correct. It takes an empty word and sets all bits described in the setVARIABLE function.

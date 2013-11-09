@@ -6,6 +6,8 @@
 #include <boost/lambda/lambda.hpp>
 
 #include "TMC429Words.h"
+#include "TMC429DummyConstants.h"
+using namespace mtca4u::tmc429;
 
 // See data sheet: the spi address has 7 bits, the lower 4 are IDX or JDX, the higher 3 are SMDA
 #define SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA, IDXJDX ) ((SMDA << 4) + IDXJDX)

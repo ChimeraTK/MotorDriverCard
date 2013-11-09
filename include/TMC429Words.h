@@ -78,8 +78,8 @@ namespace mtca4u{
       ADD_VARIABLE(Left3, 5, 5);
       /// Constructor to define the correct address.
       ReferenceSwitchData(unsigned int data = 0){
-	setSMDA(SMDA_COMMON);
-	setIDX_JDX(JDX_REFERENCE_SWITCH);
+	setSMDA(tmc429::SMDA_COMMON);
+	setIDX_JDX(tmc429::JDX_REFERENCE_SWITCH);
 	setDATA(data);	
       }
   };
@@ -92,8 +92,8 @@ namespace mtca4u{
 	ADD_VARIABLE(CoverPosition, 8, 13);
 	ADD_VARIABLE(CoverWaiting, 23, 23);
 	CoverPositionAndLength(unsigned int data = 0){
-	  setSMDA(SMDA_COMMON);
-	  setIDX_JDX(JDX_COVER_POSITION_AND_LENGTH);
+	  setSMDA(tmc429::SMDA_COMMON);
+	  setIDX_JDX(tmc429::JDX_COVER_POSITION_AND_LENGTH);
 	  setDATA(data);
 	}
     };
@@ -120,8 +120,8 @@ namespace mtca4u{
         ADD_VARIABLE(RefMux, 20, 20);
         ADD_VARIABLE(Mot1r, 21, 21);	
 	StepperMotorGlobalParameters(unsigned int data = 0){
-	  setSMDA(SMDA_COMMON);
-	  setIDX_JDX(JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
+	  setSMDA(tmc429::SMDA_COMMON);
+	  setIDX_JDX(tmc429::JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
 	  setDATA(data);
 	}
     };
@@ -142,8 +142,8 @@ namespace mtca4u{
         ADD_VARIABLE(En_refr, 8, 8);
 	/// Constructor to define the correct address.
 	InterfaceConfiguration(unsigned int data = 0){
-	  setSMDA(SMDA_COMMON);
-	  setIDX_JDX(JDX_INTERFACE_CONFIGURATION);
+	  setSMDA(tmc429::SMDA_COMMON);
+	  setIDX_JDX(tmc429::JDX_INTERFACE_CONFIGURATION);
 	  setDATA(data);
 	}
     };
@@ -163,7 +163,7 @@ namespace mtca4u{
 
       /// Constructor which initialises the IDX correctly
       AccelerationThresholdData(){
-	setIDX_JDX( IDX_ACCELERATION_THRESHOLD );
+	setIDX_JDX( tmc429::IDX_ACCELERATION_THRESHOLD );
       }
       
     };
@@ -180,7 +180,7 @@ namespace mtca4u{
 
       /// Constructor to initialise the IDX correctly
       ProportionalityFactorData(){
-	setIDX_JDX( IDX_PROPORTIONALITY_FACTORS );	
+	setIDX_JDX( tmc429::IDX_PROPORTIONALITY_FACTORS );	
       }
     };
     
