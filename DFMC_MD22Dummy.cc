@@ -13,6 +13,12 @@ using namespace mtca4u::tmc429;
 #define SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA, IDXJDX ) ((SMDA << 4) + IDXJDX)
 
 namespace mtca4u{
+  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
+				    _spiWriteAddress(0), _spiWriteBar(0),
+				    _spiReadbackAddress(0), _spiReadbackBar(0),
+				    _powerIsUp(true){
+  }
+
   void DFMC_MD22Dummy::openDev(const std::string &mappingFileName, int perm,
 			       devConfigBase* pConfig){
     DummyDevice::openDev(mappingFileName, perm, pConfig);
@@ -47,7 +53,7 @@ namespace mtca4u{
     spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS );
     StepperMotorGlobalParameters globalParameters;
     globalParameters.setClk2_div(15);
-    _spiAddressSpace[spiAddress] = globalParameters.getDATA();
+    _spiAddressSpace.at(spiAddress) = globalParameters.getDATA();
   }
 
   void DFMC_MD22Dummy::setSPIRegistersForTesting(){
@@ -64,15 +70,63 @@ namespace mtca4u{
     uint32_t spiAddress = inputWord.getADDRESS();
 
     if (inputWord.getRW() == RW_READ){
-      TMC429OutputWord outputWord;
-      // FIXME: set the status bits correctly. We currently leave them at 0;
-      outputWord.setDATA( _spiAddressSpace[spiAddress] );
-      writeReg( _spiReadbackAddress, outputWord.getDataWord(), _spiReadbackBar );
+      writeSpiContentToReadbackRegister(spiAddress);
     }
     else{
-      _spiAddressSpace[spiAddress]=inputWord.getDATA();
+      writeContentToSpiRegister(inputWord.getDATA(), spiAddress);
     }
 
+    triggerActionsOnSpiWrite(inputWord);
+  }
+
+  void DFMC_MD22Dummy::writeContentToSpiRegister(unsigned int content,
+						 unsigned int spiAddress){
+    if (_powerIsUp){
+      _spiAddressSpace.at(spiAddress)=content;
+    }
+  }
+
+  void DFMC_MD22Dummy::writeSpiContentToReadbackRegister(unsigned int spiAddress){
+    TMC429OutputWord outputWord;
+    // FIXME: set the status bits correctly. We currently leave them at 0;
+    outputWord.setDATA( _spiAddressSpace.at(spiAddress) );
+    writeReg( _spiReadbackAddress, outputWord.getDataWord(), _spiReadbackBar );
+  }
+
+  void DFMC_MD22Dummy::triggerActionsOnSpiWrite(TMC429InputWord const & inputWord){
+    switch(inputWord.getSMDA()){
+      case SMDA_COMMON: // common registers are addressed by jdx
+	performJdxActions( inputWord.getIDX_JDX() );
+	break;
+      default: // motor specifix registers are addressed by idx
+	performIdxActions( inputWord.getIDX_JDX() );
+    };
+  }
+
+  void DFMC_MD22Dummy::performJdxActions( unsigned int jdx ){
+    switch(jdx){
+      case( JDX_POWER_DOWN ):
+	_powerIsUp = false;
+	// stop internal cock thread when implemented
+	break;
+      default:
+	;// do nothing
+    }
+  }
+
+  void DFMC_MD22Dummy::performIdxActions( unsigned int /*idx*/ ){
+    // no actions defined at the moment
+  }
+
+  bool DFMC_MD22Dummy::isPowerUp(){
+    return _powerIsUp;
+  }
+
+  void DFMC_MD22Dummy::powerUp(){
+    unsigned int powerDownSpiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON,
+								     JDX_POWER_DOWN );
+    writeContentToSpiRegister( 0, powerDownSpiAddress );
+    _powerIsUp = true;
   }
 
 }// namespace mtca4u
