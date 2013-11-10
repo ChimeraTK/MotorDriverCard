@@ -114,19 +114,19 @@ namespace mtca4u{
 
   void MotorDriverCardImpl::setCoverPositionAndLength(
 		CoverPositionAndLength const & coverPositionAndLength){
-    throw NotImplementedException("setCoverPositionAndLength not implemented yet");
+    spiWrite( coverPositionAndLength );
   }
 
   CoverPositionAndLength MotorDriverCardImpl::getCoverPositionAndLength(){
-    throw NotImplementedException("getCoverPositionAndLength not implemented yet");
+    return CoverPositionAndLength( spiRead(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA());
   }
 
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram){
-    throw NotImplementedException("setCoverDatagram not implemented yet");
+    spiWrite( SMDA_COMMON, JDX_COVER_DATAGRAM, coverDatagram );
   }
     
   unsigned int MotorDriverCardImpl::getCoverDatagram(){
-    throw NotImplementedException("getCoverDatagram not implemented yet");
+    return spiRead( SMDA_COMMON, JDX_COVER_DATAGRAM ).getDATA();
   }
  
   void MotorDriverCardImpl::setStepperMotorGlobalParametersRegister(
