@@ -12,6 +12,17 @@ using namespace mtca4u::tmc429;
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
 #define BROKEN_MAP_FILE_NAME "DFMC_MD22_broken.map"
 
+#define DECLARE_GET_SET_TEST( NAME )\
+  void testGet ## NAME ();\
+  void testSet ## NAME ();
+
+#define ADD_GET_SET_TEST( NAME )\
+  test_case* set ## NAME ## TestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSet ## NAME , motorDriverCardTest );\
+  test_case* get ## NAME ## TestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGet ## NAME , motorDriverCardTest );\
+  set ## NAME ## TestCase->depends_on( get ## NAME ## TestCase );\
+  add( get ## NAME ## TestCase );\
+  add( set ## NAME ## TestCase )
+
 using namespace mtca4u;
 
 class MotorDriverCardTest{
@@ -22,10 +33,10 @@ public:
   void testConstructor();
   void testGetControlerChipVersion();
   void testGetReferenceSwitchRegister();
-  void testGetDatagramLowWord();
-  void testSetDatagramLowWord();
-  void testGetDatagramHighWord();
-  void testSetDatagramHighWord();
+  DECLARE_GET_SET_TEST( DatagramLowWord )
+  DECLARE_GET_SET_TEST( DatagramHighWord )
+  DECLARE_GET_SET_TEST( CoverPositionAndLength )
+  DECLARE_GET_SET_TEST( CoverDatagram )
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> motorDriverCard;
@@ -40,23 +51,16 @@ class  MotorDriverCardTestSuite : public test_suite{
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
     test_case* getControlerVersionTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetControlerChipVersion, motorDriverCardTest );
-    test_case* setDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSetDatagramLowWord, motorDriverCardTest );
-    test_case* getDatagramLowWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetDatagramLowWord, motorDriverCardTest );
-    test_case* setDatagramHighWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSetDatagramHighWord, motorDriverCardTest );
-    test_case* getDatagramHighWordTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetDatagramHighWord, motorDriverCardTest );
-    
+
     getControlerVersionTestCase->depends_on( constructorTestCase );
-    setDatagramLowWordTestCase->depends_on( getDatagramLowWordTestCase );
-    setDatagramHighWordTestCase->depends_on( getDatagramHighWordTestCase );
 
     add( constructorTestCase );
     add( getControlerVersionTestCase );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetReferenceSwitchRegister, motorDriverCardTest ) );
-    add( getDatagramLowWordTestCase );
-    add( setDatagramLowWordTestCase );
-    add( getDatagramHighWordTestCase );
-    add( setDatagramHighWordTestCase );
-    
+    ADD_GET_SET_TEST( DatagramLowWord );
+    ADD_GET_SET_TEST( DatagramHighWord );
+    ADD_GET_SET_TEST( CoverPositionAndLength );
+    ADD_GET_SET_TEST( CoverDatagram );
   }
 };
 
@@ -147,3 +151,24 @@ void MotorDriverCardTest::testSetDatagramHighWord(){
   BOOST_CHECK( motorDriverCard->getDatagramHighWord() == 0x555555 );
 }
 
+void MotorDriverCardTest::testGetCoverPositionAndLength(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_COVER_POSITION_AND_LENGTH);
+  BOOST_CHECK( motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(expectedContent) );
+}
+
+void MotorDriverCardTest::testSetCoverPositionAndLength(){
+  motorDriverCard->setCoverPositionAndLength( 0xFFFFFFFF );
+  BOOST_CHECK( motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(0xFFFFFF) );
+}
+
+void MotorDriverCardTest::testGetCoverDatagram(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_COVER_DATAGRAM);
+  BOOST_CHECK( motorDriverCard->getCoverDatagram() == expectedContent );
+}
+
+void MotorDriverCardTest::testSetCoverDatagram(){
+  motorDriverCard->setCoverDatagram( 0xAAAAAAAA );
+  BOOST_CHECK( motorDriverCard->getCoverDatagram() == 0xAAAAAA );
+}
