@@ -25,9 +25,9 @@ namespace mtca4u
     virtual void setCoverDatagram(unsigned int coverDatagram) = 0;
     virtual unsigned int getCoverDatagram() = 0;
 
-    virtual void setStepperMotorGlobalParametersRegister(
+    virtual void setStepperMotorGlobalParameters(
 		    StepperMotorGlobalParameters const & stepperMotorGlobalParameters) = 0;
-    virtual StepperMotorGlobalParameters getStepperMotorGlobalParametersRegister() = 0;
+    virtual StepperMotorGlobalParameters getStepperMotorGlobalParameters() = 0;
 
     virtual void setInterfaceConfiguration(
 		    InterfaceConfiguration const & interfaceConfiguration) = 0;

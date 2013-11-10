@@ -145,7 +145,16 @@ namespace mtca4u{
 	}
     };
 
-    typedef TMC429InputWord PositionCompareInterruptData;
+    class PositionCompareInterruptData : public TMC429InputWord {
+      public:
+        ADD_VARIABLE( InterruptFlag, 0, 0 );
+        ADD_VARIABLE( InterruptMask, 8, 8 );
+	PositionCompareInterruptData(unsigned int data = 0){
+	  setSMDA(tmc429::SMDA_COMMON);
+	  setIDX_JDX(tmc429::JDX_POSITION_COMPARE_INTERRUPT);
+	  setDATA(data);      
+	}
+    };
 
     /** A helper class which contains the variables of the
      *  acceleration treshold register.

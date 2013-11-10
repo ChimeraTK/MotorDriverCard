@@ -129,44 +129,44 @@ namespace mtca4u{
     return spiRead( SMDA_COMMON, JDX_COVER_DATAGRAM ).getDATA();
   }
  
-  void MotorDriverCardImpl::setStepperMotorGlobalParametersRegister(
+  void MotorDriverCardImpl::setStepperMotorGlobalParameters(
 	   StepperMotorGlobalParameters const & stepperMotorGlobalParameters){
-    throw NotImplementedException("setStepperMotorGlobalParametersRegister not implemented yet");
+    spiWrite( stepperMotorGlobalParameters );
   }
 
-  StepperMotorGlobalParameters MotorDriverCardImpl::getStepperMotorGlobalParametersRegister(){
-    throw NotImplementedException("getStepperMotorGlobalParametersRegister not implemented yet");
+  StepperMotorGlobalParameters MotorDriverCardImpl::getStepperMotorGlobalParameters(){
+    return StepperMotorGlobalParameters( spiRead(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA());    
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(
 	   InterfaceConfiguration const & interfaceConfiguration){
-    throw NotImplementedException("setInterfaceConfiguration not implemented yet");
+    spiWrite( interfaceConfiguration );
   }
 
   InterfaceConfiguration MotorDriverCardImpl::getInterfaceConfiguration(){
-    throw NotImplementedException("getInterfaceConfiguration not implemented yet");
+    return InterfaceConfiguration( spiRead(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA());    
   }
 
   void MotorDriverCardImpl::setPositionCompareRegister(
            unsigned int positionCompareWord){
-    throw NotImplementedException("setPositionCompareRegister not implemented yet");
+    spiWrite( SMDA_COMMON, JDX_POSITION_COMPARE, positionCompareWord );
   }
 
   unsigned int MotorDriverCardImpl::getPositionCompareRegister(){
-    throw NotImplementedException("getPositionCompareRegister not implemented yet");
+    return spiRead( SMDA_COMMON, JDX_POSITION_COMPARE ).getDATA();
   }
 
   void MotorDriverCardImpl::setPositionCompareInterruptRegister(
 	PositionCompareInterruptData const & positionCompareInterruptData ){
-    throw NotImplementedException("setPositionCompareInterruptRegister not implemented yet"); 
+    return spiWrite( positionCompareInterruptData );
  }
 
   PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptRegister(){
-    throw NotImplementedException("setPositionCompareInterruptRegister not implemented yet"); 
+    return PositionCompareInterruptData( spiRead(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());    
  }
 
   void MotorDriverCardImpl::powerDown(){
-    throw NotImplementedException("powerDown not implemented yet");
+    spiWrite( SMDA_COMMON, JDX_POWER_DOWN, 1 );
   }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){

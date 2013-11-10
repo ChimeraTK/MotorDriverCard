@@ -14,7 +14,7 @@ using namespace mtca4u::tmc429;
 
 #define DECLARE_GET_SET_TEST( NAME )\
   void testGet ## NAME ();\
-  void testSet ## NAME ();
+  void testSet ## NAME ()
 
 #define ADD_GET_SET_TEST( NAME )\
   test_case* set ## NAME ## TestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testSet ## NAME , motorDriverCardTest );\
@@ -33,13 +33,19 @@ public:
   void testConstructor();
   void testGetControlerChipVersion();
   void testGetReferenceSwitchRegister();
-  DECLARE_GET_SET_TEST( DatagramLowWord )
-  DECLARE_GET_SET_TEST( DatagramHighWord )
-  DECLARE_GET_SET_TEST( CoverPositionAndLength )
-  DECLARE_GET_SET_TEST( CoverDatagram )
+  DECLARE_GET_SET_TEST( DatagramLowWord );
+  DECLARE_GET_SET_TEST( DatagramHighWord );
+  DECLARE_GET_SET_TEST( CoverPositionAndLength );
+  DECLARE_GET_SET_TEST( CoverDatagram );
+  DECLARE_GET_SET_TEST( StepperMotorGlobalParameters );
+  DECLARE_GET_SET_TEST( InterfaceConfiguration );
+  DECLARE_GET_SET_TEST( PositionCompareRegister );
+  DECLARE_GET_SET_TEST( PositionCompareInterruptRegister );
+  void testPowerDown();
 
 private:
-  boost::shared_ptr<MotorDriverCardImpl> motorDriverCard;
+  boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
+  boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
   std::string _mapFileName;
   unsigned int testWordFromSpiAddress(unsigned int smda, unsigned int idx_jdx);
 };
@@ -61,6 +67,11 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( DatagramHighWord );
     ADD_GET_SET_TEST( CoverPositionAndLength );
     ADD_GET_SET_TEST( CoverDatagram );
+    ADD_GET_SET_TEST( StepperMotorGlobalParameters );
+    ADD_GET_SET_TEST( InterfaceConfiguration );
+    ADD_GET_SET_TEST( PositionCompareRegister );
+    ADD_GET_SET_TEST( PositionCompareInterruptRegister );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
   }
 };
 
@@ -77,8 +88,9 @@ MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName)
 }
 
 void MotorDriverCardTest::testConstructor(){
-  boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
-  dummyDevice->openDev( _mapFileName );
+  //boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
+  _dummyDevice = boost::shared_ptr<DFMC_MD22Dummy>( new DFMC_MD22Dummy );
+  _dummyDevice->openDev( _mapFileName );
  
   mapFileParser fileParser;
   boost::shared_ptr<mapFile> registerMapping = fileParser.parse(_mapFileName);
@@ -87,50 +99,52 @@ void MotorDriverCardTest::testConstructor(){
   MotorDriverCardImpl::MotorDriverConfiguration  motorDriverConfiguration;
 
   // has to throw because the device is not open
-  BOOST_CHECK_THROW( motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
+  BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
 		       new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration ) ),
 		     //FIXME: create a DeviceException. Has to work for real and dummy devices
 		     exBase );
 
   boost::shared_ptr<mapFile> brokenRegisterMapping = fileParser.parse(BROKEN_MAP_FILE_NAME);
   // try opening with bad mapping, also has to throw
-  mappedDevice->openDev( dummyDevice, brokenRegisterMapping );
-  BOOST_CHECK_THROW( motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
+  mappedDevice->openDev( _dummyDevice, brokenRegisterMapping );
+  BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
 		       new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration ) ),
 		     exLibMap );
   
   mappedDevice->closeDev();
 
-  dummyDevice->openDev( _mapFileName );
-  boost::dynamic_pointer_cast<DFMC_MD22Dummy>(dummyDevice)->setSPIRegistersForTesting();
-  mappedDevice->openDev( dummyDevice, registerMapping );
+  _dummyDevice->openDev( _mapFileName );
+  //boost::dynamic_pointer_cast<DFMC_MD22Dummy>(dummyDevice)->setSPIRegistersForTesting();
+  _dummyDevice->setSPIRegistersForTesting();
+  mappedDevice->openDev( _dummyDevice, registerMapping );
   
-  BOOST_CHECK_NO_THROW(  motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration )) );
+  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration )) );
   
 }
 
 void MotorDriverCardTest::testGetControlerChipVersion(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_CHIP_VERSION);
-  BOOST_CHECK( motorDriverCard->getControlerChipVersion() == expectedContent );
+  BOOST_CHECK( _motorDriverCard->getControlerChipVersion() == expectedContent );
 }
 
 void MotorDriverCardTest::testGetReferenceSwitchRegister(){
   // seems like a self consistency test, but ReferenceSwitchData has been testes in testTMC429Words, and the data content should be the test word
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_REFERENCE_SWITCH);  
-  BOOST_CHECK( motorDriverCard->getReferenceSwitchRegister() == ReferenceSwitchData(expectedContent) );
+  BOOST_CHECK( _motorDriverCard->getReferenceSwitchRegister() == ReferenceSwitchData(expectedContent) );
 }
 
 void MotorDriverCardTest::testGetDatagramLowWord(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_DATAGRAM_LOW_WORD);
-  BOOST_CHECK( motorDriverCard->getDatagramLowWord() == expectedContent );
+  BOOST_CHECK( _motorDriverCard->getDatagramLowWord() == expectedContent );
 }
 
+// just for the fun of it I use AAAA, 5555 and FFFF alternating as test patterns
 void MotorDriverCardTest::testSetDatagramLowWord(){
-  motorDriverCard->setDatagramLowWord( 0xAAAAAAAA );
-  BOOST_CHECK( motorDriverCard->getDatagramLowWord() == 0xAAAAAA );
+  _motorDriverCard->setDatagramLowWord( 0xAAAAAAAA );
+  BOOST_CHECK( _motorDriverCard->getDatagramLowWord() == 0xAAAAAA );
 }
 
 unsigned int MotorDriverCardTest::testWordFromSpiAddress(unsigned int smda,
@@ -143,32 +157,85 @@ unsigned int MotorDriverCardTest::testWordFromSpiAddress(unsigned int smda,
 void MotorDriverCardTest::testGetDatagramHighWord(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_DATAGRAM_HIGH_WORD);
-  BOOST_CHECK( motorDriverCard->getDatagramHighWord() == expectedContent );
+  BOOST_CHECK( _motorDriverCard->getDatagramHighWord() == expectedContent );
 }
 
 void MotorDriverCardTest::testSetDatagramHighWord(){
-  motorDriverCard->setDatagramHighWord( 0x55555555 );
-  BOOST_CHECK( motorDriverCard->getDatagramHighWord() == 0x555555 );
+  _motorDriverCard->setDatagramHighWord( 0x55555555 );
+  BOOST_CHECK( _motorDriverCard->getDatagramHighWord() == 0x555555 );
 }
 
 void MotorDriverCardTest::testGetCoverPositionAndLength(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_COVER_POSITION_AND_LENGTH);
-  BOOST_CHECK( motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(expectedContent) );
+  BOOST_CHECK( _motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(expectedContent) );
 }
 
 void MotorDriverCardTest::testSetCoverPositionAndLength(){
-  motorDriverCard->setCoverPositionAndLength( 0xFFFFFFFF );
-  BOOST_CHECK( motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(0xFFFFFF) );
+  _motorDriverCard->setCoverPositionAndLength( 0xFFFFFFFF );
+  BOOST_CHECK( _motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(0xFFFFFF) );
 }
 
 void MotorDriverCardTest::testGetCoverDatagram(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_COVER_DATAGRAM);
-  BOOST_CHECK( motorDriverCard->getCoverDatagram() == expectedContent );
+  BOOST_CHECK( _motorDriverCard->getCoverDatagram() == expectedContent );
 }
 
 void MotorDriverCardTest::testSetCoverDatagram(){
-  motorDriverCard->setCoverDatagram( 0xAAAAAAAA );
-  BOOST_CHECK( motorDriverCard->getCoverDatagram() == 0xAAAAAA );
+  _motorDriverCard->setCoverDatagram( 0xAAAAAAAA );
+  BOOST_CHECK( _motorDriverCard->getCoverDatagram() == 0xAAAAAA );
 }
+
+void MotorDriverCardTest::testGetStepperMotorGlobalParameters(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
+  BOOST_CHECK( _motorDriverCard->getStepperMotorGlobalParameters() == StepperMotorGlobalParameters(expectedContent) );
+}
+
+void MotorDriverCardTest::testSetStepperMotorGlobalParameters(){
+  _motorDriverCard->setStepperMotorGlobalParameters( 0x55555555 );
+  BOOST_CHECK( _motorDriverCard->getStepperMotorGlobalParameters() == StepperMotorGlobalParameters(0x555555) );
+}
+
+void MotorDriverCardTest::testGetInterfaceConfiguration(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_INTERFACE_CONFIGURATION);
+  BOOST_CHECK( _motorDriverCard->getInterfaceConfiguration() == InterfaceConfiguration(expectedContent) );
+}
+
+void MotorDriverCardTest::testSetInterfaceConfiguration(){
+  _motorDriverCard->setInterfaceConfiguration( 0x55555555 );
+  BOOST_CHECK( _motorDriverCard->getInterfaceConfiguration() == InterfaceConfiguration(0x555555) );
+}
+
+void MotorDriverCardTest::testGetPositionCompareRegister(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_POSITION_COMPARE);
+  BOOST_CHECK( _motorDriverCard->getPositionCompareRegister() == expectedContent );
+}
+
+void MotorDriverCardTest::testSetPositionCompareRegister(){
+  _motorDriverCard->setPositionCompareRegister( 0xFFFFFFFF );
+  BOOST_CHECK( _motorDriverCard->getPositionCompareRegister() == 0xFFFFFF );
+}
+
+void MotorDriverCardTest::testGetPositionCompareInterruptRegister(){
+  unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
+							 JDX_POSITION_COMPARE_INTERRUPT);
+  BOOST_CHECK( _motorDriverCard->getPositionCompareInterruptRegister() == PositionCompareInterruptData(expectedContent) );
+}
+
+void MotorDriverCardTest::testSetPositionCompareInterruptRegister(){
+  _motorDriverCard->setPositionCompareInterruptRegister( 0xAAAAAAAA );
+  BOOST_CHECK( _motorDriverCard->getPositionCompareInterruptRegister() == PositionCompareInterruptData(0xAAAAAA) );
+}
+
+void MotorDriverCardTest::testPowerDown(){
+  _motorDriverCard->powerDown();
+  BOOST_CHECK( _dummyDevice->isPowerUp() == false );
+
+  _dummyDevice->powerUp();
+  BOOST_CHECK( _dummyDevice->isPowerUp() == true );
+}
+

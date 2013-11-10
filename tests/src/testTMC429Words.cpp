@@ -97,6 +97,11 @@ BOOST_AUTO_TEST_CASE( testInterfaceConfiguration ){
   BOOST_CHECK( createDataWordUsingSetterFunction<InterfaceConfiguration>(&InterfaceConfiguration::setEn_refr)  == 0x68000100);  
 }
 
+BOOST_AUTO_TEST_CASE( testPositionCompareInterruptData ){
+  BOOST_CHECK( createDataWordUsingSetterFunction<PositionCompareInterruptData>(&PositionCompareInterruptData::setInterruptFlag)  == 0x6C000001);  
+  BOOST_CHECK( createDataWordUsingSetterFunction<PositionCompareInterruptData>(&PositionCompareInterruptData::setInterruptMask)  == 0x6C000100);  
+}
+
 BOOST_AUTO_TEST_CASE( testAccelerationThresholdData ){
   BOOST_CHECK( createDataWordUsingSetterFunction<AccelerationThresholdData>(&AccelerationThresholdData::setAccelerationThreshold)        == 0x100007FF);
   BOOST_CHECK( createDataWordUsingSetterFunction<AccelerationThresholdData>(&AccelerationThresholdData::setCurrentScalingAtRest)         == 0x10007000);

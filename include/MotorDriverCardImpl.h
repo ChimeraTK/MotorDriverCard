@@ -21,7 +21,7 @@ namespace mtca4u
     // the helper classes
     struct MotorDriverConfiguration{};
     
-    //FIXME: move constructor to impl
+    //FIXME: 
     /* how to construct?
        a) using the device and subdevice ID?
        b) using the MtcaMappedDevice?
@@ -53,9 +53,9 @@ namespace mtca4u
     void setCoverDatagram(unsigned int coverDatagram);
     unsigned int getCoverDatagram();
 
-    void setStepperMotorGlobalParametersRegister(
+    void setStepperMotorGlobalParameters(
 		  StepperMotorGlobalParameters const & stepperMotorGlobalParameters);
-    StepperMotorGlobalParameters getStepperMotorGlobalParametersRegister();
+    StepperMotorGlobalParameters getStepperMotorGlobalParameters();
 
     void setInterfaceConfiguration(
                   InterfaceConfiguration const & interfaceConfiguration);
