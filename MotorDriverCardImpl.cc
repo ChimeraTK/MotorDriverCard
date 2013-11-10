@@ -18,7 +18,10 @@ namespace mtca4u{
 	   mappedDevice->getRegObject( SPI_CONTROL_READBACK_ADDRESS_STRING )),
       _powerMonitor(new PowerMonitor)
   {
-    
+    _motorControlers.resize( N_MOTORS_MAX );
+    for (unsigned int i = 0; i < _motorControlers.size() ; ++i){
+      _motorControlers[i].reset( new MotorControler( i, *this ) );
+    }
   }
 
   MotorControler & MotorDriverCardImpl::getMotorControler(unsigned int motorControlerID){

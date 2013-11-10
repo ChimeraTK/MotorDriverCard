@@ -4,6 +4,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "TMC429Words.h"
 #include "TMC429DummyConstants.h"
@@ -54,12 +55,16 @@ namespace mtca4u{
     StepperMotorGlobalParameters globalParameters;
     globalParameters.setClk2_div(15);
     _spiAddressSpace.at(spiAddress) = globalParameters.getDATA();
+
+    synchroniseFpgaWithSpiRegisters();
   }
 
   void DFMC_MD22Dummy::setSPIRegistersForTesting(){
     for( size_t i=0; i< _spiAddressSpace.size(); ++i ){
       _spiAddressSpace[i]=i*i+13;
     }
+
+    synchroniseFpgaWithSpiRegisters();
   }
 
   void DFMC_MD22Dummy::handleSPIWrite(){
@@ -101,6 +106,8 @@ namespace mtca4u{
       default: // motor specifix registers are addressed by idx
 	performIdxActions( inputWord.getIDX_JDX() );
     };
+
+    synchroniseFpgaWithSpiRegisters();
   }
 
   void DFMC_MD22Dummy::performJdxActions( unsigned int jdx ){
@@ -128,5 +135,33 @@ namespace mtca4u{
     writeContentToSpiRegister( 0, powerDownSpiAddress );
     _powerIsUp = true;
   }
+
+  void DFMC_MD22Dummy::synchroniseFpgaWithSpiRegisters(){
+    for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
+      writeSpiRegisterToFpga( i, IDX_ACTUAL_POSITION , "ACTUAL_POS" );
+      writeSpiRegisterToFpga( i, IDX_ACTUAL_VELOCITY, "V_ACTUAL");
+      writeSpiRegisterToFpga( i, IDX_ACTUAL_ACCELERATION, "ACT_ACCEL" );
+      //writeAccelerationThresholdToFpgs( i );
+      writeSpiRegisterToFpga( i, IDX_MICRO_STEP_COUNT, "MSTEP_VAL");
+    }
+  }
+
+  void DFMC_MD22Dummy::writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX, std::string suffix ){
+    unsigned int spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( ID,
+							    IDX );
+    std::string registerName = createMotorRegisterName( ID, suffix );
+    mapFile::mapElem registerInformation;
+    _registerMapping->getRegisterInfo (registerName, registerInformation);
+    writeReg( registerInformation.reg_address, _spiAddressSpace[spiAddress], 
+	      registerInformation.reg_bar );
+  }
+  
+  std::string DFMC_MD22Dummy::createMotorRegisterName( unsigned int ID, std::string suffix ){
+    return std::string("WORD_M")
+      + boost::lexical_cast<std::string>(ID+1) + "_"
+      + suffix;
+  }
+
+  //_WORD_M1_THRESHOLD_ACCEL
 
 }// namespace mtca4u
