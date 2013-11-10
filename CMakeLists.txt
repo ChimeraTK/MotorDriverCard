@@ -55,6 +55,14 @@ if(TESTING_IS_ENABLED)
   endforeach( testSourceFile )
 
   COPY_MAPPING_FILES()
+  configure_file(cmake/Makefile.coverage
+		${PROJECT_BINARY_DIR}/Makefile.coverage @ONLY)
+  add_custom_target(coverage
+    make -f Makefile.coverage
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating test coverage documentation" VERBATIM
+    )
+
 endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} )
