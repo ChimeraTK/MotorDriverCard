@@ -52,6 +52,15 @@ namespace mtca4u{
     void triggerActionsOnSpiWrite(TMC429InputWord const & inputWord);
     void performIdxActions( unsigned int idx );
     void performJdxActions( unsigned int jdx );
+
+    /** In the DFMC_MD22 some registers of the SPI address space have a copy
+     *  in the PCIe address space, which is updated by a loop when the FPGA is idle.
+     *  The dummy simulates this behaviour.
+     */
+    void synchroniseFpgaWithSpiRegisters();
+    void writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX,
+				 std::string suffix );
+    static std::string createMotorRegisterName( unsigned int ID, std::string suffix );
   };
 }// namespace mtca4u
 

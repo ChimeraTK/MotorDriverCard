@@ -1,0 +1,81 @@
+#include <boost/test/included/unit_test.hpp>
+using namespace boost::unit_test_framework;
+
+#include "DFMC_MD22Dummy.h"
+#include "MotorDriverCardImpl.h"
+#include <MtcaMappedDevice/devMap.h>
+#include <MtcaMappedDevice/libmap.h>
+
+#include "DFMC_MD22Constants.h"
+#include "testWordFromSpiAddress.h"
+using namespace mtca4u::tmc429;
+
+#define MAP_FILE_NAME "DFMC_MD22_test.map"
+
+using namespace mtca4u;
+
+class MotorControlerTest{
+public:
+  MotorControlerTest(MotorControler & motorControler);
+  // getID() is tested in the MotorDriver card, where 
+  // different ID are known. This test is for just one
+  // Motor with one ID, which is now known to be ok.
+  void testGetActualPosition();
+
+private:
+  MotorControler & _motorControler;
+  static unsigned int const spiDataMask = 0xFFFFFF;
+};
+
+class  MotorControlerTestSuite : public test_suite{
+private:
+    boost::shared_ptr<MotorDriverCard> _motorDriverCard;
+public:
+  MotorControlerTestSuite(std::string const & mapFileName) 
+    : test_suite(" MotorControler test suite"){
+
+    boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy );
+    dummyDevice->openDev( mapFileName );
+    dummyDevice->setSPIRegistersForTesting();
+ 
+    mapFileParser fileParser;
+    boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);
+
+    boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
+    MotorDriverCardImpl::MotorDriverConfiguration  motorDriverConfiguration;
+   
+    mappedDevice->openDev( dummyDevice, registerMapping );
+    // We need the motor driver card as private variable because it has to
+    // survive the constructor. Otherwise the MotorControlers passed to
+    // the tests will be invalid.
+    _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice,
+						     motorDriverConfiguration ) );
+
+    for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
+      boost::shared_ptr<MotorControlerTest> motorControlerTest( 
+	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ) );
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetActualPosition, 
+				  motorControlerTest) ); 
+	   //      ADD_NUMBERED_TEST( testGetID, i );
+    }
+  }
+};
+
+test_suite*
+init_unit_test_suite( int argc, char* argv[] )
+{
+   framework::master_test_suite().p_name.value = "MotorControler test suite";
+
+   return new MotorControlerTestSuite(MAP_FILE_NAME);
+}
+
+
+MotorControlerTest::MotorControlerTest(MotorControler & motorControler) 
+  : _motorControler(motorControler){
+}
+
+void MotorControlerTest::testGetActualPosition(){
+  unsigned int expectedPosition = testWordFromSpiAddress( _motorControler.getID(),
+							  IDX_ACTUAL_POSITION);  
+  BOOST_CHECK( _motorControler.getActualPosition() == expectedPosition );
+}

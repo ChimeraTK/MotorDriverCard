@@ -84,6 +84,7 @@ namespace mtca4u
     std::vector< boost::shared_ptr<MotorControler> > _motorControlers;
 
     boost::shared_ptr< devMap<devBase> > _mappedDevice;
+    friend class MotorControler;
 
     devMap<devBase>::regObject _spiControlWriteRegister;
     devMap<devBase>::regObject _spiControlReadbackRegister;

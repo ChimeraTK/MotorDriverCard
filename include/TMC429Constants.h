@@ -2,6 +2,7 @@
 #define MTCA4U_TMC429_CONSTANTS_H
 
 #include <stdint.h>
+#include <string>
 
 namespace mtca4u{
 
@@ -9,6 +10,8 @@ namespace tmc429{
 
   std::string const SPI_CONTROL_WRITE_ADDRESS_STRING = "WORD_SPI_CTRL";
   std::string const SPI_CONTROL_READBACK_ADDRESS_STRING = "WORD_SPI_CTRL_B";
+
+  uint32_t const N_MOTORS_MAX = 2;
 
   uint32_t const SMDA_COMMON = 0x3;
   uint32_t const JDX_DATAGRAM_LOW_WORD = 0x0;
@@ -30,9 +33,9 @@ namespace tmc429{
   uint32_t const IDX_MINIMUM_VELOCITY = 0x2;
   uint32_t const IDX_MAXIMUM_VELOCITY = 0x3;
   uint32_t const IDX_TARGET_VELOCITY = 0x4;
-  uint32_t const IDX_ACTUTAL_VELOCITY = 0x5;
+  uint32_t const IDX_ACTUAL_VELOCITY = 0x5;
   uint32_t const IDX_MAXIMUM_ACCELERATION = 0x6;
-  uint32_t const IDX_ACTUAL_VELOCITY = 0x7;
+  uint32_t const IDX_ACTUAL_ACCELERATION = 0x7;
   uint32_t const IDX_ACCELERATION_THRESHOLD = 0x8;
   uint32_t const IDX_PROPORTIONALITY_FACTORS = 0x9;
   uint32_t const IDX_REFERENCE_CONFIG_AND_RAMP_MODE = 0xA;

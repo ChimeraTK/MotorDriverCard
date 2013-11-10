@@ -1,10 +1,14 @@
 #ifndef MTCA4U_MOTOR_CONTROLER_H
 #define MTCA4U_MOTOR_CONTROLER_H
 
+#include <MtcaMappedDevice/devMap.h>
+
 #include "TMC260Words.h"
+#include "TMC429Words.h"
 
 namespace mtca4u
 {
+  class MotorDriverCardImpl;
 
   /**
    * A class to controll stepper motors using the DFMC-MD22 card.
@@ -29,19 +33,9 @@ namespace mtca4u
     };
 
 
-    /**
-     * The constructor requires a reference to the MotorDriverCard it is
-     * living on.
-     */
-    MotorControler( MotorDriverCard & driverCard );
+    unsigned int getID();
 
     // via direct register access in the fpga
-
-    void setActualSpeed(unsigned int stepsPerFIXME); //FIXME = read only?
-    void setActualAcceleration(unsigned int stepsPerSquareFIXME);
-    void setAccelerationThreshold(unsigned int accelerationTreshold); //lower or upper threshold?
-    void setEnabled(bool enable=true); //< Enable or disable the motor driver chip
-    void setDecoderReadoutMode(unsigned int decoderReadoutMode);
 
     unsigned int getActualPosition(); //< Get the actual position in steps
     unsigned int getActualSpeed(); //< Get the actual speed in steps per FIXME
@@ -53,6 +47,12 @@ namespace mtca4u
     unsigned int getDecoderReadoutMode(); //< Get the decoder readout mode
     unsigned int getDecoderPosition(); //< Get the decoder position (which units?)
     
+    void setActualSpeed(unsigned int stepsPerFIXME); //FIXME = read only?
+    void setActualAcceleration(unsigned int stepsPerSquareFIXME);
+    void setAccelerationThreshold(unsigned int accelerationTreshold); //lower or upper threshold?
+    void setEnabled(bool enable=true); //< Enable or disable the motor driver chip
+    void setDecoderReadoutMode(unsigned int decoderReadoutMode);
+
     bool isEnabled(); //< Check whether the motor driver chip is enabled
     
     // via spi to the tmc429 motor controler
@@ -92,14 +92,36 @@ namespace mtca4u
            
  
   protected:
+    /**
+     * The constructor requires a reference to the MotorDriverCard it is
+     * living on. It is private and only the MotorDriverCardImpl, which is declared 
+     * friend, is allowed to create MotorControlers
+     */
+    MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard );
+    friend class MotorDriverCardImpl;
+
+    /** It is explicitly forbidden to copy MotorControlers. The copy constructor
+     *  is private and intentionnaly not implemented.
+     */
+    MotorControler( MotorControler const & );
+
      /// The driver card this motor controler is living on.
-     MotorDriverCard & _driverCard;
+     MotorDriverCardImpl & _driverCard;
+
+     unsigned int _id;
 
      //FIXME: These variables have to be stored uniquely inter process
-     DriverControlData driverControlData;
-     ChopperControlData chopperControlData;
-     CoolStepControlData coolStepControlData;
-     StallGuardControlData stallGuardControlData;
+     DriverControlData _driverControlData;
+     ChopperControlData _chopperControlData;
+     CoolStepControlData _coolStepControlData;
+     StallGuardControlData _stallGuardControlData;
+
+     devMap< devBase >::regObject _actualPosition;
+
+     /// Creates a string dependent on the motor ID and suffix.
+     /// The result is WORD_M1_SUFFIX for motor ID = 1 and suffix = SUFFIX
+     std::string createMotorRegisterName( std::string suffix );
+
      
  };
 

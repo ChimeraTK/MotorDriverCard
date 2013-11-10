@@ -7,6 +7,7 @@ using namespace boost::unit_test_framework;
 #include <MtcaMappedDevice/libmap.h>
 
 #include "DFMC_MD22Constants.h"
+#include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
@@ -42,17 +43,17 @@ public:
   DECLARE_GET_SET_TEST( PositionCompareRegister );
   DECLARE_GET_SET_TEST( PositionCompareInterruptRegister );
   void testPowerDown();
+  void testGetMotorControler();
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
   std::string _mapFileName;
-  unsigned int testWordFromSpiAddress(unsigned int smda, unsigned int idx_jdx);
 };
 
 class  MotorDriverCardTestSuite : public test_suite{
  public:
-  MotorDriverCardTestSuite() : test_suite(" MultiVariableWord test suite"){
+  MotorDriverCardTestSuite() : test_suite(" MotorDriverCard test suite"){
     boost::shared_ptr<MotorDriverCardTest> motorDriverCardTest( new MotorDriverCardTest(MAP_FILE_NAME) );
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
@@ -72,6 +73,7 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( PositionCompareRegister );
     ADD_GET_SET_TEST( PositionCompareInterruptRegister );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
   }
 };
 
@@ -114,7 +116,6 @@ void MotorDriverCardTest::testConstructor(){
   mappedDevice->closeDev();
 
   _dummyDevice->openDev( _mapFileName );
-  //boost::dynamic_pointer_cast<DFMC_MD22Dummy>(dummyDevice)->setSPIRegistersForTesting();
   _dummyDevice->setSPIRegistersForTesting();
   mappedDevice->openDev( _dummyDevice, registerMapping );
   
@@ -145,13 +146,6 @@ void MotorDriverCardTest::testGetDatagramLowWord(){
 void MotorDriverCardTest::testSetDatagramLowWord(){
   _motorDriverCard->setDatagramLowWord( 0xAAAAAAAA );
   BOOST_CHECK( _motorDriverCard->getDatagramLowWord() == 0xAAAAAA );
-}
-
-unsigned int MotorDriverCardTest::testWordFromSpiAddress(unsigned int smda,
-							 unsigned int idx_jdx){
-  unsigned int spiAddress = (smda << 4) | idx_jdx;
-  // the test word as defined in the DUMMY (independent implementation)
-  return spiAddress*spiAddress+13;
 }
 
 void MotorDriverCardTest::testGetDatagramHighWord(){
@@ -237,5 +231,13 @@ void MotorDriverCardTest::testPowerDown(){
 
   _dummyDevice->powerUp();
   BOOST_CHECK( _dummyDevice->isPowerUp() == true );
+}
+
+void MotorDriverCardTest::testGetMotorControler(){
+  for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
+    BOOST_CHECK( _motorDriverCard->getMotorControler(i).getID() == i );
+  }
+  BOOST_CHECK_THROW( _motorDriverCard->getMotorControler( N_MOTORS_MAX ), 
+		     MotorDriverException );
 }
 
