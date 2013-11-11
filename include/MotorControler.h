@@ -38,7 +38,7 @@ namespace mtca4u
     // via direct register access in the fpga
 
     unsigned int getActualPosition(); //< Get the actual position in steps
-    unsigned int getActualSpeed(); //< Get the actual speed in steps per FIXME
+    unsigned int getActualVelocity(); //< Get the actual velocity in steps per FIXME
     unsigned int getActualAcceleration(); //< Get the actual acceleration in steps per square FIXME
     unsigned int getAccelerationThreshold(); //< Get the acceleration threshold (upper or lower???) in steps/s^2
     unsigned int getMicroStepValue(); //< Get the micro step value (which units? what does it mean?)
@@ -47,7 +47,7 @@ namespace mtca4u
     unsigned int getDecoderReadoutMode(); //< Get the decoder readout mode
     unsigned int getDecoderPosition(); //< Get the decoder position (which units?)
     
-    void setActualSpeed(unsigned int stepsPerFIXME); //FIXME = read only?
+    void setActualVelocity(unsigned int stepsPerFIXME); //FIXME = read only?
     void setActualAcceleration(unsigned int stepsPerSquareFIXME);
     void setAccelerationThreshold(unsigned int accelerationTreshold); //lower or upper threshold?
     void setEnabled(bool enable=true); //< Enable or disable the motor driver chip
@@ -59,9 +59,9 @@ namespace mtca4u
     void setTartetPosition(unsigned int steps);
     /// Set the actual position counter for a recalibration of the actual position
     void setActualPosition(unsigned int steps);
-    void setMinimalSpeed(unsigned int stepsPerFIXME);
-    void setMaximalSpeed(unsigned int stepsPerFIXME);
-    void setTargetSpeed(unsigned int stepsPerFIXME);
+    void setMinimalVelocity(unsigned int stepsPerFIXME);
+    void setMaximalVelocity(unsigned int stepsPerFIXME);
+    void setTargetVelocity(unsigned int stepsPerFIXME);
 
      void setMaximumAcceleration(unsigned int stepsPerSquareFIXME);
      void setTargetAcceleration(unsigned int stepsPerSquareFIXME);
@@ -91,7 +91,7 @@ namespace mtca4u
      DriverConfigData const & getDriverConfigData() const;
            
  
-  protected:
+  private:
     /**
      * The constructor requires a reference to the MotorDriverCard it is
      * living on. It is private and only the MotorDriverCardImpl, which is declared 
@@ -117,12 +117,16 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
 
      devMap< devBase >::regObject _actualPosition;
+     devMap< devBase >::regObject _actualVelocity;
 
      /// Creates a string dependent on the motor ID and suffix.
      /// The result is WORD_M1_SUFFIX for motor ID = 1 and suffix = SUFFIX
      std::string createMotorRegisterName( std::string suffix );
 
-     
+     /// Simplify the syntax to read from a regObject which need call by reference.
+     /// Remove this function once the regObject interface has been fixed.
+     unsigned int readRegObject( 
+			devMap<devBase>::regObject const & registerAccessor);
  };
 
 }// namespace mtca4u

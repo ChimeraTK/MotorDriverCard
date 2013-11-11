@@ -104,6 +104,11 @@ namespace mtca4u{
     /// returns true if the ranges overlap and at least one of the overlapping registers can be written
     bool isWriteRangeOverlap( AddressRange firstRange, AddressRange secondRange);
     static void checkSizeIsMultipleOfWordSize(size_t sizeInBytes);
+
+    /// Not write-protected function for internal use only. It does not trigger
+    /// the callback function so it can be used inside a callback function for 
+    /// resynchronisation.
+    void writeRegisterWithoutCallback(uint32_t regOffset, int32_t data, uint8_t bar);
   };
 
 }//namespace mtca4u

@@ -60,7 +60,13 @@ namespace mtca4u{
     void synchroniseFpgaWithSpiRegisters();
     void writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX,
 				 std::string suffix );
-    static std::string createMotorRegisterName( unsigned int ID, std::string suffix );
+    void writeFpgaRegisterToSpi( unsigned int ID, unsigned int IDX,
+				 std::string suffix );
+   static std::string createMotorRegisterName( unsigned int ID, std::string suffix );
+
+    void writeActualPositionToSpiRegister( unsigned int ID );
+
+    void writeActualVelocityToSpiRegister( unsigned int ID );
   };
 }// namespace mtca4u
 

@@ -12,6 +12,17 @@ using namespace mtca4u::tmc429;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
 
+#define DECLARE_GET_SET_TEST( NAME )\
+  void testGet ## NAME ();\
+  void testSet ## NAME ()
+
+#define ADD_GET_SET_TEST( NAME )\
+  test_case* set ## NAME ## TestCase =  BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSet ## NAME , motorControlerTest );\
+  test_case* get ## NAME ## TestCase =  BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGet ## NAME , motorControlerTest );\
+  set ## NAME ## TestCase->depends_on( get ## NAME ## TestCase );\
+  add( get ## NAME ## TestCase );\
+  add( set ## NAME ## TestCase )
+
 using namespace mtca4u;
 
 class MotorControlerTest{
@@ -20,11 +31,15 @@ public:
   // getID() is tested in the MotorDriver card, where 
   // different ID are known. This test is for just one
   // Motor with one ID, which is now known to be ok.
-  void testGetActualPosition();
+  DECLARE_GET_SET_TEST( ActualPosition );
+  DECLARE_GET_SET_TEST( ActualVelocity );
 
 private:
   MotorControler & _motorControler;
   static unsigned int const spiDataMask = 0xFFFFFF;
+
+  void testGetterFunction( boost::function<unsigned int(void)> getterFunction,
+			   unsigned int IDX );
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -54,9 +69,8 @@ public:
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       boost::shared_ptr<MotorControlerTest> motorControlerTest( 
 	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ) );
-      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetActualPosition, 
-				  motorControlerTest) ); 
-	   //      ADD_NUMBERED_TEST( testGetID, i );
+      ADD_GET_SET_TEST( ActualPosition );
+      ADD_GET_SET_TEST( ActualVelocity );
     }
   }
 };
@@ -78,4 +92,27 @@ void MotorControlerTest::testGetActualPosition(){
   unsigned int expectedPosition = testWordFromSpiAddress( _motorControler.getID(),
 							  IDX_ACTUAL_POSITION);  
   BOOST_CHECK( _motorControler.getActualPosition() == expectedPosition );
+}
+
+void MotorControlerTest::testSetActualPosition(){
+  _motorControler.setActualPosition( 0x55555555 );
+  BOOST_CHECK( _motorControler.getActualPosition() == 0x555555 );
+}
+
+void MotorControlerTest::testGetActualVelocity(){
+  unsigned int expectedVelocity = testWordFromSpiAddress( _motorControler.getID(),
+							  IDX_ACTUAL_VELOCITY);  
+  BOOST_CHECK( _motorControler.getActualVelocity() == expectedVelocity );
+}
+
+void MotorControlerTest::testSetActualVelocity(){
+  _motorControler.setActualVelocity( 0xAAAAAAAA );
+  BOOST_CHECK( _motorControler.getActualVelocity() == 0xAAAAAA );
+}
+
+void MotorControlerTest::testGetterFunction( boost::function<unsigned int(void)> getterFunction,
+					     unsigned int IDX ){
+  unsigned int expectedValue = testWordFromSpiAddress( _motorControler.getID(),
+						       IDX);  
+  BOOST_CHECK( getterFunction() == expectedValue );
 }
