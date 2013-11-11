@@ -13,8 +13,16 @@ using namespace mtca4u::tmc429;
 // See data sheet: the spi address has 7 bits, the lower 4 are IDX or JDX, the higher 3 are SMDA
 #define SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA, IDXJDX ) ((SMDA << 4) + IDXJDX)
 
+#define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING )\
+    _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation );\
+    AddressRange NAME( registerInformation.reg_address, \
+                       registerInformation.reg_size, \
+		       registerInformation.reg_bar)
+
 namespace mtca4u{
-  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
+ uint32_t const SPI_DATA_MASK = 0xFFFFFF;
+
+ DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
 				    _spiWriteAddress(0), _spiWriteBar(0),
 				    _spiReadbackAddress(0), _spiReadbackBar(0),
 				    _powerIsUp(true){
@@ -28,10 +36,7 @@ namespace mtca4u{
     setSPIRegistersForOperation();
 
     mapFile::mapElem registerInformation;
-    _registerMapping->getRegisterInfo( SPI_CONTROL_WRITE_ADDRESS_STRING, registerInformation );
-    AddressRange spiWriteAddressRange( registerInformation.reg_address,
-				       registerInformation.reg_size,
-				       registerInformation.reg_bar);
+    DEFINE_ADDRESS_RANGE( spiWriteAddressRange, SPI_CONTROL_WRITE_ADDRESS_STRING );
     _spiWriteAddress = registerInformation.reg_address;
     _spiWriteBar = registerInformation.reg_bar;
 
@@ -40,6 +45,17 @@ namespace mtca4u{
     _spiReadbackBar = registerInformation.reg_bar;
     
     setWriteCallbackFunction( spiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleSPIWrite, this ) );
+
+    for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
+      DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
+			    createMotorRegisterName( i, "ACTUAL_POS" ) );
+      setWriteCallbackFunction( actualPositionAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualPositionToSpiRegister, this, i ) );
+      DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
+			    createMotorRegisterName( i, "V_ACTUAL" ) );
+      setWriteCallbackFunction( actualVelocityAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualVelocityToSpiRegister, this, i ) );
+    }
+
+    //    setWriteCallbackFunction( 
 
   }
 
@@ -95,7 +111,9 @@ namespace mtca4u{
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
     outputWord.setDATA( _spiAddressSpace.at(spiAddress) );
-    writeReg( _spiReadbackAddress, outputWord.getDataWord(), _spiReadbackBar );
+     writeRegisterWithoutCallback( _spiReadbackAddress,
+				   outputWord.getDataWord(),
+				   _spiReadbackBar );
   }
 
   void DFMC_MD22Dummy::triggerActionsOnSpiWrite(TMC429InputWord const & inputWord){
@@ -152,14 +170,40 @@ namespace mtca4u{
     std::string registerName = createMotorRegisterName( ID, suffix );
     mapFile::mapElem registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation);
-    writeReg( registerInformation.reg_address, _spiAddressSpace[spiAddress], 
-	      registerInformation.reg_bar );
+     writeRegisterWithoutCallback( registerInformation.reg_address,
+				   _spiAddressSpace[spiAddress], 
+				   registerInformation.reg_bar );
+  }
+
+  void DFMC_MD22Dummy::writeFpgaRegisterToSpi( unsigned int ID, unsigned int IDX, std::string suffix ){
+    unsigned int spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( ID,
+							    IDX );
+    std::string registerName = createMotorRegisterName( ID, suffix );
+    mapFile::mapElem registerInformation;
+    _registerMapping->getRegisterInfo (registerName, registerInformation);
+    int32_t fpgaValue;
+    readReg( registerInformation.reg_address, &fpgaValue, 
+	     registerInformation.reg_bar );
+    _spiAddressSpace[spiAddress] = fpgaValue & SPI_DATA_MASK;
+    
+    // resync the masked value with the FPGA
+    writeRegisterWithoutCallback( registerInformation.reg_address,
+				  _spiAddressSpace[spiAddress], 
+				  registerInformation.reg_bar );    
   }
   
   std::string DFMC_MD22Dummy::createMotorRegisterName( unsigned int ID, std::string suffix ){
     return std::string("WORD_M")
       + boost::lexical_cast<std::string>(ID+1) + "_"
       + suffix;
+  }
+
+  void DFMC_MD22Dummy::writeActualPositionToSpiRegister( unsigned int ID ){
+    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_POSITION , "ACTUAL_POS" );
+  }
+
+  void DFMC_MD22Dummy::writeActualVelocityToSpiRegister( unsigned int ID ){
+    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_VELOCITY , "V_ACTUAL" );
   }
 
   //_WORD_M1_THRESHOLD_ACCEL

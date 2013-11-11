@@ -94,6 +94,11 @@ namespace mtca4u{
     runWriteCallbackFunctionsForAddressRange( AddressRange(regOffset, sizeof(int32_t), bar) );
   }
 
+  void DummyDevice::writeRegisterWithoutCallback(uint32_t regOffset, 
+						 int32_t data, uint8_t bar){
+    TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset/sizeof(int32_t)) = data; );
+  }
+
   void DummyDevice::readArea(uint32_t regOffset, int32_t* data, size_t size,
 			     uint8_t bar){
     checkSizeIsMultipleOfWordSize( size );
