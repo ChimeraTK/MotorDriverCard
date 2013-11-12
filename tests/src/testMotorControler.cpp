@@ -37,9 +37,6 @@ public:
 private:
   MotorControler & _motorControler;
   static unsigned int const spiDataMask = 0xFFFFFF;
-
-  void testGetterFunction( boost::function<unsigned int(void)> getterFunction,
-			   unsigned int IDX );
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -108,11 +105,4 @@ void MotorControlerTest::testGetActualVelocity(){
 void MotorControlerTest::testSetActualVelocity(){
   _motorControler.setActualVelocity( 0xAAAAAAAA );
   BOOST_CHECK( _motorControler.getActualVelocity() == 0xAAAAAA );
-}
-
-void MotorControlerTest::testGetterFunction( boost::function<unsigned int(void)> getterFunction,
-					     unsigned int IDX ){
-  unsigned int expectedValue = testWordFromSpiAddress( _motorControler.getID(),
-						       IDX);  
-  BOOST_CHECK( getterFunction() == expectedValue );
 }
