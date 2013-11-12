@@ -46,7 +46,8 @@ public:
   void testReadDeviceInfo();
   void testReadOnly();
   void testWriteCallbackFunctions();
-  void testIsWriteRangeOverlap();  
+  void testIsWriteRangeOverlap();
+  void testWriteRegisterWithoutCallback();
 
 private:
   TestableDummyDevice _dummyDevice;
@@ -68,9 +69,10 @@ class  DummyDeviceTestSuite : public test_suite{
     // Pointers to test cases with dependencies. All other test cases are added directly.
     test_case* readOnlyTestCase = BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadOnly, dummyDeviceTest );
     test_case* writeCallbackFunctionsTestCase = BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteCallbackFunctions, dummyDeviceTest );
-
+    test_case* writeRegisterWithoutCallbackTestCase = BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteRegisterWithoutCallback,  dummyDeviceTest );
     // we use the setup from the read-only test to check that the callback function is not executed if the register is not writeable.
     writeCallbackFunctionsTestCase->depends_on(readOnlyTestCase);
+    writeRegisterWithoutCallbackTestCase->depends_on(writeCallbackFunctionsTestCase);
 
     // As boost test cases need nullary functions (working with parameters would not work with function pointers)
     // we create them by binding readArea and readDMA to the testReadWriteMultiWordRegister function of the
@@ -92,8 +94,9 @@ class  DummyDeviceTestSuite : public test_suite{
     add( BOOST_TEST_CASE( testReadWriteDMA ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteDMA, dummyDeviceTest ) );
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadDeviceInfo, dummyDeviceTest ) );
-    add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testReadOnly, dummyDeviceTest ) );
-    add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testWriteCallbackFunctions, dummyDeviceTest ) );
+    add( readOnlyTestCase );
+    add( writeCallbackFunctionsTestCase );
+    add( writeRegisterWithoutCallbackTestCase );	 
     add( BOOST_CLASS_TEST_CASE( &DummyDeviceTest::testIsWriteRangeOverlap, dummyDeviceTest ) );
   }
 };
@@ -391,6 +394,20 @@ void DummyDeviceTest::testWriteCallbackFunctions(){
   BOOST_CHECK(a==3); BOOST_CHECK(b==4); BOOST_CHECK(c==4);
   _dummyDevice.writeArea( 4, &(dataContents[0]), 8, 0 ); // nothing
   BOOST_CHECK(a==3); BOOST_CHECK(b==4); BOOST_CHECK(c==4);
+}
+
+void DummyDeviceTest::testWriteRegisterWithoutCallback(){
+  a=0; b=0; c=0;
+  int32_t dataWord =42;
+  _dummyDevice.writeRegisterWithoutCallback( 20, dataWord, 0 ); // c has callback installed on this register
+  BOOST_CHECK(a==0); BOOST_CHECK(b==0); BOOST_CHECK(c==0); // c must not change
+
+  // read only is also disabled for this internal function
+  _dummyDevice.readReg( 40, &dataWord, 0 );
+  _dummyDevice.writeRegisterWithoutCallback( 40, dataWord + 1, 0 );
+  int32_t readbackDataWord;
+  _dummyDevice.readReg( 40, &readbackDataWord, 0 );
+  BOOST_CHECK( readbackDataWord ==  dataWord + 1 );
 }
 
 void DummyDeviceTest::testAddressRange(){

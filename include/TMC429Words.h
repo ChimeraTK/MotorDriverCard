@@ -6,6 +6,11 @@
 
 // All bits from the ADD_VARIABLE are only in this file. Their correctness is tested 
 // with a unit test (second, independent implementation of the same information).
+// I intentionally decided to directly write the numbers in the code and not define
+// constants for each start and stop bit. These constants whould only tempt users
+// to use them in their code and start bit-fiddeling themselves. In addition, having a 
+// header with so many constants would not make it more  "storing them all in one place" than
+// having the numbers here, within their context and two numbers, which belong together, per line.
 
 namespace mtca4u{
   
