@@ -118,6 +118,7 @@ namespace mtca4u
 
      devMap< devBase >::regObject _actualPosition;
      devMap< devBase >::regObject _actualVelocity;
+     devMap< devBase >::regObject _actualAcceleration;
 
      /// Creates a string dependent on the motor ID and suffix.
      /// The result is WORD_M1_SUFFIX for motor ID = 1 and suffix = SUFFIX

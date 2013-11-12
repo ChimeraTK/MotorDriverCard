@@ -33,6 +33,7 @@ public:
   // Motor with one ID, which is now known to be ok.
   DECLARE_GET_SET_TEST( ActualPosition );
   DECLARE_GET_SET_TEST( ActualVelocity );
+  DECLARE_GET_SET_TEST( ActualAcceleration );
 
 private:
   MotorControler & _motorControler;
@@ -68,6 +69,7 @@ public:
 	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ) );
       ADD_GET_SET_TEST( ActualPosition );
       ADD_GET_SET_TEST( ActualVelocity );
+      ADD_GET_SET_TEST( ActualAcceleration );
     }
   }
 };
@@ -105,4 +107,15 @@ void MotorControlerTest::testGetActualVelocity(){
 void MotorControlerTest::testSetActualVelocity(){
   _motorControler.setActualVelocity( 0xAAAAAAAA );
   BOOST_CHECK( _motorControler.getActualVelocity() == 0xAAAAAA );
+}
+
+void MotorControlerTest::testGetActualAcceleration(){
+  unsigned int expectedAcceleration = testWordFromSpiAddress( _motorControler.getID(),
+							  IDX_ACTUAL_ACCELERATION);  
+  BOOST_CHECK( _motorControler.getActualAcceleration() == expectedAcceleration );
+}
+
+void MotorControlerTest::testSetActualAcceleration(){
+  _motorControler.setActualAcceleration( 0xFFFFFFFF );
+  BOOST_CHECK( _motorControler.getActualAcceleration() == 0xFFFFFF );
 }

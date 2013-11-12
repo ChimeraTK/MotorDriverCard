@@ -65,8 +65,8 @@ namespace mtca4u{
    static std::string createMotorRegisterName( unsigned int ID, std::string suffix );
 
     void writeActualPositionToSpiRegister( unsigned int ID );
-
     void writeActualVelocityToSpiRegister( unsigned int ID );
+    void writeActualAccelerationToSpiRegister( unsigned int ID );
   };
 }// namespace mtca4u
 

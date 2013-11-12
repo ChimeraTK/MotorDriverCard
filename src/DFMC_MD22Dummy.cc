@@ -53,6 +53,9 @@ namespace mtca4u{
       DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
 			    createMotorRegisterName( i, "V_ACTUAL" ) );
       setWriteCallbackFunction( actualVelocityAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualVelocityToSpiRegister, this, i ) );
+      DEFINE_ADDRESS_RANGE( actualAccelerationAddressRange,
+			    createMotorRegisterName( i, "ACT_ACCEL" ) );
+      setWriteCallbackFunction( actualAccelerationAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualAccelerationToSpiRegister, this, i ) );
     }
 
     //    setWriteCallbackFunction( 
@@ -204,6 +207,10 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::writeActualVelocityToSpiRegister( unsigned int ID ){
     writeFpgaRegisterToSpi( ID, IDX_ACTUAL_VELOCITY , "V_ACTUAL" );
+  }
+
+  void DFMC_MD22Dummy::writeActualAccelerationToSpiRegister( unsigned int ID ){
+    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_ACCELERATION , "ACT_ACCEL" );
   }
 
   //_WORD_M1_THRESHOLD_ACCEL
