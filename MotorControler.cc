@@ -13,7 +13,8 @@ namespace mtca4u
   MotorControler::MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard ) 
     : _driverCard(driverCard) , _id(ID), 
       _actualPosition( REG_OBJECT_FROM_SUFFIX( "ACTUAL_POS" ) ),
-      _actualVelocity( REG_OBJECT_FROM_SUFFIX( "V_ACTUAL" ) )
+      _actualVelocity( REG_OBJECT_FROM_SUFFIX( "V_ACTUAL" ) ),
+      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( "ACT_ACCEL" ) )
   {}
 
   unsigned int MotorControler::getID(){
@@ -40,6 +41,14 @@ namespace mtca4u
 
   void MotorControler::setActualVelocity(unsigned int velocity){
     _actualVelocity.writeReg(reinterpret_cast<int32_t *>(&velocity));
+  }
+
+  unsigned int MotorControler::getActualAcceleration(){
+    return readRegObject( _actualAcceleration );
+  }
+
+  void MotorControler::setActualAcceleration(unsigned int acceleration){
+    _actualAcceleration.writeReg(reinterpret_cast<int32_t *>(&acceleration));
   }
 
   std::string  MotorControler::createMotorRegisterName( std::string suffix ){
