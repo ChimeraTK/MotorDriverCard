@@ -90,7 +90,7 @@ namespace mtca4u{
     if (isReadOnly( regOffset, bar ) ){
       return;
     }
-    TRY_REGISTER_ACCESS( _barContents[bar].at(regOffset/sizeof(int32_t)) = data; );
+    writeRegisterWithoutCallback( regOffset, data, bar);
     runWriteCallbackFunctionsForAddressRange( AddressRange(regOffset, sizeof(int32_t), bar) );
   }
 
