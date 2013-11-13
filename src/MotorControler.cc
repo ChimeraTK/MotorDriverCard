@@ -14,7 +14,9 @@ namespace mtca4u
     : _driverCard(driverCard) , _id(ID), 
       _actualPosition( REG_OBJECT_FROM_SUFFIX( "ACTUAL_POS" ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( "V_ACTUAL" ) ),
-      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( "ACT_ACCEL" ) )
+      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( "ACT_ACCEL" ) ),
+      //_accelerationThreshold( REG_OBJECT_FROM_SUFFIX( "THRESHOLD_ACCEL" ) ),
+      _microStepCount( REG_OBJECT_FROM_SUFFIX( "MSTEP_VAL" ) )
   {}
 
   unsigned int MotorControler::getID(){
@@ -49,6 +51,22 @@ namespace mtca4u
 
   void MotorControler::setActualAcceleration(unsigned int acceleration){
     _actualAcceleration.writeReg(reinterpret_cast<int32_t *>(&acceleration));
+  }
+
+//  unsigned int MotorControler::getAccelerationThreshold(){
+//    return readRegObject( _accelerationThreshold );
+//  }
+//
+//  void MotorControler::setAccelerationThreshold(unsigned int accelerationThreshold){
+//    _accelerationThreshold.writeReg(reinterpret_cast<int32_t *>(&accelerationThreshold));
+//  }
+
+  unsigned int MotorControler::getMicroStepCount(){
+    return readRegObject( _microStepCount );
+  }
+
+  void MotorControler::setMicroStepCount(unsigned int microStepCount){
+    _microStepCount.writeReg(reinterpret_cast<int32_t *>(&microStepCount));
   }
 
   std::string  MotorControler::createMotorRegisterName( std::string suffix ){

@@ -40,8 +40,8 @@ namespace mtca4u
     unsigned int getActualPosition(); //< Get the actual position in steps
     unsigned int getActualVelocity(); //< Get the actual velocity in steps per FIXME
     unsigned int getActualAcceleration(); //< Get the actual acceleration in steps per square FIXME
-    unsigned int getAccelerationThreshold(); //< Get the acceleration threshold (upper or lower???) in steps/s^2
-    unsigned int getMicroStepValue(); //< Get the micro step value (which units? what does it mean?)
+    //    unsigned int getAccelerationThreshold(); //< Get the acceleration threshold (upper or lower???) in steps/s^2
+    unsigned int getMicroStepCount(); //< Get the micro step value (which units? what does it mean?)
     unsigned int getStallGuardValue(); //< Get the stall guard value  (which units? what does it mean?)
     unsigned int getStatus(); //< Get the actual status of the motor driver
     unsigned int getDecoderReadoutMode(); //< Get the decoder readout mode
@@ -49,7 +49,8 @@ namespace mtca4u
     
     void setActualVelocity(unsigned int stepsPerFIXME); //FIXME = read only?
     void setActualAcceleration(unsigned int stepsPerSquareFIXME);
-    void setAccelerationThreshold(unsigned int accelerationTreshold); //lower or upper threshold?
+    //    void setAccelerationThreshold(unsigned int accelerationTreshold);
+    void setMicroStepCount(unsigned int microStepCount);
     void setEnabled(bool enable=true); //< Enable or disable the motor driver chip
     void setDecoderReadoutMode(unsigned int decoderReadoutMode);
 
@@ -72,7 +73,6 @@ namespace mtca4u
      void setDividersAndMicroStepResolutionRegister(DividersAndMicroStepResolutionData dividersAndMicroStepResolutionData);
      void setPositionTolerance(unsigned int positionTolerance);
      void setPositionLatched(unsigned int positionLatched);
-     void setMicroStepCount(unsigned int microStepCount);
 
      // the same for alle the getters
      unsigned int getTargetAcceleration() const;//< read back the target acceleration in stepsPerSquareFIXME);
@@ -119,6 +119,8 @@ namespace mtca4u
      devMap< devBase >::regObject _actualPosition;
      devMap< devBase >::regObject _actualVelocity;
      devMap< devBase >::regObject _actualAcceleration;
+     //devMap< devBase >::regObject _accelerationThreshold;
+     devMap< devBase >::regObject _microStepCount;
 
      /// Creates a string dependent on the motor ID and suffix.
      /// The result is WORD_M1_SUFFIX for motor ID = 1 and suffix = SUFFIX

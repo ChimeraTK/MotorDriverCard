@@ -172,8 +172,9 @@ namespace mtca4u{
       ADD_VARIABLE(AccelerationThreshold, 0, 10);
 
       /// Constructor which initialises the IDX correctly
-      AccelerationThresholdData(){
+      AccelerationThresholdData(unsigned int data = 0){
 	setIDX_JDX( tmc429::IDX_ACCELERATION_THRESHOLD );
+	setDATA(data);
       }
       
     };
@@ -188,8 +189,9 @@ namespace mtca4u{
       ADD_VARIABLE(MultiplicationParameter, 8, 14);
 
       /// Constructor to initialise the IDX correctly
-      ProportionalityFactorData(){
+      ProportionalityFactorData(unsigned int data = 0){
 	setIDX_JDX( tmc429::IDX_PROPORTIONALITY_FACTORS );	
+	setDATA(data);
       }
     };
     

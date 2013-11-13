@@ -67,6 +67,7 @@ namespace mtca4u{
     void writeActualPositionToSpiRegister( unsigned int ID );
     void writeActualVelocityToSpiRegister( unsigned int ID );
     void writeActualAccelerationToSpiRegister( unsigned int ID );
+    void writeMicroStepCountToSpiRegister( unsigned int ID );
   };
 }// namespace mtca4u
 

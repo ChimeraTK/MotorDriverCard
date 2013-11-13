@@ -34,6 +34,8 @@ public:
   DECLARE_GET_SET_TEST( ActualPosition );
   DECLARE_GET_SET_TEST( ActualVelocity );
   DECLARE_GET_SET_TEST( ActualAcceleration );
+  //  DECLARE_GET_SET_TEST( AccelerationThreshold );
+  DECLARE_GET_SET_TEST( MicroStepCount );
 
 private:
   MotorControler & _motorControler;
@@ -70,6 +72,8 @@ public:
       ADD_GET_SET_TEST( ActualPosition );
       ADD_GET_SET_TEST( ActualVelocity );
       ADD_GET_SET_TEST( ActualAcceleration );
+      //      ADD_GET_SET_TEST( AccelerationThreshold );
+      ADD_GET_SET_TEST( MicroStepCount );
     }
   }
 };
@@ -95,7 +99,7 @@ void MotorControlerTest::testGetActualPosition(){
 
 void MotorControlerTest::testSetActualPosition(){
   _motorControler.setActualPosition( 0x55555555 );
-  BOOST_CHECK( _motorControler.getActualPosition() == 0x555555 );
+  BOOST_CHECK( _motorControler.getActualPosition() == 0x00555555 );
 }
 
 void MotorControlerTest::testGetActualVelocity(){
@@ -106,7 +110,7 @@ void MotorControlerTest::testGetActualVelocity(){
 
 void MotorControlerTest::testSetActualVelocity(){
   _motorControler.setActualVelocity( 0xAAAAAAAA );
-  BOOST_CHECK( _motorControler.getActualVelocity() == 0xAAAAAA );
+  BOOST_CHECK( _motorControler.getActualVelocity() == 0x00AAAAAA );
 }
 
 void MotorControlerTest::testGetActualAcceleration(){
@@ -117,5 +121,30 @@ void MotorControlerTest::testGetActualAcceleration(){
 
 void MotorControlerTest::testSetActualAcceleration(){
   _motorControler.setActualAcceleration( 0xFFFFFFFF );
-  BOOST_CHECK( _motorControler.getActualAcceleration() == 0xFFFFFF );
+  BOOST_CHECK( _motorControler.getActualAcceleration() == 0x00FFFFFF );
 }
+
+//void MotorControlerTest::testGetAccelerationThreshold(){
+//  AccelerationThresholdData thresholdData = testWordFromSpiAddress( 
+//                                                  _motorControler.getID(),
+//						  IDX_ACCELERATION_THRESHOLD);  
+//  BOOST_CHECK( _motorControler.getActualAcceleration() == 
+//	       thresholdData.getAccelerationThreshold() );
+//}
+//
+//void MotorControlerTest::testSetAccelerationThreshold(){
+//  _motorControler.setAccelerationThreshold( 0x55555555 );
+//  BOOST_CHECK( _motorControler.getAccelerationThreshold() == 0x00000555 );
+//}
+
+void MotorControlerTest::testGetMicroStepCount(){
+  unsigned int expectedCount = testWordFromSpiAddress( _motorControler.getID(),
+						       IDX_MICRO_STEP_COUNT);  
+  BOOST_CHECK( _motorControler.getMicroStepCount() == expectedCount );
+}
+
+void MotorControlerTest::testSetMicroStepCount(){
+  _motorControler.setMicroStepCount( 0xAAAAAAAA );
+  BOOST_CHECK( _motorControler.getMicroStepCount() == 0x00AAAAAA );
+}
+
