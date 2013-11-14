@@ -36,7 +36,17 @@ public:
   DECLARE_GET_SET_TEST( ActualAcceleration );
   //  DECLARE_GET_SET_TEST( AccelerationThreshold );
   DECLARE_GET_SET_TEST( MicroStepCount );
+  void testGetStallGuardValue(); // read only register
+  void testGetCoolStepValue(); // read only register
+  void testGetStauts(); // read only register
+  
+  void testIsEnabled();
+  void testSetEnabled();
 
+  DECLARE_GET_SET_TEST( DecoderReadoutMode );
+
+  void testGetDecoderPosition();
+  
 private:
   MotorControler & _motorControler;
   static unsigned int const spiDataMask = 0xFFFFFF;

@@ -156,6 +156,10 @@ namespace mtca4u{
     }
   }
 
+  void DummyDevice::setReadOnly( AddressRange addressRange ){
+    setReadOnly( addressRange.offset, addressRange.bar, addressRange.sizeInBytes/sizeof(int32_t) );
+  }
+
   bool  DummyDevice::isReadOnly( uint32_t offset, uint8_t bar ) const{
     uint64_t virtualAddress = calculateVirtualAddress( offset, bar );
     return (  _writeOnlyAddresses.find(virtualAddress) != _writeOnlyAddresses.end() );

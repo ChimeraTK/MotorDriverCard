@@ -306,7 +306,7 @@ void DummyDeviceTest::testReadOnly(){
 	       << "the testReadOnly() test.";
   BOOST_REQUIRE_MESSAGE(sizeInWords == 4, errorMessage.str());
 
-  std::vector<int32_t> dataContent(sizeInBytes);
+  std::vector<int32_t> dataContent(sizeInWords);
   for( unsigned int index = 0; index < dataContent.size(); ++index ){
     dataContent[index] = static_cast<int32_t>((index+1) * (index+1));
   }
@@ -324,7 +324,9 @@ void DummyDeviceTest::testReadOnly(){
   BOOST_CHECK( dataContent[3] == 42 );
 
   // also set the last two words to read only. Now only the second word has to change.
-  _dummyDevice.setReadOnly( offset + 2*sizeof(int32_t),  bar, 2);
+  // We use the addressRange interface for it to also cover this.
+  DummyDevice::AddressRange lastTwoMuxRegisters( offset + 2*sizeof(int32_t),  2*sizeof(int32_t), bar );
+  _dummyDevice.setReadOnly( lastTwoMuxRegisters );
    std::for_each( dataContent.begin(), dataContent.end(), boost::lambda::_1 = 29);
    // also test with single write operations
    for(size_t index = 0; index < sizeInWords; ++index){
@@ -337,6 +339,14 @@ void DummyDeviceTest::testReadOnly(){
   BOOST_CHECK( dataContent[1] == 29 );
   BOOST_CHECK( dataContent[2] == 42 );
   BOOST_CHECK( dataContent[3] == 42 );  
+
+  // check that the next register is still writeable (boundary test)
+  int32_t originalNextDataWord;
+  _dummyDevice.readReg(  offset + sizeInBytes, &originalNextDataWord, bar );
+  _dummyDevice.writeReg(  offset + sizeInBytes, originalNextDataWord + 1, bar );
+  int32_t readbackWord;
+  _dummyDevice.readReg(  offset + sizeInBytes, &readbackWord, bar );
+  BOOST_CHECK( originalNextDataWord+1 == readbackWord );
 }
 
 void DummyDeviceTest::testWriteCallbackFunctions(){

@@ -42,7 +42,8 @@ namespace mtca4u
     unsigned int getActualAcceleration(); //< Get the actual acceleration in steps per square FIXME
     //    unsigned int getAccelerationThreshold(); //< Get the acceleration threshold (upper or lower???) in steps/s^2
     unsigned int getMicroStepCount(); //< Get the micro step value (which units? what does it mean?)
-    unsigned int getStallGuardValue(); //< Get the stall guard value  (which units? what does it mean?)
+    unsigned int getStallGuardValue(); //< Get the stall guard value  (which units? what does it mean? Expert?)
+    unsigned int getCoolStepValue(); //< Get the CoolStepValue (in units?, what does it mean? Expert?)
     unsigned int getStatus(); //< Get the actual status of the motor driver
     unsigned int getDecoderReadoutMode(); //< Get the decoder readout mode
     unsigned int getDecoderPosition(); //< Get the decoder position (which units?)

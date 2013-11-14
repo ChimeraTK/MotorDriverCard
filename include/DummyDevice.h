@@ -98,6 +98,7 @@ namespace mtca4u{
     void runWriteCallbackFunctionsForAddressRange( AddressRange addressRange );
     std::list< boost::function<void(void)> > findCallbackFunctionsForAddressRange(AddressRange addressRange);
     void setReadOnly( uint32_t offset,  uint8_t bar, size_t sizeInWords);
+    void setReadOnly( AddressRange addressRange);
     bool isReadOnly( uint32_t offset, uint8_t bar ) const;
     void setWriteCallbackFunction( AddressRange addressRange,
 				   boost::function<void(void)>  const & writeCallbackFunction );
