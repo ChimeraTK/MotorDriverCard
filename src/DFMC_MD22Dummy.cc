@@ -1,5 +1,6 @@
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
+using namespace mtca4u::dfmc_md22;
 #include "NotImplementedException.h"
 
 #include <boost/bind.hpp>
@@ -20,7 +21,6 @@ using namespace mtca4u::tmc429;
 		       registerInformation.reg_bar)
 
 namespace mtca4u{
- uint32_t const SPI_DATA_MASK = 0xFFFFFF;
 
  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
 				    _spiWriteAddress(0), _spiWriteBar(0),
@@ -48,16 +48,16 @@ namespace mtca4u{
 
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
-			    createMotorRegisterName( i, "ACTUAL_POS" ) );
+			    createMotorRegisterName( i, ACTUAL_POSITION_SUFFIX ) );
       setWriteCallbackFunction( actualPositionAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualPositionToSpiRegister, this, i ) );
       DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
-			    createMotorRegisterName( i, "V_ACTUAL" ) );
+			    createMotorRegisterName( i, ACTUAL_VELOCITY_SUFFIX ) );
       setWriteCallbackFunction( actualVelocityAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualVelocityToSpiRegister, this, i ) );
       DEFINE_ADDRESS_RANGE( actualAccelerationAddressRange,
-			    createMotorRegisterName( i, "ACT_ACCEL" ) );
+			    createMotorRegisterName( i, ACTUAL_ACCELETATION_SUFFIX ) );
       setWriteCallbackFunction( actualAccelerationAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualAccelerationToSpiRegister, this, i ) );
       DEFINE_ADDRESS_RANGE( microStepCountAddressRange,
-			    createMotorRegisterName( i, "MSTEP_VAL" ) );
+			    createMotorRegisterName( i, MICRO_STEP_COUNT_SUFFIX ) );
       setWriteCallbackFunction( microStepCountAddressRange, boost::bind( &DFMC_MD22Dummy::writeMicroStepCountToSpiRegister, this, i ) );
     }
 
@@ -162,11 +162,11 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::synchroniseFpgaWithSpiRegisters(){
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
-      writeSpiRegisterToFpga( i, IDX_ACTUAL_POSITION , "ACTUAL_POS" );
-      writeSpiRegisterToFpga( i, IDX_ACTUAL_VELOCITY, "V_ACTUAL");
-      writeSpiRegisterToFpga( i, IDX_ACTUAL_ACCELERATION, "ACT_ACCEL" );
+      writeSpiRegisterToFpga( i, IDX_ACTUAL_POSITION , ACTUAL_POSITION_SUFFIX );
+      writeSpiRegisterToFpga( i, IDX_ACTUAL_VELOCITY, ACTUAL_VELOCITY_SUFFIX );
+      writeSpiRegisterToFpga( i, IDX_ACTUAL_ACCELERATION, ACTUAL_ACCELETATION_SUFFIX );
       //writeAccelerationThresholdToFpgs( i );
-      writeSpiRegisterToFpga( i, IDX_MICRO_STEP_COUNT, "MSTEP_VAL");
+      writeSpiRegisterToFpga( i, IDX_MICRO_STEP_COUNT,  MICRO_STEP_COUNT_SUFFIX);
     }
   }
 
@@ -198,26 +198,20 @@ namespace mtca4u{
 				  registerInformation.reg_bar );    
   }
   
-  std::string DFMC_MD22Dummy::createMotorRegisterName( unsigned int ID, std::string suffix ){
-    return std::string("WORD_M")
-      + boost::lexical_cast<std::string>(ID+1) + "_"
-      + suffix;
-  }
-
   void DFMC_MD22Dummy::writeActualPositionToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_POSITION , "ACTUAL_POS" );
+    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_POSITION , ACTUAL_POSITION_SUFFIX );
   }
 
   void DFMC_MD22Dummy::writeActualVelocityToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_VELOCITY , "V_ACTUAL" );
+    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_VELOCITY , ACTUAL_VELOCITY_SUFFIX );
   }
 
   void DFMC_MD22Dummy::writeActualAccelerationToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_ACCELERATION , "ACT_ACCEL" );
+    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_ACCELERATION , ACTUAL_ACCELETATION_SUFFIX );
   }
 
   void DFMC_MD22Dummy::writeMicroStepCountToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_MICRO_STEP_COUNT , "MSTEP_VAL" );
+    writeFpgaRegisterToSpi( ID, IDX_MICRO_STEP_COUNT , MICRO_STEP_COUNT_SUFFIX );
   }
 
   //_WORD_M1_THRESHOLD_ACCEL

@@ -1,22 +1,25 @@
 #include "MotorControler.h"
 
-#include <boost/lexical_cast.hpp>
+#include "DFMC_MD22Constants.h"
+using namespace mtca4u::dfmc_md22;
+
 #include "MotorDriverCardImpl.h"
+
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX )\
-  _driverCard._mappedDevice->getRegObject( createMotorRegisterName( SUFFIX ) )
+  _driverCard._mappedDevice->getRegObject( createMotorRegisterName( _id, SUFFIX ) )
 
 namespace mtca4u
 {
 
   MotorControler::MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard ) 
     : _driverCard(driverCard) , _id(ID), 
-      _actualPosition( REG_OBJECT_FROM_SUFFIX( "ACTUAL_POS" ) ),
-      _actualVelocity( REG_OBJECT_FROM_SUFFIX( "V_ACTUAL" ) ),
-      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( "ACT_ACCEL" ) ),
-      //_accelerationThreshold( REG_OBJECT_FROM_SUFFIX( "THRESHOLD_ACCEL" ) ),
-      _microStepCount( REG_OBJECT_FROM_SUFFIX( "MSTEP_VAL" ) )
+      _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX ) ),
+      _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX ) ),
+      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX ) ),
+      //_accelerationThreshold( REG_OBJECT_FROM_SUFFIX( ACCELERATION_THRESHOLD_SUFFIX ) ),
+      _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX ) )
   {}
 
   unsigned int MotorControler::getID(){
@@ -67,12 +70,6 @@ namespace mtca4u
 
   void MotorControler::setMicroStepCount(unsigned int microStepCount){
     _microStepCount.writeReg(reinterpret_cast<int32_t *>(&microStepCount));
-  }
-
-  std::string  MotorControler::createMotorRegisterName( std::string suffix ){
-    return std::string("WORD_M")
-           + boost::lexical_cast<std::string>(_id+1) + "_"
-           + suffix;
   }
 
 }// namespace mtca4u

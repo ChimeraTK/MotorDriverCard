@@ -122,10 +122,6 @@ namespace mtca4u
      //devMap< devBase >::regObject _accelerationThreshold;
      devMap< devBase >::regObject _microStepCount;
 
-     /// Creates a string dependent on the motor ID and suffix.
-     /// The result is WORD_M1_SUFFIX for motor ID = 1 and suffix = SUFFIX
-     std::string createMotorRegisterName( std::string suffix );
-
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.
      unsigned int readRegObject( 
