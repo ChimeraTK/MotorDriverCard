@@ -7,6 +7,7 @@ using namespace boost::unit_test_framework;
 #include <MtcaMappedDevice/libmap.h>
 
 #include "DFMC_MD22Constants.h"
+using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
 

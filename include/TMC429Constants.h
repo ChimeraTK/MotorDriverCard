@@ -8,11 +8,6 @@ namespace mtca4u{
 
 namespace tmc429{
 
-  std::string const SPI_CONTROL_WRITE_ADDRESS_STRING = "WORD_SPI_CTRL";
-  std::string const SPI_CONTROL_READBACK_ADDRESS_STRING = "WORD_SPI_CTRL_B";
-
-  uint32_t const N_MOTORS_MAX = 2;
-
   uint32_t const SMDA_COMMON = 0x3;
   uint32_t const JDX_DATAGRAM_LOW_WORD = 0x0;
   uint32_t const JDX_DATAGRAM_HIGH_WORD = 0x1;

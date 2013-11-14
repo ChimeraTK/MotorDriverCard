@@ -117,6 +117,8 @@ namespace mtca4u
      CoolStepControlData _coolStepControlData;
      StallGuardControlData _stallGuardControlData;
 
+     devMap< devBase >::regObject _controlerSpiWrite;
+     devMap< devBase >::regObject _controlerSpiReadback;
      devMap< devBase >::regObject _actualPosition;
      devMap< devBase >::regObject _actualVelocity;
      devMap< devBase >::regObject _actualAcceleration;
@@ -127,6 +129,8 @@ namespace mtca4u
      /// Remove this function once the regObject interface has been fixed.
      unsigned int readRegObject( 
 			devMap<devBase>::regObject const & registerAccessor);
+
+     void writeControlerSpi(unsigned int data, unsigned int IDX );
  };
 
 }// namespace mtca4u

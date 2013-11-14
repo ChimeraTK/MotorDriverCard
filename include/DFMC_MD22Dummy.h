@@ -6,6 +6,26 @@
 
 namespace mtca4u{
   
+  /** Dummy for the DFMC_MD22 Motor driver card.
+   *
+   * Implemented features:
+   * \li All registers have full 32 bit data when written directly. Most registers are not write protected FIXME.
+   * \li The following registers are automatically updated to the SPI values
+   * after an SPI write. They are write protected:
+   *  <ul> <li> ACTUAL_POSITION </li>
+   *       <li> ACTUAL_VELOCITY </li>
+   *       <li> ACTUAL_ACCELERATION </li>
+   *       <li> MICRO_STEP_COUNT </li>
+   *  </ul>
+   *  The updated values are truncated to 24 bit. The 24 bit are not truncated according
+   *  to the bit patterns of the TMC429 chip.
+   *  \li Test words with content calculated from register index for SPI registers.
+   *  \li Initialisation to start values of TMC429
+   *  \li An spi address space of 0x40 words is defined, which can be writen via the
+   *      SPI_CTRL register.
+   *  \li A read request to the SPI_CTRL register updates the value in the SPI_CTRL_B
+   *      register
+   */
   class DFMC_MD22Dummy : public DummyDevice{
   public:
     DFMC_MD22Dummy();
@@ -60,13 +80,7 @@ namespace mtca4u{
     void synchroniseFpgaWithSpiRegisters();
     void writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX,
 				 std::string suffix );
-    void writeFpgaRegisterToSpi( unsigned int ID, unsigned int IDX,
-				 std::string suffix );
 
-    void writeActualPositionToSpiRegister( unsigned int ID );
-    void writeActualVelocityToSpiRegister( unsigned int ID );
-    void writeActualAccelerationToSpiRegister( unsigned int ID );
-    void writeMicroStepCountToSpiRegister( unsigned int ID );
   };
 }// namespace mtca4u
 

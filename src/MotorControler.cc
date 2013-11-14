@@ -2,6 +2,8 @@
 
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
+#include "TMC429Constants.h"
+using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardImpl.h"
 
@@ -9,12 +11,16 @@ using namespace mtca4u::dfmc_md22;
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX )\
   _driverCard._mappedDevice->getRegObject( createMotorRegisterName( _id, SUFFIX ) )
+#define REG_OBJECT_FROM_REG_NAME( NAME )\
+  _driverCard._mappedDevice->getRegObject( NAME )
 
 namespace mtca4u
 {
 
   MotorControler::MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard ) 
     : _driverCard(driverCard) , _id(ID), 
+      _controlerSpiWrite( REG_OBJECT_FROM_REG_NAME(CONTROLER_SPI_WRITE_ADDRESS_STRING )),
+      _controlerSpiReadback( REG_OBJECT_FROM_REG_NAME(CONTROLER_SPI_READBACK_ADDRESS_STRING )),
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX ) ),
       _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX ) ),
@@ -37,15 +43,24 @@ namespace mtca4u
   }
 
   void MotorControler::setActualPosition(unsigned int position){
-    _actualPosition.writeReg(reinterpret_cast<int32_t *>(&position));
+    writeControlerSpi( position, IDX_ACTUAL_POSITION );
   }
+
+  void MotorControler::writeControlerSpi(unsigned int data, 
+					 unsigned int IDX ){
+    TMC429InputWord spiWord;
+    spiWord.setDATA( data );
+    spiWord.setSMDA(_id);
+    spiWord.setIDX_JDX( IDX );
+    _controlerSpiWrite.writeReg(reinterpret_cast<int32_t *>(&spiWord) );
+  } 
 
   unsigned int MotorControler::getActualVelocity(){
     return readRegObject( _actualVelocity );
   }
 
   void MotorControler::setActualVelocity(unsigned int velocity){
-    _actualVelocity.writeReg(reinterpret_cast<int32_t *>(&velocity));
+    writeControlerSpi( velocity, IDX_ACTUAL_VELOCITY );
   }
 
   unsigned int MotorControler::getActualAcceleration(){
@@ -53,7 +68,7 @@ namespace mtca4u
   }
 
   void MotorControler::setActualAcceleration(unsigned int acceleration){
-    _actualAcceleration.writeReg(reinterpret_cast<int32_t *>(&acceleration));
+    writeControlerSpi( acceleration, IDX_ACTUAL_ACCELERATION );
   }
 
 //  unsigned int MotorControler::getAccelerationThreshold(){
@@ -69,7 +84,7 @@ namespace mtca4u
   }
 
   void MotorControler::setMicroStepCount(unsigned int microStepCount){
-    _microStepCount.writeReg(reinterpret_cast<int32_t *>(&microStepCount));
+    writeControlerSpi( microStepCount, IDX_MICRO_STEP_COUNT );
   }
 
 }// namespace mtca4u

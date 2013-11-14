@@ -9,6 +9,11 @@ namespace mtca4u{
 
 namespace dfmc_md22{
 
+  std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_SPI_CTRL";
+  std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_SPI_CTRL_B";
+
+  uint32_t const N_MOTORS_MAX = 2;
+
   std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
   
   std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";

@@ -36,29 +36,31 @@ namespace mtca4u{
     setSPIRegistersForOperation();
 
     mapFile::mapElem registerInformation;
-    DEFINE_ADDRESS_RANGE( spiWriteAddressRange, SPI_CONTROL_WRITE_ADDRESS_STRING );
+    DEFINE_ADDRESS_RANGE( spiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING );
     _spiWriteAddress = registerInformation.reg_address;
     _spiWriteBar = registerInformation.reg_bar;
 
-    _registerMapping->getRegisterInfo( SPI_CONTROL_READBACK_ADDRESS_STRING, registerInformation );
+    _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation );
     _spiReadbackAddress = registerInformation.reg_address;
     _spiReadbackBar = registerInformation.reg_bar;
+    setReadOnly(registerInformation.reg_address, registerInformation.reg_size,
+		registerInformation.reg_bar);
     
     setWriteCallbackFunction( spiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleSPIWrite, this ) );
 
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
 			    createMotorRegisterName( i, ACTUAL_POSITION_SUFFIX ) );
-      setWriteCallbackFunction( actualPositionAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualPositionToSpiRegister, this, i ) );
+      setReadOnly( actualPositionAddressRange );
       DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
 			    createMotorRegisterName( i, ACTUAL_VELOCITY_SUFFIX ) );
-      setWriteCallbackFunction( actualVelocityAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualVelocityToSpiRegister, this, i ) );
+      setReadOnly( actualVelocityAddressRange );
       DEFINE_ADDRESS_RANGE( actualAccelerationAddressRange,
 			    createMotorRegisterName( i, ACTUAL_ACCELETATION_SUFFIX ) );
-      setWriteCallbackFunction( actualAccelerationAddressRange, boost::bind( &DFMC_MD22Dummy::writeActualAccelerationToSpiRegister, this, i ) );
+      setReadOnly( actualAccelerationAddressRange );
       DEFINE_ADDRESS_RANGE( microStepCountAddressRange,
 			    createMotorRegisterName( i, MICRO_STEP_COUNT_SUFFIX ) );
-      setWriteCallbackFunction( microStepCountAddressRange, boost::bind( &DFMC_MD22Dummy::writeMicroStepCountToSpiRegister, this, i ) );
+      setReadOnly( microStepCountAddressRange );
     }
 
     //    setWriteCallbackFunction( 
@@ -95,7 +97,6 @@ namespace mtca4u{
 
     TMC429InputWord inputWord(spiWriteWord);
     uint32_t spiAddress = inputWord.getADDRESS();
-
     if (inputWord.getRW() == RW_READ){
       writeSpiContentToReadbackRegister(spiAddress);
     }
@@ -181,39 +182,7 @@ namespace mtca4u{
 				   registerInformation.reg_bar );
   }
 
-  void DFMC_MD22Dummy::writeFpgaRegisterToSpi( unsigned int ID, unsigned int IDX, std::string suffix ){
-    unsigned int spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( ID,
-							    IDX );
-    std::string registerName = createMotorRegisterName( ID, suffix );
-    mapFile::mapElem registerInformation;
-    _registerMapping->getRegisterInfo (registerName, registerInformation);
-    int32_t fpgaValue;
-    readReg( registerInformation.reg_address, &fpgaValue, 
-	     registerInformation.reg_bar );
-    _spiAddressSpace[spiAddress] = fpgaValue & SPI_DATA_MASK;
-    
-    // resync the masked value with the FPGA
-    writeRegisterWithoutCallback( registerInformation.reg_address,
-				  _spiAddressSpace[spiAddress], 
-				  registerInformation.reg_bar );    
-  }
   
-  void DFMC_MD22Dummy::writeActualPositionToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_POSITION , ACTUAL_POSITION_SUFFIX );
-  }
-
-  void DFMC_MD22Dummy::writeActualVelocityToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_VELOCITY , ACTUAL_VELOCITY_SUFFIX );
-  }
-
-  void DFMC_MD22Dummy::writeActualAccelerationToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_ACTUAL_ACCELERATION , ACTUAL_ACCELETATION_SUFFIX );
-  }
-
-  void DFMC_MD22Dummy::writeMicroStepCountToSpiRegister( unsigned int ID ){
-    writeFpgaRegisterToSpi( ID, IDX_MICRO_STEP_COUNT , MICRO_STEP_COUNT_SUFFIX );
-  }
-
   //_WORD_M1_THRESHOLD_ACCEL
 
 }// namespace mtca4u
