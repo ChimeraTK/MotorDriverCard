@@ -6,6 +6,9 @@
 #include "MotorDriverCardImpl.h"
 using namespace mtca4u::tmc429;
 
+#include "DFMC_MD22Constants.h"
+using namespace mtca4u::dfmc_md22;
+
 namespace mtca4u{
   uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 
@@ -13,9 +16,9 @@ namespace mtca4u{
 					   MotorDriverConfiguration const & motorDriverConfiguration)
     : _mappedDevice(mappedDevice),
       _spiControlWriteRegister( 
-           mappedDevice->getRegObject( SPI_CONTROL_WRITE_ADDRESS_STRING )) ,
+           mappedDevice->getRegObject( CONTROLER_SPI_WRITE_ADDRESS_STRING )) ,
       _spiControlReadbackRegister(
-	   mappedDevice->getRegObject( SPI_CONTROL_READBACK_ADDRESS_STRING )),
+	   mappedDevice->getRegObject( CONTROLER_SPI_READBACK_ADDRESS_STRING )),
       _powerMonitor(new PowerMonitor)
   {
     _motorControlers.resize( N_MOTORS_MAX );
