@@ -31,6 +31,9 @@ namespace mtca4u{
   void DFMC_MD22Dummy::openDev(const std::string &mappingFileName, int perm,
 			       devConfigBase* pConfig){
     DummyDevice::openDev(mappingFileName, perm, pConfig);
+    
+    setPCIeRegistersForTesting(); // some of them will be overwriten if a 
+    // defined behaviour exists for them
 
     _spiAddressSpace.resize( SIZE_OF_SPI_ADDRESS_SPACE , 0 );
     setSPIRegistersForOperation();
@@ -65,6 +68,16 @@ namespace mtca4u{
 
     //    setWriteCallbackFunction( 
 
+  }
+
+  void DFMC_MD22Dummy::setPCIeRegistersForTesting(){
+    for (std::map< uint8_t, std::vector<int32_t> >::iterator barIter = _barContents.begin();
+	 barIter != _barContents.end(); ++barIter ){
+      for (unsigned int i = 0; i < barIter->second.size(); ++i){
+	unsigned int address = sizeof(uint32_t)*i;
+	barIter->second[i] = 3*address*address+17;
+      }
+    }
   }
 
   void DFMC_MD22Dummy::setSPIRegistersForOperation(){
