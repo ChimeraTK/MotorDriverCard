@@ -7,6 +7,7 @@ using namespace boost::unit_test_framework;
 #include <MtcaMappedDevice/libmap.h>
 
 #include "DFMC_MD22Constants.h"
+#include "testWordFromPCIeAddress.h"
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
@@ -28,7 +29,8 @@ using namespace mtca4u;
 
 class MotorControlerTest{
 public:
-  MotorControlerTest(MotorControler & motorControler);
+  MotorControlerTest(MotorControler & motorControler, 
+		     boost::shared_ptr<mapFile> & registerMapping);
   // getID() is tested in the MotorDriver card, where 
   // different ID are known. This test is for just one
   // Motor with one ID, which is now known to be ok.
@@ -50,6 +52,7 @@ public:
   
 private:
   MotorControler & _motorControler;
+  boost::shared_ptr<mapFile> _registerMapping;
   static unsigned int const spiDataMask = 0xFFFFFF;
 };
 
@@ -79,12 +82,15 @@ public:
 
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       boost::shared_ptr<MotorControlerTest> motorControlerTest( 
-	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ) );
+	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ,
+				       registerMapping) );
       ADD_GET_SET_TEST( ActualPosition );
       ADD_GET_SET_TEST( ActualVelocity );
       ADD_GET_SET_TEST( ActualAcceleration );
       //      ADD_GET_SET_TEST( AccelerationThreshold );
       ADD_GET_SET_TEST( MicroStepCount );
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetStallGuardValue,
+				  motorControlerTest ) );
     }
   }
 };
@@ -98,8 +104,9 @@ init_unit_test_suite( int argc, char* argv[] )
 }
 
 
-MotorControlerTest::MotorControlerTest(MotorControler & motorControler) 
-  : _motorControler(motorControler){
+  MotorControlerTest::MotorControlerTest(MotorControler & motorControler,
+					 boost::shared_ptr<mapFile> & registerMapping ) 
+  : _motorControler(motorControler), _registerMapping( registerMapping ){
 }
 
 void MotorControlerTest::testGetActualPosition(){
@@ -159,3 +166,11 @@ void MotorControlerTest::testSetMicroStepCount(){
   BOOST_CHECK( _motorControler.getMicroStepCount() == 0x00AAAAAA );
 }
 
+void MotorControlerTest::testGetStallGuardValue(){
+  std::string registerName = createMotorRegisterName( _motorControler.getID(),
+						      COOL_STEP_VALUE_SUFFIX );
+  mapFile::mapElem registerInfo;
+  _registerMapping->getRegisterInfo( registerName, registerInfo );
+  unsigned int expectedValue = testWordFromPCIeAddress( registerInfo.reg_address );
+  BOOST_CHECK( _motorControler.getCoolStepValue() == expectedValue );
+}

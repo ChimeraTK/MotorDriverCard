@@ -81,6 +81,7 @@ namespace mtca4u{
     void writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX,
 				 std::string suffix );
 
+    void setPCIeRegistersForTesting();
   };
 }// namespace mtca4u
 

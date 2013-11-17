@@ -33,6 +33,7 @@ namespace mtca4u
     };
 
 
+    // Get the ID of the motor controler on the FMC board (0 or 1).
     unsigned int getID();
 
     // via direct register access in the fpga
@@ -124,6 +125,7 @@ namespace mtca4u
      devMap< devBase >::regObject _actualAcceleration;
      //devMap< devBase >::regObject _accelerationThreshold;
      devMap< devBase >::regObject _microStepCount;
+     devMap< devBase >::regObject _coolStepValue;
 
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.
