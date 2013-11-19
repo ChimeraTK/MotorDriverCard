@@ -125,6 +125,7 @@ namespace mtca4u
      devMap< devBase >::regObject _actualAcceleration;
      //devMap< devBase >::regObject _accelerationThreshold;
      devMap< devBase >::regObject _microStepCount;
+     devMap< devBase >::regObject _stallGuardValue;
      devMap< devBase >::regObject _coolStepValue;
 
      /// Simplify the syntax to read from a regObject which need call by reference.

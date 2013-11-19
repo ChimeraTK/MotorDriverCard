@@ -21,6 +21,7 @@ namespace dfmc_md22{
   std::string const ACTUAL_ACCELETATION_SUFFIX = "ACT_ACCEL";
   std::string const MICRO_STEP_COUNT_SUFFIX = "MSTEP_VAL";
   std::string const COOL_STEP_VALUE_SUFFIX = "CoolStep_VAL";
+  std::string const STALL_GUARD_VALUE_SUFFIX = "SGUARD_VAL";
 
   /// Creates a string dependent on the motor ID and register name suffix.
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.

@@ -26,6 +26,7 @@ namespace mtca4u
       _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX ) ),
       //_accelerationThreshold( REG_OBJECT_FROM_SUFFIX( ACCELERATION_THRESHOLD_SUFFIX ) ),
       _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX ) ),
+      _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX ) ),
       _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX ) )
   {}
 
@@ -90,6 +91,10 @@ namespace mtca4u
 
    unsigned int MotorControler::getCoolStepValue(){
     return readRegObject( _coolStepValue );
+  }
+ 
+   unsigned int MotorControler::getStallGuardValue(){
+    return readRegObject( _stallGuardValue );
   }
  
 

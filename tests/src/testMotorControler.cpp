@@ -39,10 +39,11 @@ public:
   DECLARE_GET_SET_TEST( ActualAcceleration );
   //  DECLARE_GET_SET_TEST( AccelerationThreshold );
   DECLARE_GET_SET_TEST( MicroStepCount );
-  void testGetStallGuardValue(); // read only register
-  void testGetCoolStepValue(); // read only register
-  void testGetStauts(); // read only register
-  
+
+  // for testing direct read from pcie registers (with default values from the dummy)
+  void testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
+			     std::string const & registerSuffix);
+
   void testIsEnabled();
   void testSetEnabled();
 
@@ -89,8 +90,16 @@ public:
       ADD_GET_SET_TEST( ActualAcceleration );
       //      ADD_GET_SET_TEST( AccelerationThreshold );
       ADD_GET_SET_TEST( MicroStepCount );
-      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetStallGuardValue,
-				  motorControlerTest ) );
+      
+      add( BOOST_TEST_CASE(
+	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
+			   motorControlerTest,
+			   &MotorControler::getStallGuardValue,  STALL_GUARD_VALUE_SUFFIX ) ));
+
+      add( BOOST_TEST_CASE(
+	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
+			   motorControlerTest,
+			   &MotorControler::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
     }
   }
 };
@@ -166,11 +175,13 @@ void MotorControlerTest::testSetMicroStepCount(){
   BOOST_CHECK( _motorControler.getMicroStepCount() == 0x00AAAAAA );
 }
 
-void MotorControlerTest::testGetStallGuardValue(){
+void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
+						std::string const & registerSuffix){
   std::string registerName = createMotorRegisterName( _motorControler.getID(),
-						      COOL_STEP_VALUE_SUFFIX );
+						      registerSuffix );
   mapFile::mapElem registerInfo;
   _registerMapping->getRegisterInfo( registerName, registerInfo );
   unsigned int expectedValue = testWordFromPCIeAddress( registerInfo.reg_address );
-  BOOST_CHECK( _motorControler.getCoolStepValue() == expectedValue );
+  BOOST_CHECK( (_motorControler.*readFunction)() == expectedValue );
 }
+
