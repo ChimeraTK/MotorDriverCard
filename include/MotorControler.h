@@ -127,6 +127,10 @@ namespace mtca4u
      devMap< devBase >::regObject _microStepCount;
      devMap< devBase >::regObject _stallGuardValue;
      devMap< devBase >::regObject _coolStepValue;
+     devMap< devBase >::regObject _status;
+     devMap< devBase >::regObject _enabled;
+     devMap< devBase >::regObject _decoderReadoutMode;
+     devMap< devBase >::regObject _decoderPosition;
 
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.

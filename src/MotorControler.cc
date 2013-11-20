@@ -27,7 +27,11 @@ namespace mtca4u
       //_accelerationThreshold( REG_OBJECT_FROM_SUFFIX( ACCELERATION_THRESHOLD_SUFFIX ) ),
       _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX ) ),
       _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX ) ),
-      _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX ) )
+      _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX ) ),
+      _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX ) ),
+      _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX ) ),
+      _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
+      _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) )
   {}
 
   unsigned int MotorControler::getID(){
@@ -89,13 +93,37 @@ namespace mtca4u
     writeControlerSpi( microStepCount, IDX_MICRO_STEP_COUNT );
   }
 
-   unsigned int MotorControler::getCoolStepValue(){
+  unsigned int MotorControler::getCoolStepValue(){
     return readRegObject( _coolStepValue );
   }
  
-   unsigned int MotorControler::getStallGuardValue(){
+  unsigned int MotorControler::getStallGuardValue(){
     return readRegObject( _stallGuardValue );
   }
  
+  unsigned int MotorControler::getStatus(){
+    return readRegObject( _status );
+  }
+ 
+  void MotorControler::setDecoderReadoutMode(unsigned int readoutMode){
+    _decoderReadoutMode.writeReg( reinterpret_cast<int32_t *>(&readoutMode) );
+  }
+
+  unsigned int MotorControler::getDecoderReadoutMode(){
+     return readRegObject( _decoderReadoutMode );
+  }
+
+  unsigned int MotorControler::getDecoderPosition(){
+     return readRegObject( _decoderPosition );
+  }
+ 
+  void MotorControler::setEnabled(bool enable){
+    int32_t enableWord = ( enable ? 1 : 0 );
+    _enabled.writeReg( &enableWord );
+  }
+
+  bool MotorControler::isEnabled(){
+     return readRegObject( _enabled );
+  }
 
 }// namespace mtca4u

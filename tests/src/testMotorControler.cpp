@@ -44,12 +44,9 @@ public:
   void testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 			     std::string const & registerSuffix);
 
-  void testIsEnabled();
-  void testSetEnabled();
+  void testSetIsEnabled();
 
   DECLARE_GET_SET_TEST( DecoderReadoutMode );
-
-  void testGetDecoderPosition();
   
 private:
   MotorControler & _motorControler;
@@ -95,11 +92,24 @@ public:
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
 			   motorControlerTest,
 			   &MotorControler::getStallGuardValue,  STALL_GUARD_VALUE_SUFFIX ) ));
-
       add( BOOST_TEST_CASE(
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
 			   motorControlerTest,
 			   &MotorControler::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
+      add( BOOST_TEST_CASE(
+	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
+			   motorControlerTest,
+			   &MotorControler::getStatus, STATUS_SUFFIX ) ));
+
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetIsEnabled,
+				  motorControlerTest ) );
+  
+      ADD_GET_SET_TEST( DecoderReadoutMode );
+
+      add( BOOST_TEST_CASE(
+	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
+			   motorControlerTest,
+			   &MotorControler::getDecoderPosition, DECODER_POSITION_SUFFIX ) ));
     }
   }
 };
@@ -185,3 +195,21 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* re
   BOOST_CHECK( (_motorControler.*readFunction)() == expectedValue );
 }
 
+void MotorControlerTest::testGetDecoderReadoutMode(){
+  testReadPCIeRegister( &MotorControler::getDecoderReadoutMode,
+			DECODER_READOUT_MODE_SUFFIX );
+}
+
+void MotorControlerTest::testSetDecoderReadoutMode(){
+  unsigned int readoutMode = _motorControler.getDecoderReadoutMode();
+  _motorControler.setDecoderReadoutMode( ++readoutMode );
+  BOOST_CHECK( _motorControler.getDecoderReadoutMode() == readoutMode );
+}
+
+void MotorControlerTest::testSetIsEnabled(){
+  BOOST_CHECK( _motorControler.isEnabled() );
+  _motorControler.setEnabled( false );
+  BOOST_CHECK( _motorControler.isEnabled()==false );
+  _motorControler.setEnabled();
+  BOOST_CHECK( _motorControler.isEnabled() );
+}
