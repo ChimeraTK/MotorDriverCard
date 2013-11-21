@@ -41,7 +41,6 @@ namespace mtca4u
     unsigned int getActualPosition(); //< Get the actual position in steps
     unsigned int getActualVelocity(); //< Get the actual velocity in steps per FIXME
     unsigned int getActualAcceleration(); //< Get the actual acceleration in steps per square FIXME
-    //    unsigned int getAccelerationThreshold(); //< Get the acceleration threshold (upper or lower???) in steps/s^2
     unsigned int getMicroStepCount(); //< Get the micro step value (which units? what does it mean?)
     unsigned int getStallGuardValue(); //< Get the stall guard value  (which units? what does it mean? Expert?)
     unsigned int getCoolStepValue(); //< Get the CoolStepValue (in units?, what does it mean? Expert?)
@@ -103,7 +102,7 @@ namespace mtca4u
     friend class MotorDriverCardImpl;
 
     /** It is explicitly forbidden to copy MotorControlers. The copy constructor
-     *  is private and intentionnaly not implemented.
+     *  is private and intentionally not implemented.
      */
     MotorControler( MotorControler const & );
 
@@ -118,12 +117,9 @@ namespace mtca4u
      CoolStepControlData _coolStepControlData;
      StallGuardControlData _stallGuardControlData;
 
-     devMap< devBase >::regObject _controlerSpiWrite;
-     devMap< devBase >::regObject _controlerSpiReadback;
      devMap< devBase >::regObject _actualPosition;
      devMap< devBase >::regObject _actualVelocity;
      devMap< devBase >::regObject _actualAcceleration;
-     //devMap< devBase >::regObject _accelerationThreshold;
      devMap< devBase >::regObject _microStepCount;
      devMap< devBase >::regObject _stallGuardValue;
      devMap< devBase >::regObject _coolStepValue;
@@ -136,8 +132,6 @@ namespace mtca4u
      /// Remove this function once the regObject interface has been fixed.
      unsigned int readRegObject( 
 			devMap<devBase>::regObject const & registerAccessor);
-
-     void writeControlerSpi(unsigned int data, unsigned int IDX );
  };
 
 }// namespace mtca4u

@@ -86,15 +86,15 @@ namespace mtca4u
     boost::shared_ptr< devMap<devBase> > _mappedDevice;
     friend class MotorControler;
 
-    devMap<devBase>::regObject _spiControlWriteRegister;
-    devMap<devBase>::regObject _spiControlReadbackRegister;
+    devMap<devBase>::regObject _controlerSpiWriteRegister;
+    devMap<devBase>::regObject _controlerSpiReadbackRegister;
 
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
-    TMC429OutputWord spiRead( unsigned int smda, unsigned int idx_jdx );
+    TMC429OutputWord controlerSpiRead( unsigned int smda, unsigned int idx_jdx );
 
-    void spiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
-    void spiWrite( TMC429InputWord const & writeWord );
+    void controlerSpiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
+    void controlerSpiWrite( TMC429InputWord const & writeWord );
   };
   
 }// namespace mtca4u
