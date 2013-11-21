@@ -10,6 +10,9 @@
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
   unsigned int get ## NAME ()
 
+#define DECLARE_WRITE_READ_TYPED_REGISTER( NAME, DATA_TYPE, DATA_NAME )\
+  void write ## NAME ( DATA_TYPE DATA_NAME );\
+  DATA_TYPE read ## NAME ()
 
 namespace mtca4u
 {
@@ -70,18 +73,21 @@ namespace mtca4u
     DECLARE_SET_GET_VALUE( MaximumVelocity, stepsPerFIXME );///< Get maximum velocity in FIXME
     DECLARE_SET_GET_VALUE( TargetVelocity, stepsPerFIXME );///< Get target velocity in FIXME
     DECLARE_SET_GET_VALUE( MaximumAcceleration, stepsPerSquareFIXME );///< Get the maximim acceleration in FIXME
+    DECLARE_SET_GET_VALUE( PositionTolerance, steps );///< Get the position tolerance in steps
+    DECLARE_SET_GET_VALUE( PositionLatched, steps );///< Get the latched position in steps
 
-     void setAccelerationThresholdRegister(AccelerationThresholdData accelerationThresholdData);
-     void setProportionalityFactorRegister(ProportionalityFactorData proportionalityFactorData);
-     void setReferenceConfigAndRampModeRegister(ReferenceConfigAndRampModeData referenceConfigAndRampModeData);
-     void setInterruptRegister(InterruptData interruptData);
-     void setDividersAndMicroStepResolutionRegister(DividersAndMicroStepResolutionData dividersAndMicroStepResolutionData);
 
-     DECLARE_SET_GET_VALUE( PositionTolerance, steps );///< Get the position tolerance in steps
-     DECLARE_SET_GET_VALUE( PositionLatched, steps );///< Get the latched position in steps
+    DECLARE_WRITE_READ_TYPED_REGISTER(AccelerationThresholdRegister,
+				      AccelerationThresholdData, accelerationThresholdData);
+    DECLARE_WRITE_READ_TYPED_REGISTER(ProportionalityFactorRegister,
+				      ProportionalityFactorData, proportionalityFactorData);
+    DECLARE_WRITE_READ_TYPED_REGISTER(ReferenceConfigAndRampModeRegister,
+				      ReferenceConfigAndRampModeData, referenceConfigAndRampModeData);
+    DECLARE_WRITE_READ_TYPED_REGISTER(InterruptRegister,InterruptData, interruptData);
+    DECLARE_WRITE_READ_TYPED_REGISTER(DividersAndMicroStepResolutionRegister,
+				      DividersAndMicroStepResolutionData,
+				      dividersAndMicroStepResolutionData);
 
-     AccelerationThresholdData readAccelerationThresholdRegister();// or getAccelerationThReg?
-     
      void setDriverControlRegister(DriverControlData driverControlData);
      void setChopperControlRegister(ChopperControlData chopperControlData);
      void setCoolStepControlRegister(CoolStepControlData coolStepControlData);
