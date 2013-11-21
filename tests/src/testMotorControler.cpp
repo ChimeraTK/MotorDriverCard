@@ -25,6 +25,15 @@ using namespace mtca4u::tmc429;
   add( get ## NAME ## TestCase );\
   add( set ## NAME ## TestCase )
 
+#define DEFINE_GET_SET_TEST( NAME, IDX, PATTERN )\
+void MotorControlerTest::testGet ## NAME (){\
+  unsigned int expectedValue = testWordFromSpiAddress( _motorControler.getID(),\
+                                                       IDX );\
+  BOOST_CHECK( _motorControler.get ## NAME () == expectedValue );}\
+void MotorControlerTest::testSet ## NAME (){\
+  _motorControler.set ## NAME ( PATTERN );\
+  BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & 0x00FFFFFF) );}
+
 using namespace mtca4u;
 
 class MotorControlerTest{
@@ -37,7 +46,6 @@ public:
   DECLARE_GET_SET_TEST( ActualPosition );
   DECLARE_GET_SET_TEST( ActualVelocity );
   DECLARE_GET_SET_TEST( ActualAcceleration );
-  //  DECLARE_GET_SET_TEST( AccelerationThreshold );
   DECLARE_GET_SET_TEST( MicroStepCount );
 
   // for testing direct read from pcie registers (with default values from the dummy)
@@ -47,6 +55,13 @@ public:
   void testSetIsEnabled();
 
   DECLARE_GET_SET_TEST( DecoderReadoutMode );
+  DECLARE_GET_SET_TEST( TargetPosition );
+  DECLARE_GET_SET_TEST( MinimumVelocity );
+  DECLARE_GET_SET_TEST( MaximumVelocity );
+  DECLARE_GET_SET_TEST( TargetVelocity );
+  DECLARE_GET_SET_TEST( MaximumAcceleration );
+  DECLARE_GET_SET_TEST( PositionTolerance );
+  DECLARE_GET_SET_TEST( PositionLatched );
   
 private:
   MotorControler & _motorControler;
@@ -110,9 +125,17 @@ public:
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
 			   motorControlerTest,
 			   &MotorControler::getDecoderPosition, DECODER_POSITION_SUFFIX ) ));
-    }
-  }
-};
+
+      ADD_GET_SET_TEST( TargetPosition );
+      ADD_GET_SET_TEST( MinimumVelocity );
+      ADD_GET_SET_TEST( MaximumVelocity );
+      ADD_GET_SET_TEST( TargetVelocity ); 
+      ADD_GET_SET_TEST( MaximumAcceleration );
+      ADD_GET_SET_TEST( PositionTolerance );
+      ADD_GET_SET_TEST( PositionLatched );
+    }// for i < N_MOTORS_MAX
+  }// constructor
+};// test suite
 
 test_suite*
 init_unit_test_suite( int argc, char* argv[] )
@@ -128,62 +151,10 @@ init_unit_test_suite( int argc, char* argv[] )
   : _motorControler(motorControler), _registerMapping( registerMapping ){
 }
 
-void MotorControlerTest::testGetActualPosition(){
-  unsigned int expectedPosition = testWordFromSpiAddress( _motorControler.getID(),
-							  IDX_ACTUAL_POSITION);  
-  BOOST_CHECK( _motorControler.getActualPosition() == expectedPosition );
-}
-
-void MotorControlerTest::testSetActualPosition(){
-  _motorControler.setActualPosition( 0x55555555 );
-  BOOST_CHECK( _motorControler.getActualPosition() == 0x00555555 );
-}
-
-void MotorControlerTest::testGetActualVelocity(){
-  unsigned int expectedVelocity = testWordFromSpiAddress( _motorControler.getID(),
-							  IDX_ACTUAL_VELOCITY);  
-  BOOST_CHECK( _motorControler.getActualVelocity() == expectedVelocity );
-}
-
-void MotorControlerTest::testSetActualVelocity(){
-  _motorControler.setActualVelocity( 0xAAAAAAAA );
-  BOOST_CHECK( _motorControler.getActualVelocity() == 0x00AAAAAA );
-}
-
-void MotorControlerTest::testGetActualAcceleration(){
-  unsigned int expectedAcceleration = testWordFromSpiAddress( _motorControler.getID(),
-							  IDX_ACTUAL_ACCELERATION);  
-  BOOST_CHECK( _motorControler.getActualAcceleration() == expectedAcceleration );
-}
-
-void MotorControlerTest::testSetActualAcceleration(){
-  _motorControler.setActualAcceleration( 0xFFFFFFFF );
-  BOOST_CHECK( _motorControler.getActualAcceleration() == 0x00FFFFFF );
-}
-
-//void MotorControlerTest::testGetAccelerationThreshold(){
-//  AccelerationThresholdData thresholdData = testWordFromSpiAddress( 
-//                                                  _motorControler.getID(),
-//						  IDX_ACCELERATION_THRESHOLD);  
-//  BOOST_CHECK( _motorControler.getActualAcceleration() == 
-//	       thresholdData.getAccelerationThreshold() );
-//}
-//
-//void MotorControlerTest::testSetAccelerationThreshold(){
-//  _motorControler.setAccelerationThreshold( 0x55555555 );
-//  BOOST_CHECK( _motorControler.getAccelerationThreshold() == 0x00000555 );
-//}
-
-void MotorControlerTest::testGetMicroStepCount(){
-  unsigned int expectedCount = testWordFromSpiAddress( _motorControler.getID(),
-						       IDX_MICRO_STEP_COUNT);  
-  BOOST_CHECK( _motorControler.getMicroStepCount() == expectedCount );
-}
-
-void MotorControlerTest::testSetMicroStepCount(){
-  _motorControler.setMicroStepCount( 0xAAAAAAAA );
-  BOOST_CHECK( _motorControler.getMicroStepCount() == 0x00AAAAAA );
-}
+DEFINE_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 0x55555555 )
+DEFINE_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 0xAAAAAAAA )
+DEFINE_GET_SET_TEST( ActualAcceleration, IDX_ACTUAL_ACCELERATION, 0xFFFFFFFF ) 
+DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAAAA ) 
 
 void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 						std::string const & registerSuffix){
@@ -213,3 +184,11 @@ void MotorControlerTest::testSetIsEnabled(){
   _motorControler.setEnabled();
   BOOST_CHECK( _motorControler.isEnabled() );
 }
+
+DEFINE_GET_SET_TEST( TargetPosition, IDX_TARGET_POSITION, 0x55555555 ) 
+DEFINE_GET_SET_TEST( MinimumVelocity, IDX_MINIMUM_VELOCITY, 0xFFFFFFFF )
+DEFINE_GET_SET_TEST( MaximumVelocity, IDX_MAXIMUM_VELOCITY, 0xAAAAAAAA )
+DEFINE_GET_SET_TEST( TargetVelocity, IDX_TARGET_VELOCITY, 0x55555555 )
+DEFINE_GET_SET_TEST( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION, 0xFFFFFFFF )
+DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAAAA )
+DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x55555555 )

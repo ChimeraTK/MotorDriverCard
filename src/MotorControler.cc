@@ -14,6 +14,17 @@ using namespace mtca4u::tmc429;
 #define REG_OBJECT_FROM_REG_NAME( NAME )\
   _driverCard._mappedDevice->getRegObject( NAME )
 
+// Macros which cover more than one line are not good for the code coverage test, as only the 
+// macro call is checked. In this case it is probably ok because we gain a lot of code because
+// we have to define many variables, AND there is only one line per function without braching,
+// which is covered by the funcion coverage test (not the line coverage test).
+// Otherwise we would need a complete test which checks the macro.
+#define DEFINE_GET_SET_VALUE( NAME, IDX )\
+  unsigned int MotorControler::get ## NAME (){\
+    return _driverCard.controlerSpiRead( _id, IDX ).getDATA();}\
+  void MotorControler::set ## NAME (unsigned int value){\
+  _driverCard.controlerSpiWrite( _id, IDX, value );}
+
 namespace mtca4u
 {
 
@@ -107,5 +118,14 @@ namespace mtca4u
   bool MotorControler::isEnabled(){
      return readRegObject( _enabled );
   }
+
+  DEFINE_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION )
+  DEFINE_GET_SET_VALUE( MinimumVelocity, IDX_MINIMUM_VELOCITY )
+  DEFINE_GET_SET_VALUE( MaximumVelocity, IDX_MAXIMUM_VELOCITY )
+  DEFINE_GET_SET_VALUE( TargetVelocity, IDX_TARGET_VELOCITY )
+  DEFINE_GET_SET_VALUE( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION )
+  DEFINE_GET_SET_VALUE( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE )
+  DEFINE_GET_SET_VALUE( PositionLatched, IDX_POSITION_LATCHED )
+
 
 }// namespace mtca4u

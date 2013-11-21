@@ -6,6 +6,11 @@
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 
+#define DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
+  void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
+  unsigned int get ## NAME ()
+
+
 namespace mtca4u
 {
   class MotorDriverCardImpl;
@@ -33,51 +38,49 @@ namespace mtca4u
     };
 
 
-    // Get the ID of the motor controler on the FMC board (0 or 1).
+    /// Get the ID of the motor controler on the FMC board (0 or 1).
     unsigned int getID();
 
     // via direct register access in the fpga
 
-    unsigned int getActualPosition(); //< Get the actual position in steps
-    unsigned int getActualVelocity(); //< Get the actual velocity in steps per FIXME
-    unsigned int getActualAcceleration(); //< Get the actual acceleration in steps per square FIXME
-    unsigned int getMicroStepCount(); //< Get the micro step value (which units? what does it mean?)
-    unsigned int getStallGuardValue(); //< Get the stall guard value  (which units? what does it mean? Expert?)
-    unsigned int getCoolStepValue(); //< Get the CoolStepValue (in units?, what does it mean? Expert?)
-    unsigned int getStatus(); //< Get the actual status of the motor driver
-    unsigned int getDecoderReadoutMode(); //< Get the decoder readout mode
-    unsigned int getDecoderPosition(); //< Get the decoder position (which units?)
+    unsigned int getActualPosition(); ///< Get the actual position in steps
+    unsigned int getActualVelocity(); ///< Get the actual velocity in steps per FIXME
+    unsigned int getActualAcceleration(); ///< Get the actual acceleration in steps per square FIXME
+    unsigned int getMicroStepCount(); ///< Get the micro step value (which units? what does it mean?)
+    unsigned int getStallGuardValue(); ///< Get the stall guard value  (which units? what does it mean? Expert?)
+    unsigned int getCoolStepValue(); ///< Get the CoolStepValue (in units?, what does it mean? Expert?)
+    unsigned int getStatus(); ///< Get the actual status of the motor driver
+    unsigned int getDecoderReadoutMode(); ///< Get the decoder readout mode
+    unsigned int getDecoderPosition(); ///< Get the decoder position (which units?)
     
     void setActualVelocity(unsigned int stepsPerFIXME); //FIXME = read only?
     void setActualAcceleration(unsigned int stepsPerSquareFIXME);
     //    void setAccelerationThreshold(unsigned int accelerationTreshold);
     void setMicroStepCount(unsigned int microStepCount);
-    void setEnabled(bool enable=true); //< Enable or disable the motor driver chip
+    void setEnabled(bool enable=true); ///< Enable or disable the motor driver chip
     void setDecoderReadoutMode(unsigned int decoderReadoutMode);
 
-    bool isEnabled(); //< Check whether the motor driver chip is enabled
+    bool isEnabled(); ///< Check whether the motor driver chip is enabled
     
     // via spi to the tmc429 motor controler
-    void setTartetPosition(unsigned int steps);
     /// Set the actual position counter for a recalibration of the actual position
     void setActualPosition(unsigned int steps);
-    void setMinimalVelocity(unsigned int stepsPerFIXME);
-    void setMaximalVelocity(unsigned int stepsPerFIXME);
-    void setTargetVelocity(unsigned int stepsPerFIXME);
+    DECLARE_SET_GET_VALUE( TargetPosition, steps ); ///< Get the target position in steps
+    DECLARE_SET_GET_VALUE( MinimumVelocity, stepsPerFIXME );///< Get minimum velocity in FIXME
+    DECLARE_SET_GET_VALUE( MaximumVelocity, stepsPerFIXME );///< Get maximum velocity in FIXME
+    DECLARE_SET_GET_VALUE( TargetVelocity, stepsPerFIXME );///< Get target velocity in FIXME
+    DECLARE_SET_GET_VALUE( MaximumAcceleration, stepsPerSquareFIXME );///< Get the maximim acceleration in FIXME
 
-     void setMaximumAcceleration(unsigned int stepsPerSquareFIXME);
-     void setTargetAcceleration(unsigned int stepsPerSquareFIXME);
      void setAccelerationThresholdRegister(AccelerationThresholdData accelerationThresholdData);
      void setProportionalityFactorRegister(ProportionalityFactorData proportionalityFactorData);
      void setReferenceConfigAndRampModeRegister(ReferenceConfigAndRampModeData referenceConfigAndRampModeData);
      void setInterruptRegister(InterruptData interruptData);
      void setDividersAndMicroStepResolutionRegister(DividersAndMicroStepResolutionData dividersAndMicroStepResolutionData);
-     void setPositionTolerance(unsigned int positionTolerance);
-     void setPositionLatched(unsigned int positionLatched);
 
-     // the same for alle the getters
-     unsigned int getTargetAcceleration() const;//< read back the target acceleration in stepsPerSquareFIXME);
-     AccelerationThresholdData readAccelerationThresholdRegister() const;// or getAccelerationThReg?
+     DECLARE_SET_GET_VALUE( PositionTolerance, steps );///< Get the position tolerance in steps
+     DECLARE_SET_GET_VALUE( PositionLatched, steps );///< Get the latched position in steps
+
+     AccelerationThresholdData readAccelerationThresholdRegister();// or getAccelerationThReg?
      
      void setDriverControlRegister(DriverControlData driverControlData);
      void setChopperControlRegister(ChopperControlData chopperControlData);
