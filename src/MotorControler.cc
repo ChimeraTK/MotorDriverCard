@@ -25,6 +25,12 @@ using namespace mtca4u::tmc429;
   void MotorControler::set ## NAME (unsigned int value){\
   _driverCard.controlerSpiWrite( _id, IDX, value );}
 
+#define DEFINE_WRITE_READ_TYPED_REGISTER( NAME, TYPE )\
+  TYPE MotorControler::read ## NAME (){\
+    return readTypedRegister< TYPE >();}\
+  void MotorControler::write ## NAME ( TYPE inputWord ){\
+    writeTypedRegister( inputWord );}
+
 namespace mtca4u
 {
 
@@ -127,5 +133,22 @@ namespace mtca4u
   DEFINE_GET_SET_VALUE( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE )
   DEFINE_GET_SET_VALUE( PositionLatched, IDX_POSITION_LATCHED )
 
+  template<class T>
+  T  MotorControler::readTypedRegister(){
+    T typedWord;
+    typedWord.setSMDA( _id );
+    TMC429OutputWord readbackWord =  _driverCard.controlerSpiRead( _id, typedWord.getIDX_JDX());
+    typedWord.setDATA( readbackWord.getDATA() );
+    return typedWord;
+  }
+
+  void MotorControler::writeTypedRegister(TMC429InputWord inputWord){
+    // set/overwrite the id with this motors id
+    inputWord.setSMDA( _id );
+    _driverCard.controlerSpiWrite( inputWord );
+ 
+  }
+
+  DEFINE_WRITE_READ_TYPED_REGISTER( AccelerationThresholdRegister, AccelerationThresholdData )
 
 }// namespace mtca4u

@@ -32,7 +32,7 @@ void MotorControlerTest::testGet ## NAME (){\
   BOOST_CHECK( _motorControler.get ## NAME () == expectedValue );}\
 void MotorControlerTest::testSet ## NAME (){\
   _motorControler.set ## NAME ( PATTERN );\
-  BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & 0x00FFFFFF) );}
+  BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & spiDataMask) );}
 
 using namespace mtca4u;
 
@@ -62,6 +62,8 @@ public:
   DECLARE_GET_SET_TEST( MaximumAcceleration );
   DECLARE_GET_SET_TEST( PositionTolerance );
   DECLARE_GET_SET_TEST( PositionLatched );
+
+  DECLARE_GET_SET_TEST( AccelerationThresholdRegister );
   
 private:
   MotorControler & _motorControler;
@@ -133,6 +135,8 @@ public:
       ADD_GET_SET_TEST( MaximumAcceleration );
       ADD_GET_SET_TEST( PositionTolerance );
       ADD_GET_SET_TEST( PositionLatched );
+
+      ADD_GET_SET_TEST( AccelerationThresholdRegister );
     }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
@@ -192,3 +196,26 @@ DEFINE_GET_SET_TEST( TargetVelocity, IDX_TARGET_VELOCITY, 0x55555555 )
 DEFINE_GET_SET_TEST( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION, 0xFFFFFFFF )
 DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAAAA )
 DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x55555555 )
+
+void MotorControlerTest::testGetAccelerationThresholdRegister(){
+  unsigned int expectedContent = testWordFromSpiAddress( _motorControler.getID(),
+							 IDX_ACCELERATION_THRESHOLD);
+  // this assignment checks that the delivered data object actually is an AccelerationThresholdData object.
+  AccelerationThresholdData threshodData = _motorControler.readAccelerationThresholdRegister();
+  BOOST_CHECK( threshodData.getDATA() == expectedContent );
+  BOOST_CHECK( threshodData.getSMDA() == _motorControler.getID() );
+  std::cout << std::hex << "expectedContent " << expectedContent << std::endl;
+}
+
+void MotorControlerTest::testSetAccelerationThresholdRegister(){
+  
+  AccelerationThresholdData thresholdData = _motorControler.readAccelerationThresholdRegister();
+  unsigned int dataContent = thresholdData.getDATA();
+  thresholdData.setDATA(++dataContent);
+  _motorControler.writeAccelerationThresholdRegister(thresholdData);
+  BOOST_CHECK( _motorControler.readAccelerationThresholdRegister()
+	       == thresholdData );
+  std::cout << std::hex << "read " << _motorControler.readAccelerationThresholdRegister().getDataWord() 
+	    << ", written " << thresholdData.getDataWord() << std::endl;
+    
+}

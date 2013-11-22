@@ -141,6 +141,12 @@ namespace mtca4u
      /// Remove this function once the regObject interface has been fixed.
      unsigned int readRegObject( 
 			devMap<devBase>::regObject const & registerAccessor);
+
+     template<class T>
+       T readTypedRegister();
+
+     void writeTypedRegister(TMC429InputWord inputWord);
+
  };
 
 }// namespace mtca4u
