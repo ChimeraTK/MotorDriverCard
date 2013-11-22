@@ -34,6 +34,13 @@ void MotorControlerTest::testSet ## NAME (){\
   _motorControler.set ## NAME ( PATTERN );\
   BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & spiDataMask) );}
 
+#define DEFINE_TYPED_READ_WRITE_TEST( NAME, TYPE )\
+void MotorControlerTest::testGet ## NAME (){\
+  testReadTypedRegister< TYPE >( &MotorControler::read ## NAME );}\
+void MotorControlerTest::testSet ## NAME (){\
+  testWriteTypedRegister< TYPE >( &MotorControler::read ## NAME ,\
+				  &MotorControler::write ## NAME );}
+
 using namespace mtca4u;
 
 class MotorControlerTest{
@@ -69,6 +76,13 @@ private:
   MotorControler & _motorControler;
   boost::shared_ptr<mapFile> _registerMapping;
   static unsigned int const spiDataMask = 0xFFFFFF;
+
+  template<class T>
+  void testReadTypedRegister( T (MotorControler::* readFunction)() );
+
+  template<class T>
+  void testWriteTypedRegister( T (MotorControler::* readFunction)(),
+			       void (MotorControler::* writeFunction)(T) );
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -197,25 +211,26 @@ DEFINE_GET_SET_TEST( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION, 0xFFFFFFFF )
 DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAAAA )
 DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x55555555 )
 
-void MotorControlerTest::testGetAccelerationThresholdRegister(){
+template<class T>
+void MotorControlerTest::testReadTypedRegister( T (MotorControler::* readFunction)() ){
+  T typedWord;
+  unsigned int idx = typedWord.getIDX_JDX();
   unsigned int expectedContent = testWordFromSpiAddress( _motorControler.getID(),
-							 IDX_ACCELERATION_THRESHOLD);
-  // this assignment checks that the delivered data object actually is an AccelerationThresholdData object.
-  AccelerationThresholdData threshodData = _motorControler.readAccelerationThresholdRegister();
-  BOOST_CHECK( threshodData.getDATA() == expectedContent );
-  BOOST_CHECK( threshodData.getSMDA() == _motorControler.getID() );
-  std::cout << std::hex << "expectedContent " << expectedContent << std::endl;
+							 idx );
+  // this assignment checks that the delivered data object actually is the right type of object.
+  typedWord = (_motorControler.*readFunction)();
+  BOOST_CHECK( typedWord.getDATA() == expectedContent );
+  BOOST_CHECK( typedWord.getSMDA() == _motorControler.getID() );
 }
 
-void MotorControlerTest::testSetAccelerationThresholdRegister(){
-  
-  AccelerationThresholdData thresholdData = _motorControler.readAccelerationThresholdRegister();
-  unsigned int dataContent = thresholdData.getDATA();
-  thresholdData.setDATA(++dataContent);
-  _motorControler.writeAccelerationThresholdRegister(thresholdData);
-  BOOST_CHECK( _motorControler.readAccelerationThresholdRegister()
-	       == thresholdData );
-  std::cout << std::hex << "read " << _motorControler.readAccelerationThresholdRegister().getDataWord() 
-	    << ", written " << thresholdData.getDataWord() << std::endl;
-    
+template<class T>
+void MotorControlerTest::testWriteTypedRegister( T (MotorControler::* readFunction)(),
+						 void (MotorControler::* writeFunction)(T) ){
+  T typedWord = (_motorControler.*readFunction)();
+  unsigned int dataContent = typedWord.getDATA();
+  typedWord.setDATA(++dataContent);
+  (_motorControler.*writeFunction)(typedWord);
+  BOOST_CHECK( (_motorControler.*readFunction)() == typedWord );    
 }
+
+DEFINE_TYPED_READ_WRITE_TEST( AccelerationThresholdRegister, AccelerationThresholdData )
