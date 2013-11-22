@@ -11,9 +11,6 @@ using namespace mtca4u::dfmc_md22;
 #include "TMC429DummyConstants.h"
 using namespace mtca4u::tmc429;
 
-// See data sheet: the spi address has 7 bits, the lower 4 are IDX or JDX, the higher 3 are SMDA
-#define SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA, IDXJDX ) ((SMDA << 4) + IDXJDX)
-
 #define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING )\
     _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation );\
     AddressRange NAME( registerInformation.reg_address, \
@@ -84,11 +81,11 @@ namespace mtca4u{
     for_each( _spiAddressSpace.begin(), _spiAddressSpace.end(), boost::lambda::_1=0 );
 
     // Information from the data sheet:
-    size_t spiAddress =  SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON, JDX_CHIP_VERSION );
+    size_t spiAddress =  spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_CHIP_VERSION );
     _spiAddressSpace[spiAddress] = CONTROLER_CHIP_VERSION;
 
     // the CLK2_DIV subword is 15, all other bits stay 0
-    spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS );
+    spiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS );
     StepperMotorGlobalParameters globalParameters;
     globalParameters.setClk2_div(15);
     _spiAddressSpace.at(spiAddress) = globalParameters.getDATA();
@@ -168,8 +165,8 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::powerUp(){
-    unsigned int powerDownSpiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( SMDA_COMMON,
-								     JDX_POWER_DOWN );
+    unsigned int powerDownSpiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON,
+								 JDX_POWER_DOWN );
     writeContentToSpiRegister( 0, powerDownSpiAddress );
     _powerIsUp = true;
   }
@@ -185,8 +182,7 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX, std::string suffix ){
-    unsigned int spiAddress = SPI_ADDRESS_FROM_SMDA_IDXJDX( ID,
-							    IDX );
+    unsigned int spiAddress = spiAddressFromSmdaIdxJdx( ID, IDX );
     std::string registerName = createMotorRegisterName( ID, suffix );
     mapFile::mapElem registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation);
