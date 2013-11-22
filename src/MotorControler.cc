@@ -150,5 +150,9 @@ namespace mtca4u
   }
 
   DEFINE_WRITE_READ_TYPED_REGISTER( AccelerationThresholdRegister, AccelerationThresholdData )
+  DEFINE_WRITE_READ_TYPED_REGISTER( ProportionalityFactorRegister, ProportionalityFactorData )
+  DEFINE_WRITE_READ_TYPED_REGISTER( ReferenceConfigAndRampModeRegister, ReferenceConfigAndRampModeData )
+  DEFINE_WRITE_READ_TYPED_REGISTER( InterruptRegister, InterruptData )
+  DEFINE_WRITE_READ_TYPED_REGISTER( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
 
 }// namespace mtca4u

@@ -71,6 +71,10 @@ public:
   DECLARE_GET_SET_TEST( PositionLatched );
 
   DECLARE_GET_SET_TEST( AccelerationThresholdRegister );
+  DECLARE_GET_SET_TEST( ProportionalityFactorRegister );
+  DECLARE_GET_SET_TEST( ReferenceConfigAndRampModeRegister );
+  DECLARE_GET_SET_TEST( InterruptRegister );
+  DECLARE_GET_SET_TEST( DividersAndMicroStepResolutionRegister );
   
 private:
   MotorControler & _motorControler;
@@ -151,7 +155,11 @@ public:
       ADD_GET_SET_TEST( PositionLatched );
 
       ADD_GET_SET_TEST( AccelerationThresholdRegister );
-    }// for i < N_MOTORS_MAX
+      ADD_GET_SET_TEST( ProportionalityFactorRegister );
+      ADD_GET_SET_TEST( ReferenceConfigAndRampModeRegister );
+      ADD_GET_SET_TEST( InterruptRegister );
+      ADD_GET_SET_TEST( DividersAndMicroStepResolutionRegister );
+   }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
 
@@ -234,3 +242,7 @@ void MotorControlerTest::testWriteTypedRegister( T (MotorControler::* readFuncti
 }
 
 DEFINE_TYPED_READ_WRITE_TEST( AccelerationThresholdRegister, AccelerationThresholdData )
+DEFINE_TYPED_READ_WRITE_TEST( ProportionalityFactorRegister, ProportionalityFactorData )
+DEFINE_TYPED_READ_WRITE_TEST( ReferenceConfigAndRampModeRegister, ReferenceConfigAndRampModeData )
+DEFINE_TYPED_READ_WRITE_TEST( InterruptRegister, InterruptData )
+DEFINE_TYPED_READ_WRITE_TEST( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
