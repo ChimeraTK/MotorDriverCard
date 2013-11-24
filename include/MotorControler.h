@@ -125,6 +125,7 @@ namespace mtca4u
      ChopperControlData _chopperControlData;
      CoolStepControlData _coolStepControlData;
      StallGuardControlData _stallGuardControlData;
+     DriverConfigData _driverConfigData;
 
      devMap< devBase >::regObject _actualPosition;
      devMap< devBase >::regObject _actualVelocity;

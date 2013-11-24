@@ -75,6 +75,8 @@ public:
   DECLARE_GET_SET_TEST( ReferenceConfigAndRampModeRegister );
   DECLARE_GET_SET_TEST( InterruptRegister );
   DECLARE_GET_SET_TEST( DividersAndMicroStepResolutionRegister );
+
+  DECLARE_GET_SET_TEST( DriverControlRegister );
   
 private:
   MotorControler & _motorControler;
@@ -159,6 +161,8 @@ public:
       ADD_GET_SET_TEST( ReferenceConfigAndRampModeRegister );
       ADD_GET_SET_TEST( InterruptRegister );
       ADD_GET_SET_TEST( DividersAndMicroStepResolutionRegister );
+
+      ADD_GET_SET_TEST( DriverControlRegister );
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
@@ -246,3 +250,11 @@ DEFINE_TYPED_READ_WRITE_TEST( ProportionalityFactorRegister, ProportionalityFact
 DEFINE_TYPED_READ_WRITE_TEST( ReferenceConfigAndRampModeRegister, ReferenceConfigAndRampModeData )
 DEFINE_TYPED_READ_WRITE_TEST( InterruptRegister, InterruptData )
 DEFINE_TYPED_READ_WRITE_TEST( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
+
+void MotorControlerTest::testSetDriverControlRegister(){
+  
+}
+
+void MotorControlerTest::testGetDriverControlRegister(){
+  
+}

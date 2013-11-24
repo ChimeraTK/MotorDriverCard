@@ -2,7 +2,6 @@
 #define MTCA4U_TMC429_CONSTANTS_H
 
 #include <stdint.h>
-#include <string>
 
 namespace mtca4u{
 
