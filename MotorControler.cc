@@ -155,4 +155,26 @@ namespace mtca4u
   DEFINE_WRITE_READ_TYPED_REGISTER( InterruptRegister, InterruptData )
   DEFINE_WRITE_READ_TYPED_REGISTER( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
 
+  DriverControlData const & MotorControler::getDriverControlData() const{
+    return _driverControlData;
+  }
+
+  ChopperControlData const & MotorControler::getChopperControlData() const{
+    return _chopperControlData;
+  }
+
+  CoolStepControlData const & MotorControler::getCoolStepControlData() const{
+    return _coolStepControlData;
+  }
+
+  StallGuardControlData const & MotorControler::getStallGuardControlData() const{
+    return _stallGuardControlData;
+  }
+
+  DriverConfigData const & MotorControler::getDriverConfigData() const{
+    return _driverConfigData;
+  }
+           
+
+
 }// namespace mtca4u
