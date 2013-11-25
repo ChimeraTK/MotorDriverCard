@@ -143,8 +143,9 @@ namespace mtca4u{
     unsigned int pcieAddress =  _driverSpiWriteBarAndAddresses[ID].second;
     unsigned int writtenSpiWord = _barContents[bar].at(pcieAddress/sizeof(int32_t));
     unsigned int spiAddress = tmc260::spiAddressFromDataWord(writtenSpiWord);
+    unsigned int payloadDataMask = tmc260::dataMaskFromSpiAddress(spiAddress);
 
-    _driverSpiAddressSpaces.at(ID).at(spiAddress) = writtenSpiWord;
+    _driverSpiAddressSpaces.at(ID).at(spiAddress) = writtenSpiWord & payloadDataMask;
   }
 
   void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content,

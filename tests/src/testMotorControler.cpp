@@ -44,6 +44,14 @@ void MotorControlerTest::testSet ## NAME (){\
   testSetTypedData< NAME >( &MotorControler::get ## NAME ,\
 			    &MotorControler::set ## NAME );}
 
+#define DEFINE_GET_SET_DRIVER_SPI_DATA( NAME, SPI_ADDRESS )\
+void MotorControlerTest::testGet ## NAME (){\
+  testGetDriverSpiData< NAME >( &MotorControler::get ## NAME , SPI_ADDRESS);} \
+void MotorControlerTest::testSet ## NAME (){\
+  testSetDriverSpiData< NAME >( &MotorControler::set ## NAME ,\
+                                &MotorControler::get ## NAME ,\
+				SPI_ADDRESS );}
+
 using namespace mtca4u;
 
 class MotorControlerTest{
@@ -81,6 +89,10 @@ public:
   DECLARE_GET_SET_TEST( DividersAndMicroStepResolutionData );
 
   DECLARE_GET_SET_TEST( DriverControlData );
+  DECLARE_GET_SET_TEST( ChopperControlData );
+  DECLARE_GET_SET_TEST( CoolStepControlData );
+  DECLARE_GET_SET_TEST( StallGuardControlData );
+  DECLARE_GET_SET_TEST( DriverConfigData );
   
 private:
   MotorControler & _motorControler;
@@ -175,6 +187,10 @@ public:
       ADD_GET_SET_TEST( DividersAndMicroStepResolutionData );
 
       ADD_GET_SET_TEST( DriverControlData );
+      ADD_GET_SET_TEST( ChopperControlData );
+      ADD_GET_SET_TEST( CoolStepControlData );
+      ADD_GET_SET_TEST( StallGuardControlData );
+      ADD_GET_SET_TEST( DriverConfigData );
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
@@ -271,12 +287,8 @@ void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* gett
   T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler.getID());
 
   BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
-	       expectedWord.getDataWord() );
+	       expectedWord.getPayloadData() );
   BOOST_CHECK( (_motorControler.*getterFunction)() == T() ); // T is uninitialised at the moment
-}
-
-void MotorControlerTest::testGetDriverControlData(){
-  testGetDriverSpiData<DriverControlData>(&MotorControler::getDriverControlData, ADDRESS_DRIVER_CONTROL);
 }
 
 template <class T>
@@ -288,12 +300,12 @@ void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFun
 
   // the new word must arrive at the spi register in the "hardware" and a copy has to be in the motor controler
   BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
-	       testWord.getDataWord() );
+	       testWord.getPayloadData() );
   BOOST_CHECK((_motorControler.* getterFunction)() == testWord );
 }
 
-void MotorControlerTest::testSetDriverControlData(){
-  testSetDriverSpiData<DriverControlData>( &MotorControler::setDriverControlData,
-					   &MotorControler::getDriverControlData,
-					   ADDRESS_DRIVER_CONTROL );
-}
+DEFINE_GET_SET_DRIVER_SPI_DATA( DriverControlData, ADDRESS_DRIVER_CONTROL )
+DEFINE_GET_SET_DRIVER_SPI_DATA( ChopperControlData, ADDRESS_CHOPPER_CONFIG )
+DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG )
+DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG )
+DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG )

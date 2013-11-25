@@ -39,7 +39,7 @@ namespace mtca4u{
   class CoolStepControlData: public MultiVariableWord{
   public:
     CoolStepControlData(unsigned int dataWord = 0): MultiVariableWord(){
-    setAddress(tmc260::ADDRESS_COOL_STEP_CONTROL);
+    setAddress(tmc260::ADDRESS_COOL_STEP_CONFIG);
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
@@ -63,26 +63,6 @@ namespace mtca4u{
     ADD_VARIABLE(PayloadData, 0, 16);
   };
     
-namespace tmc260{
-
-  inline unsigned int spiAddressFromDataWord( MultiVariableWord const & word ){
-    return spiAddressFromDataWord( word.getDataWord() ); 
-  }
-
-  inline unsigned int spiAddressFromDataWord( unsigned int word ){
-    // Sorry for this mess, but I don't see any other chance to implement
-    // "if bits 18 and 19 are zero then these bits are the address, else
-    //  bits 17 to 19 are the address" than hard-coding it.
-    if (word && OUTPUT_MASK(18,19) == 0){
-      return 0;
-    }
-    else{
-      return ( (word && OUTPUT_MASK(17,19)) >> 17 );
-    }
-  }
-
-}//namespace tmc260
-
 }// namespace mtca4u
 
 #endif// MTCA4U_TMC260WORDS_H

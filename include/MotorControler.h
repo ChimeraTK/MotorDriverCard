@@ -141,7 +141,10 @@ namespace mtca4u
      template<class T>
        T readTypedRegister();
 
-     void writeTypedRegister(TMC429InputWord inputWord);
+     void writeTypedControlerRegister(TMC429InputWord inputWord);
+
+     template <class T>
+       void setTypedDriverData(T const & driverData, T & localDataInstance);
 
  };
 
