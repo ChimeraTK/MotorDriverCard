@@ -37,12 +37,12 @@ void MotorControlerTest::testSet ## NAME (){\
   _motorControler.set ## NAME ( PATTERN );\
   BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & SPI_DATA_MASK) );}
 
-#define DEFINE_TYPED_READ_WRITE_TEST( NAME, TYPE )\
+#define DEFINE_TYPED_GET_SET_TEST( NAME )\
 void MotorControlerTest::testGet ## NAME (){\
-  testReadTypedRegister< TYPE >( &MotorControler::read ## NAME );}\
+  testGetTypedData< NAME >( &MotorControler::get ## NAME );}\
 void MotorControlerTest::testSet ## NAME (){\
-  testWriteTypedRegister< TYPE >( &MotorControler::read ## NAME ,\
-				  &MotorControler::write ## NAME );}
+  testSetTypedData< NAME >( &MotorControler::get ## NAME ,\
+			    &MotorControler::set ## NAME );}
 
 using namespace mtca4u;
 
@@ -74,13 +74,13 @@ public:
   DECLARE_GET_SET_TEST( PositionTolerance );
   DECLARE_GET_SET_TEST( PositionLatched );
 
-  DECLARE_GET_SET_TEST( AccelerationThresholdRegister );
-  DECLARE_GET_SET_TEST( ProportionalityFactorRegister );
-  DECLARE_GET_SET_TEST( ReferenceConfigAndRampModeRegister );
-  DECLARE_GET_SET_TEST( InterruptRegister );
-  DECLARE_GET_SET_TEST( DividersAndMicroStepResolutionRegister );
+  DECLARE_GET_SET_TEST( AccelerationThresholdData );
+  DECLARE_GET_SET_TEST( ProportionalityFactorData );
+  DECLARE_GET_SET_TEST( ReferenceConfigAndRampModeData );
+  DECLARE_GET_SET_TEST( InterruptData );
+  DECLARE_GET_SET_TEST( DividersAndMicroStepResolutionData );
 
-  DECLARE_GET_SET_TEST( DriverControlRegister );
+  DECLARE_GET_SET_TEST( DriverControlData );
   
 private:
   MotorControler & _motorControler;
@@ -88,16 +88,16 @@ private:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
   template<class T>
-  void testReadTypedRegister( T (MotorControler::* readFunction)() );
+  void testGetTypedData( T (MotorControler::* getterFunction)() );
 
   template<class T>
-  void testWriteTypedRegister( T (MotorControler::* readFunction)(),
-			       void (MotorControler::* writeFunction)(T) );
+  void testSetTypedData( T (MotorControler::* getterFunction)(),
+			       void (MotorControler::* setterFunction)(T const &) );
   template <class T>
-  void testGetDriverSpiRegister( T const & (MotorControler::* getterFunction)() const,
+  void testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
 				 unsigned int driverSpiAddress);
   template <class T>
-  void testSetDriverSpiRegister( void (MotorControler::* setterFunction)(T const &),
+  void testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
 				 T const & (MotorControler::* getterFunction)() const,
 				 unsigned int driverSpiAddress);
 };
@@ -168,13 +168,13 @@ public:
       ADD_GET_SET_TEST( PositionTolerance );
       ADD_GET_SET_TEST( PositionLatched );
 
-      ADD_GET_SET_TEST( AccelerationThresholdRegister );
-      ADD_GET_SET_TEST( ProportionalityFactorRegister );
-      ADD_GET_SET_TEST( ReferenceConfigAndRampModeRegister );
-      ADD_GET_SET_TEST( InterruptRegister );
-      ADD_GET_SET_TEST( DividersAndMicroStepResolutionRegister );
+      ADD_GET_SET_TEST( AccelerationThresholdData );
+      ADD_GET_SET_TEST( ProportionalityFactorData );
+      ADD_GET_SET_TEST( ReferenceConfigAndRampModeData );
+      ADD_GET_SET_TEST( InterruptData );
+      ADD_GET_SET_TEST( DividersAndMicroStepResolutionData );
 
-      ADD_GET_SET_TEST( DriverControlRegister );
+      ADD_GET_SET_TEST( DriverControlData );
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
@@ -238,35 +238,35 @@ DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAA
 DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x55555555 )
 
 template<class T>
-void MotorControlerTest::testReadTypedRegister( T (MotorControler::* readFunction)() ){
+void MotorControlerTest::testGetTypedData( T (MotorControler::* getterFunction)() ){
   T typedWord;
   unsigned int idx = typedWord.getIDX_JDX();
   unsigned int expectedContent = tmc429::testWordFromSpiAddress( _motorControler.getID(),
 								 idx );
   // this assignment checks that the delivered data object actually is the right type of object.
-  typedWord = (_motorControler.*readFunction)();
+  typedWord = (_motorControler.*getterFunction)();
   BOOST_CHECK( typedWord.getDATA() == expectedContent );
   BOOST_CHECK( typedWord.getSMDA() == _motorControler.getID() );
 }
 
 template<class T>
-void MotorControlerTest::testWriteTypedRegister( T (MotorControler::* readFunction)(),
-						 void (MotorControler::* writeFunction)(T) ){
-  T typedWord = (_motorControler.*readFunction)();
+void MotorControlerTest::testSetTypedData( T (MotorControler::* getterFunction)(),
+					   void (MotorControler::* setterFunction)(T const &) ){
+  T typedWord = (_motorControler.*getterFunction)();
   unsigned int dataContent = typedWord.getDATA();
   typedWord.setDATA(++dataContent);
-  (_motorControler.*writeFunction)(typedWord);
-  BOOST_CHECK( (_motorControler.*readFunction)() == typedWord );    
+  (_motorControler.*setterFunction)(typedWord);
+  BOOST_CHECK( (_motorControler.*getterFunction)() == typedWord );    
 }
 
-DEFINE_TYPED_READ_WRITE_TEST( AccelerationThresholdRegister, AccelerationThresholdData )
-DEFINE_TYPED_READ_WRITE_TEST( ProportionalityFactorRegister, ProportionalityFactorData )
-DEFINE_TYPED_READ_WRITE_TEST( ReferenceConfigAndRampModeRegister, ReferenceConfigAndRampModeData )
-DEFINE_TYPED_READ_WRITE_TEST( InterruptRegister, InterruptData )
-DEFINE_TYPED_READ_WRITE_TEST( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
+DEFINE_TYPED_GET_SET_TEST( AccelerationThresholdData )
+DEFINE_TYPED_GET_SET_TEST( ProportionalityFactorData )
+DEFINE_TYPED_GET_SET_TEST( ReferenceConfigAndRampModeData )
+DEFINE_TYPED_GET_SET_TEST( InterruptData )
+DEFINE_TYPED_GET_SET_TEST( DividersAndMicroStepResolutionData )
 
 template <class T>
-void MotorControlerTest::testGetDriverSpiRegister( T const & (MotorControler::* getterFunction)() const,
+void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
 						   unsigned int driverSpiAddress){
   T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler.getID());
 
@@ -275,12 +275,12 @@ void MotorControlerTest::testGetDriverSpiRegister( T const & (MotorControler::* 
   BOOST_CHECK( (_motorControler.*getterFunction)() == T() ); // T is uninitialised at the moment
 }
 
-void MotorControlerTest::testGetDriverControlRegister(){
-  testGetDriverSpiRegister<DriverControlData>(&MotorControler::getDriverControlData, ADDRESS_DRIVER_CONTROL);
+void MotorControlerTest::testGetDriverControlData(){
+  testGetDriverSpiData<DriverControlData>(&MotorControler::getDriverControlData, ADDRESS_DRIVER_CONTROL);
 }
 
 template <class T>
-void MotorControlerTest::testSetDriverSpiRegister( void (MotorControler::* setterFunction)(T const &),
+void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
 						   T const & (MotorControler::* getterFunction)() const,
 						   unsigned int driverSpiAddress){
   T testWord( 0xAAAAAAAA );
@@ -292,8 +292,8 @@ void MotorControlerTest::testSetDriverSpiRegister( void (MotorControler::* sette
   BOOST_CHECK((_motorControler.* getterFunction)() == testWord );
 }
 
-void MotorControlerTest::testSetDriverControlRegister(){
-  testSetDriverSpiRegister<DriverControlData>( &MotorControler::setDriverControlRegister,
-					       &MotorControler::getDriverControlData,
-					       ADDRESS_DRIVER_CONTROL );
+void MotorControlerTest::testSetDriverControlData(){
+  testSetDriverSpiData<DriverControlData>( &MotorControler::setDriverControlData,
+					   &MotorControler::getDriverControlData,
+					   ADDRESS_DRIVER_CONTROL );
 }

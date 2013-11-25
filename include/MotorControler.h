@@ -10,9 +10,9 @@
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
   unsigned int get ## NAME ()
 
-#define DECLARE_WRITE_READ_TYPED_REGISTER( NAME, DATA_TYPE, DATA_NAME )\
-  void write ## NAME ( DATA_TYPE DATA_NAME );\
-  DATA_TYPE read ## NAME ()
+#define DECLARE_SET_GET_TYPED_REGISTER( NAME, VARIABLE_NAME )\
+  void set ## NAME ( NAME const & VARIABLE_NAME );\
+  NAME get ## NAME ()
 
 namespace mtca4u
 {
@@ -76,23 +76,17 @@ namespace mtca4u
     DECLARE_SET_GET_VALUE( PositionTolerance, steps );///< Get the position tolerance in steps
     DECLARE_SET_GET_VALUE( PositionLatched, steps );///< Get the latched position in steps
 
+    DECLARE_SET_GET_TYPED_REGISTER(AccelerationThresholdData, accelerationThresholdData);
+    DECLARE_SET_GET_TYPED_REGISTER(ProportionalityFactorData, proportionalityFactorData);
+    DECLARE_SET_GET_TYPED_REGISTER(ReferenceConfigAndRampModeData, referenceConfigAndRampModeData);
+    DECLARE_SET_GET_TYPED_REGISTER(InterruptData, interruptData);
+    DECLARE_SET_GET_TYPED_REGISTER(DividersAndMicroStepResolutionData, dividersAndMicroStepResolutionData);
 
-    DECLARE_WRITE_READ_TYPED_REGISTER(AccelerationThresholdRegister,
-				      AccelerationThresholdData, accelerationThresholdData);
-    DECLARE_WRITE_READ_TYPED_REGISTER(ProportionalityFactorRegister,
-				      ProportionalityFactorData, proportionalityFactorData);
-    DECLARE_WRITE_READ_TYPED_REGISTER(ReferenceConfigAndRampModeRegister,
-				      ReferenceConfigAndRampModeData, referenceConfigAndRampModeData);
-    DECLARE_WRITE_READ_TYPED_REGISTER(InterruptRegister,InterruptData, interruptData);
-    DECLARE_WRITE_READ_TYPED_REGISTER(DividersAndMicroStepResolutionRegister,
-				      DividersAndMicroStepResolutionData,
-				      dividersAndMicroStepResolutionData);
-
-     void setDriverControlRegister(DriverControlData const & driverControlData);
-     void setChopperControlRegister(ChopperControlData const &  chopperControlData);
-     void setCoolStepControlRegister(CoolStepControlData const &  coolStepControlData);
-     void setStallGuardControlRegister(StallGuardControlData const &  stallGuardControlData);
-     void setDriverConfigRegister(DriverConfigData const &  driverConfigData);
+     void setDriverControlData(DriverControlData const & driverControlData);
+     void setChopperControlData(ChopperControlData const &  chopperControlData);
+     void setCoolStepControlData(CoolStepControlData const &  coolStepControlData);
+     void setStallGuardControlData(StallGuardControlData const &  stallGuardControlData);
+     void setDriverConfigData(DriverConfigData const &  driverConfigData);
 
      DriverControlData const & getDriverControlData() const; 
      ChopperControlData const & getChopperControlData() const;

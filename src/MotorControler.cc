@@ -25,10 +25,10 @@ using namespace mtca4u::tmc429;
   void MotorControler::set ## NAME (unsigned int value){\
   _driverCard.controlerSpiWrite( _id, IDX, value );}
 
-#define DEFINE_WRITE_READ_TYPED_REGISTER( NAME, TYPE )\
-  TYPE MotorControler::read ## NAME (){\
-    return readTypedRegister< TYPE >();}\
-  void MotorControler::write ## NAME ( TYPE inputWord ){\
+#define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( NAME )\
+  NAME MotorControler::get ## NAME (){\
+    return readTypedRegister< NAME >();}\
+  void MotorControler::set ## NAME ( NAME const & inputWord ){\
     writeTypedRegister( inputWord );}
 
 namespace mtca4u
@@ -150,11 +150,11 @@ namespace mtca4u
  
   }
 
-  DEFINE_WRITE_READ_TYPED_REGISTER( AccelerationThresholdRegister, AccelerationThresholdData )
-  DEFINE_WRITE_READ_TYPED_REGISTER( ProportionalityFactorRegister, ProportionalityFactorData )
-  DEFINE_WRITE_READ_TYPED_REGISTER( ReferenceConfigAndRampModeRegister, ReferenceConfigAndRampModeData )
-  DEFINE_WRITE_READ_TYPED_REGISTER( InterruptRegister, InterruptData )
-  DEFINE_WRITE_READ_TYPED_REGISTER( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
+  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( AccelerationThresholdData )
+  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( ProportionalityFactorData )
+  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( ReferenceConfigAndRampModeData )
+  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( InterruptData )
+  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( DividersAndMicroStepResolutionData )
 
   DriverControlData const & MotorControler::getDriverControlData() const{
     return _driverControlData;
@@ -176,7 +176,7 @@ namespace mtca4u
     return _driverConfigData;
   }
            
-  void MotorControler::setDriverControlRegister(DriverControlData const & driverControlData){
+  void MotorControler::setDriverControlData(DriverControlData const & driverControlData){
     int32_t temporaryWriteWord = static_cast<int32_t>(driverControlData.getDataWord());
      _driverSpiWrite.writeReg( &temporaryWriteWord );
      // Remember the written word for readback.
