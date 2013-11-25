@@ -9,6 +9,7 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Constants.h"
 #include "testWordFromPCIeAddress.h"
 using namespace mtca4u::dfmc_md22;
+#include "TMC429DummyConstants.h"
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
 
@@ -32,7 +33,7 @@ void MotorControlerTest::testGet ## NAME (){\
   BOOST_CHECK( _motorControler.get ## NAME () == expectedValue );}\
 void MotorControlerTest::testSet ## NAME (){\
   _motorControler.set ## NAME ( PATTERN );\
-  BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & spiDataMask) );}
+  BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & SPI_DATA_MASK) );}
 
 #define DEFINE_TYPED_READ_WRITE_TEST( NAME, TYPE )\
 void MotorControlerTest::testGet ## NAME (){\
@@ -81,7 +82,6 @@ public:
 private:
   MotorControler & _motorControler;
   boost::shared_ptr<mapFile> _registerMapping;
-  static unsigned int const spiDataMask = 0xFFFFFF;
 
   template<class T>
   void testReadTypedRegister( T (MotorControler::* readFunction)() );
@@ -100,7 +100,7 @@ public:
 
     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy );
     dummyDevice->openDev( mapFileName );
-    dummyDevice->setSPIRegistersForTesting();
+    dummyDevice->setControlerSpiRegistersForTesting();
  
     mapFileParser fileParser;
     boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);

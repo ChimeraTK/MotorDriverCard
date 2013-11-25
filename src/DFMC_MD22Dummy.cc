@@ -20,8 +20,8 @@ using namespace mtca4u::tmc429;
 namespace mtca4u{
 
  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
-				    _spiWriteAddress(0), _spiWriteBar(0),
-				    _spiReadbackAddress(0), _spiReadbackBar(0),
+				    _controlerSpiWriteAddress(0), _controlerSpiWriteBar(0),
+				    _controlerSpiReadbackAddress(0), _controlerSpiReadbackBar(0),
 				    _powerIsUp(true){
   }
 
@@ -32,21 +32,21 @@ namespace mtca4u{
     setPCIeRegistersForTesting(); // some of them will be overwriten if a 
     // defined behaviour exists for them
 
-    _spiAddressSpace.resize( SIZE_OF_SPI_ADDRESS_SPACE , 0 );
-    setSPIRegistersForOperation();
+    _controlerSpiAddressSpace.resize( tmc429::SIZE_OF_SPI_ADDRESS_SPACE , 0 );
+    setControlerSpiRegistersForOperation();
 
     mapFile::mapElem registerInformation;
-    DEFINE_ADDRESS_RANGE( spiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING );
-    _spiWriteAddress = registerInformation.reg_address;
-    _spiWriteBar = registerInformation.reg_bar;
+    DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING );
+    _controlerSpiWriteAddress = registerInformation.reg_address;
+    _controlerSpiWriteBar = registerInformation.reg_bar;
 
     _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation );
-    _spiReadbackAddress = registerInformation.reg_address;
-    _spiReadbackBar = registerInformation.reg_bar;
+    _controlerSpiReadbackAddress = registerInformation.reg_address;
+    _controlerSpiReadbackBar = registerInformation.reg_bar;
     setReadOnly(registerInformation.reg_address, registerInformation.reg_size,
 		registerInformation.reg_bar);
     
-    setWriteCallbackFunction( spiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleSPIWrite, this ) );
+    setWriteCallbackFunction( controlerSpiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleControlerSpiWrite, this ) );
 
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
@@ -77,63 +77,63 @@ namespace mtca4u{
     }
   }
 
-  void DFMC_MD22Dummy::setSPIRegistersForOperation(){
-    for_each( _spiAddressSpace.begin(), _spiAddressSpace.end(), boost::lambda::_1=0 );
+  void DFMC_MD22Dummy::setControlerSpiRegistersForOperation(){
+    for_each( _controlerSpiAddressSpace.begin(), _controlerSpiAddressSpace.end(), boost::lambda::_1=0 );
 
     // Information from the data sheet:
-    size_t spiAddress =  spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_CHIP_VERSION );
-    _spiAddressSpace[spiAddress] = CONTROLER_CHIP_VERSION;
+    size_t controlerSpiAddress =  spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_CHIP_VERSION );
+    _controlerSpiAddressSpace[controlerSpiAddress] = CONTROLER_CHIP_VERSION;
 
     // the CLK2_DIV subword is 15, all other bits stay 0
-    spiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS );
+    controlerSpiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS );
     StepperMotorGlobalParameters globalParameters;
     globalParameters.setClk2_div(15);
-    _spiAddressSpace.at(spiAddress) = globalParameters.getDATA();
+    _controlerSpiAddressSpace.at(controlerSpiAddress) = globalParameters.getDATA();
 
-    synchroniseFpgaWithSpiRegisters();
+    synchroniseFpgaWithControlerSpiRegisters();
   }
 
-  void DFMC_MD22Dummy::setSPIRegistersForTesting(){
-    for( size_t i=0; i< _spiAddressSpace.size(); ++i ){
-      _spiAddressSpace[i]=i*i+13;
+  void DFMC_MD22Dummy::setControlerSpiRegistersForTesting(){
+    for( size_t i=0; i< _controlerSpiAddressSpace.size(); ++i ){
+      _controlerSpiAddressSpace[i]=i*i+13;
     }
 
-    synchroniseFpgaWithSpiRegisters();
+    synchroniseFpgaWithControlerSpiRegisters();
   }
 
-  void DFMC_MD22Dummy::handleSPIWrite(){
-    int32_t spiWriteWord;
-    readReg( _spiWriteAddress, &spiWriteWord, _spiWriteBar );
+  void DFMC_MD22Dummy::handleControlerSpiWrite(){
+    int32_t controlerSpiWriteWord;
+    readReg( _controlerSpiWriteAddress, &controlerSpiWriteWord, _controlerSpiWriteBar );
 
-    TMC429InputWord inputWord(spiWriteWord);
-    uint32_t spiAddress = inputWord.getADDRESS();
+    TMC429InputWord inputWord(controlerSpiWriteWord);
+    uint32_t controlerSpiAddress = inputWord.getADDRESS();
     if (inputWord.getRW() == RW_READ){
-      writeSpiContentToReadbackRegister(spiAddress);
+      writeControlerSpiContentToReadbackRegister(controlerSpiAddress);
     }
     else{
-      writeContentToSpiRegister(inputWord.getDATA(), spiAddress);
+      writeContentToControlerSpiRegister(inputWord.getDATA(), controlerSpiAddress);
     }
 
-    triggerActionsOnSpiWrite(inputWord);
+    triggerActionsOnControlerSpiWrite(inputWord);
   }
 
-  void DFMC_MD22Dummy::writeContentToSpiRegister(unsigned int content,
-						 unsigned int spiAddress){
+  void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content,
+						 unsigned int controlerSpiAddress){
     if (_powerIsUp){
-      _spiAddressSpace.at(spiAddress)=content;
+      _controlerSpiAddressSpace.at(controlerSpiAddress)=content;
     }
   }
 
-  void DFMC_MD22Dummy::writeSpiContentToReadbackRegister(unsigned int spiAddress){
+  void DFMC_MD22Dummy::writeControlerSpiContentToReadbackRegister(unsigned int controlerSpiAddress){
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
-    outputWord.setDATA( _spiAddressSpace.at(spiAddress) );
-     writeRegisterWithoutCallback( _spiReadbackAddress,
+    outputWord.setDATA( _controlerSpiAddressSpace.at(controlerSpiAddress) );
+     writeRegisterWithoutCallback( _controlerSpiReadbackAddress,
 				   outputWord.getDataWord(),
-				   _spiReadbackBar );
+				   _controlerSpiReadbackBar );
   }
 
-  void DFMC_MD22Dummy::triggerActionsOnSpiWrite(TMC429InputWord const & inputWord){
+  void DFMC_MD22Dummy::triggerActionsOnControlerSpiWrite(TMC429InputWord const & inputWord){
     switch(inputWord.getSMDA()){
       case SMDA_COMMON: // common registers are addressed by jdx
 	performJdxActions( inputWord.getIDX_JDX() );
@@ -142,7 +142,7 @@ namespace mtca4u{
 	performIdxActions( inputWord.getIDX_JDX() );
     };
 
-    synchroniseFpgaWithSpiRegisters();
+    synchroniseFpgaWithControlerSpiRegisters();
   }
 
   void DFMC_MD22Dummy::performJdxActions( unsigned int jdx ){
@@ -165,29 +165,29 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::powerUp(){
-    unsigned int powerDownSpiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON,
+    unsigned int powerDownControlerSpiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON,
 								 JDX_POWER_DOWN );
-    writeContentToSpiRegister( 0, powerDownSpiAddress );
+    writeContentToControlerSpiRegister( 0, powerDownControlerSpiAddress );
     _powerIsUp = true;
   }
 
-  void DFMC_MD22Dummy::synchroniseFpgaWithSpiRegisters(){
+  void DFMC_MD22Dummy::synchroniseFpgaWithControlerSpiRegisters(){
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
-      writeSpiRegisterToFpga( i, IDX_ACTUAL_POSITION , ACTUAL_POSITION_SUFFIX );
-      writeSpiRegisterToFpga( i, IDX_ACTUAL_VELOCITY, ACTUAL_VELOCITY_SUFFIX );
-      writeSpiRegisterToFpga( i, IDX_ACTUAL_ACCELERATION, ACTUAL_ACCELETATION_SUFFIX );
+      writeControlerSpiRegisterToFpga( i, IDX_ACTUAL_POSITION , ACTUAL_POSITION_SUFFIX );
+      writeControlerSpiRegisterToFpga( i, IDX_ACTUAL_VELOCITY, ACTUAL_VELOCITY_SUFFIX );
+      writeControlerSpiRegisterToFpga( i, IDX_ACTUAL_ACCELERATION, ACTUAL_ACCELETATION_SUFFIX );
       //writeAccelerationThresholdToFpgs( i );
-      writeSpiRegisterToFpga( i, IDX_MICRO_STEP_COUNT,  MICRO_STEP_COUNT_SUFFIX);
+      writeControlerSpiRegisterToFpga( i, IDX_MICRO_STEP_COUNT,  MICRO_STEP_COUNT_SUFFIX);
     }
   }
 
-  void DFMC_MD22Dummy::writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX, std::string suffix ){
-    unsigned int spiAddress = spiAddressFromSmdaIdxJdx( ID, IDX );
+  void DFMC_MD22Dummy::writeControlerSpiRegisterToFpga( unsigned int ID, unsigned int IDX, std::string suffix ){
+    unsigned int controlerSpiAddress = spiAddressFromSmdaIdxJdx( ID, IDX );
     std::string registerName = createMotorRegisterName( ID, suffix );
     mapFile::mapElem registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation);
      writeRegisterWithoutCallback( registerInformation.reg_address,
-				   _spiAddressSpace[spiAddress], 
+				   _controlerSpiAddressSpace[controlerSpiAddress], 
 				   registerInformation.reg_bar );
   }
 

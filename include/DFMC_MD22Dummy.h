@@ -10,7 +10,7 @@ namespace mtca4u{
    *
    * Implemented features:
    * \li All registers have full 32 bit data when written directly. Most registers are not write protected FIXME.
-   * \li The following registers are automatically updated to the SPI values
+   * \li The following registers are automatically updated to the TMC429 controler SPI values
    * after an SPI write. They are write protected:
    *  <ul> <li> ACTUAL_POSITION </li>
    *       <li> ACTUAL_VELOCITY </li>
@@ -37,11 +37,11 @@ namespace mtca4u{
      *  except for the ChipVersion and the StepperMotorGlobalParameters register,
      *  which are initialised to the chip version and Clk2_div=15, respectively.
      */    
-    void setSPIRegistersForOperation();
+    void setControlerSpiRegistersForOperation();
 
-    /** Writes the test pattern spiAddress*spiAddress+13 to all registers.
+    /** Writes the test pattern controlerSpiAddress*controlerSpiAddress+13 to all registers.
      */
-    void setSPIRegistersForTesting();
+    void setControlerSpiRegistersForTesting();
 
     /** Function for debugging. We will probably not necessarily implement the 
      *  full power down behaviour. This dummy is mainly for checking the software
@@ -56,30 +56,30 @@ namespace mtca4u{
 
   private:
     // callback functions
-    void handleSPIWrite();
+    void handleControlerSpiWrite();
 
     // members
-    std::vector<unsigned int> _spiAddressSpace;
-    uint32_t _spiWriteAddress;
-    uint32_t _spiWriteBar;
-    uint32_t _spiReadbackAddress;
-    uint32_t _spiReadbackBar;
+    std::vector<unsigned int> _controlerSpiAddressSpace;
+    uint32_t _controlerSpiWriteAddress;
+    uint32_t _controlerSpiWriteBar;
+    uint32_t _controlerSpiReadbackAddress;
+    uint32_t _controlerSpiReadbackBar;
     bool _powerIsUp;
     
     // internal and helper functions
-    void writeContentToSpiRegister(unsigned int content, unsigned int spiAddress);
-    void writeSpiContentToReadbackRegister(unsigned int spiAddress);
-    void triggerActionsOnSpiWrite(TMC429InputWord const & inputWord);
+    void writeContentToControlerSpiRegister(unsigned int content, unsigned int controlerSpiAddress);
+    void writeControlerSpiContentToReadbackRegister(unsigned int controlerSpiAddress);
+    void triggerActionsOnControlerSpiWrite(TMC429InputWord const & inputWord);
     void performIdxActions( unsigned int idx );
     void performJdxActions( unsigned int jdx );
 
-    /** In the DFMC_MD22 some registers of the SPI address space have a copy
+    /** In the DFMC_MD22 some registers of the controler SPI address space have a copy
      *  in the PCIe address space, which is updated by a loop when the FPGA is idle.
      *  The dummy simulates this behaviour.
      */
-    void synchroniseFpgaWithSpiRegisters();
-    void writeSpiRegisterToFpga( unsigned int ID, unsigned int IDX,
-				 std::string suffix );
+    void synchroniseFpgaWithControlerSpiRegisters();
+    void writeControlerSpiRegisterToFpga( unsigned int ID, unsigned int IDX,
+					  std::string suffix );
 
     void setPCIeRegistersForTesting();
   };

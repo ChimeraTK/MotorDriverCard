@@ -117,7 +117,7 @@ void MotorDriverCardTest::testConstructor(){
   mappedDevice->closeDev();
 
   _dummyDevice->openDev( _mapFileName );
-  _dummyDevice->setSPIRegistersForTesting();
+  _dummyDevice->setControlerSpiRegistersForTesting();
   mappedDevice->openDev( _dummyDevice, registerMapping );
   
   BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration )) );
