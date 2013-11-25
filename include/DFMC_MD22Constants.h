@@ -16,6 +16,7 @@ namespace dfmc_md22{
 
   std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
   
+  std::string const SPI_WRITE_SUFFIX = "SPI_WRITE";
   std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
   std::string const ACTUAL_VELOCITY_SUFFIX = "V_ACTUAL";
   std::string const ACTUAL_ACCELETATION_SUFFIX = "ACT_ACCEL";

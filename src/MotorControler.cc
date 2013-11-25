@@ -46,7 +46,8 @@ namespace mtca4u
       _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX ) ),
       _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
-      _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) )
+      _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) ),
+      _driverSpiWrite( REG_OBJECT_FROM_SUFFIX( SPI_WRITE_SUFFIX ) )
   {}
 
   unsigned int MotorControler::getID(){
@@ -175,6 +176,11 @@ namespace mtca4u
     return _driverConfigData;
   }
            
-
+  void MotorControler::setDriverControlRegister(DriverControlData driverControlData){
+    int32_t temporaryWriteWord = static_cast<int32_t>(driverControlData.getDataWord());
+     _driverSpiWrite.writeReg( &temporaryWriteWord );
+     // Remember the written word for readback.
+     _driverControlData = driverControlData;
+  }
 
 }// namespace mtca4u

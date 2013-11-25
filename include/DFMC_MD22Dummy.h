@@ -54,9 +54,13 @@ namespace mtca4u{
      */
     void powerUp();
 
+    /** for debugging the dummy allows to read back the driver spi registers */
+    unsigned int readDriverSpiRegister( unsigned int motorID, unsigned int driverSpiAddress );
+
   private:
     // callback functions
     void handleControlerSpiWrite();
+    void handleDriverSpiWrite(unsigned int ID);
 
     // members
     std::vector<unsigned int> _controlerSpiAddressSpace;
@@ -82,6 +86,11 @@ namespace mtca4u{
 					  std::string suffix );
 
     void setPCIeRegistersForTesting();
+    void setDriverSpiRegistersForTesting(unsigned int motorID);
+
+    /// each driver has it's own address space vector<uint>
+    std::vector< std::vector<unsigned int> > _driverSpiAddressSpaces;
+    std::vector< std::pair< unsigned int, unsigned int > > _driverSpiWriteBarAndAddresses;
   };
 }// namespace mtca4u
 

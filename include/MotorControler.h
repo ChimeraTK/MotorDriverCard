@@ -137,6 +137,7 @@ namespace mtca4u
      devMap< devBase >::regObject _enabled;
      devMap< devBase >::regObject _decoderReadoutMode;
      devMap< devBase >::regObject _decoderPosition;
+     devMap< devBase >::regObject _driverSpiWrite;
 
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.

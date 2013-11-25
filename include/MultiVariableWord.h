@@ -99,7 +99,7 @@ class MultiVariableWord{
   /** Set the whole 32 bit data word. */
   void setDataWord(unsigned int dataWord);
 
-  bool operator==(MultiVariableWord const & right);
+  bool operator==(MultiVariableWord const & right) const;
 
  protected:
   /** Get the sub word from the data word as specified by the output mask and offset.

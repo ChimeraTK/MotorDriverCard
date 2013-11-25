@@ -10,8 +10,10 @@ using namespace boost::unit_test_framework;
 #include "testWordFromPCIeAddress.h"
 using namespace mtca4u::dfmc_md22;
 #include "TMC429DummyConstants.h"
+#include "TMC260DummyConstants.h"
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
+using namespace mtca4u::tmc260;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
 
@@ -28,7 +30,7 @@ using namespace mtca4u::tmc429;
 
 #define DEFINE_GET_SET_TEST( NAME, IDX, PATTERN )\
 void MotorControlerTest::testGet ## NAME (){\
-  unsigned int expectedValue = testWordFromSpiAddress( _motorControler.getID(),\
+  unsigned int expectedValue = tmc429::testWordFromSpiAddress( _motorControler.getID(),\
                                                        IDX );\
   BOOST_CHECK( _motorControler.get ## NAME () == expectedValue );}\
 void MotorControlerTest::testSet ## NAME (){\
@@ -47,7 +49,8 @@ using namespace mtca4u;
 class MotorControlerTest{
 public:
   MotorControlerTest(MotorControler & motorControler, 
-		     boost::shared_ptr<mapFile> & registerMapping);
+		     boost::shared_ptr<mapFile> & registerMapping,
+		     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
   // getID() is tested in the MotorDriver card, where 
   // different ID are known. This test is for just one
   // Motor with one ID, which is now known to be ok.
@@ -82,6 +85,7 @@ public:
 private:
   MotorControler & _motorControler;
   boost::shared_ptr<mapFile> _registerMapping;
+  boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
   template<class T>
   void testReadTypedRegister( T (MotorControler::* readFunction)() );
@@ -118,7 +122,8 @@ public:
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       boost::shared_ptr<MotorControlerTest> motorControlerTest( 
 	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ,
-				       registerMapping) );
+				       registerMapping, 
+				       dummyDevice) );
       ADD_GET_SET_TEST( ActualPosition );
       ADD_GET_SET_TEST( ActualVelocity );
       ADD_GET_SET_TEST( ActualAcceleration );
@@ -177,8 +182,10 @@ init_unit_test_suite( int argc, char* argv[] )
 
 
   MotorControlerTest::MotorControlerTest(MotorControler & motorControler,
-					 boost::shared_ptr<mapFile> & registerMapping ) 
-  : _motorControler(motorControler), _registerMapping( registerMapping ){
+					 boost::shared_ptr<mapFile> & registerMapping,
+					 boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
+    : _motorControler(motorControler), _registerMapping( registerMapping ),
+      _dummyDevice(dummyDevice){
 }
 
 DEFINE_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 0x55555555 )
@@ -227,8 +234,8 @@ template<class T>
 void MotorControlerTest::testReadTypedRegister( T (MotorControler::* readFunction)() ){
   T typedWord;
   unsigned int idx = typedWord.getIDX_JDX();
-  unsigned int expectedContent = testWordFromSpiAddress( _motorControler.getID(),
-							 idx );
+  unsigned int expectedContent = tmc429::testWordFromSpiAddress( _motorControler.getID(),
+								 idx );
   // this assignment checks that the delivered data object actually is the right type of object.
   typedWord = (_motorControler.*readFunction)();
   BOOST_CHECK( typedWord.getDATA() == expectedContent );
@@ -251,10 +258,22 @@ DEFINE_TYPED_READ_WRITE_TEST( ReferenceConfigAndRampModeRegister, ReferenceConfi
 DEFINE_TYPED_READ_WRITE_TEST( InterruptRegister, InterruptData )
 DEFINE_TYPED_READ_WRITE_TEST( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
 
-void MotorControlerTest::testSetDriverControlRegister(){
-  
+void MotorControlerTest::testGetDriverControlRegister(){
+  DriverControlData expectedWord = tmc260::testWordFromSpiAddress(ADDRESS_DRIVER_CONTROL,
+								  _motorControler.getID());
+  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), ADDRESS_DRIVER_CONTROL )==
+	       expectedWord.getDataWord() );
+
+  BOOST_CHECK(_motorControler.getDriverControlData() == DriverControlData() ); // uninitialised at the moment
 }
 
-void MotorControlerTest::testGetDriverControlRegister(){
-  
+void MotorControlerTest::testSetDriverControlRegister(){
+  DriverControlData testWord( 0xAAAAAAAA );
+  _motorControler.setDriverControlRegister( testWord );
+
+  // the new word must arrive at the spi register in the "hardware" and a vopy has to be in the motor controler
+  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), ADDRESS_DRIVER_CONTROL )==
+	       testWord.getDataWord() );
+  BOOST_CHECK(_motorControler.getDriverControlData() == testWord );
 }
+

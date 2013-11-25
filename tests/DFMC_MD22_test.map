@@ -14,7 +14,7 @@ WORD_PROJ_RESET1                         1         20         4         1
 WORD_PROJ_NEXT1                          1         24         4         1
 WORD_SPI_CTRL                            1         28         4         1
 WORD_SPI_CTRL_B                          1         32         4         1
-WORD_SPI_M1                              1         36         4         1
+WORD_M1_SPI_WRITE                        1         36         4         1
 WORD_M1_ACTUAL_POS                       1         40         4         1
 WORD_M1_V_ACTUAL                         1         44         4         1
 WORD_M1_ACT_ACCEL                        1         48         4         1
@@ -25,7 +25,7 @@ WORD_M1_STATUS                           1         64         4         1
 WORD_M1_ENABLE                           1         68         4         1
 WORD_M1_DEK_MUX                          1         72         4         1
 WORD_M1_DEK_POS                          1         76         4         1
-WORD_SPI_M2                              1         80         4         1
+WORD_M2_SPI_WRITE                        1         80         4         1
 WORD_M2_ACTUAL_POS                       1         84         4         1
 WORD_M2_V_ACTUAL                         1         88         4         1
 WORD_M2_ACT_ACCEL                        1         92         4         1

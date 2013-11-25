@@ -13,6 +13,7 @@ namespace tmc260{
   uint32_t const ADDRESS_STALL_GUARD_CONFIG = 0x6;
   uint32_t const ADDRESS_DRIVER_CONFIG = 0x7;
 
+  
 }// namespace tmc260
 
 }// namespace mtca4u
