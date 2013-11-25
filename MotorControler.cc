@@ -29,7 +29,13 @@ using namespace mtca4u::tmc429;
   NAME MotorControler::get ## NAME (){\
     return readTypedRegister< NAME >();}\
   void MotorControler::set ## NAME ( NAME const & inputWord ){\
-    writeTypedRegister( inputWord );}
+    writeTypedControlerRegister( inputWord );}
+
+#define DEFINE_SET_GET_TYPED_DRIVER_DATA( NAME, LOCAL_DATA_INSTANCE )\
+  NAME const & MotorControler::get ## NAME () const{\
+    return LOCAL_DATA_INSTANCE;}\
+  void MotorControler::set ## NAME ( NAME const & driverData){\
+    setTypedDriverData< NAME >( driverData, LOCAL_DATA_INSTANCE );}
 
 namespace mtca4u
 {
@@ -143,7 +149,7 @@ namespace mtca4u
     return typedWord;
   }
 
-  void MotorControler::writeTypedRegister(TMC429InputWord inputWord){
+  void MotorControler::writeTypedControlerRegister(TMC429InputWord inputWord){
     // set/overwrite the id with this motors id
     inputWord.setSMDA( _id );
     _driverCard.controlerSpiWrite( inputWord );
@@ -156,31 +162,18 @@ namespace mtca4u
   DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( InterruptData )
   DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( DividersAndMicroStepResolutionData )
 
-  DriverControlData const & MotorControler::getDriverControlData() const{
-    return _driverControlData;
-  }
+  DEFINE_SET_GET_TYPED_DRIVER_DATA( DriverControlData, _driverControlData)
+  DEFINE_SET_GET_TYPED_DRIVER_DATA( ChopperControlData, _chopperControlData)
+  DEFINE_SET_GET_TYPED_DRIVER_DATA( CoolStepControlData, _coolStepControlData)
+  DEFINE_SET_GET_TYPED_DRIVER_DATA( StallGuardControlData, _stallGuardControlData)
+  DEFINE_SET_GET_TYPED_DRIVER_DATA( DriverConfigData, _driverConfigData)
 
-  ChopperControlData const & MotorControler::getChopperControlData() const{
-    return _chopperControlData;
-  }
-
-  CoolStepControlData const & MotorControler::getCoolStepControlData() const{
-    return _coolStepControlData;
-  }
-
-  StallGuardControlData const & MotorControler::getStallGuardControlData() const{
-    return _stallGuardControlData;
-  }
-
-  DriverConfigData const & MotorControler::getDriverConfigData() const{
-    return _driverConfigData;
-  }
-           
-  void MotorControler::setDriverControlData(DriverControlData const & driverControlData){
-    int32_t temporaryWriteWord = static_cast<int32_t>(driverControlData.getDataWord());
+  template <class T>
+  void MotorControler::setTypedDriverData(T const & driverData, T & localDataInstance){
+    int32_t temporaryWriteWord = static_cast<int32_t>(driverData.getDataWord());
      _driverSpiWrite.writeReg( &temporaryWriteWord );
      // Remember the written word for readback.
-     _driverControlData = driverControlData;
+     localDataInstance  = driverData;
   }
 
 }// namespace mtca4u
