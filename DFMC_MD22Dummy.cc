@@ -8,7 +8,9 @@ using namespace mtca4u::dfmc_md22;
 #include <boost/lexical_cast.hpp>
 
 #include "TMC429Words.h"
+#include "TMC260Words.h"
 #include "TMC429DummyConstants.h"
+#include "TMC260DummyConstants.h"
 using namespace mtca4u::tmc429;
 
 #define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING )\
@@ -48,19 +50,32 @@ namespace mtca4u{
     
     setWriteCallbackFunction( controlerSpiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleControlerSpiWrite, this ) );
 
-    for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
+
+    _driverSpiAddressSpaces.resize( N_MOTORS_MAX );
+    _driverSpiWriteBarAndAddresses.resize( N_MOTORS_MAX );
+    for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
-			    createMotorRegisterName( i, ACTUAL_POSITION_SUFFIX ) );
+			    createMotorRegisterName( id, ACTUAL_POSITION_SUFFIX ) );
       setReadOnly( actualPositionAddressRange );
       DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
-			    createMotorRegisterName( i, ACTUAL_VELOCITY_SUFFIX ) );
+			    createMotorRegisterName( id, ACTUAL_VELOCITY_SUFFIX ) );
       setReadOnly( actualVelocityAddressRange );
       DEFINE_ADDRESS_RANGE( actualAccelerationAddressRange,
-			    createMotorRegisterName( i, ACTUAL_ACCELETATION_SUFFIX ) );
+			    createMotorRegisterName( id, ACTUAL_ACCELETATION_SUFFIX ) );
       setReadOnly( actualAccelerationAddressRange );
       DEFINE_ADDRESS_RANGE( microStepCountAddressRange,
-			    createMotorRegisterName( i, MICRO_STEP_COUNT_SUFFIX ) );
+			    createMotorRegisterName( id, MICRO_STEP_COUNT_SUFFIX ) );
       setReadOnly( microStepCountAddressRange );
+
+      _driverSpiAddressSpaces[id].resize(tmc260::SIZE_OF_SPI_ADDRESS_SPACE, 0);
+      setDriverSpiRegistersForTesting(id);
+
+      DEFINE_ADDRESS_RANGE( driverSpiWriteAddressRange,
+			    createMotorRegisterName( id, SPI_WRITE_SUFFIX ) );
+      _driverSpiWriteBarAndAddresses[id]=std::make_pair( static_cast<unsigned int>(driverSpiWriteAddressRange.bar),
+							 driverSpiWriteAddressRange.offset );
+      setWriteCallbackFunction( driverSpiWriteAddressRange, 
+				boost::bind( &DFMC_MD22Dummy::handleDriverSpiWrite, this, id) );
     }
 
     //    setWriteCallbackFunction( 
@@ -74,6 +89,12 @@ namespace mtca4u{
 	unsigned int address = sizeof(uint32_t)*i;
 	barIter->second[i] = 3*address*address+17;
       }
+    }
+  }
+
+  void DFMC_MD22Dummy::setDriverSpiRegistersForTesting(unsigned int motorID){
+    for(unsigned int address = 0; address < _driverSpiAddressSpaces[motorID].size(); ++address){
+      _driverSpiAddressSpaces[motorID][address]= tmc260::testWordFromSpiAddress(address, motorID);
     }
   }
 
@@ -115,6 +136,15 @@ namespace mtca4u{
     }
 
     triggerActionsOnControlerSpiWrite(inputWord);
+  }
+
+  void DFMC_MD22Dummy::handleDriverSpiWrite(unsigned int ID){
+    unsigned int bar =  _driverSpiWriteBarAndAddresses[ID].first;
+    unsigned int pcieAddress =  _driverSpiWriteBarAndAddresses[ID].second;
+    unsigned int writtenSpiWord = _barContents[bar].at(pcieAddress/sizeof(int32_t));
+    unsigned int spiAddress = tmc260::spiAddressFromDataWord(writtenSpiWord);
+
+    _driverSpiAddressSpaces.at(ID).at(spiAddress) = writtenSpiWord;
   }
 
   void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content,
@@ -191,7 +221,9 @@ namespace mtca4u{
 				   registerInformation.reg_bar );
   }
 
-  
+  unsigned int DFMC_MD22Dummy::readDriverSpiRegister( unsigned int motorID, unsigned int driverSpiAddress ){
+    return _driverSpiAddressSpaces.at(motorID).at(driverSpiAddress);
+  }
   //_WORD_M1_THRESHOLD_ACCEL
 
 }// namespace mtca4u
