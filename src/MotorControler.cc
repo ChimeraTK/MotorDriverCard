@@ -176,7 +176,7 @@ namespace mtca4u
     return _driverConfigData;
   }
            
-  void MotorControler::setDriverControlRegister(DriverControlData driverControlData){
+  void MotorControler::setDriverControlRegister(DriverControlData const & driverControlData){
     int32_t temporaryWriteWord = static_cast<int32_t>(driverControlData.getDataWord());
      _driverSpiWrite.writeReg( &temporaryWriteWord );
      // Remember the written word for readback.

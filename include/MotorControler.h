@@ -88,11 +88,11 @@ namespace mtca4u
 				      DividersAndMicroStepResolutionData,
 				      dividersAndMicroStepResolutionData);
 
-     void setDriverControlRegister(DriverControlData driverControlData);
-     void setChopperControlRegister(ChopperControlData chopperControlData);
-     void setCoolStepControlRegister(CoolStepControlData coolStepControlData);
-     void setStallGuardControlRegister(StallGuardControlData stallGuardControlData);
-     void setDriverConfigRegister(DriverConfigData driverConfigData);
+     void setDriverControlRegister(DriverControlData const & driverControlData);
+     void setChopperControlRegister(ChopperControlData const &  chopperControlData);
+     void setCoolStepControlRegister(CoolStepControlData const &  coolStepControlData);
+     void setStallGuardControlRegister(StallGuardControlData const &  stallGuardControlData);
+     void setDriverConfigRegister(DriverConfigData const &  driverConfigData);
 
      DriverControlData const & getDriverControlData() const; 
      ChopperControlData const & getChopperControlData() const;

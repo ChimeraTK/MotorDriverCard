@@ -93,6 +93,13 @@ private:
   template<class T>
   void testWriteTypedRegister( T (MotorControler::* readFunction)(),
 			       void (MotorControler::* writeFunction)(T) );
+  template <class T>
+  void testGetDriverSpiRegister( T const & (MotorControler::* getterFunction)() const,
+				 unsigned int driverSpiAddress);
+  template <class T>
+  void testSetDriverSpiRegister( void (MotorControler::* setterFunction)(T const &),
+				 T const & (MotorControler::* getterFunction)() const,
+				 unsigned int driverSpiAddress);
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -258,22 +265,35 @@ DEFINE_TYPED_READ_WRITE_TEST( ReferenceConfigAndRampModeRegister, ReferenceConfi
 DEFINE_TYPED_READ_WRITE_TEST( InterruptRegister, InterruptData )
 DEFINE_TYPED_READ_WRITE_TEST( DividersAndMicroStepResolutionRegister, DividersAndMicroStepResolutionData )
 
-void MotorControlerTest::testGetDriverControlRegister(){
-  DriverControlData expectedWord = tmc260::testWordFromSpiAddress(ADDRESS_DRIVER_CONTROL,
-								  _motorControler.getID());
-  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), ADDRESS_DRIVER_CONTROL )==
-	       expectedWord.getDataWord() );
+template <class T>
+void MotorControlerTest::testGetDriverSpiRegister( T const & (MotorControler::* getterFunction)() const,
+						   unsigned int driverSpiAddress){
+  T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler.getID());
 
-  BOOST_CHECK(_motorControler.getDriverControlData() == DriverControlData() ); // uninitialised at the moment
+  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
+	       expectedWord.getDataWord() );
+  BOOST_CHECK( (_motorControler.*getterFunction)() == T() ); // T is uninitialised at the moment
+}
+
+void MotorControlerTest::testGetDriverControlRegister(){
+  testGetDriverSpiRegister<DriverControlData>(&MotorControler::getDriverControlData, ADDRESS_DRIVER_CONTROL);
+}
+
+template <class T>
+void MotorControlerTest::testSetDriverSpiRegister( void (MotorControler::* setterFunction)(T const &),
+						   T const & (MotorControler::* getterFunction)() const,
+						   unsigned int driverSpiAddress){
+  T testWord( 0xAAAAAAAA );
+  (_motorControler.* setterFunction)(testWord);
+
+  // the new word must arrive at the spi register in the "hardware" and a copy has to be in the motor controler
+  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
+	       testWord.getDataWord() );
+  BOOST_CHECK((_motorControler.* getterFunction)() == testWord );
 }
 
 void MotorControlerTest::testSetDriverControlRegister(){
-  DriverControlData testWord( 0xAAAAAAAA );
-  _motorControler.setDriverControlRegister( testWord );
-
-  // the new word must arrive at the spi register in the "hardware" and a vopy has to be in the motor controler
-  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), ADDRESS_DRIVER_CONTROL )==
-	       testWord.getDataWord() );
-  BOOST_CHECK(_motorControler.getDriverControlData() == testWord );
+  testSetDriverSpiRegister<DriverControlData>( &MotorControler::setDriverControlRegister,
+					       &MotorControler::getDriverControlData,
+					       ADDRESS_DRIVER_CONTROL );
 }
-
