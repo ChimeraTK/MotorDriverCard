@@ -10,8 +10,6 @@ using namespace mtca4u::tmc429;
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
-  uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
-
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice),
@@ -21,6 +19,17 @@ namespace mtca4u{
 	   mappedDevice->getRegObject( CONTROLER_SPI_READBACK_ADDRESS_STRING )),
       _powerMonitor(new PowerMonitor)
   {
+    // initialise common registers
+    setCoverDatagram( cardConfiguration.coverDatagram );
+    setCoverPositionAndLength( cardConfiguration.coverPositionAndLength );
+    setDatagramHighWord( cardConfiguration.datagramHighWord );
+    setDatagramLowWord( cardConfiguration.datagramLowWord );
+    setInterfaceConfiguration( cardConfiguration.interfaceConfiguration );
+    setPositionCompareInterruptData( cardConfiguration.positionCompareInterruptData );
+    setPositionCompareWord( cardConfiguration.positionCompareWord );
+    setStepperMotorGlobalParameters( cardConfiguration.stepperMotorGlobalParameters );
+
+    // initialise motors
     _motorControlers.resize( N_MOTORS_MAX );
     for (unsigned int i = 0; i < _motorControlers.size() ; ++i){
       _motorControlers[i].reset( new MotorControler( i, *this ) );
@@ -153,21 +162,21 @@ namespace mtca4u{
     return InterfaceConfiguration( controlerSpiRead(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA());    
   }
 
-  void MotorDriverCardImpl::setPositionCompareRegister(
+  void MotorDriverCardImpl::setPositionCompareWord(
            unsigned int positionCompareWord){
     controlerSpiWrite( SMDA_COMMON, JDX_POSITION_COMPARE, positionCompareWord );
   }
 
-  unsigned int MotorDriverCardImpl::getPositionCompareRegister(){
+  unsigned int MotorDriverCardImpl::getPositionCompareWord(){
     return controlerSpiRead( SMDA_COMMON, JDX_POSITION_COMPARE ).getDATA();
   }
 
-  void MotorDriverCardImpl::setPositionCompareInterruptRegister(
+  void MotorDriverCardImpl::setPositionCompareInterruptData(
 	PositionCompareInterruptData const & positionCompareInterruptData ){
     return controlerSpiWrite( positionCompareInterruptData );
  }
 
-  PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptRegister(){
+  PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptData(){
     return PositionCompareInterruptData( controlerSpiRead(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());    
  }
 
@@ -175,7 +184,7 @@ namespace mtca4u{
     controlerSpiWrite( SMDA_COMMON, JDX_POWER_DOWN, 1 );
   }
 
-  ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchRegister(){
+  ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData(){
     return  ReferenceSwitchData(controlerSpiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
   }
 

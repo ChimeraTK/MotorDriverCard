@@ -32,7 +32,7 @@ namespace mtca4u
      */
     virtual MotorControler & getMotorControler(unsigned int motorControlerID) = 0;
     
-    virtual ReferenceSwitchData getReferenceSwitchRegister() = 0;
+    virtual ReferenceSwitchData getReferenceSwitchData() = 0;
 
     virtual unsigned int getControlerChipVersion() = 0;
  

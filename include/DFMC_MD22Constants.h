@@ -28,6 +28,8 @@ namespace dfmc_md22{
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
 
+  uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
+
   /// Creates a string dependent on the motor ID and register name suffix.
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.
   /// FIXME: get the 'off by one' consistent

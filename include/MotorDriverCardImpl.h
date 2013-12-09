@@ -62,17 +62,17 @@ namespace mtca4u
 
     /// Very expert function only avaialble in the implementation. Usually
     /// the programmer should not have to touch this.
-    void setPositionCompareRegister(unsigned int positionCompareWord); //??? data sheet is completely unclear
-    unsigned int getPositionCompareRegister(); //??? data sheet is completely unclear
+    void setPositionCompareWord(unsigned int positionCompareWord); //??? data sheet is completely unclear
+    unsigned int getPositionCompareWord(); //??? data sheet is completely unclear
 
     /// Very expert function only avaialble in the implementation. Usually
     /// the programmer should not have to touch this.
-    void setPositionCompareInterruptRegister(
+    void setPositionCompareInterruptData(
 		  PositionCompareInterruptData const & positionCompareInterruptData);
-    PositionCompareInterruptData getPositionCompareInterruptRegister();
+    PositionCompareInterruptData getPositionCompareInterruptData();
 
     void powerDown();
-    ReferenceSwitchData getReferenceSwitchRegister();
+    ReferenceSwitchData getReferenceSwitchData();
 
 
   private:
