@@ -206,8 +206,9 @@ namespace mtca4u{
       ADD_VARIABLE(LatchedPosition, 16, 16);
 
       /// Constructor to initialise the IDX correctly
-      ReferenceConfigAndRampModeData(){
+      ReferenceConfigAndRampModeData(unsigned int data = 0){
 	setIDX_JDX( tmc429::IDX_REFERENCE_CONFIG_AND_RAMP_MODE );
+	setDATA(data);
       }
     };
 
@@ -234,8 +235,9 @@ namespace mtca4u{
       ADD_VARIABLE(MASK_STOP_RIGHT_HIGH, 15, 15);
 
       /// Constructor to initialise the IDX correctly
-      InterruptData(){
+      InterruptData(unsigned int data = 0){
 	setIDX_JDX( tmc429::IDX_INTERRUPT_MASK_AND_FLAGS );
+	setDATA(data);
       }
     };
 
@@ -246,9 +248,10 @@ namespace mtca4u{
       ADD_VARIABLE(PulseDivider, 12, 15);
 
       /// Constructor to initialise the IDX correctly
-      DividersAndMicroStepResolutionData(){
+      DividersAndMicroStepResolutionData(unsigned int data = 0){
 	setIDX_JDX( tmc429::IDX_DIVIDERS_AND_MICRO_STEP_RESOLUTION );
-      }
+	setDATA(data);
+     }
     };
 
 }// namespace mtca4u

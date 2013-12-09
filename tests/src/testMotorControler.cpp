@@ -129,14 +129,14 @@ public:
     boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);
 
     boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
-    MotorDriverCardImpl::MotorDriverConfiguration  motorDriverConfiguration;
+    MotorDriverCardConfig  motorDriverCardConfig;
    
     mappedDevice->openDev( dummyDevice, registerMapping );
     // We need the motor driver card as private variable because it has to
     // survive the constructor. Otherwise the MotorControlers passed to
     // the tests will be invalid.
     _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice,
-						     motorDriverConfiguration ) );
+						     motorDriverCardConfig ) );
 
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       boost::shared_ptr<MotorControlerTest> motorControlerTest( 

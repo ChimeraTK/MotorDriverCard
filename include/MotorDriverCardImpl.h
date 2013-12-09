@@ -8,6 +8,7 @@
 
 #include "MotorDriverCardExpert.h"
 #include "MotorControler.h"
+#include "MotorDriverCardConfig.h"
 #include "PowerMonitor.h"
 #include "TMC429Words.h"
 
@@ -18,9 +19,7 @@ namespace mtca4u
    */
   class MotorDriverCardImpl: public MotorDriverCardExpert{
   public:
-    // the helper classes
-    struct MotorDriverConfiguration{};
-    
+
     //FIXME: 
     /* how to construct?
        a) using the device and subdevice ID?
@@ -30,7 +29,7 @@ namespace mtca4u
     /// For the time being we require a working version of MtcaMappedDevice in addition 
     /// to the configuration
     MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
-			MotorDriverConfiguration const & motorDriverConfiguration);
+			MotorDriverCardConfig const & cardConfiguration);
 
     MotorControler & getMotorControler(unsigned int motorControlerID);
     

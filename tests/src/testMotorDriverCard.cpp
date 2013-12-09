@@ -99,11 +99,11 @@ void MotorDriverCardTest::testConstructor(){
   boost::shared_ptr<mapFile> registerMapping = fileParser.parse(_mapFileName);
 
   boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
-  MotorDriverCardImpl::MotorDriverConfiguration  motorDriverConfiguration;
+  MotorDriverCardConfig motorDriverCardConfig;
 
   // has to throw because the device is not open
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration ) ),
+		       new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
 		     //FIXME: create a DeviceException. Has to work for real and dummy devices
 		     exBase );
 
@@ -111,7 +111,7 @@ void MotorDriverCardTest::testConstructor(){
   // try opening with bad mapping, also has to throw
   mappedDevice->openDev( _dummyDevice, brokenRegisterMapping );
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration ) ),
+		       new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
 		     exLibMap );
   
   mappedDevice->closeDev();
@@ -120,7 +120,7 @@ void MotorDriverCardTest::testConstructor(){
   _dummyDevice->setControlerSpiRegistersForTesting();
   mappedDevice->openDev( _dummyDevice, registerMapping );
   
-  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverConfiguration )) );
+  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig )) );
   
 }
 

@@ -13,7 +13,7 @@ namespace mtca4u{
   uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
-					   MotorDriverConfiguration const & motorDriverConfiguration)
+					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice),
       _controlerSpiWriteRegister( 
            mappedDevice->getRegObject( CONTROLER_SPI_WRITE_ADDRESS_STRING )) ,
