@@ -1,6 +1,8 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
+#include <sstream>
+
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
 #include <MtcaMappedDevice/devMap.h>
@@ -14,6 +16,9 @@ using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
 using namespace mtca4u::tmc260;
+
+#include "MotorControlerConfigDefaults.h"
+using namespace mtca4u;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
 
@@ -44,9 +49,9 @@ void MotorControlerTest::testSet ## NAME (){\
   testSetTypedData< NAME >( &MotorControler::get ## NAME ,\
 			    &MotorControler::set ## NAME );}
 
-#define DEFINE_GET_SET_DRIVER_SPI_DATA( NAME, SPI_ADDRESS )\
+#define DEFINE_GET_SET_DRIVER_SPI_DATA( NAME, SPI_ADDRESS, CONFIG_DEFAULT )	\
 void MotorControlerTest::testGet ## NAME (){\
-  testGetDriverSpiData< NAME >( &MotorControler::get ## NAME , SPI_ADDRESS);} \
+  testGetDriverSpiData< NAME >( &MotorControler::get ## NAME , SPI_ADDRESS, CONFIG_DEFAULT );} \
 void MotorControlerTest::testSet ## NAME (){\
   testSetDriverSpiData< NAME >( &MotorControler::set ## NAME ,\
                                 &MotorControler::get ## NAME ,\
@@ -107,11 +112,12 @@ private:
 			       void (MotorControler::* setterFunction)(T const &) );
   template <class T>
   void testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
-				 unsigned int driverSpiAddress);
+			     unsigned int driverSpiAddress,
+			     unsigned int configDefault);
   template <class T>
   void testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
-				 T const & (MotorControler::* getterFunction)() const,
-				 unsigned int driverSpiAddress);
+			     T const & (MotorControler::* getterFunction)() const,
+			     unsigned int driverSpiAddress);
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -123,7 +129,6 @@ public:
 
     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy );
     dummyDevice->openDev( mapFileName );
-    dummyDevice->setControlerSpiRegistersForTesting();
  
     mapFileParser fileParser;
     boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);
@@ -137,7 +142,8 @@ public:
     // the tests will be invalid.
     _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice,
 						     motorDriverCardConfig ) );
-
+    dummyDevice->setRegistersForTesting();
+    
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       boost::shared_ptr<MotorControlerTest> motorControlerTest( 
 	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ,
@@ -223,7 +229,10 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* re
   mapFile::mapElem registerInfo;
   _registerMapping->getRegisterInfo( registerName, registerInfo );
   unsigned int expectedValue = testWordFromPCIeAddress( registerInfo.reg_address );
-  BOOST_CHECK( (_motorControler.*readFunction)() == expectedValue );
+  std::stringstream message;
+  message << "read () " <<  (_motorControler.*readFunction)() 
+	  << ", expected " << expectedValue << std::endl;
+  BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)() == expectedValue , message.str());
 }
 
 void MotorControlerTest::testGetDecoderReadoutMode(){
@@ -283,18 +292,21 @@ DEFINE_TYPED_GET_SET_TEST( DividersAndMicroStepResolutionData )
 
 template <class T>
 void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
-						   unsigned int driverSpiAddress){
+					       unsigned int driverSpiAddress,
+					       unsigned int configDefault){
   T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler.getID());
 
   BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
 	       expectedWord.getPayloadData() );
-  BOOST_CHECK( (_motorControler.*getterFunction)() == T() ); // T is uninitialised at the moment
+  std::cout << "getter " << std::hex << (_motorControler.*getterFunction)().getDataWord() 
+	    << ", T()" << T().getDataWord() << std::endl;
+  BOOST_CHECK( (_motorControler.*getterFunction)() == T(configDefault) ); // T is uninitialised at the moment
 }
 
 template <class T>
 void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
-						   T const & (MotorControler::* getterFunction)() const,
-						   unsigned int driverSpiAddress){
+					       T const & (MotorControler::* getterFunction)() const,
+					       unsigned int driverSpiAddress){
   T testWord( 0xAAAAAAAA );
   (_motorControler.* setterFunction)(testWord);
 
@@ -304,8 +316,8 @@ void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFun
   BOOST_CHECK((_motorControler.* getterFunction)() == testWord );
 }
 
-DEFINE_GET_SET_DRIVER_SPI_DATA( DriverControlData, ADDRESS_DRIVER_CONTROL )
-DEFINE_GET_SET_DRIVER_SPI_DATA( ChopperControlData, ADDRESS_CHOPPER_CONFIG )
-DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG )
-DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG )
-DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG )
+DEFINE_GET_SET_DRIVER_SPI_DATA( DriverControlData, ADDRESS_DRIVER_CONTROL, DRIVER_CONTROL_DEFAULT )
+DEFINE_GET_SET_DRIVER_SPI_DATA( ChopperControlData, ADDRESS_CHOPPER_CONFIG, CHOPPER_CONTROL_DEFAULT )
+DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG, COOL_STEP_CONTROL_DEFAULT )
+DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT )
+DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT )

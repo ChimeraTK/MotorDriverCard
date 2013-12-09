@@ -227,4 +227,14 @@ namespace mtca4u{
   }
   //_WORD_M1_THRESHOLD_ACCEL
 
+  void  DFMC_MD22Dummy::setRegistersForTesting(){
+    // FIXME: store the current config to be able to restore it later
+    setPCIeRegistersForTesting();
+    setControlerSpiRegistersForTesting();
+
+    for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
+      setDriverSpiRegistersForTesting(id);
+    }
+  }
+
 }// namespace mtca4u

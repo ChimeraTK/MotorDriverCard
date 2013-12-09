@@ -40,7 +40,8 @@ using namespace mtca4u::tmc429;
 namespace mtca4u
 {
 
-  MotorControler::MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard ) 
+  MotorControler::MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard,
+				   MotorControlerConfig const & motorControlerConfig ) 
     : _driverCard(driverCard) , _id(ID), 
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX ) ),
@@ -54,7 +55,30 @@ namespace mtca4u
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) ),
       _driverSpiWrite( REG_OBJECT_FROM_SUFFIX( SPI_WRITE_SUFFIX ) )
-  {}
+  {
+    setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
+    setActualPosition( motorControlerConfig.actualPosition );
+    setChopperControlData( motorControlerConfig.chopperControlData );
+    setCoolStepControlData( motorControlerConfig.coolStepControlData );
+    setDecoderReadoutMode( motorControlerConfig.decoderReadoutMode );
+    setDividersAndMicroStepResolutionData( motorControlerConfig.dividersAndMicroStepResolutionData );
+    setDriverConfigData( motorControlerConfig.driverConfigData );
+    setDriverControlData( motorControlerConfig.driverControlData );
+    setInterruptData( motorControlerConfig.interruptData );
+    setMaximumAcceleration( motorControlerConfig.maximumAccelleration );
+    setMaximumVelocity( motorControlerConfig.maximumVelocity );
+    setMicroStepCount( motorControlerConfig.microStepCount );
+    setMinimumVelocity( motorControlerConfig.minimumVelocity );
+    setPositionTolerance( motorControlerConfig.positionTolerance );
+    setProportionalityFactorData( motorControlerConfig.proportionalityFactorData );
+    setReferenceConfigAndRampModeData( motorControlerConfig.referenceConfigAndRampModeData );
+    setStallGuardControlData( motorControlerConfig.stallGuardControlData );
+    setTargetPosition( motorControlerConfig.targetPosition );
+    setTargetVelocity( motorControlerConfig.targetVelocity );
+
+    // enabling the motor is the last step after setting all registers
+    setEnabled( motorControlerConfig.enabled );
+  }
 
   unsigned int MotorControler::getID(){
     return _id;

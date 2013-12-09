@@ -32,7 +32,8 @@ namespace mtca4u{
     // initialise motors
     _motorControlers.resize( N_MOTORS_MAX );
     for (unsigned int i = 0; i < _motorControlers.size() ; ++i){
-      _motorControlers[i].reset( new MotorControler( i, *this ) );
+      _motorControlers[i].reset( new MotorControler( i, *this,
+						     cardConfiguration.motorControlerConfigurations[i]) );
     }
   }
 

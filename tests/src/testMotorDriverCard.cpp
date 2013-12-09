@@ -112,6 +112,34 @@ void MotorDriverCardTest::testConstructor(){
   motorDriverCardConfig.positionCompareWord = asciiToInt("POSC");
   motorDriverCardConfig.stepperMotorGlobalParameters.setDATA( asciiToInt("SMGP") );
 
+  for (unsigned int motorID = 0; motorID <  motorDriverCardConfig.motorControlerConfigurations.size();
+       ++motorID){
+    MotorControlerConfig motorControlerConfig;
+
+    motorControlerConfig.accelerationThresholdData.setDATA( asciiToInt("THR") + motorID );
+    motorControlerConfig.actualPosition = asciiToInt("ACX") + motorID;;
+    motorControlerConfig.chopperControlData.setPayloadData( asciiToInt("cp") + motorID );
+    motorControlerConfig.coolStepControlData.setPayloadData( asciiToInt("cp") + motorID );
+    motorControlerConfig.decoderReadoutMode = asciiToInt("DRM") + motorID;
+    motorControlerConfig.dividersAndMicroStepResolutionData.setDATA( asciiToInt("MUSR") + motorID );
+    motorControlerConfig.driverConfigData.setPayloadData( asciiToInt("cf") + motorID );
+    motorControlerConfig.driverControlData.setPayloadData( asciiToInt("cl") + motorID );
+    motorControlerConfig.enabled = true;
+    motorControlerConfig.interruptData.setDATA( asciiToInt("INTR") + motorID );
+    motorControlerConfig.maximumAccelleration =  asciiToInt("am") + motorID;
+    motorControlerConfig.maximumVelocity = asciiToInt("vm") + motorID;
+    motorControlerConfig.microStepCount =  asciiToInt("mu") + motorID;
+    motorControlerConfig.minimumVelocity = asciiToInt("vn");
+    motorControlerConfig.positionTolerance = asciiToInt("dx") + motorID;
+    motorControlerConfig.proportionalityFactorData.setDATA( asciiToInt("PROP") + motorID );
+    motorControlerConfig.referenceConfigAndRampModeData.setDATA( asciiToInt("REF") + motorID );
+    motorControlerConfig.stallGuardControlData.setPayloadData( asciiToInt("sg") + motorID );
+    motorControlerConfig.targetPosition = asciiToInt("tx") + motorID;
+    motorControlerConfig.targetVelocity = asciiToInt("tv") + motorID;
+
+    motorDriverCardConfig.motorControlerConfigurations[motorID] = motorControlerConfig;
+  }
+
   // has to throw because the device is not open
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
 		       new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
@@ -137,19 +165,59 @@ void MotorDriverCardTest::testConstructor(){
   
   // only after initialising the dummy device with the motorDriverCardConfig in the constructor of the
   // MotorDriverCardImpl we can change the registers for testing
-  _dummyDevice->setControlerSpiRegistersForTesting();  
+  _dummyDevice->setRegistersForTesting();  
   
 }
 
 void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorDriverCardConfig){
+  // This test checks that the configuration is written and can be read back under the assumption
+  // that the read function is working, which is only a self-consistency test if the latter is not true.
+  // The test that the read function actually does what it should is done later, using the index-dependent
+  // test words from the dummy device. In this combination this test shows that the config is written
+  // correctly.
+
   BOOST_CHECK( _motorDriverCard->getCoverDatagram() == motorDriverCardConfig.coverDatagram );
   BOOST_CHECK( _motorDriverCard->getCoverPositionAndLength() == motorDriverCardConfig.coverPositionAndLength );
-BOOST_CHECK( _motorDriverCard->getDatagramHighWord() == motorDriverCardConfig.datagramHighWord );
-BOOST_CHECK( _motorDriverCard->getDatagramLowWord() == motorDriverCardConfig.datagramLowWord );
-BOOST_CHECK( _motorDriverCard->getInterfaceConfiguration() == motorDriverCardConfig.interfaceConfiguration );
-BOOST_CHECK( _motorDriverCard->getPositionCompareInterruptData() == motorDriverCardConfig.positionCompareInterruptData );
-BOOST_CHECK( _motorDriverCard->getPositionCompareWord() == motorDriverCardConfig.positionCompareWord );
-BOOST_CHECK( _motorDriverCard->getStepperMotorGlobalParameters() == motorDriverCardConfig.stepperMotorGlobalParameters );
+  BOOST_CHECK( _motorDriverCard->getDatagramHighWord() == motorDriverCardConfig.datagramHighWord );
+  BOOST_CHECK( _motorDriverCard->getDatagramLowWord() == motorDriverCardConfig.datagramLowWord );
+  BOOST_CHECK( _motorDriverCard->getInterfaceConfiguration() == motorDriverCardConfig.interfaceConfiguration );
+  BOOST_CHECK( _motorDriverCard->getPositionCompareInterruptData() == motorDriverCardConfig.positionCompareInterruptData );
+  BOOST_CHECK( _motorDriverCard->getPositionCompareWord() == motorDriverCardConfig.positionCompareWord );
+  BOOST_CHECK( _motorDriverCard->getStepperMotorGlobalParameters() == motorDriverCardConfig.stepperMotorGlobalParameters );
+
+   for (unsigned int motorID = 0; motorID <  motorDriverCardConfig.motorControlerConfigurations.size();
+       ++motorID){
+     MotorControler & motorControler =  _motorDriverCard->getMotorControler(motorID);
+     MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[motorID];
+
+     // only the data content is identical. The motorID is - for the config, and correct for the readback word
+     BOOST_CHECK( motorControlerConfig.accelerationThresholdData.getDATA()
+		  == motorControler.getAccelerationThresholdData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler.getActualPosition() );
+     BOOST_CHECK( motorControlerConfig.chopperControlData == motorControler.getChopperControlData() );
+     BOOST_CHECK( motorControlerConfig.coolStepControlData == motorControler.getCoolStepControlData() );
+     BOOST_CHECK( motorControlerConfig.decoderReadoutMode ==  motorControler.getDecoderReadoutMode() );
+     BOOST_CHECK( motorControlerConfig.dividersAndMicroStepResolutionData.getDATA()
+		  == motorControler.getDividersAndMicroStepResolutionData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.driverConfigData == motorControler.getDriverConfigData() );
+     BOOST_CHECK( motorControlerConfig.driverControlData == motorControler.getDriverControlData() );
+     BOOST_CHECK( motorControlerConfig.enabled == motorControler.isEnabled() );
+     BOOST_CHECK( motorControlerConfig.interruptData.getDATA()
+		  == motorControler.getInterruptData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.maximumAccelleration == motorControler.getMaximumAcceleration() );
+     BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler.getMaximumVelocity() );
+     BOOST_CHECK( motorControlerConfig.microStepCount == motorControler.getMicroStepCount() );
+     BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler.getMinimumVelocity() );
+     BOOST_CHECK( motorControlerConfig.positionTolerance ==  motorControler.getPositionTolerance() );
+     BOOST_CHECK( motorControlerConfig.proportionalityFactorData.getDATA()
+		  == motorControler.getProportionalityFactorData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.referenceConfigAndRampModeData.getDATA()
+		  == motorControler.getReferenceConfigAndRampModeData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.stallGuardControlData ==  motorControler.getStallGuardControlData() );
+     BOOST_CHECK( motorControlerConfig.targetPosition = motorControler.getTargetPosition() );
+     BOOST_CHECK( motorControlerConfig.targetVelocity =  motorControler.getTargetVelocity() );
+  }
+
 }
 
 void MotorDriverCardTest::testGetControlerChipVersion(){

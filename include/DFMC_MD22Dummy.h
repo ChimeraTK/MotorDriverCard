@@ -33,15 +33,12 @@ namespace mtca4u{
     void openDev(const std::string &mappingFileName,
 		 int perm = O_RDWR, devConfigBase* pConfig = NULL);
     
-    /** According to the data sheet, all registers are set to 0,
-     *  except for the ChipVersion and the StepperMotorGlobalParameters register,
-     *  which are initialised to the chip version and Clk2_div=15, respectively.
-     */    
-    void setControlerSpiRegistersForOperation();
-
-    /** Writes the test pattern controlerSpiAddress*controlerSpiAddress+13 to all registers.
+    /** Writes the test pattern to all registers.
+     *  controlerSpiAddress*controlerSpiAddress+13 for the controler SPI address space.
+     *  3*address*address+17 for the PCIe addresses.
+     *  spiAddress*spiAddress + 7 + motorID for the drivers SPI addres spaces (motor 0 and 1)
      */
-    void setControlerSpiRegistersForTesting();
+    void setRegistersForTesting();
 
     /** Function for debugging. We will probably not necessarily implement the 
      *  full power down behaviour. This dummy is mainly for checking the software
@@ -54,8 +51,12 @@ namespace mtca4u{
      */
     void powerUp();
 
-    /** for debugging the dummy allows to read back the driver spi registers */
+    /** For debugging the dummy allows to read back the driver spi registers */
     unsigned int readDriverSpiRegister( unsigned int motorID, unsigned int driverSpiAddress );
+
+    /** For testing all driver registers can be set to test values (also those initialised by the config)
+     */
+    void setDriverSpiRegistersForTesting();
 
   private:
     // callback functions
@@ -87,6 +88,9 @@ namespace mtca4u{
 
     void setPCIeRegistersForTesting();
     void setDriverSpiRegistersForTesting(unsigned int motorID);
+
+    void setControlerSpiRegistersForOperation();
+    void setControlerSpiRegistersForTesting();
 
     /// each driver has it's own address space vector<uint>
     std::vector< std::vector<unsigned int> > _driverSpiAddressSpaces;

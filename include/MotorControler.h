@@ -5,6 +5,7 @@
 
 #include "TMC260Words.h"
 #include "TMC429Words.h"
+#include "MotorControlerConfig.h"
 
 #define DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -101,13 +102,14 @@ namespace mtca4u
      * living on. It is private and only the MotorDriverCardImpl, which is declared 
      * friend, is allowed to create MotorControlers
      */
-    MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard );
-    friend class MotorDriverCardImpl;
+     MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard, 
+		     MotorControlerConfig const & motorControlerConfig );
+     friend class MotorDriverCardImpl;
 
     /** It is explicitly forbidden to copy MotorControlers. The copy constructor
      *  is private and intentionally not implemented.
      */
-    MotorControler( MotorControler const & );
+     MotorControler( MotorControler const & );
 
      /// The driver card this motor controler is living on.
      MotorDriverCardImpl & _driverCard;
