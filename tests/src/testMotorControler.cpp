@@ -49,13 +49,14 @@ void MotorControlerTest::testSet ## NAME (){\
   testSetTypedData< NAME >( &MotorControler::get ## NAME ,\
 			    &MotorControler::set ## NAME );}
 
-#define DEFINE_GET_SET_DRIVER_SPI_DATA( NAME, SPI_ADDRESS, CONFIG_DEFAULT )	\
+#define DEFINE_GET_SET_DRIVER_SPI_DATA( NAME, SPI_ADDRESS, CONFIG_DEFAULT, TEST_PATTERN ) \
 void MotorControlerTest::testGet ## NAME (){\
   testGetDriverSpiData< NAME >( &MotorControler::get ## NAME , SPI_ADDRESS, CONFIG_DEFAULT );} \
 void MotorControlerTest::testSet ## NAME (){\
   testSetDriverSpiData< NAME >( &MotorControler::set ## NAME ,\
                                 &MotorControler::get ## NAME ,\
-				SPI_ADDRESS );}
+				SPI_ADDRESS,\
+                                TEST_PATTERN );}
 
 using namespace mtca4u;
 
@@ -117,7 +118,8 @@ private:
   template <class T>
   void testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
 			     T const & (MotorControler::* getterFunction)() const,
-			     unsigned int driverSpiAddress);
+			     unsigned int driverSpiAddress,
+			     unsigned int testPattern);
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -217,10 +219,10 @@ init_unit_test_suite( int argc, char* argv[] )
       _dummyDevice(dummyDevice){
 }
 
-DEFINE_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 0x55555555 )
-DEFINE_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 0xAAAAAAAA )
-DEFINE_GET_SET_TEST( ActualAcceleration, IDX_ACTUAL_ACCELERATION, 0xFFFFFFFF ) 
-DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAAAA ) 
+DEFINE_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 0x555555 )
+DEFINE_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 0xAAAAAA )
+DEFINE_GET_SET_TEST( ActualAcceleration, IDX_ACTUAL_ACCELERATION, 0xFFFFFF ) 
+DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA ) 
 
 void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 						std::string const & registerSuffix){
@@ -254,13 +256,13 @@ void MotorControlerTest::testSetIsEnabled(){
   BOOST_CHECK( _motorControler.isEnabled() );
 }
 
-DEFINE_GET_SET_TEST( TargetPosition, IDX_TARGET_POSITION, 0x55555555 ) 
-DEFINE_GET_SET_TEST( MinimumVelocity, IDX_MINIMUM_VELOCITY, 0xFFFFFFFF )
-DEFINE_GET_SET_TEST( MaximumVelocity, IDX_MAXIMUM_VELOCITY, 0xAAAAAAAA )
-DEFINE_GET_SET_TEST( TargetVelocity, IDX_TARGET_VELOCITY, 0x55555555 )
-DEFINE_GET_SET_TEST( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION, 0xFFFFFFFF )
-DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAAAA )
-DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x55555555 )
+DEFINE_GET_SET_TEST( TargetPosition, IDX_TARGET_POSITION, 0x555555 ) 
+DEFINE_GET_SET_TEST( MinimumVelocity, IDX_MINIMUM_VELOCITY, 0xFFFFFF )
+DEFINE_GET_SET_TEST( MaximumVelocity, IDX_MAXIMUM_VELOCITY, 0xAAAAAA )
+DEFINE_GET_SET_TEST( TargetVelocity, IDX_TARGET_VELOCITY, 0x555555 )
+DEFINE_GET_SET_TEST( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION, 0xFFFFFF )
+DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAA )
+DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x555555 )
 
 template<class T>
 void MotorControlerTest::testGetTypedData( T (MotorControler::* getterFunction)() ){
@@ -298,16 +300,15 @@ void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* gett
 
   BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
 	       expectedWord.getPayloadData() );
-  std::cout << "getter " << std::hex << (_motorControler.*getterFunction)().getDataWord() 
-	    << ", T()" << T().getDataWord() << std::endl;
   BOOST_CHECK( (_motorControler.*getterFunction)() == T(configDefault) ); // T is uninitialised at the moment
 }
 
 template <class T>
 void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
 					       T const & (MotorControler::* getterFunction)() const,
-					       unsigned int driverSpiAddress){
-  T testWord( 0xAAAAAAAA );
+					       unsigned int driverSpiAddress,
+					       unsigned int testPattern){
+  T testWord( testPattern );
   (_motorControler.* setterFunction)(testWord);
 
   // the new word must arrive at the spi register in the "hardware" and a copy has to be in the motor controler
@@ -316,8 +317,8 @@ void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFun
   BOOST_CHECK((_motorControler.* getterFunction)() == testWord );
 }
 
-DEFINE_GET_SET_DRIVER_SPI_DATA( DriverControlData, ADDRESS_DRIVER_CONTROL, DRIVER_CONTROL_DEFAULT )
-DEFINE_GET_SET_DRIVER_SPI_DATA( ChopperControlData, ADDRESS_CHOPPER_CONFIG, CHOPPER_CONTROL_DEFAULT )
-DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG, COOL_STEP_CONTROL_DEFAULT )
-DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT )
-DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT )
+DEFINE_GET_SET_DRIVER_SPI_DATA( DriverControlData, ADDRESS_DRIVER_CONTROL, DRIVER_CONTROL_DEFAULT , 0x2AAAA)
+DEFINE_GET_SET_DRIVER_SPI_DATA( ChopperControlData, ADDRESS_CHOPPER_CONFIG, CHOPPER_CONTROL_DEFAULT , 0x1AAAA)
+DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG, COOL_STEP_CONTROL_DEFAULT , 0x1AAAA)
+DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT, 0x1AAAA )
+DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT , 0x1AAAA )

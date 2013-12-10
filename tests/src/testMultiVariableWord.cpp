@@ -4,6 +4,7 @@
 using namespace boost::unit_test_framework;
 
 #include "MultiVariableWord.h"
+#include "OutOfRangeException.h"
 
 using namespace mtca4u;
 
@@ -267,29 +268,32 @@ void MultiVariableWordTest<T>::testGetSetDataWord() {
 
 template <>
 void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testSetSubWord() {
-
+  BOOST_CHECK_THROW( _testWord.setSecond( 0x40 ), mtca4u::OutOfRangeException );
+  BOOST_CHECK_NO_THROW( _testWord.setSecond( 0x3F ) );
   testSetSubWordWithPattern( 0x00000000, 0,          0x15,       0x7,        0x1C540000);
   testSetSubWordWithPattern( 0xFFFFFFFF, 0x3FFF,     0x2A,       0,          0xE3ABFFFF);
-  testSetSubWordWithPattern( 0x55555555, 0xAAAAAAAA, 0,          0x55555555, 0x5501AAA9);
-  testSetSubWordWithPattern( 0xAAAAAAAA, 0x55555555, 0xFFFFFFFF, 0xAAAAAAAA, 0xAAFE5556);
+  testSetSubWordWithPattern( 0x55555555, 0x2AAA,     0,          0x5,        0x5501AAA9);
+  testSetSubWordWithPattern( 0xAAAAAAAA, 0x1555,     0x3F,       0x2,        0xAAFE5556);
 }
 
 template <>
 void MultiVariableWordTest<ThreeVariablesContiguousEdgesWord>::testSetSubWord() {
-
+  BOOST_CHECK_THROW( _testWord.setSecond( 0x10 ), mtca4u::OutOfRangeException );
+  BOOST_CHECK_NO_THROW( _testWord.setSecond( 0xF ) );
   testSetSubWordWithPattern( 0x00000000, 0,          0x5,     0x1FFF,     0xFFFA8000);
   testSetSubWordWithPattern( 0xFFFFFFFF, 0x7FFF,     0xA,     0,          0x00057FFF);
-  testSetSubWordWithPattern( 0x55555555, 0xAAAAAAAA, 0,       0x55555555, 0xAAA82AAA);
-  testSetSubWordWithPattern( 0xAAAAAAAA, 0x55555555, 0xFFFFFFFF, 0xAAAAAAAA, 0x5557D555);
+  testSetSubWordWithPattern( 0x55555555, 0x2AAA,     0,       0x1555,     0xAAA82AAA);
+  testSetSubWordWithPattern( 0xAAAAAAAA, 0x5555,     0xF,     0x0AAA,     0x5557D555);
 }
 
 template <>
 void MultiVariableWordTest<SingleBitNotConnectedWord>::testSetSubWord() {
-
+  BOOST_CHECK_THROW( _testWord.setSecond( 0x2 ), mtca4u::OutOfRangeException );
+  BOOST_CHECK_NO_THROW( _testWord.setSecond( 0x1 ) );
   testSetSubWordWithPattern( 0x00000000, 0,   0x1, 0x1, 0x80008000);
   testSetSubWordWithPattern( 0xFFFFFFFF, 0x1, 0x0, 0x0, 0x7FFF7FFF);
-  testSetSubWordWithPattern( 0x55555555, 0xAAAAAAAA, 0,          0x55555555, 0xD5555554);
-  testSetSubWordWithPattern( 0xAAAAAAAA, 0x55555555, 0xFFFFFFFF, 0xAAAAAAAA, 0x2AAAAAAB);
+  testSetSubWordWithPattern( 0x55555555, 0x0, 0,   0x1, 0xD5555554);
+  testSetSubWordWithPattern( 0xAAAAAAAA, 0x1, 0x1, 0x0, 0x2AAAAAAB);
 }
 
 // we start from the initial patterns and extraxt the sub words

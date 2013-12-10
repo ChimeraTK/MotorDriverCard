@@ -118,9 +118,9 @@ class MultiVariableWord{
    *  The input mask is the mask at the end of the data word
    *  with the length of the sub word.
    *
-   *  @attention This function trunkates the incoming sub word to the length
-   *  as specified by the mask. There is no warning or exception if this is done.
-   *  The user has to perform this test beforehand, if required.
+   *  The code throws an OutOfRangeException if the word is too large to fit the input mask.
+   *  Like this the trunkation of words is avoided which could lead to unwanted results like
+   *  setting a position to 0 instead of max+1.
    *
    *  N.B. The offset information is redundant and could be extracted from the mask.
    *  For performance reasons, and as this code usually is only called from

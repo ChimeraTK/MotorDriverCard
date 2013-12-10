@@ -241,7 +241,7 @@ void MotorDriverCardTest::testGetDatagramLowWord(){
 
 // just for the fun of it I use AAAA, 5555 and FFFF alternating as test patterns
 void MotorDriverCardTest::testSetDatagramLowWord(){
-  _motorDriverCard->setDatagramLowWord( 0xAAAAAAAA );
+  _motorDriverCard->setDatagramLowWord( 0xAAAAAA );
   BOOST_CHECK( _motorDriverCard->getDatagramLowWord() == 0xAAAAAA );
 }
 
@@ -252,7 +252,7 @@ void MotorDriverCardTest::testGetDatagramHighWord(){
 }
 
 void MotorDriverCardTest::testSetDatagramHighWord(){
-  _motorDriverCard->setDatagramHighWord( 0x55555555 );
+  _motorDriverCard->setDatagramHighWord( 0x555555 );
   BOOST_CHECK( _motorDriverCard->getDatagramHighWord() == 0x555555 );
 }
 
@@ -263,7 +263,7 @@ void MotorDriverCardTest::testGetCoverPositionAndLength(){
 }
 
 void MotorDriverCardTest::testSetCoverPositionAndLength(){
-  _motorDriverCard->setCoverPositionAndLength( 0xFFFFFFFF );
+  _motorDriverCard->setCoverPositionAndLength( 0xFFFFFF );
   BOOST_CHECK( _motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(0xFFFFFF) );
 }
 
@@ -274,7 +274,7 @@ void MotorDriverCardTest::testGetCoverDatagram(){
 }
 
 void MotorDriverCardTest::testSetCoverDatagram(){
-  _motorDriverCard->setCoverDatagram( 0xAAAAAAAA );
+  _motorDriverCard->setCoverDatagram( 0xAAAAAA );
   BOOST_CHECK( _motorDriverCard->getCoverDatagram() == 0xAAAAAA );
 }
 
@@ -285,7 +285,7 @@ void MotorDriverCardTest::testGetStepperMotorGlobalParameters(){
 }
 
 void MotorDriverCardTest::testSetStepperMotorGlobalParameters(){
-  _motorDriverCard->setStepperMotorGlobalParameters( 0x55555555 );
+  _motorDriverCard->setStepperMotorGlobalParameters( 0x555555 );
   BOOST_CHECK( _motorDriverCard->getStepperMotorGlobalParameters() == StepperMotorGlobalParameters(0x555555) );
 }
 
@@ -296,7 +296,7 @@ void MotorDriverCardTest::testGetInterfaceConfiguration(){
 }
 
 void MotorDriverCardTest::testSetInterfaceConfiguration(){
-  _motorDriverCard->setInterfaceConfiguration( 0x55555555 );
+  _motorDriverCard->setInterfaceConfiguration( 0x555555 );
   BOOST_CHECK( _motorDriverCard->getInterfaceConfiguration() == InterfaceConfiguration(0x555555) );
 }
 
@@ -307,7 +307,7 @@ void MotorDriverCardTest::testGetPositionCompareWord(){
 }
 
 void MotorDriverCardTest::testSetPositionCompareWord(){
-  _motorDriverCard->setPositionCompareWord( 0xFFFFFFFF );
+  _motorDriverCard->setPositionCompareWord( 0xFFFFFF );
   BOOST_CHECK( _motorDriverCard->getPositionCompareWord() == 0xFFFFFF );
 }
 
@@ -318,7 +318,7 @@ void MotorDriverCardTest::testGetPositionCompareInterruptData(){
 }
 
 void MotorDriverCardTest::testSetPositionCompareInterruptData(){
-  _motorDriverCard->setPositionCompareInterruptData( 0xAAAAAAAA );
+  _motorDriverCard->setPositionCompareInterruptData( 0xAAAAAA );
   BOOST_CHECK( _motorDriverCard->getPositionCompareInterruptData() == PositionCompareInterruptData(0xAAAAAA) );
 }
 
