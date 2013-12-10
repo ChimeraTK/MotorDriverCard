@@ -23,6 +23,6 @@ namespace mtca4u
       referenceConfigAndRampModeData(REFERENCE_CONFIG_AND_RAMP_MODE_DEFAULT),
       stallGuardControlData(STALL_GUARD_CONTROL_DEFAULT),
       targetPosition(0),
-    targetVelocity(0)
+      targetVelocity(0)
   {}
 }
