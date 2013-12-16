@@ -36,8 +36,20 @@ namespace mtca4u{
 				pugi::xml_node const & parentNode);
 
     static MotorControlerConfig parseControlerConfig(  pugi::xml_node const & controlerConfigXML );
+
+    class NodeFiller{
+    public:
+      NodeFiller(pugi::xml_node & node, bool sparse);
+      void addRegister( std::string const & registerName, unsigned int value,
+			unsigned int defaultValue);
+      void addRegister( std::string const & registerName, TMC429InputWord const & value,
+			TMC429InputWord const & defaultValue);
+    private:
+      pugi::xml_node & _node;
+      bool _writeAlways;
+    };
   };
-  
+
 }// namespace mtca4u
 
 

@@ -10,6 +10,10 @@ using namespace boost::unit_test_framework;
 #define SECOND_HALF_XML_FILE_NAME "MotorDriverCardConfig_second_half_test.xml"
 #define MINIMAL_XML_FILE_NAME "MotorDriverCardConfig_minimal_test.xml"
 
+#define WRITE_OUTPUT_FILE_NAME "MotorDriverCardConfig_complete_output.xml"
+#define WRITE_SPARSE_OUTPUT_FILE_NAME "MotorDriverCardConfig_sparse_output.xml"
+#define WRITE_MINIMAL_OUTPUT_FILE_NAME "MotorDriverCardConfig_minimal_output.xml"
+
 #define ASSIGN_PLUS_ONE_CONTROLER( VARIABLE )\
  plusOneControlerConfig. VARIABLE .setDataWord( defaultControlerConfig. VARIABLE .getDataWord() +1 )
 
@@ -28,10 +32,12 @@ class  MotorDriverCardConfigXMLTest
 
   static void testInvalidInput();
 
-  void testMinimal();
-  void testComplete();
-  void testFirstHalf();
-  void testSecondHalf();
+  void testReadMinimal();
+  void testReadComplete();
+  void testReadFirstHalf();
+  void testReadSecondHalf();
+
+  void testWrite();
   
  private:
   MotorDriverCardConfig defaultCardConfig;
@@ -53,10 +59,11 @@ public:
     boost::shared_ptr< MotorDriverCardConfigXMLTest>  xmlTest( new MotorDriverCardConfigXMLTest );
 
     add( BOOST_TEST_CASE( &MotorDriverCardConfigXMLTest::testInvalidInput ) );
-    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testMinimal, xmlTest ) );
-    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testComplete, xmlTest ) );
-    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testFirstHalf, xmlTest ) );
-    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testSecondHalf, xmlTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadMinimal, xmlTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadComplete, xmlTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadFirstHalf, xmlTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadSecondHalf, xmlTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testWrite, xmlTest ) );
    }
 };
 
@@ -120,6 +127,8 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
 
   firstHalfCardConfig.motorControlerConfigurations[0]=plusOneControlerConfig;
   secondHalfCardConfig.motorControlerConfigurations[1]=plusOneControlerConfig;
+  completeCardConfig.motorControlerConfigurations[0]=plusOneControlerConfig;
+  completeCardConfig.motorControlerConfigurations[1]=plusOneControlerConfig;
 }
 
 
@@ -128,12 +137,12 @@ void MotorDriverCardConfigXMLTest::testInvalidInput(){
 		     XMLException );
 }
 
-void MotorDriverCardConfigXMLTest::testMinimal(){
+void MotorDriverCardConfigXMLTest::testReadMinimal(){
   MotorDriverCardConfig inputCardConfig = MotorDriverCardConfigXML::read( MINIMAL_XML_FILE_NAME );
   BOOST_CHECK( inputCardConfig == defaultCardConfig );
 }
 
-void MotorDriverCardConfigXMLTest::testComplete(){
+void MotorDriverCardConfigXMLTest::testReadComplete(){
   MotorDriverCardConfig inputCardConfig = MotorDriverCardConfigXML::read( COMPLETE_XML_FILE_NAME );
   BOOST_CHECK( inputCardConfig.coverDatagram == completeCardConfig.coverDatagram );
   BOOST_CHECK( inputCardConfig.coverPositionAndLength == completeCardConfig.coverPositionAndLength );
@@ -176,7 +185,7 @@ void MotorDriverCardConfigXMLTest::checkControlerConfig( MotorControlerConfig co
   CONTROLER_CHECK( targetVelocity );
 }
 
-void MotorDriverCardConfigXMLTest::testFirstHalf(){
+void MotorDriverCardConfigXMLTest::testReadFirstHalf(){
   MotorDriverCardConfig inputCardConfig = MotorDriverCardConfigXML::read( FIRST_HALF_XML_FILE_NAME );
   BOOST_CHECK( inputCardConfig.coverDatagram == completeCardConfig.coverDatagram );
   BOOST_CHECK( inputCardConfig.coverPositionAndLength == defaultCardConfig.coverPositionAndLength );
@@ -191,7 +200,7 @@ void MotorDriverCardConfigXMLTest::testFirstHalf(){
   BOOST_CHECK( inputCardConfig.motorControlerConfigurations[1] == defaultControlerConfig );
 }
 
-void MotorDriverCardConfigXMLTest::testSecondHalf(){
+void MotorDriverCardConfigXMLTest::testReadSecondHalf(){
   MotorDriverCardConfig inputCardConfig = MotorDriverCardConfigXML::read( SECOND_HALF_XML_FILE_NAME );
   BOOST_CHECK( inputCardConfig.coverDatagram == defaultCardConfig.coverDatagram );
   BOOST_CHECK( inputCardConfig.coverPositionAndLength == completeCardConfig.coverPositionAndLength );
@@ -204,4 +213,8 @@ void MotorDriverCardConfigXMLTest::testSecondHalf(){
 
   BOOST_CHECK( inputCardConfig.motorControlerConfigurations[0] == defaultControlerConfig );
   checkControlerConfig( inputCardConfig.motorControlerConfigurations[1], 1 );
+}
+
+void MotorDriverCardConfigXMLTest::testWrite(){
+  MotorDriverCardConfigXML::write(WRITE_OUTPUT_FILE_NAME, completeCardConfig);  
 }
