@@ -3,6 +3,17 @@
 
 #include <pugixml.hpp>
 
+#define CARD_CONFIG_ADD( VALUE )\
+  cardConfigFiller.addRegister(#VALUE,\
+			       motorDriverCardConfig. VALUE ,\
+				 defaultCardConfig. VALUE )
+
+#define CONTROLER_CONFIG_ADD( VALUE )\
+  controlerConfigFiller.addRegister(#VALUE,\
+				    motorControlerConfig. VALUE ,\
+				    defaultControlerConfig. VALUE )
+
+
 namespace mtca4u{
 
 MotorDriverCardConfig  MotorDriverCardConfigXML::read(std::string fileName){
@@ -107,6 +118,68 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
 
   return controlerConfig;
 }
+
+
+  void MotorDriverCardConfigXML::write(std::string fileName, 
+				       MotorDriverCardConfig const & motorDriverCardConfig){
+    pugi::xml_document doc;
+    pugi::xml_node cardConfigXML = doc.append_child("MotorDriverCardConfig");
+    
+    MotorDriverCardConfig defaultCardConfig;
+
+    bool sparse = false;
+    NodeFiller cardConfigFiller(cardConfigXML, sparse);
+
+    CARD_CONFIG_ADD( coverDatagram );
+    CARD_CONFIG_ADD( coverPositionAndLength );
+    CARD_CONFIG_ADD( datagramHighWord );
+    CARD_CONFIG_ADD( datagramLowWord );
+    CARD_CONFIG_ADD( interfaceConfiguration );
+    CARD_CONFIG_ADD( positionCompareInterruptData );
+    CARD_CONFIG_ADD( positionCompareWord );
+    CARD_CONFIG_ADD( stepperMotorGlobalParameters );
+
+    for (unsigned int i=0; i < motorDriverCardConfig.motorControlerConfigurations.size(); ++i){
+      pugi::xml_node controlerConfigXML = cardConfigXML.append_child("MotorControlerConfig");
+      controlerConfigXML.append_attribute("motorID") = i;
+
+      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[i];
+      MotorControlerConfig defaultControlerConfig;
+
+      NodeFiller controlerConfigFiller(controlerConfigXML, sparse);
+      
+      CONTROLER_CONFIG_ADD( accelerationThresholdData );
+      CONTROLER_CONFIG_ADD( actualPosition );
+
+
+    }
+
+    if (!doc.save_file( fileName.c_str() )){
+      std::stringstream message;
+      message << "Could not write XML file \"" << fileName << "\"";
+      throw XMLException(message.str());
+    }
+  }
+
+  MotorDriverCardConfigXML::NodeFiller::NodeFiller(pugi::xml_node & node, bool sparse)
+    : _node(node), _writeAlways( !sparse ){
+  }
+
+  void MotorDriverCardConfigXML::NodeFiller::addRegister( std::string const & registerName, 
+							   unsigned int value,
+							   unsigned int defaultValue){
+    if ( _writeAlways || (value != defaultValue) ){
+      pugi::xml_node registerNode = _node.append_child("Register");
+      registerNode.append_attribute("name") = registerName.c_str();
+      registerNode.append_attribute("value") = value;
+    }
+  }
+
+  void MotorDriverCardConfigXML::NodeFiller::addRegister( std::string const & registerName, 
+							  TMC429InputWord const & value,
+							  TMC429InputWord const & defaultValue){
+    addRegister( registerName, value.getDATA(), defaultValue.getDATA() );
+  }
 
 }// namespace mtca4u
 
