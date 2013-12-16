@@ -25,4 +25,31 @@ namespace mtca4u
       targetPosition(0),
       targetVelocity(0)
   {}
+
+  bool MotorControlerConfig::operator==(MotorControlerConfig const & right) const{
+    return ( (accelerationThresholdData 	  == right.accelerationThresholdData) &&
+	     (actualPosition			  == right.actualPosition) &&
+	     (chopperControlData		  == right.chopperControlData) &&
+	     (coolStepControlData		  == right.coolStepControlData) &&
+	     (decoderReadoutMode		  == right.decoderReadoutMode) &&
+	     (dividersAndMicroStepResolutionData  == right.dividersAndMicroStepResolutionData) &&
+	     (driverConfigData			  == right.driverConfigData) &&
+	     (driverControlData			  == right.driverControlData) &&
+	     (enabled				  == right.enabled) &&
+	     (interruptData			  == right.interruptData) &&
+	     (maximumAccelleration		  == right.maximumAccelleration) &&
+	     (maximumVelocity			  == right.maximumVelocity) &&
+	     (microStepCount			  == right.microStepCount) &&
+	     (minimumVelocity			  == right.minimumVelocity) &&
+	     (positionTolerance			  == right.positionTolerance) &&
+	     (proportionalityFactorData		  == right.proportionalityFactorData) &&
+	     (referenceConfigAndRampModeData	  == right.referenceConfigAndRampModeData) &&
+	     (stallGuardControlData		  == right.stallGuardControlData) &&
+	     (targetPosition			  == right.targetPosition) &&
+	     (targetVelocity                      == right.targetVelocity));              
+  }
+
+  bool  MotorControlerConfig::operator!=(MotorControlerConfig const & right) const{
+    return !(*this == right);
+  }
 }

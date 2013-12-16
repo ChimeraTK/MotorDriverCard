@@ -19,4 +19,23 @@ namespace mtca4u{
     motorControlerConfigurations.resize( dfmc_md22::N_MOTORS_MAX );
   }
 
+  bool MotorDriverCardConfig::operator==(MotorDriverCardConfig const& right) const{
+    if (coverDatagram != right.coverDatagram ){return false;}
+    if (coverPositionAndLength != right.coverPositionAndLength ){return false;}
+    if (datagramHighWord != right.datagramHighWord ){return false;}
+    if (datagramLowWord	!= right.datagramLowWord ){return false;}
+    if (interfaceConfiguration != right.interfaceConfiguration ){return false;}
+    if (positionCompareInterruptData != right.positionCompareInterruptData ){return false;}
+    if (positionCompareWord != right.positionCompareWord ){return false;}
+    if (stepperMotorGlobalParameters != right.stepperMotorGlobalParameters ){return false;}
+
+    for( size_t i = 0; i < motorControlerConfigurations.size(); ++i){
+	if ( motorControlerConfigurations[i] !=  right.motorControlerConfigurations[i] ){return false;}
+    }
+
+    return true;
+  }
+    
+    
+
 }// namespace mtca4u
