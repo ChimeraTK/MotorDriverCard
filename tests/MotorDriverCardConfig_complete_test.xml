@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<MotorDriverCardConfig>
+  <Register name="coverDatagram" value="7"/>
+  <Register name="interfaceConfiguration" value="000123"/>
+  <MotorControlerConfig motorID="1">
+    <Register name="maximumAccelleration" value="0x64"/>
+  </MotorControlerConfig>
+</MotorDriverCardConfig>
