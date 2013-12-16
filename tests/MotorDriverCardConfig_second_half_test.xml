@@ -1,37 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <!--All values are default +1, true <-> false -->
 <MotorDriverCardConfig>
-  <Register name="coverDatagram" value="1"/>
   <Register name="coverPositionAndLength" value="1"/>
-  <Register name="datagramHighWord" value="1"/>
   <Register name="datagramLowWord" value="1"/>
-  <Register name="interfaceConfiguration" value="0x124"/>
   <Register name="positionCompareInterruptData" value="1"/>
-  <Register name="positionCompareWord" value="1"/>
   <Register name="stepperMotorGlobalParameters" value="0x10703"/>
-
-  <MotorControlerConfig motorID="0">
-    <Register name="accelerationThresholdData" value="0x1"/>
-     <Register name="actualPosition" value="0x1"/>
-     <Register name="chopperControlData" value="0x107B6"/>
-     <Register name="coolStepControlData" value="0x1"/>
-     <Register name="decoderReadoutMode" value="0x2"/>
-     <Register name="dividersAndMicroStepResolutionData" value="0x3705"/>
-     <Register name="driverConfigData" value="0x41"/>
-     <Register name="driverControlData" value="0x1"/>
-     <Register name="enabled" value="0x1"/>
-     <Register name="interruptData" value="0x1"/>
-     <Register name="maximumAccelleration" value="0x15"/>
-     <Register name="maximumVelocity" value="0x65"/>
-     <Register name="microStepCount" value="0x1"/>
-     <Register name="minimumVelocity" value="0xB"/>
-     <Register name="positionTolerance" value="0x1"/>
-     <Register name="proportionalityFactorData" value="0xC50B"/>
-     <Register name="referenceConfigAndRampModeData" value="0x301"/>
-     <Register name="stallGuardControlData" value="0x511"/>
-     <Register name="targetPosition" value="0x1"/>
-     <Register name="targetVelocity" value="0x1"/>
- </MotorControlerConfig>
 
   <MotorControlerConfig motorID="1">
     <Register name="accelerationThresholdData" value="0x1"/>

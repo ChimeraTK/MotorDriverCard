@@ -21,6 +21,11 @@ bool MultiVariableWord::operator==(MultiVariableWord const & right) const{
     return _dataWord==right._dataWord;
 }
 
+bool MultiVariableWord::operator!=(MultiVariableWord const & right) const{
+    return _dataWord!=right._dataWord;
+}
+
+
 unsigned int MultiVariableWord::getSubWord(unsigned int outputMask,
 					       unsigned char offset) const{
   return (_dataWord & outputMask) >> offset;

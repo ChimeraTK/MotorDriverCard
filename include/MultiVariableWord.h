@@ -100,6 +100,7 @@ class MultiVariableWord{
   void setDataWord(unsigned int dataWord);
 
   bool operator==(MultiVariableWord const & right) const;
+  bool operator!=(MultiVariableWord const & right) const;
 
  protected:
   /** Get the sub word from the data word as specified by the output mask and offset.

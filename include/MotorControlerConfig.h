@@ -36,7 +36,10 @@ namespace mtca4u
     /** The constructor sets reasonable default values to all data words.
      */
     MotorControlerConfig();
-  };
+
+    bool operator==(MotorControlerConfig const & right) const;
+    bool operator!=(MotorControlerConfig const & right) const;
+ };
   
 }// namespace mtca4u
 

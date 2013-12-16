@@ -1,10 +1,12 @@
 #ifndef MTCA4U_MOTOR_DRIVER_CARD_CONFIG_XML_H
 #define MTCA4U_MOTOR_DRIVER_CARD_CONFIG_XML_H
 
-#include <pugixml.hpp>
-
 #include "MotorDriverCardConfig.h"
 #include "MotorControlerConfig.h"
+
+namespace pugi{
+  class xml_node;
+}
 
 namespace mtca4u{
 
@@ -12,6 +14,28 @@ namespace mtca4u{
   public:
     static MotorDriverCardConfig read(std::string fileName);
     static void write(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig);
+    static void write_sparse(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig);
+
+  private:
+    static void write(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig,
+		      bool sparse);
+
+    /** The register content is passed by reference because it serves as default value and is overwritten
+     *	if the value is found in the XML file.
+     */
+    static void setValueIfFound(std::string const & registerName, unsigned int & registerContent,
+				pugi::xml_node const & parentNode);
+
+    static void setValueIfFound(std::string const & registerName, TMC429InputWord * inputWord,
+				pugi::xml_node const & parentNode);
+
+    static void setValueIfFound(std::string const & registerName, TMC260Word * inputWord,
+				pugi::xml_node const & parentNode);
+
+    static void setValueIfFound(std::string const & registerName, bool & flag,
+				pugi::xml_node const & parentNode);
+
+    static MotorControlerConfig parseControlerConfig(  pugi::xml_node const & controlerConfigXML );
   };
   
 }// namespace mtca4u

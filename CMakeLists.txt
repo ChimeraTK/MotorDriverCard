@@ -41,6 +41,13 @@ MACRO( COPY_MAPPING_FILES )
   endforeach( MAPPING_FILE )
 ENDMACRO( COPY_MAPPING_FILES )
 
+MACRO( COPY_XML_FILES )
+  foreach( XML_FILE MotorDriverCardConfig_minimal_test.xml MotorDriverCardConfig_complete_test.xml
+                    MotorDriverCardConfig_first_half_test.xml MotorDriverCardConfig_second_half_test.xml)
+    configure_file( tests/${XML_FILE} ${PROJECT_BINARY_DIR}/${XML_FILE} copyonly)
+  endforeach( XML_FILE )
+ENDMACRO( COPY_XML_FILES )
+
 #Create the executables for automated unit testing.
 #Currently we assume that they are all tests contained in one file, so
 #each file gives a new executable. This section has to be adapted if this should change.
@@ -58,6 +65,7 @@ if(TESTING_IS_ENABLED)
   endforeach( testSourceFile )
 
   COPY_MAPPING_FILES()
+  COPY_XML_FILES()
   configure_file(cmake/Makefile.coverage
 		${PROJECT_BINARY_DIR}/Makefile.coverage @ONLY)
   add_custom_target(coverage
@@ -89,6 +97,9 @@ install(TARGETS ${PROJECT_NAME}
 install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_NAME}
           FILES_MATCHING PATTERN "*.h" 
 	  PATTERN ".svn" EXCLUDE)
+
+##   "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in" @ONLY)
+#
 
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values

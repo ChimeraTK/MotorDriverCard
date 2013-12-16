@@ -25,6 +25,8 @@ namespace mtca4u{
     std::vector< MotorControlerConfig > motorControlerConfigurations;
 
     MotorDriverCardConfig(); 
+
+    bool operator==(MotorDriverCardConfig const& right) const;
   };
 }// namespace mtca4u
 

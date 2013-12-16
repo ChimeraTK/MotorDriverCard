@@ -6,11 +6,19 @@
 
 namespace mtca4u{
 
+  class TMC260Word :  public MultiVariableWord{
+  public:
+    virtual void setAddress(unsigned int)=0;
+    virtual unsigned int getAddress() const =0;
+    virtual void setPayloadData(unsigned int)=0;
+    virtual unsigned int getPayloadData() const =0;
+  };
+
   //FIXME implement all the types correctly. To make it compile we
   // start with typedefs
-  class DriverControlData: public MultiVariableWord{
+  class DriverControlData: public TMC260Word{
   public:
-    DriverControlData(unsigned int dataWord = 0): MultiVariableWord(){
+    DriverControlData(unsigned int dataWord = 0){
       setAddress(tmc260::ADDRESS_DRIVER_CONTROL);
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 18, 19);
@@ -20,9 +28,9 @@ namespace mtca4u{
     ADD_VARIABLE(MicroStepResolution, 0, 3);
   };
 
-  class ChopperControlData: public MultiVariableWord{
+  class ChopperControlData: public TMC260Word{
   public:
-    ChopperControlData(unsigned int dataWord = 0): MultiVariableWord(){
+    ChopperControlData(unsigned int dataWord = 0){
       setAddress(tmc260::ADDRESS_CHOPPER_CONFIG);
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 17, 19);
@@ -36,27 +44,27 @@ namespace mtca4u{
     ADD_VARIABLE(OffTime, 0, 3);    
   };
 
-  class CoolStepControlData: public MultiVariableWord{
+  class CoolStepControlData: public TMC260Word{
   public:
-    CoolStepControlData(unsigned int dataWord = 0): MultiVariableWord(){
+    CoolStepControlData(unsigned int dataWord = 0){
     setAddress(tmc260::ADDRESS_COOL_STEP_CONFIG);
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
   };
   
-  class StallGuardControlData: public MultiVariableWord{
+  class StallGuardControlData: public TMC260Word{
   public:
-    StallGuardControlData(unsigned int dataWord = 0): MultiVariableWord(){
+    StallGuardControlData(unsigned int dataWord = 0){
       setAddress(tmc260::ADDRESS_STALL_GUARD_CONFIG);
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
   };
   
-  class DriverConfigData: public MultiVariableWord{
+  class DriverConfigData: public TMC260Word{
   public:
-    DriverConfigData(unsigned int dataWord = 0): MultiVariableWord(){
+    DriverConfigData(unsigned int dataWord = 0){
       setAddress(tmc260::ADDRESS_DRIVER_CONFIG);
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 17, 19);
