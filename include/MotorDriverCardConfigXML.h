@@ -14,7 +14,7 @@ namespace mtca4u{
   public:
     static MotorDriverCardConfig read(std::string fileName);
     static void write(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig);
-    static void write_sparse(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig);
+    static void writeSparse(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig);
 
   private:
     static void write(std::string fileName, MotorDriverCardConfig const & motorDriverCardConfig,
@@ -44,9 +44,15 @@ namespace mtca4u{
 			unsigned int defaultValue);
       void addRegister( std::string const & registerName, TMC429InputWord const & value,
 			TMC429InputWord const & defaultValue);
+      void addRegister( std::string const & registerName, TMC260Word const & value,
+			TMC260Word const & defaultValue);
+      void addRegister( std::string const & registerName, bool value,
+			bool defaultValue);
     private:
       pugi::xml_node & _node;
       bool _writeAlways;
+
+      std::string to_hex_string(unsigned int value);
     };
   };
 

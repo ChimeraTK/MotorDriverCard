@@ -10,8 +10,10 @@ using namespace boost::unit_test_framework;
 #define SECOND_HALF_XML_FILE_NAME "MotorDriverCardConfig_second_half_test.xml"
 #define MINIMAL_XML_FILE_NAME "MotorDriverCardConfig_minimal_test.xml"
 
-#define WRITE_OUTPUT_FILE_NAME "MotorDriverCardConfig_complete_output.xml"
-#define WRITE_SPARSE_OUTPUT_FILE_NAME "MotorDriverCardConfig_sparse_output.xml"
+#define WRITE_FULL_COMPLETE_OUTPUT_FILE_NAME "MotorDriverCardConfig_complete_full_output.xml"
+#define WRITE_SPARSE_COMPLETE_OUTPUT_FILE_NAME "MotorDriverCardConfig_complete_sparse_output.xml"
+#define WRITE_SPARSE_FIRST_HALF_OUTPUT_FILE_NAME "MotorDriverCardConfig_first_half_sparse_output.xml"
+#define WRITE_FULL_SECOND_HALF_OUTPUT_FILE_NAME "MotorDriverCardConfig_second_half_full_output.xml"
 #define WRITE_MINIMAL_OUTPUT_FILE_NAME "MotorDriverCardConfig_minimal_output.xml"
 
 #define ASSIGN_PLUS_ONE_CONTROLER( VARIABLE )\
@@ -38,7 +40,8 @@ class  MotorDriverCardConfigXMLTest
   void testReadSecondHalf();
 
   void testWrite();
-  
+  void testInvalidOutput();
+ 
  private:
   MotorDriverCardConfig defaultCardConfig;
   MotorDriverCardConfig completeCardConfig; ///< all values differ from the default
@@ -64,6 +67,7 @@ public:
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadFirstHalf, xmlTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadSecondHalf, xmlTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testWrite, xmlTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testInvalidOutput, xmlTest ) );
    }
 };
 
@@ -216,5 +220,18 @@ void MotorDriverCardConfigXMLTest::testReadSecondHalf(){
 }
 
 void MotorDriverCardConfigXMLTest::testWrite(){
-  MotorDriverCardConfigXML::write(WRITE_OUTPUT_FILE_NAME, completeCardConfig);  
+  MotorDriverCardConfigXML::write(WRITE_FULL_COMPLETE_OUTPUT_FILE_NAME, completeCardConfig);  
+  MotorDriverCardConfigXML::writeSparse(WRITE_SPARSE_COMPLETE_OUTPUT_FILE_NAME, completeCardConfig);  
+  MotorDriverCardConfigXML::writeSparse(WRITE_SPARSE_FIRST_HALF_OUTPUT_FILE_NAME, firstHalfCardConfig);  
+  MotorDriverCardConfigXML::write(WRITE_FULL_SECOND_HALF_OUTPUT_FILE_NAME, secondHalfCardConfig);  
+  MotorDriverCardConfigXML::writeSparse(WRITE_MINIMAL_OUTPUT_FILE_NAME, defaultCardConfig);  
+
+  // the written output is checked in a separate test at shell level
 }
+
+void MotorDriverCardConfigXMLTest::testInvalidOutput(){
+  BOOST_CHECK_THROW( MotorDriverCardConfigXML::write("/some/not/existing/file.xml",
+						     completeCardConfig),
+		     XMLException );  
+}
+

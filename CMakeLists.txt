@@ -43,7 +43,8 @@ ENDMACRO( COPY_MAPPING_FILES )
 
 MACRO( COPY_XML_FILES )
   foreach( XML_FILE MotorDriverCardConfig_minimal_test.xml MotorDriverCardConfig_complete_test.xml
-                    MotorDriverCardConfig_first_half_test.xml MotorDriverCardConfig_second_half_test.xml)
+                    MotorDriverCardConfig_first_half_test.xml MotorDriverCardConfig_second_half_test.xml
+		    MotorDriverCardConfig_second_half_full_test.xml )
     configure_file( tests/${XML_FILE} ${PROJECT_BINARY_DIR}/${XML_FILE} copyonly)
   endforeach( XML_FILE )
 ENDMACRO( COPY_XML_FILES )
@@ -63,9 +64,12 @@ if(TESTING_IS_ENABLED)
     target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
     add_test(${excutableName} ${excutableName})
   endforeach( testSourceFile )
+  
+  add_test(compareXmlOutput ${PROJECT_BINARY_DIR}/compareXmlOutput.sh)
 
   COPY_MAPPING_FILES()
   COPY_XML_FILES()
+  configure_file(tests/compareXmlOutput.sh ${PROJECT_BINARY_DIR}/compareXmlOutput.sh copyonly)
   configure_file(cmake/Makefile.coverage
 		${PROJECT_BINARY_DIR}/Makefile.coverage @ONLY)
   add_custom_target(coverage
