@@ -119,15 +119,25 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
   return controlerConfig;
 }
 
-
   void MotorDriverCardConfigXML::write(std::string fileName, 
 				       MotorDriverCardConfig const & motorDriverCardConfig){
+    write( fileName, motorDriverCardConfig, false );
+  }
+
+  void MotorDriverCardConfigXML::writeSparse(std::string fileName, 
+				       MotorDriverCardConfig const & motorDriverCardConfig){
+    write( fileName, motorDriverCardConfig, true );
+  }
+
+
+  void MotorDriverCardConfigXML::write(std::string fileName, 
+				       MotorDriverCardConfig const & motorDriverCardConfig,
+				       bool sparse){
     pugi::xml_document doc;
     pugi::xml_node cardConfigXML = doc.append_child("MotorDriverCardConfig");
-    
+
     MotorDriverCardConfig defaultCardConfig;
 
-    bool sparse = false;
     NodeFiller cardConfigFiller(cardConfigXML, sparse);
 
     CARD_CONFIG_ADD( coverDatagram );
@@ -140,17 +150,38 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
     CARD_CONFIG_ADD( stepperMotorGlobalParameters );
 
     for (unsigned int i=0; i < motorDriverCardConfig.motorControlerConfigurations.size(); ++i){
+      MotorControlerConfig defaultControlerConfig;
+      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[i];
+
+      if (sparse && (motorControlerConfig == defaultControlerConfig )){
+	continue;
+      }
+
       pugi::xml_node controlerConfigXML = cardConfigXML.append_child("MotorControlerConfig");
       controlerConfigXML.append_attribute("motorID") = i;
-
-      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[i];
-      MotorControlerConfig defaultControlerConfig;
 
       NodeFiller controlerConfigFiller(controlerConfigXML, sparse);
       
       CONTROLER_CONFIG_ADD( accelerationThresholdData );
       CONTROLER_CONFIG_ADD( actualPosition );
-
+      CONTROLER_CONFIG_ADD( chopperControlData );
+      CONTROLER_CONFIG_ADD( coolStepControlData );
+      CONTROLER_CONFIG_ADD( decoderReadoutMode );
+      CONTROLER_CONFIG_ADD( dividersAndMicroStepResolutionData );
+      CONTROLER_CONFIG_ADD( driverConfigData );
+      CONTROLER_CONFIG_ADD( driverControlData );
+      CONTROLER_CONFIG_ADD( enabled );
+      CONTROLER_CONFIG_ADD( interruptData );
+      CONTROLER_CONFIG_ADD( maximumAccelleration );
+      CONTROLER_CONFIG_ADD( maximumVelocity );
+      CONTROLER_CONFIG_ADD( microStepCount );
+      CONTROLER_CONFIG_ADD( minimumVelocity );
+      CONTROLER_CONFIG_ADD( positionTolerance );
+      CONTROLER_CONFIG_ADD( proportionalityFactorData );
+      CONTROLER_CONFIG_ADD( referenceConfigAndRampModeData );
+      CONTROLER_CONFIG_ADD( stallGuardControlData );
+      CONTROLER_CONFIG_ADD( targetPosition );
+      CONTROLER_CONFIG_ADD( targetVelocity );
 
     }
 
@@ -166,12 +197,12 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
   }
 
   void MotorDriverCardConfigXML::NodeFiller::addRegister( std::string const & registerName, 
-							   unsigned int value,
-							   unsigned int defaultValue){
+							  unsigned int value,
+							  unsigned int defaultValue){
     if ( _writeAlways || (value != defaultValue) ){
       pugi::xml_node registerNode = _node.append_child("Register");
       registerNode.append_attribute("name") = registerName.c_str();
-      registerNode.append_attribute("value") = value;
+      registerNode.append_attribute("value") = to_hex_string(value).c_str();
     }
   }
 
@@ -179,6 +210,28 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
 							  TMC429InputWord const & value,
 							  TMC429InputWord const & defaultValue){
     addRegister( registerName, value.getDATA(), defaultValue.getDATA() );
+  }
+
+  void MotorDriverCardConfigXML::NodeFiller::addRegister( std::string const & registerName, 
+							  TMC260Word const & value,
+							  TMC260Word const & defaultValue){
+    addRegister( registerName, value.getPayloadData(), defaultValue.getPayloadData() );
+  }
+
+  void MotorDriverCardConfigXML::NodeFiller::addRegister( std::string const & registerName, 
+							  bool value,
+							  bool defaultValue){
+    if ( _writeAlways || (value != defaultValue) ){
+      pugi::xml_node registerNode = _node.append_child("Register");
+      registerNode.append_attribute("name") = registerName.c_str();
+      registerNode.append_attribute("value") = (value?"true":"false");
+    }
+  }
+
+  std::string MotorDriverCardConfigXML::NodeFiller::to_hex_string(unsigned int value){
+    std::stringstream s;
+    s << "0x" << std::uppercase << std::hex << value;
+    return s.str();
   }
 
 }// namespace mtca4u
