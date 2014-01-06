@@ -12,7 +12,7 @@ namespace mtca4u
       dividersAndMicroStepResolutionData(DIVIDIERS_AND_MICRO_STEP_RESOLUTION_DEFAULT),
       driverConfigData(DRIVER_CONFIG_DEFAULT),
       driverControlData(DRIVER_CONTROL_DEFAULT),
-      enabled(true),
+      enabled(false),
       interruptData(0),
       maximumAccelleration(MAXIMUM_ACCELERATION_DEFAULT),
       maximumVelocity(MAXIMUM_VELOCITY_DEFAULT),
