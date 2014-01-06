@@ -13,7 +13,7 @@
 		<Register name="dividersAndMicroStepResolutionData" value="0x3705" />
 		<Register name="driverConfigData" value="0x41" />
 		<Register name="driverControlData" value="0x1" />
-		<Register name="enabled" value="false" />
+		<Register name="enabled" value="true" />
 		<Register name="interruptData" value="0x1" />
 		<Register name="maximumAccelleration" value="0x15" />
 		<Register name="maximumVelocity" value="0x65" />
