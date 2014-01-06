@@ -84,6 +84,16 @@ add_library(${PROJECT_NAME} SHARED ${library_sources} )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES} ${pugixml_LIBRARIES})
 
+#hardware test are build but not run as automated tests (yet?).
+aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
+foreach( hardwareTestSourceFile ${hardwareTestSources})
+  get_filename_component(excutableName ${hardwareTestSourceFile} NAME_WE)
+  add_executable(${excutableName} ${hardwareTestSourceFile})
+  message("adding ${excutableName}")
+  target_link_libraries(${excutableName} ${PROJECT_NAME})     
+endforeach( hardwareTestSourceFile )
+ 
+
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

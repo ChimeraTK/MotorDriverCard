@@ -11,6 +11,7 @@ namespace dfmc_md22{
 
   std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_SPI_CTRL";
   std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_SPI_CTRL_B";
+  uint32_t const SPI_COMMUNICATION_DEFAULT_SLEEP_TIME = 50;
 
   uint32_t const N_MOTORS_MAX = 2;
 

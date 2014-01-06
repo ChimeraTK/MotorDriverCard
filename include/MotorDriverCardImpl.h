@@ -94,6 +94,9 @@ namespace mtca4u
 
     void controlerSpiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
     void controlerSpiWrite( TMC429InputWord const & writeWord );
+
+    static void sleepMicroSeconds(unsigned int microSeconds);
+    unsigned int _spiCommunicationSleepTime; ///< in microseconds
   };
   
 }// namespace mtca4u

@@ -19,7 +19,7 @@ namespace mtca4u
   unsigned int const MAXIMUM_VELOCITY_DEFAULT = 0x64;
   unsigned int const MINIMUM_VELOCITY_DEFAULT = 0xA;
   unsigned int const PROPORTIONALITY_FACTORS_DEFAULT = 0xC50A;
-  unsigned int const REFERENCE_CONFIG_AND_RAMP_MODE_DEFAULT = 0x300;
+  unsigned int const REFERENCE_CONFIG_AND_RAMP_MODE_DEFAULT = 0x0;
 }
 
 #endif // MOTOR_CONTROLER_CONFIG_DEFAULTS
