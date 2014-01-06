@@ -1,7 +1,7 @@
 #include "MotorDriverCardConfig.h"
 
-unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000123;
-unsigned int const STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT = 0x010702;
+unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000122;
+unsigned int const STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT = 0x010701;
 
 namespace mtca4u{
 

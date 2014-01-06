@@ -1,6 +1,8 @@
 #include <boost/shared_ptr.hpp>
 #include <stdexcept>
 #include <sstream>
+#include <ctime>
+#include <cerrno>
 
 #include "NotImplementedException.h"
 #include "MotorDriverCardImpl.h"
@@ -17,7 +19,8 @@ namespace mtca4u{
            mappedDevice->getRegObject( CONTROLER_SPI_WRITE_ADDRESS_STRING )) ,
       _controlerSpiReadbackRegister(
 	   mappedDevice->getRegObject( CONTROLER_SPI_READBACK_ADDRESS_STRING )),
-      _powerMonitor(new PowerMonitor)
+      _powerMonitor(new PowerMonitor),
+      _spiCommunicationSleepTime(SPI_COMMUNICATION_DEFAULT_SLEEP_TIME)
   {
     // initialise common registers
     setCoverDatagram( cardConfiguration.coverDatagram );
@@ -80,9 +83,9 @@ namespace mtca4u{
     
     size_t readbackLoopCounter;
     for (readbackLoopCounter=0; 
-	 (static_cast<unsigned int>(readbackValue)!=INVALID_SPI_READBACK_VALUE) && (readbackLoopCounter < 10);
+	 (static_cast<unsigned int>(readbackValue)==INVALID_SPI_READBACK_VALUE) && (readbackLoopCounter < 10);
 	 ++readbackLoopCounter){
-      // sleep somehow
+      sleepMicroSeconds(_spiCommunicationSleepTime);
       _controlerSpiReadbackRegister.readReg( & readbackValue, sizeof(int));
     }
 
@@ -91,6 +94,24 @@ namespace mtca4u{
     }
 
     return TMC429OutputWord(static_cast<unsigned int>(readbackValue));
+  }
+
+  void MotorDriverCardImpl::sleepMicroSeconds(unsigned int microSeconds){
+    timespec sleepTime;
+    sleepTime.tv_sec = microSeconds / 1000000;
+    sleepTime.tv_nsec = (microSeconds%1000000)*1000;
+
+    timespec remainingTime;
+    remainingTime.tv_sec = 0;
+    remainingTime.tv_nsec = 0;
+    if ( nanosleep(&sleepTime, &remainingTime) ){
+      if (errno == EFAULT){
+	std::stringstream errorMessage;
+	errorMessage << "Error sleeping " << microSeconds << " micro seconds!";
+	throw( MotorDriverException(errorMessage.str(),
+				    MotorDriverException::SPI_READ_TIMEOUT));
+      }
+    }
   }
 
   void MotorDriverCardImpl::controlerSpiWrite( unsigned int smda, unsigned int idx_jdx, 
@@ -106,10 +127,20 @@ namespace mtca4u{
   }
 
   void MotorDriverCardImpl::controlerSpiWrite( TMC429InputWord const & writeWord ){
+    // FIXME:
+    // lock the controler SPI register using a separate mutex. Access to other registers
+    // of the device is allowed, but SPI has to wait until the word has been processed.
+
     // we need this intermediate variable because the write function needs a pointer
     // to int.
     int temporaryWriteInt = static_cast<int>(writeWord.getDataWord());
     _controlerSpiWriteRegister.writeReg( &temporaryWriteInt, sizeof(int));
+
+    // sleep to make (reasonably) sure the word has been written
+    // FIXME: Make absolutely sure the word has been written to the controler by introducing an SPI
+    // Sync register
+    sleepMicroSeconds(_spiCommunicationSleepTime);
+    
   }
 
   void MotorDriverCardImpl::setDatagramLowWord(unsigned int datagramLowWord){
