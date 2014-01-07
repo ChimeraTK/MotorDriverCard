@@ -4,10 +4,10 @@
 	<Register name="coverPositionAndLength" value="0x1" />
 	<Register name="datagramHighWord" value="0x0" />
 	<Register name="datagramLowWord" value="0x1" />
-	<Register name="interfaceConfiguration" value="0x123" />
+	<Register name="interfaceConfiguration" value="0x122" />
 	<Register name="positionCompareInterruptData" value="0x1" />
 	<Register name="positionCompareWord" value="0x0" />
-	<Register name="stepperMotorGlobalParameters" value="0x10703" />
+	<Register name="stepperMotorGlobalParameters" value="0x10702" />
 	<MotorControlerConfig motorID="0">
 		<Register name="accelerationThresholdData" value="0x0" />
 		<Register name="actualPosition" value="0x0" />
@@ -25,7 +25,7 @@
 		<Register name="minimumVelocity" value="0xA" />
 		<Register name="positionTolerance" value="0x0" />
 		<Register name="proportionalityFactorData" value="0xC50A" />
-		<Register name="referenceConfigAndRampModeData" value="0x300" />
+		<Register name="referenceConfigAndRampModeData" value="0x0" />
 		<Register name="stallGuardControlData" value="0x510" />
 		<Register name="targetPosition" value="0x0" />
 		<Register name="targetVelocity" value="0x0" />
@@ -47,7 +47,7 @@
 		<Register name="minimumVelocity" value="0xB" />
 		<Register name="positionTolerance" value="0x1" />
 		<Register name="proportionalityFactorData" value="0xC50B" />
-		<Register name="referenceConfigAndRampModeData" value="0x301" />
+		<Register name="referenceConfigAndRampModeData" value="0x1" />
 		<Register name="stallGuardControlData" value="0x511" />
 		<Register name="targetPosition" value="0x1" />
 		<Register name="targetVelocity" value="0x1" />

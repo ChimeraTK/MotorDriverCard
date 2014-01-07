@@ -2,7 +2,7 @@
 <MotorDriverCardConfig>
 	<Register name="coverDatagram" value="0x1" />
 	<Register name="datagramHighWord" value="0x1" />
-	<Register name="interfaceConfiguration" value="0x124" />
+	<Register name="interfaceConfiguration" value="0x123" />
 	<Register name="positionCompareWord" value="0x1" />
 	<MotorControlerConfig motorID="0">
 		<Register name="accelerationThresholdData" value="0x1" />
@@ -21,7 +21,7 @@
 		<Register name="minimumVelocity" value="0xB" />
 		<Register name="positionTolerance" value="0x1" />
 		<Register name="proportionalityFactorData" value="0xC50B" />
-		<Register name="referenceConfigAndRampModeData" value="0x301" />
+		<Register name="referenceConfigAndRampModeData" value="0x1" />
 		<Register name="stallGuardControlData" value="0x511" />
 		<Register name="targetPosition" value="0x1" />
 		<Register name="targetVelocity" value="0x1" />
