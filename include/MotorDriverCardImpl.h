@@ -74,12 +74,20 @@ namespace mtca4u
     void powerDown();
     ReferenceSwitchData getReferenceSwitchData();
 
+    /** The FPGA needs some time to perform the SPI communication to the controler chip.
+     *  This is the sleep time added before the write command to the controler SPI register 
+     *  returns. During this time the value should be written and it is safe to write a new word
+     *  to the PCIe register. Writing a sequence of SPI commands without the sleep time
+     *  could cause a word in the PCIe register to be overwritten without having been transmittet via
+     *  SPI. There is no SPI command buffer in the FPGA.
+     */
+    void setSpiCommunicationSleepTime(unsigned int microSeconds);
+    
+    unsigned int getSpiCommunicationSleepTime() const;
 
   private:
-    // Motor controlers need dynamic allocation. So we cannot store them directly.
-    // As we do not want to care about cleaning up we use scoped pointers.
-    // FIXME: should they be shared pointers? What about the copy constructor?
-    // scoped pointers cannot be copied.    
+    // Motor controlers need dynamic allocation, so we cannot store them directly.
+    // As we do not want to care about cleaning up we use shared pointers.
     std::vector< boost::shared_ptr<MotorControler> > _motorControlers;
 
     boost::shared_ptr< devMap<devBase> > _mappedDevice;

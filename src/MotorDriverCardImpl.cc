@@ -220,4 +220,12 @@ namespace mtca4u{
     return  ReferenceSwitchData(controlerSpiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
   }
 
+  void MotorDriverCardImpl::setSpiCommunicationSleepTime(unsigned int microSeconds){
+    _spiCommunicationSleepTime = microSeconds;
+  }
+    
+  unsigned int MotorDriverCardImpl::getSpiCommunicationSleepTime() const{
+    return _spiCommunicationSleepTime;
+  }
+
 }// namespace mtca4u

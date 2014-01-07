@@ -46,6 +46,7 @@ public:
   DECLARE_GET_SET_TEST( PositionCompareInterruptData );
   void testPowerDown();
   void testGetMotorControler();
+  DECLARE_GET_SET_TEST( SpiCommunicationSleepTime );
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
@@ -78,6 +79,7 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( PositionCompareInterruptData );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
+    ADD_GET_SET_TEST( SpiCommunicationSleepTime );
   }
 };
 
@@ -350,3 +352,12 @@ unsigned int MotorDriverCardTest::asciiToInt( std::string text ){
   return returnValue;
 }
 
+void MotorDriverCardTest::testGetSpiCommunicationSleepTime(){
+  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationSleepTime() == SPI_COMMUNICATION_DEFAULT_SLEEP_TIME );
+}
+
+void MotorDriverCardTest::testSetSpiCommunicationSleepTime(){
+  unsigned int originalSpiCommunicationSleepTime = _motorDriverCard->getSpiCommunicationSleepTime();
+  _motorDriverCard->setSpiCommunicationSleepTime(originalSpiCommunicationSleepTime + 1);
+  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationSleepTime() == originalSpiCommunicationSleepTime +1 );
+}
