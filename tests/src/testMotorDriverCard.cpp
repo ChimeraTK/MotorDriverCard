@@ -46,7 +46,7 @@ public:
   DECLARE_GET_SET_TEST( PositionCompareInterruptData );
   void testPowerDown();
   void testGetMotorControler();
-  DECLARE_GET_SET_TEST( SpiCommunicationSleepTime );
+  DECLARE_GET_SET_TEST( SpiCommunicationWaitingTime );
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
@@ -79,7 +79,7 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( PositionCompareInterruptData );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
-    ADD_GET_SET_TEST( SpiCommunicationSleepTime );
+    ADD_GET_SET_TEST( SpiCommunicationWaitingTime );
   }
 };
 
@@ -352,12 +352,12 @@ unsigned int MotorDriverCardTest::asciiToInt( std::string text ){
   return returnValue;
 }
 
-void MotorDriverCardTest::testGetSpiCommunicationSleepTime(){
-  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationSleepTime() == SPI_COMMUNICATION_DEFAULT_SLEEP_TIME );
+void MotorDriverCardTest::testGetSpiCommunicationWaitingTime(){
+  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationWaitingTime() == SPI_COMMUNICATION_DEFAULT_WAITING_TIME );
 }
 
-void MotorDriverCardTest::testSetSpiCommunicationSleepTime(){
-  unsigned int originalSpiCommunicationSleepTime = _motorDriverCard->getSpiCommunicationSleepTime();
-  _motorDriverCard->setSpiCommunicationSleepTime(originalSpiCommunicationSleepTime + 1);
-  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationSleepTime() == originalSpiCommunicationSleepTime +1 );
+void MotorDriverCardTest::testSetSpiCommunicationWaitingTime(){
+  unsigned int originalSpiCommunicationWaitingTime = _motorDriverCard->getSpiCommunicationWaitingTime();
+  _motorDriverCard->setSpiCommunicationWaitingTime(originalSpiCommunicationWaitingTime + 1);
+  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationWaitingTime() == originalSpiCommunicationWaitingTime +1 );
 }

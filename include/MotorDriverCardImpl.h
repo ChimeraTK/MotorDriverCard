@@ -75,15 +75,15 @@ namespace mtca4u
     ReferenceSwitchData getReferenceSwitchData();
 
     /** The FPGA needs some time to perform the SPI communication to the controler chip.
-     *  This is the sleep time added before the write command to the controler SPI register 
+     *  This is the waiting time added before the write command to the controler SPI register 
      *  returns. During this time the value should be written and it is safe to write a new word
-     *  to the PCIe register. Writing a sequence of SPI commands without the sleep time
+     *  to the PCIe register. Writing a sequence of SPI commands without the waiting time
      *  could cause a word in the PCIe register to be overwritten without having been transmittet via
      *  SPI. There is no SPI command buffer in the FPGA.
      */
-    void setSpiCommunicationSleepTime(unsigned int microSeconds);
+    void setSpiCommunicationWaitingTime(unsigned int microSeconds);
     
-    unsigned int getSpiCommunicationSleepTime() const;
+    unsigned int getSpiCommunicationWaitingTime() const;
 
   private:
     // Motor controlers need dynamic allocation, so we cannot store them directly.
@@ -104,7 +104,7 @@ namespace mtca4u
     void controlerSpiWrite( TMC429InputWord const & writeWord );
 
     static void sleepMicroSeconds(unsigned int microSeconds);
-    unsigned int _spiCommunicationSleepTime; ///< in microseconds
+    unsigned int _spiCommunicationWaitingTime; ///< in microseconds
   };
   
 }// namespace mtca4u

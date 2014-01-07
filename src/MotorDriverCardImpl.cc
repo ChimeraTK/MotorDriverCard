@@ -20,7 +20,7 @@ namespace mtca4u{
       _controlerSpiReadbackRegister(
 	   mappedDevice->getRegObject( CONTROLER_SPI_READBACK_ADDRESS_STRING )),
       _powerMonitor(new PowerMonitor),
-      _spiCommunicationSleepTime(SPI_COMMUNICATION_DEFAULT_SLEEP_TIME)
+      _spiCommunicationWaitingTime(SPI_COMMUNICATION_DEFAULT_WAITING_TIME)
   {
     // initialise common registers
     setCoverDatagram( cardConfiguration.coverDatagram );
@@ -85,7 +85,7 @@ namespace mtca4u{
     for (readbackLoopCounter=0; 
 	 (static_cast<unsigned int>(readbackValue)==INVALID_SPI_READBACK_VALUE) && (readbackLoopCounter < 10);
 	 ++readbackLoopCounter){
-      sleepMicroSeconds(_spiCommunicationSleepTime);
+      sleepMicroSeconds(_spiCommunicationWaitingTime);
       _controlerSpiReadbackRegister.readReg( & readbackValue, sizeof(int));
     }
 
@@ -139,7 +139,7 @@ namespace mtca4u{
     // sleep to make (reasonably) sure the word has been written
     // FIXME: Make absolutely sure the word has been written to the controler by introducing an SPI
     // Sync register
-    sleepMicroSeconds(_spiCommunicationSleepTime);
+    sleepMicroSeconds(_spiCommunicationWaitingTime);
     
   }
 
@@ -220,12 +220,12 @@ namespace mtca4u{
     return  ReferenceSwitchData(controlerSpiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
   }
 
-  void MotorDriverCardImpl::setSpiCommunicationSleepTime(unsigned int microSeconds){
-    _spiCommunicationSleepTime = microSeconds;
+  void MotorDriverCardImpl::setSpiCommunicationWaitingTime(unsigned int microSeconds){
+    _spiCommunicationWaitingTime = microSeconds;
   }
     
-  unsigned int MotorDriverCardImpl::getSpiCommunicationSleepTime() const{
-    return _spiCommunicationSleepTime;
+  unsigned int MotorDriverCardImpl::getSpiCommunicationWaitingTime() const{
+    return _spiCommunicationWaitingTime;
   }
 
 }// namespace mtca4u
