@@ -104,6 +104,7 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
   ASSIGN_PLUS_ONE_CONTROLER( stallGuardControlData );
   plusOneControlerConfig.targetPosition++;
   plusOneControlerConfig.targetVelocity++;
+  plusOneControlerConfig.driverSpiWaitingTime++;
 
   completeCardConfig.coverDatagram++;
   firstHalfCardConfig.coverDatagram++;
@@ -128,6 +129,9 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
 
   ASSIGN_PLUS_ONE_CARD( stepperMotorGlobalParameters, completeCardConfig );
   ASSIGN_PLUS_ONE_CARD( stepperMotorGlobalParameters, secondHalfCardConfig );
+
+  completeCardConfig.controlerSpiWaitingTime++;
+  firstHalfCardConfig.controlerSpiWaitingTime++;
 
   firstHalfCardConfig.motorControlerConfigurations[0]=plusOneControlerConfig;
   secondHalfCardConfig.motorControlerConfigurations[1]=plusOneControlerConfig;
@@ -156,6 +160,7 @@ void MotorDriverCardConfigXMLTest::testReadComplete(){
   BOOST_CHECK( inputCardConfig.positionCompareInterruptData == completeCardConfig.positionCompareInterruptData );
   BOOST_CHECK( inputCardConfig.positionCompareWord == completeCardConfig.positionCompareWord );
   BOOST_CHECK( inputCardConfig.stepperMotorGlobalParameters == completeCardConfig.stepperMotorGlobalParameters );
+  BOOST_CHECK( inputCardConfig.controlerSpiWaitingTime == completeCardConfig.controlerSpiWaitingTime );
 
   for ( size_t i = 0; i < inputCardConfig.motorControlerConfigurations.size() ; ++i ){
     checkControlerConfig( inputCardConfig.motorControlerConfigurations[i], i );
@@ -187,6 +192,7 @@ void MotorDriverCardConfigXMLTest::checkControlerConfig( MotorControlerConfig co
   CONTROLER_CHECK( stallGuardControlData );
   CONTROLER_CHECK( targetPosition );
   CONTROLER_CHECK( targetVelocity );
+  CONTROLER_CHECK( driverSpiWaitingTime );  
 }
 
 void MotorDriverCardConfigXMLTest::testReadFirstHalf(){
@@ -199,6 +205,7 @@ void MotorDriverCardConfigXMLTest::testReadFirstHalf(){
   BOOST_CHECK( inputCardConfig.positionCompareInterruptData == defaultCardConfig.positionCompareInterruptData );
   BOOST_CHECK( inputCardConfig.positionCompareWord == completeCardConfig.positionCompareWord );
   BOOST_CHECK( inputCardConfig.stepperMotorGlobalParameters == defaultCardConfig.stepperMotorGlobalParameters );
+  BOOST_CHECK( inputCardConfig.controlerSpiWaitingTime == completeCardConfig.controlerSpiWaitingTime );
 
   checkControlerConfig( inputCardConfig.motorControlerConfigurations[0], 0 );
   BOOST_CHECK( inputCardConfig.motorControlerConfigurations[1] == defaultControlerConfig );
@@ -214,6 +221,7 @@ void MotorDriverCardConfigXMLTest::testReadSecondHalf(){
   BOOST_CHECK( inputCardConfig.positionCompareInterruptData == completeCardConfig.positionCompareInterruptData );
   BOOST_CHECK( inputCardConfig.positionCompareWord == defaultCardConfig.positionCompareWord );
   BOOST_CHECK( inputCardConfig.stepperMotorGlobalParameters == completeCardConfig.stepperMotorGlobalParameters );
+  BOOST_CHECK( inputCardConfig.controlerSpiWaitingTime == defaultCardConfig.controlerSpiWaitingTime );
 
   BOOST_CHECK( inputCardConfig.motorControlerConfigurations[0] == defaultControlerConfig );
   checkControlerConfig( inputCardConfig.motorControlerConfigurations[1], 1 );

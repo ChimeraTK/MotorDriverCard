@@ -8,6 +8,7 @@
 	<Register name="positionCompareInterruptData" value="0x1" />
 	<Register name="positionCompareWord" value="0x1" />
 	<Register name="stepperMotorGlobalParameters" value="0x10702" />
+	<Parameter name="controlerSpiWaitingTime" value="51" />
 	<MotorControlerConfig motorID="0">
 		<Register name="accelerationThresholdData" value="0x1" />
 		<Register name="actualPosition" value="0x1" />
@@ -29,6 +30,7 @@
 		<Register name="stallGuardControlData" value="0x511" />
 		<Register name="targetPosition" value="0x1" />
 		<Register name="targetVelocity" value="0x1" />
+		<Parameter name="driverSpiWaitingTime" value="51" />
 	</MotorControlerConfig>
 	<MotorControlerConfig motorID="1">
 		<Register name="accelerationThresholdData" value="0x1" />
@@ -51,5 +53,6 @@
 		<Register name="stallGuardControlData" value="0x511" />
 		<Register name="targetPosition" value="0x1" />
 		<Register name="targetVelocity" value="0x1" />
+		<Parameter name="driverSpiWaitingTime" value="51" />
 	</MotorControlerConfig>
 </MotorDriverCardConfig>

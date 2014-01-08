@@ -25,5 +25,6 @@
 		<Register name="stallGuardControlData" value="0x511" />
 		<Register name="targetPosition" value="0x1" />
 		<Register name="targetVelocity" value="0x1" />
+		<Parameter name="driverSpiWaitingTime" value="51" />
 	</MotorControlerConfig>
 </MotorDriverCardConfig>

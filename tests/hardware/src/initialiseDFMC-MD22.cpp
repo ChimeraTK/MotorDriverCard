@@ -6,7 +6,9 @@
 int main( int argc, char* argv[] )
 {
   if (argc !=2){
-    std::cerr << "usage: " << argv[0] << " dmapFile" << std::endl;
+    std::cout <<  argv[0] << " just creates an instance of MotorDirverCardImpl, which initialises all registers"
+	      << std::endl;
+    std::cout << "usage: " << argv[0] << " dmapFile" << std::endl;
     return -1;
   }
 
@@ -26,7 +28,9 @@ int main( int argc, char* argv[] )
   mtca4u::MotorControler & motor0 = motorDriverCard.getMotorControler(0);
   //  mtca4u::MotorControler & motor1 = motorDriverCard.getMotorControler(1);
   
+  //  sleep(1);
   motor0.setStallGuardControlData( mtca4u::StallGuardControlData(0x5) );
+  //  sleep(1);
   motor0.setDriverControlData( mtca4u::DriverControlData(0x4) );
 
   try{
@@ -41,8 +45,8 @@ int main( int argc, char* argv[] )
     motor0.setReferenceConfigAndRampModeData( referenceConfigAndRampModeData );
 
     std::cout << motor0.getActualPosition() << std::endl;
-    //motor0.setTargetPosition(20000);
-    motor0.setActualPosition(20000);
+    motor0.setTargetPosition(20000);
+    //motor0.setActualPosition(20000);
     try{
       while (motor0.getActualPosition() != motor0.getTargetPosition() ){
 	std::cout << "\r" << motor0.getActualPosition()  << "    "
@@ -57,7 +61,7 @@ int main( int argc, char* argv[] )
 
     sleep(1);
     std::cout << motor0.getActualPosition() << std::endl;
-    //motor0.setTargetPosition(0);
+    motor0.setTargetPosition(0);
     std::cout << motor0.getActualPosition() << std::endl;
     //  sleep(1);
     std::cout << motor0.getActualPosition() << std::endl;
