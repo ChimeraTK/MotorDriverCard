@@ -23,7 +23,8 @@ namespace mtca4u
       referenceConfigAndRampModeData(REFERENCE_CONFIG_AND_RAMP_MODE_DEFAULT),
       stallGuardControlData(STALL_GUARD_CONTROL_DEFAULT),
       targetPosition(0),
-      targetVelocity(0)
+      targetVelocity(0),
+      driverSpiWaitingTime(DRIVER_SPI_WAITING_TIME_DEFAULT)
   {}
 
   bool MotorControlerConfig::operator==(MotorControlerConfig const & right) const{
@@ -46,7 +47,8 @@ namespace mtca4u
 	     (referenceConfigAndRampModeData	  == right.referenceConfigAndRampModeData) &&
 	     (stallGuardControlData		  == right.stallGuardControlData) &&
 	     (targetPosition			  == right.targetPosition) &&
-	     (targetVelocity                      == right.targetVelocity));              
+	     (targetVelocity                      == right.targetVelocity) &&
+	     (driverSpiWaitingTime                == right.driverSpiWaitingTime));              
   }
 
   bool  MotorControlerConfig::operator!=(MotorControlerConfig const & right) const{

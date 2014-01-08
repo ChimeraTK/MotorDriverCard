@@ -54,7 +54,8 @@ namespace mtca4u
       _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) ),
-      _driverSpiWrite( REG_OBJECT_FROM_SUFFIX( SPI_WRITE_SUFFIX ) )
+      _driverSpiWrite( REG_OBJECT_FROM_SUFFIX( SPI_WRITE_SUFFIX ) ),
+      _driverSpiWaitingTime( motorControlerConfig.driverSpiWaitingTime )
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     setActualPosition( motorControlerConfig.actualPosition );
@@ -195,9 +196,18 @@ namespace mtca4u
   template <class T>
   void MotorControler::setTypedDriverData(T const & driverData, T & localDataInstance){
     int32_t temporaryWriteWord = static_cast<int32_t>(driverData.getDataWord());
+
+    // FIXME: protect the following section by mutex
      _driverSpiWrite.writeReg( &temporaryWriteWord );
      // Remember the written word for readback.
      localDataInstance  = driverData;
+     
+     // FIXME: Implement a handshake to wait until the word is written
+     // Current workaround: introduce a timeout (will also be needed later in the polling
+     // loop for the synchronisation)
+     _driverCard.sleepMicroSeconds( _driverSpiWaitingTime );
+
+     // FIXME: End of mutex protected section
   }
 
 }// namespace mtca4u
