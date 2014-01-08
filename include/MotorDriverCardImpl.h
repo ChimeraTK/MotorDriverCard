@@ -78,12 +78,13 @@ namespace mtca4u
      *  This is the waiting time added before the write command to the controler SPI register 
      *  returns. During this time the value should be written and it is safe to write a new word
      *  to the PCIe register. Writing a sequence of SPI commands without the waiting time
-     *  could cause a word in the PCIe register to be overwritten without having been transmittet via
+     *  will cause words in the PCIe register to be overwritten without having been transmittet via
      *  SPI. There is no SPI command buffer in the FPGA.
+     *  FIXME: Implement a proper handshake (will still need a waiting time for the polling loop).
      */
-    void setSpiCommunicationWaitingTime(unsigned int microSeconds);
+    void setControlerSpiWaitingTime(unsigned int microSeconds);
     
-    unsigned int getSpiCommunicationWaitingTime() const;
+    unsigned int getControlerSpiWaitingTime() const;
 
   private:
     // Motor controlers need dynamic allocation, so we cannot store them directly.
@@ -104,7 +105,7 @@ namespace mtca4u
     void controlerSpiWrite( TMC429InputWord const & writeWord );
 
     static void sleepMicroSeconds(unsigned int microSeconds);
-    unsigned int _spiCommunicationWaitingTime; ///< in microseconds
+    unsigned int _controlerSpiWaitingTime; ///< in microseconds
   };
   
 }// namespace mtca4u

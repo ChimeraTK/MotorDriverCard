@@ -148,7 +148,8 @@ namespace mtca4u
      template <class T>
        void setTypedDriverData(T const & driverData, T & localDataInstance);
 
- };
+     unsigned int _driverSpiWaitingTime;
+  };
 
 }// namespace mtca4u
 

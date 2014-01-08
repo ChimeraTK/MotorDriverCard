@@ -21,6 +21,8 @@ namespace mtca4u{
     PositionCompareInterruptData positionCompareInterruptData;
     unsigned int positionCompareWord;
     StepperMotorGlobalParameters stepperMotorGlobalParameters;
+
+    unsigned int controlerSpiWaitingTime;
     
     std::vector< MotorControlerConfig > motorControlerConfigurations;
 

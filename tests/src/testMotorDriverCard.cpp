@@ -11,6 +11,8 @@ using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
 
+#include "MotorDriverCardConfigDefaults.h"
+
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
 #define BROKEN_MAP_FILE_NAME "DFMC_MD22_broken.map"
 
@@ -46,7 +48,7 @@ public:
   DECLARE_GET_SET_TEST( PositionCompareInterruptData );
   void testPowerDown();
   void testGetMotorControler();
-  DECLARE_GET_SET_TEST( SpiCommunicationWaitingTime );
+  DECLARE_GET_SET_TEST( ControlerSpiWaitingTime );
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
@@ -79,7 +81,7 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( PositionCompareInterruptData );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
-    ADD_GET_SET_TEST( SpiCommunicationWaitingTime );
+    ADD_GET_SET_TEST( ControlerSpiWaitingTime );
   }
 };
 
@@ -352,12 +354,12 @@ unsigned int MotorDriverCardTest::asciiToInt( std::string text ){
   return returnValue;
 }
 
-void MotorDriverCardTest::testGetSpiCommunicationWaitingTime(){
-  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationWaitingTime() == SPI_COMMUNICATION_DEFAULT_WAITING_TIME );
+void MotorDriverCardTest::testGetControlerSpiWaitingTime(){
+  BOOST_CHECK(  _motorDriverCard->getControlerSpiWaitingTime() == CONTROLER_SPI_WAITING_TIME_DEFAULT );
 }
 
-void MotorDriverCardTest::testSetSpiCommunicationWaitingTime(){
-  unsigned int originalSpiCommunicationWaitingTime = _motorDriverCard->getSpiCommunicationWaitingTime();
-  _motorDriverCard->setSpiCommunicationWaitingTime(originalSpiCommunicationWaitingTime + 1);
-  BOOST_CHECK(  _motorDriverCard->getSpiCommunicationWaitingTime() == originalSpiCommunicationWaitingTime +1 );
+void MotorDriverCardTest::testSetControlerSpiWaitingTime(){
+  unsigned int originalControlerSpiWaitingTime = _motorDriverCard->getControlerSpiWaitingTime();
+  _motorDriverCard->setControlerSpiWaitingTime(originalControlerSpiWaitingTime + 1);
+  BOOST_CHECK(  _motorDriverCard->getControlerSpiWaitingTime() == originalControlerSpiWaitingTime +1 );
 }

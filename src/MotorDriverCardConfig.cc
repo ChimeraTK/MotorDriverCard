@@ -1,7 +1,5 @@
 #include "MotorDriverCardConfig.h"
-
-unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000122;
-unsigned int const STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT = 0x010701;
+#include "MotorDriverCardConfigDefaults.h"
 
 namespace mtca4u{
 
@@ -13,9 +11,10 @@ namespace mtca4u{
       interfaceConfiguration(INTERFACE_CONFIGURATION_DEFAULT),
       positionCompareInterruptData(0),
       positionCompareWord(0),
-      stepperMotorGlobalParameters(STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT)
+      stepperMotorGlobalParameters(STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT),
+      controlerSpiWaitingTime(CONTROLER_SPI_WAITING_TIME_DEFAULT)
   {
-    // initialises the with the default constructors of the motor controler config
+    // initialises the motor controler configs with their default constructors
     motorControlerConfigurations.resize( dfmc_md22::N_MOTORS_MAX );
   }
 
@@ -28,6 +27,7 @@ namespace mtca4u{
     if (positionCompareInterruptData != right.positionCompareInterruptData ){return false;}
     if (positionCompareWord != right.positionCompareWord ){return false;}
     if (stepperMotorGlobalParameters != right.stepperMotorGlobalParameters ){return false;}
+    if (controlerSpiWaitingTime != right.controlerSpiWaitingTime){return false;}
 
     for( size_t i = 0; i < motorControlerConfigurations.size(); ++i){
 	if ( motorControlerConfigurations[i] !=  right.motorControlerConfigurations[i] ){return false;}

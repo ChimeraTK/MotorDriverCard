@@ -33,6 +33,8 @@ namespace mtca4u
     unsigned int targetPosition; //want it? need it in the config?
     unsigned int targetVelocity; //want it? need it in the config?
 
+    unsigned int driverSpiWaitingTime; //< in microseconds
+
     /** The constructor sets reasonable default values to all data words.
      */
     MotorControlerConfig();
