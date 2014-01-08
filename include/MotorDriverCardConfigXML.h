@@ -26,10 +26,10 @@ namespace mtca4u{
     static void setValueIfFound(std::string const & parameterName, unsigned int & parameterContent,
 				pugi::xml_node const & parentNode, std::string const & tagName = "Register");
 
-    static void setValueIfFound(std::string const & registerName, TMC429InputWord * inputWord,
+    static void setValueIfFound(std::string const & registerName, TMC429InputWord & inputWord,
 				pugi::xml_node const & parentNode);
 
-    static void setValueIfFound(std::string const & registerName, TMC260Word * inputWord,
+    static void setValueIfFound(std::string const & registerName, TMC260Word & inputWord,
 				pugi::xml_node const & parentNode);
 
     static void setValueIfFound(std::string const & parameterName, bool & flag,
