@@ -1,7 +1,7 @@
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
-#include "NotImplementedException.h"
+#include <MtcaMappedDevice/NotImplementedException.h>
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>

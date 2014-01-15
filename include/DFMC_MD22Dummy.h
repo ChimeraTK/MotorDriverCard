@@ -1,7 +1,7 @@
 #ifndef MTCA4U_DFMC_MD22_DUMMY_H
 #define MTCA4U_DFMC_MD22_DUMMY_H
 
-#include "DummyDevice.h"
+#include <MtcaMappedDevice/DummyDevice.h>
 #include "TMC429Words.h"
 
 namespace mtca4u{

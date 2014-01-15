@@ -4,7 +4,7 @@
 #include <ctime>
 #include <cerrno>
 
-#include "NotImplementedException.h"
+#include <MtcaMappedDevice/NotImplementedException.h>
 #include "MotorDriverCardImpl.h"
 using namespace mtca4u::tmc429;
 
