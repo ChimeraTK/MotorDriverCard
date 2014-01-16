@@ -9,9 +9,13 @@ set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
  
+#use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
+
 #set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
 #skip -Weffc++ for the moment. It gives too many false positives
-set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized --coverage ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized --coverage ")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 FIND_PACKAGE(MtcaMappedDevice 00.06 REQUIRED)
 include_directories(${MtcaMappedDevice_INCLUDE_DIRS})
@@ -23,7 +27,6 @@ include_directories(${pugixml_INCLUDE_DIRS})
 
 FIND_PACKAGE(Boost COMPONENTS unit_test_framework)
 #ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
-message("Boost_UNIT_TEST_FRAMEWORK_FOUND " Boost_UNIT_TEST_FRAMEWORK_FOUND)
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
   ENABLE_TESTING()
@@ -60,7 +63,6 @@ if(TESTING_IS_ENABLED)
     #NAME_WE means the base name without path and (longest) extension
     get_filename_component(excutableName ${testSourceFile} NAME_WE)
     add_executable(${excutableName} ${testSourceFile})
-    message("Boost_LIBRARIES ${Boost_LIBRARIES}")
     target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
     add_test(${excutableName} ${excutableName})
   endforeach( testSourceFile )
@@ -70,13 +72,17 @@ if(TESTING_IS_ENABLED)
   COPY_MAPPING_FILES()
   COPY_XML_FILES()
   configure_file(tests/compareXmlOutput.sh ${PROJECT_BINARY_DIR}/compareXmlOutput.sh copyonly)
-  configure_file(cmake/Makefile.coverage
-		${PROJECT_BINARY_DIR}/Makefile.coverage @ONLY)
-  add_custom_target(coverage
-    make -f Makefile.coverage
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating test coverage documentation" VERBATIM
-    )
+
+  #The make coverage command is only available in debug mode
+  IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    configure_file(cmake/Makefile.coverage
+      ${PROJECT_BINARY_DIR}/Makefile.coverage @ONLY)
+    add_custom_target(coverage
+      make -f Makefile.coverage
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating test coverage documentation" VERBATIM
+      )
+  ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 endif(TESTING_IS_ENABLED)
 
@@ -89,7 +95,6 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(excutableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${excutableName} ${hardwareTestSourceFile})
-  message("adding ${excutableName}")
   target_link_libraries(${excutableName} ${PROJECT_NAME})     
 endforeach( hardwareTestSourceFile )
  
@@ -108,9 +113,13 @@ install(TARGETS ${PROJECT_NAME}
   )
 
 #all include files go into include/PROJECT_NAME
+#The exclusion of ${PROJECT_NAME} prevents the recursive installation of the files just being installed.
+#The original headers are in include/*.h, the installed ones in include/PROJECT_NAME/*.h.
 install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_NAME}
           FILES_MATCHING PATTERN "*.h" 
-	  PATTERN ".svn" EXCLUDE)
+	  PATTERN ".svn" EXCLUDE
+	  PATTERN "${PROJECT_NAME}" EXCLUDE
+	  )
 
 ##   "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in" @ONLY)
 #
@@ -118,22 +127,27 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values
 
-## #We have nested @-statements, so we have to parse twice
-## configure_file(cmake/${PROJECT_NAME}Config.cmake.in.in
-##   "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake.in" @ONLY)
-## configure_file(${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
-##   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
-## 
-## configure_file(cmake/${PROJECT_NAME}ConfigVersion.cmake.in.in
-##   "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in" @ONLY)
-## configure_file(${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in
-##   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" @ONLY)
-##  
-## # Install the ..Config.cmake and ..ConfigVersion.cmake
-## install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-##   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" 
-##   "${CMAKE_SOURCE_DIR}/cmake/Find${PROJECT_NAME}.cmake"
-##   DESTINATION . COMPONENT dev)
+set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${MtcaMappedDevice_INCLUDE_DIRS})
+set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
+#We have nested @-statements, so we have to parse twice
+configure_file(cmake/${PROJECT_NAME}Config.cmake.in.in
+  "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake.in" @ONLY)
+configure_file(${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
+
+configure_file(cmake/${PROJECT_NAME}ConfigVersion.cmake.in.in
+  "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in" @ONLY)
+configure_file(${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" @ONLY)
+
+configure_file(cmake/Find${PROJECT_NAME}.cmake.in
+  "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake" @ONLY)
+
+# Install the ..Config.cmake and ..ConfigVersion.cmake
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" 
+  "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake"
+  DESTINATION . COMPONENT dev)
 ##  
 ## # The instructions to create a debian package are loaded from a separate file
 ## include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
