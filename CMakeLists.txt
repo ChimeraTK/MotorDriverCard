@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.0)
 project(MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
-set(${PROJECT_NAME}_MINOR_VERSION 00)
+set(${PROJECT_NAME}_MINOR_VERSION 01)
 set(${PROJECT_NAME}_PATCH_VERSION 00)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
@@ -13,8 +13,8 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
 
 #set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
 #skip -Weffc++ for the moment. It gives too many false positives
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized --coverage ")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 FIND_PACKAGE(MtcaMappedDevice 00.06 REQUIRED)
@@ -130,7 +130,7 @@ set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${MtcaMappedDevice_LIBRARY_DIRS})
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
-## # The instructions to create a debian package are loaded from a separate file
-## include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
+# The instructions to create a debian package are loaded from a separate file
+include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
 
 
