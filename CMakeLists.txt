@@ -121,34 +121,15 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_
 	  PATTERN "${PROJECT_NAME}" EXCLUDE
 	  )
 
-##   "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in" @ONLY)
-#
-
 #create the config files by filling the correct variables into the template (*.cmake.in)
-#All variables @VARIABLE@ are replaced with the current values
-
+#All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
 set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${MtcaMappedDevice_INCLUDE_DIRS})
 set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
-#We have nested @-statements, so we have to parse twice
-configure_file(cmake/${PROJECT_NAME}Config.cmake.in.in
-  "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake.in" @ONLY)
-configure_file(${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
-  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" @ONLY)
+set(${PROJECT_NAME}_CONFIG_LIBRARIES ${MtcaMappedDevice_LIBRARIES})
+set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${MtcaMappedDevice_LIBRARY_DIRS})
 
-configure_file(cmake/${PROJECT_NAME}ConfigVersion.cmake.in.in
-  "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in" @ONLY)
-configure_file(${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake.in
-  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake" @ONLY)
+include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
-configure_file(cmake/Find${PROJECT_NAME}.cmake.in
-  "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake" @ONLY)
-
-# Install the ..Config.cmake and ..ConfigVersion.cmake
-install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" 
-  "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake"
-  DESTINATION . COMPONENT dev)
-##  
 ## # The instructions to create a debian package are loaded from a separate file
 ## include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
 
