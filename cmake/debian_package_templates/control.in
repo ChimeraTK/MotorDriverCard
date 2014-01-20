@@ -9,7 +9,7 @@ Section: libs
 Package: dev-mtca4u-motordrivercard
 Section: libdevel
 Architecture: any
-Depends: mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@, dev-mtcamappeddevice (= @MtcaMappedDevice_VERSION@), libboost-dev, dev-pugixml (= @pugixml_VERSION@)
+Depends: mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@, dev-mtcamappeddevice (>= @MtcaMappedDevice_VERSION@), dev-mtcamappeddevice (<= @MtcaMappedDevice_VERSION@.99-zz), libboost-dev
 Description: Header and cmake files for MTCA4U MotorDriverCard.
  The files you need to compile against MTCA4U MotorDriverCard.
 
