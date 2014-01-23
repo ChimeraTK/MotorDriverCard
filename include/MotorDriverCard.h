@@ -9,7 +9,7 @@ namespace mtca4u
   class MotorControler;
   class PowerMonitor;
 
-  class MotorDriverException: public exBase {
+  class MotorDriverException: public mtca4u::exBase {
   public:
     
     enum {  WRONG_MOTOR_ID, SPI_READ_TIMEOUT };

@@ -26,7 +26,7 @@ namespace mtca4u{
    *  \li A read request to the SPI_CTRL register updates the value in the SPI_CTRL_B
    *      register
    */
-  class DFMC_MD22Dummy : public DummyDevice{
+  class DFMC_MD22Dummy : public mtca4u::DummyDevice{
   public:
     DFMC_MD22Dummy();
 

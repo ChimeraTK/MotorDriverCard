@@ -28,7 +28,7 @@ namespace mtca4u
      */
     /// For the time being we require a working version of MtcaMappedDevice in addition 
     /// to the configuration
-    MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+    MotorDriverCardImpl(boost::shared_ptr< mtca4u::devMap<devBase> > const & mappedDevice,
 			MotorDriverCardConfig const & cardConfiguration);
 
     MotorControler & getMotorControler(unsigned int motorControlerID);
@@ -91,11 +91,11 @@ namespace mtca4u
     // As we do not want to care about cleaning up we use shared pointers.
     std::vector< boost::shared_ptr<MotorControler> > _motorControlers;
 
-    boost::shared_ptr< devMap<devBase> > _mappedDevice;
+    boost::shared_ptr< mtca4u::devMap<devBase> > _mappedDevice;
     friend class MotorControler;
 
-    devMap<devBase>::regObject _controlerSpiWriteRegister;
-    devMap<devBase>::regObject _controlerSpiReadbackRegister;
+    mtca4u::devMap<devBase>::regObject _controlerSpiWriteRegister;
+    mtca4u::devMap<devBase>::regObject _controlerSpiReadbackRegister;
 
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 

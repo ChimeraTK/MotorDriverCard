@@ -123,22 +123,22 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
 
-     devMap< devBase >::regObject _actualPosition;
-     devMap< devBase >::regObject _actualVelocity;
-     devMap< devBase >::regObject _actualAcceleration;
-     devMap< devBase >::regObject _microStepCount;
-     devMap< devBase >::regObject _stallGuardValue;
-     devMap< devBase >::regObject _coolStepValue;
-     devMap< devBase >::regObject _status;
-     devMap< devBase >::regObject _enabled;
-     devMap< devBase >::regObject _decoderReadoutMode;
-     devMap< devBase >::regObject _decoderPosition;
-     devMap< devBase >::regObject _driverSpiWrite;
+     mtca4u::devMap< devBase >::regObject _actualPosition;
+     mtca4u::devMap< devBase >::regObject _actualVelocity;
+     mtca4u::devMap< devBase >::regObject _actualAcceleration;
+     mtca4u::devMap< devBase >::regObject _microStepCount;
+     mtca4u::devMap< devBase >::regObject _stallGuardValue;
+     mtca4u::devMap< devBase >::regObject _coolStepValue;
+     mtca4u::devMap< devBase >::regObject _status;
+     mtca4u::devMap< devBase >::regObject _enabled;
+     mtca4u::devMap< devBase >::regObject _decoderReadoutMode;
+     mtca4u::devMap< devBase >::regObject _decoderPosition;
+     mtca4u::devMap< devBase >::regObject _driverSpiWrite;
 
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.
      unsigned int readRegObject( 
-			devMap<devBase>::regObject const & registerAccessor);
+			 mtca4u::devMap<devBase>::regObject const & registerAccessor);
 
      template<class T>
        T readTypedRegister();

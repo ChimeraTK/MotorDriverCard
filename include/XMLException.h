@@ -5,7 +5,7 @@
 
 namespace mtca4u{
 
-  class XMLException: public exBase {
+  class XMLException: public mtca4u::exBase {
   public:
     
     XMLException(const std::string & message):

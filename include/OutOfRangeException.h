@@ -5,7 +5,7 @@
 
 namespace mtca4u{
 
-  class OutOfRangeException: public exBase {
+  class OutOfRangeException: public mtca4u::exBase {
   public:
     
     enum {  TOO_LARGE, TOO_SMALL };
