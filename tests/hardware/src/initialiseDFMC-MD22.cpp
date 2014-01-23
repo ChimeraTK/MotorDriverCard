@@ -3,6 +3,8 @@
 #include "MotorDriverCardImpl.h"
 #include <unistd.h>
 
+using namespace mtca4u;
+
 int main( int argc, char* argv[] )
 {
   if (argc !=2){

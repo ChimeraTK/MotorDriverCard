@@ -3,6 +3,9 @@
 #include "MotorDriverCardImpl.h"
 #include <unistd.h>
 #include <ctime>
+
+using namespace mtca4u;
+
 // We use a macro so we can print the failing condition.
 // Counts up the error counter if TEST_CONDITION is false and prints an error message
 #define PRINT_AND_COUNT_ERRORS( TEST_CONDITION , MOTOR_ID )	\
