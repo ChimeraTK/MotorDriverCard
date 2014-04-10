@@ -32,10 +32,6 @@ namespace mtca4u
      */
     virtual MotorControler & getMotorControler(unsigned int motorControlerID) = 0;
     
-    virtual ReferenceSwitchData getReferenceSwitchData() = 0;
-
-    virtual unsigned int getControlerChipVersion() = 0;
- 
     /// Get a reference to the power monitor.
     virtual PowerMonitor & getPowerMonitor() = 0;
   };

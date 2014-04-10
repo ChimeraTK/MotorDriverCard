@@ -210,4 +210,11 @@ namespace mtca4u
      // FIXME: End of mutex protected section
   }
 
+  MotorReferenceSwitchData MotorControler::getReferenceSwitchData(){
+    unsigned int bitMask = 0x3 << 2*_id;
+    unsigned int dataWord = (_driverCard.getReferenceSwitchData().getDATA() & bitMask) >> 2*_id;
+
+    return MotorReferenceSwitchData(dataWord);
+  }
+
 }// namespace mtca4u

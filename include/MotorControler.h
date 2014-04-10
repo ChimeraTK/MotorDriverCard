@@ -6,6 +6,7 @@
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 #include "MotorControlerConfig.h"
+#include "MotorReferenceSwitchData.h"
 
 #define DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -66,6 +67,13 @@ namespace mtca4u
 
     bool isEnabled(); ///< Check whether the motor driver chip is enabled
     
+    MotorReferenceSwitchData getReferenceSwitchData(); ///< Get information about both reference switches of this Motor
+
+    /** Enable or disable the positive reference switch. */
+    void setPositiveReferenceSwitchEnabled(bool enableStatus);
+    /** Enable or disable the negative reference switch. */
+    void setNegativeReferenceSwitchEnabled(bool enableStatus);
+
     // via spi to the tmc429 motor controler
     /// Set the actual position counter for a recalibration of the actual position
     void setActualPosition(unsigned int steps);
