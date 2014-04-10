@@ -10,17 +10,29 @@ BOOST_AUTO_TEST_SUITE( MotorReferenceSwitchDataTestSuite )
 
 BOOST_AUTO_TEST_CASE( testBitValues ){
   BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
-		     &MotorReferenceSwitchData::setPositiveSwitch,
-		     &MotorReferenceSwitchData::getPositiveSwitch )
+		     &MotorReferenceSwitchData::setPositiveSwitchActive,
+		     &MotorReferenceSwitchData::getPositiveSwitchActive )
 	      == 0x00000001 );
   BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
-		     &MotorReferenceSwitchData::setNegativeSwitch,
-		     &MotorReferenceSwitchData::getNegativeSwitch )
+		     &MotorReferenceSwitchData::setNegativeSwitchActive,
+		     &MotorReferenceSwitchData::getNegativeSwitchActive )
 	      == 0x00000002 );
   BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
-		     &MotorReferenceSwitchData::setSwitchStatuses,
-		     &MotorReferenceSwitchData::getSwitchStatuses )
+		     &MotorReferenceSwitchData::setSwitchesActiveWord,
+		     &MotorReferenceSwitchData::getSwitchesActiveWord )
 	      == 0x00000003 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
+		     &MotorReferenceSwitchData::setPositiveSwitchEnabled,
+		     &MotorReferenceSwitchData::getPositiveSwitchEnabled )
+	      == 0x00010000 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
+		     &MotorReferenceSwitchData::setNegativeSwitchEnabled,
+		     &MotorReferenceSwitchData::getNegativeSwitchEnabled )
+	      == 0x00020000 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
+		     &MotorReferenceSwitchData::setSwitchesEnabledWord,
+		     &MotorReferenceSwitchData::getSwitchesEnabledWord )
+	      == 0x00030000 );
 }
 
 BOOST_AUTO_TEST_CASE( testBoolOperator ){
@@ -28,16 +40,16 @@ BOOST_AUTO_TEST_CASE( testBoolOperator ){
   MotorReferenceSwitchData motorReferenceSwitchData;
   BOOST_CHECK( !motorReferenceSwitchData );
 
-  motorReferenceSwitchData.setPositiveSwitch(1);
+  motorReferenceSwitchData.setPositiveSwitchActive(1);
   BOOST_CHECK( motorReferenceSwitchData );
   
-  motorReferenceSwitchData.setNegativeSwitch(1);
+  motorReferenceSwitchData.setNegativeSwitchActive(1);
   BOOST_CHECK( motorReferenceSwitchData );
  
-  motorReferenceSwitchData.setPositiveSwitch(0);
+  motorReferenceSwitchData.setPositiveSwitchActive(0);
   BOOST_CHECK( motorReferenceSwitchData );
   
-  motorReferenceSwitchData.setNegativeSwitch(0);
+  motorReferenceSwitchData.setNegativeSwitchActive(0);
   BOOST_CHECK( !motorReferenceSwitchData );
 
   // Set some unused bits. They have to be ignored in the status

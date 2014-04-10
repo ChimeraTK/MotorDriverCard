@@ -211,10 +211,42 @@ namespace mtca4u
   }
 
   MotorReferenceSwitchData MotorControler::getReferenceSwitchData(){
+    // the bit pattern for the active flags
     unsigned int bitMask = 0x3 << 2*_id;
     unsigned int dataWord = (_driverCard.getReferenceSwitchData().getDATA() & bitMask) >> 2*_id;
 
-    return MotorReferenceSwitchData(dataWord);
+    // the enabled flags
+    MotorReferenceSwitchData motorReferenceSwitchData(dataWord);
+    // note: the following code uses the implicit bool conversion to/from 0/1 to keep the code short.
+    motorReferenceSwitchData.setNegativeSwitchEnabled( !getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
+    motorReferenceSwitchData.setPositiveSwitchEnabled( !getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
+
+    return motorReferenceSwitchData;
   }
+
+  void MotorControler::setNegativeReferenceSwitchEnabled(bool enableStatus){
+    // FIXME: protect the following section by mutex
+    ReferenceConfigAndRampModeData referenceConfigAndRampModeData = getReferenceConfigAndRampModeData();
+
+    referenceConfigAndRampModeData.setDISABLE_STOP_L(!enableStatus);
+
+    setReferenceConfigAndRampModeData(referenceConfigAndRampModeData);
+
+    // FIXME: End of mutex protected section
+  }
+
+  void MotorControler::setPositiveReferenceSwitchEnabled(bool enableStatus){
+    // FIXME: protect the following section by mutex
+    ReferenceConfigAndRampModeData referenceConfigAndRampModeData = getReferenceConfigAndRampModeData();
+
+    referenceConfigAndRampModeData.setDISABLE_STOP_R(!enableStatus);
+
+    setReferenceConfigAndRampModeData(referenceConfigAndRampModeData);
+
+    // FIXME: End of mutex protected section
+  }
+
+
+  
 
 }// namespace mtca4u

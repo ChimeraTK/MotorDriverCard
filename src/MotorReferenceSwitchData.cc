@@ -7,7 +7,7 @@ namespace mtca4u{
   {}
 
   MotorReferenceSwitchData::operator bool() const{
-    return static_cast<bool>(getSwitchStatuses());
+    return static_cast<bool>(getSwitchesActiveWord());
   }
 
 }//namespace mtca4u

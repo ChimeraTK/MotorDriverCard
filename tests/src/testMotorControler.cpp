@@ -206,6 +206,8 @@ public:
       add( BOOST_TEST_CASE( boost::bind( &MotorControlerTest::testGetReferenceSwitchData,
 					 motorControlerTest,
 					 _motorDriverCard) ));
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetReferenceSwitchEnabled,
+				  motorControlerTest ) );
 
    }// for i < N_MOTORS_MAX
   }// constructor
@@ -344,5 +346,33 @@ void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriv
     BOOST_FAIL("Invalid MotorID. Either there is something wrong in the code or the test has to be adapted.");
   }
 
-  BOOST_CHECK(_motorControler.getReferenceSwitchData().getSwitchStatuses() == referenceWord );
+  BOOST_CHECK(_motorControler.getReferenceSwitchData().getSwitchesActiveWord() == referenceWord );
+  BOOST_CHECK(_motorControler.getReferenceSwitchData().getPositiveSwitchEnabled() ==
+	      !_motorControler.getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
+  BOOST_CHECK(_motorControler.getReferenceSwitchData().getNegativeSwitchEnabled() ==
+	      !_motorControler.getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
+}
+
+void MotorControlerTest::testSetReferenceSwitchEnabled(){
+  MotorReferenceSwitchData originalSetting = _motorControler.getReferenceSwitchData();
+
+  _motorControler.setPositiveReferenceSwitchEnabled(true);
+  _motorControler.setNegativeReferenceSwitchEnabled(true);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x3 );
+
+  _motorControler.setPositiveReferenceSwitchEnabled(false);
+  _motorControler.setNegativeReferenceSwitchEnabled(true);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x2 );
+
+  _motorControler.setPositiveReferenceSwitchEnabled(true);
+  _motorControler.setNegativeReferenceSwitchEnabled(false);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x1 );
+
+  _motorControler.setPositiveReferenceSwitchEnabled(false);
+  _motorControler.setNegativeReferenceSwitchEnabled(false);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x0 );
+  
+  _motorControler.setPositiveReferenceSwitchEnabled( originalSetting.getPositiveSwitchEnabled() );
+  _motorControler.setNegativeReferenceSwitchEnabled( originalSetting.getNegativeSwitchEnabled() );
+
 }

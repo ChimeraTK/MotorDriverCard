@@ -47,6 +47,8 @@ namespace mtca4u
     unsigned int getID();
 
     // via direct register access in the fpga
+    // Note: The getters which require hardware accress are not const because they require an SPI write,
+    // and the SPI write cannot be const because it is also used to modify.
 
     unsigned int getActualPosition(); ///< Get the actual position in steps
     unsigned int getActualVelocity(); ///< Get the actual velocity in steps per FIXME
@@ -69,9 +71,9 @@ namespace mtca4u
     
     MotorReferenceSwitchData getReferenceSwitchData(); ///< Get information about both reference switches of this Motor
 
-    /** Enable or disable the positive reference switch. */
+    /** Enable or disable the positive reference switch. (true=enabled)*/
     void setPositiveReferenceSwitchEnabled(bool enableStatus);
-    /** Enable or disable the negative reference switch. */
+    /** Enable or disable the negative reference switch. (true=enabled)*/
     void setNegativeReferenceSwitchEnabled(bool enableStatus);
 
     // via spi to the tmc429 motor controler
