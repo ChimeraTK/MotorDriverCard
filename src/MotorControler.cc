@@ -131,8 +131,8 @@ namespace mtca4u
     return readRegObject( _stallGuardValue );
   }
  
-  unsigned int MotorControler::getStatus(){
-    return readRegObject( _status );
+  DriverStatusData MotorControler::getStatus(){
+    return DriverStatusData( readRegObject( _status ) );
   }
  
   void MotorControler::setDecoderReadoutMode(unsigned int readoutMode){

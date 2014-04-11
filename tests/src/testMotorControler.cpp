@@ -77,6 +77,11 @@ public:
   void testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 			     std::string const & registerSuffix);
 
+  // for reading registers which do not return an int but a MultiVariableWord
+  template<class T>
+  void testReadTypedPCIeRegister( T (MotorControler::* readFunction)(void),
+				  std::string const & registerSuffix);
+
   void testSetIsEnabled();
 
   DECLARE_GET_SET_TEST( DecoderReadoutMode );
@@ -123,6 +128,9 @@ private:
 			     T const & (MotorControler::* getterFunction)() const,
 			     unsigned int driverSpiAddress,
 			     unsigned int testPattern);
+
+  unsigned int testWordFromPCIeSuffix(std::string const & registerSuffix);
+
 };
 
 class  MotorControlerTestSuite : public test_suite{
@@ -169,7 +177,7 @@ public:
 			   motorControlerTest,
 			   &MotorControler::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
       add( BOOST_TEST_CASE(
-	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
+			   boost::bind( &MotorControlerTest::testReadTypedPCIeRegister<DriverStatusData>,
 			   motorControlerTest,
 			   &MotorControler::getStatus, STATUS_SUFFIX ) ));
 
@@ -236,15 +244,29 @@ DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA )
 
 void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 						std::string const & registerSuffix){
-  std::string registerName = createMotorRegisterName( _motorControler.getID(),
-						      registerSuffix );
-  mapFile::mapElem registerInfo;
-  _registerMapping->getRegisterInfo( registerName, registerInfo );
-  unsigned int expectedValue = testWordFromPCIeAddress( registerInfo.reg_address );
+  unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
   message << "read () " <<  (_motorControler.*readFunction)() 
 	  << ", expected " << expectedValue << std::endl;
   BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)() == expectedValue , message.str());
+}
+
+unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
+  std::string registerName = createMotorRegisterName( _motorControler.getID(),
+						      registerSuffix );
+  mapFile::mapElem registerInfo;
+  _registerMapping->getRegisterInfo( registerName, registerInfo );
+  return testWordFromPCIeAddress( registerInfo.reg_address );
+}
+
+template<class T>
+void MotorControlerTest::testReadTypedPCIeRegister( T (MotorControler::* readFunction)(void),
+						    std::string const & registerSuffix){
+  unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
+  std::stringstream message;
+  message << "read () " <<  (_motorControler.*readFunction)().getDataWord()
+	  << ", expected " << expectedValue << std::endl;
+  BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)().getDataWord() == expectedValue , message.str());
 }
 
 void MotorControlerTest::testGetDecoderReadoutMode(){

@@ -14,8 +14,7 @@ namespace mtca4u{
     virtual unsigned int getPayloadData() const =0;
   };
 
-  //FIXME implement all the types correctly. To make it compile we
-  // start with typedefs
+  //FIXME implement all the types correctly.
   class DriverControlData: public TMC260Word{
   public:
     DriverControlData(unsigned int dataWord = 0){
@@ -71,6 +70,26 @@ namespace mtca4u{
     ADD_VARIABLE(PayloadData, 0, 16);
   };
     
+  /** This class represents the driver status of the TMC260 Read Response (data sheet section 6.10).
+   *
+   *  @fixme I think they are the general status bits 0:7 only. At least that's what's implemented here.
+   */ 
+  class DriverStatusData: public MultiVariableWord{
+  public:
+    DriverStatusData(unsigned int dataWord = 0)
+      : MultiVariableWord(dataWord) {}
+    ADD_VARIABLE( StallGuardStatus, 0, 0 );
+    ADD_VARIABLE( OvertemperatureShutdown, 1, 1 );
+    ADD_VARIABLE( OvertemperatureWarning, 2, 2 );
+    ADD_VARIABLE( ShortToGroundCoilA, 3, 3 );
+    ADD_VARIABLE( ShortToGroundCoilB, 4, 4 );
+    ADD_VARIABLE( ShortToGroundIndicators, 3, 4 );
+    ADD_VARIABLE( OpenLoadCoilA, 5, 5 );
+    ADD_VARIABLE( OpenLoadCoilB, 6, 6 );
+    ADD_VARIABLE( OpenLoadIndicators, 5, 6 );
+    ADD_VARIABLE( StandstillIndicator, 7, 7 );
+  };
+
 }// namespace mtca4u
 
 #endif// MTCA4U_TMC260WORDS_H
