@@ -77,6 +77,11 @@ public:
   void testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 			     std::string const & registerSuffix);
 
+  // for reading registers which do not return an int but a MultiVariableWord
+  template<class T>
+  void testReadTypedPCIeRegister( T (MotorControler::* readFunction)(void),
+				  std::string const & registerSuffix);
+
   void testSetIsEnabled();
 
   DECLARE_GET_SET_TEST( DecoderReadoutMode );
@@ -99,6 +104,9 @@ public:
   DECLARE_GET_SET_TEST( CoolStepControlData );
   DECLARE_GET_SET_TEST( StallGuardControlData );
   DECLARE_GET_SET_TEST( DriverConfigData );
+
+  void testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardExpert> motorDriverCard );
+  void testSetReferenceSwitchEnabled();
   
 private:
   MotorControler & _motorControler;
@@ -120,11 +128,14 @@ private:
 			     T const & (MotorControler::* getterFunction)() const,
 			     unsigned int driverSpiAddress,
 			     unsigned int testPattern);
+
+  unsigned int testWordFromPCIeSuffix(std::string const & registerSuffix);
+
 };
 
 class  MotorControlerTestSuite : public test_suite{
 private:
-    boost::shared_ptr<MotorDriverCard> _motorDriverCard;
+    boost::shared_ptr<MotorDriverCardExpert> _motorDriverCard;
 public:
   MotorControlerTestSuite(std::string const & mapFileName) 
     : test_suite(" MotorControler test suite"){
@@ -166,7 +177,7 @@ public:
 			   motorControlerTest,
 			   &MotorControler::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
       add( BOOST_TEST_CASE(
-	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
+			   boost::bind( &MotorControlerTest::testReadTypedPCIeRegister<DriverStatusData>,
 			   motorControlerTest,
 			   &MotorControler::getStatus, STATUS_SUFFIX ) ));
 
@@ -199,6 +210,13 @@ public:
       ADD_GET_SET_TEST( CoolStepControlData );
       ADD_GET_SET_TEST( StallGuardControlData );
       ADD_GET_SET_TEST( DriverConfigData );
+
+      add( BOOST_TEST_CASE( boost::bind( &MotorControlerTest::testGetReferenceSwitchData,
+					 motorControlerTest,
+					 _motorDriverCard) ));
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetReferenceSwitchEnabled,
+				  motorControlerTest ) );
+
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
@@ -226,15 +244,29 @@ DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA )
 
 void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
 						std::string const & registerSuffix){
-  std::string registerName = createMotorRegisterName( _motorControler.getID(),
-						      registerSuffix );
-  mapFile::mapElem registerInfo;
-  _registerMapping->getRegisterInfo( registerName, registerInfo );
-  unsigned int expectedValue = testWordFromPCIeAddress( registerInfo.reg_address );
+  unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
   message << "read () " <<  (_motorControler.*readFunction)() 
 	  << ", expected " << expectedValue << std::endl;
   BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)() == expectedValue , message.str());
+}
+
+unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
+  std::string registerName = createMotorRegisterName( _motorControler.getID(),
+						      registerSuffix );
+  mapFile::mapElem registerInfo;
+  _registerMapping->getRegisterInfo( registerName, registerInfo );
+  return testWordFromPCIeAddress( registerInfo.reg_address );
+}
+
+template<class T>
+void MotorControlerTest::testReadTypedPCIeRegister( T (MotorControler::* readFunction)(void),
+						    std::string const & registerSuffix){
+  unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
+  std::stringstream message;
+  message << "read () " <<  (_motorControler.*readFunction)().getDataWord()
+	  << ", expected " << expectedValue << std::endl;
+  BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)().getDataWord() == expectedValue , message.str());
 }
 
 void MotorControlerTest::testGetDecoderReadoutMode(){
@@ -322,3 +354,47 @@ DEFINE_GET_SET_DRIVER_SPI_DATA( ChopperControlData, ADDRESS_CHOPPER_CONFIG, CHOP
 DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG, COOL_STEP_CONTROL_DEFAULT , 0x1AAAA)
 DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT, 0x1AAAA )
 DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT , 0x1AAAA )
+
+void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardExpert> motorDriverCard ){
+  // This approach is intentinally clumsy and manual in order not to use the same algorithm as 
+  // in the implementation, but still be felxible if the register content changes.
+  unsigned int referenceWord;
+  
+  switch (_motorControler.getID()){
+  case 0 : referenceWord = motorDriverCard->getReferenceSwitchData().getDATA() & 0x3; break;
+  case 1 : referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0xC) >> 2); break;
+  case 2 : referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0x30) >> 4); break;
+  default:
+    BOOST_FAIL("Invalid MotorID. Either there is something wrong in the code or the test has to be adapted.");
+  }
+
+  BOOST_CHECK(_motorControler.getReferenceSwitchData().getSwitchesActiveWord() == referenceWord );
+  BOOST_CHECK(_motorControler.getReferenceSwitchData().getPositiveSwitchEnabled() ==
+	      !_motorControler.getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
+  BOOST_CHECK(_motorControler.getReferenceSwitchData().getNegativeSwitchEnabled() ==
+	      !_motorControler.getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
+}
+
+void MotorControlerTest::testSetReferenceSwitchEnabled(){
+  MotorReferenceSwitchData originalSetting = _motorControler.getReferenceSwitchData();
+
+  _motorControler.setPositiveReferenceSwitchEnabled(true);
+  _motorControler.setNegativeReferenceSwitchEnabled(true);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x3 );
+
+  _motorControler.setPositiveReferenceSwitchEnabled(false);
+  _motorControler.setNegativeReferenceSwitchEnabled(true);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x2 );
+
+  _motorControler.setPositiveReferenceSwitchEnabled(true);
+  _motorControler.setNegativeReferenceSwitchEnabled(false);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x1 );
+
+  _motorControler.setPositiveReferenceSwitchEnabled(false);
+  _motorControler.setNegativeReferenceSwitchEnabled(false);
+  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x0 );
+  
+  _motorControler.setPositiveReferenceSwitchEnabled( originalSetting.getPositiveSwitchEnabled() );
+  _motorControler.setNegativeReferenceSwitchEnabled( originalSetting.getNegativeSwitchEnabled() );
+
+}

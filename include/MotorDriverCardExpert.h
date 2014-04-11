@@ -35,6 +35,14 @@ namespace mtca4u
 
     virtual void powerDown() = 0;
  
+    /** The reference switch data from the controler chip, as provided by the card,
+	are expert because there is a MotorControler::getReferenceSwitchData() function
+	implemented which should be used.
+    */
+    virtual ReferenceSwitchData getReferenceSwitchData() = 0;
+
+    virtual unsigned int getControlerChipVersion() = 0;
+ 
   };
   
 }// namespace mtca4u

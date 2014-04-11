@@ -23,14 +23,14 @@ namespace mtca4u {
     
     int StepperMotorCalibrationStatusType::MOTOR_CALIBRATED = 1;
     int StepperMotorCalibrationStatusType::MOTOR_NOT_CALIBRATED = 2;
-    int StepperMotorCalibrationStatusType::MOTOR_CALIBRATION_FAILED = 4
+    int StepperMotorCalibrationStatusType::MOTOR_CALIBRATION_FAILED = 4;
     int StepperMotorCalibrationStatusType::MOTOR_CALIBRATION_UNKNOWN = 8;
     int StepperMotorCalibrationStatusType::MOTOR_CALIBRATION_IN_PROGRESS = 16;
 
 
     
     
-    StepperMotor::StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) {
+    StepperMotor::StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName)  {
         // save basics infos
         _motorDriverId = motorDriverId;
         _motorDriverCardDeviceName = motorDriverCardDeviceName;
@@ -59,7 +59,7 @@ namespace mtca4u {
         
         //_motorControler.reset(&_motorDriverCardPtr->getMotorControler(_motorDriverId));      
         _motorControler = &_motorDriverCardPtr->getMotorControler(_motorDriverId);
-        
+
         
                 
         //position limits
@@ -196,7 +196,7 @@ namespace mtca4u {
 
     
     void StepperMotor::setEnable(bool enable) {
-        _motorDriverCardPtr->getMotorControler(_motorDriverId).setEnabled(enable);
+        _motorControler->setEnabled(enable);
     }
     
     
@@ -216,33 +216,24 @@ namespace mtca4u {
         }
         
         //check end switches
-        bool leftEndSwitchStatus = false;
-        bool rightEndSwitchStatus = false;
-        if (_motorDriverId == 0) {
-            rightEndSwitchStatus = _motorDriverCardPtr->getReferenceSwitchData().getRight1();
-            leftEndSwitchStatus = _motorDriverCardPtr->getReferenceSwitchData().getLeft1();
-        } else if (_motorDriverId == 1) {
-            rightEndSwitchStatus = _motorDriverCardPtr->getReferenceSwitchData().getRight2();
-            leftEndSwitchStatus = _motorDriverCardPtr->getReferenceSwitchData().getLeft2();
-        } else {
-            _motorStatus = StepperMotorStatusTypes::MOTOR_CONFIGURATION_ERROR;
-            return;
-        }
+        bool positiveSwitchStatus = _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
+        bool negativeSwitchStatus = _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
+
 
         //check if both end switches are on in the same time - this means error;    
-        if ( rightEndSwitchStatus && leftEndSwitchStatus) {
+        if ( positiveSwitchStatus && negativeSwitchStatus) {
             _motorStatus = StepperMotorStatusTypes::MOTOR_IN_ERROR;
             _motorError = StepperMotorErrorTypes::MOTOR_BOTH_ENDSWICHTED_ON;
             
             return;
         }
 
-        if (rightEndSwitchStatus) {
+        if (positiveSwitchStatus) {
             _motorStatus = StepperMotorStatusTypes::MOTOR_PLUS_END_SWITCHED_ON;
             return;
         }
 
-        if (leftEndSwitchStatus) {
+        if (negativeSwitchStatus) {
             _motorStatus = StepperMotorStatusTypes::MOTOR_MINUS_END_SWITCHED_ON;
             return;
         }
@@ -257,11 +248,13 @@ namespace mtca4u {
             return;
         }
 
-        unsigned int currentPosition = _motorDriverCardPtr->getMotorControler(_motorDriverId).getActualPosition();
-        if (_setPositionInSteps != currentPosition) {
+        ///unsigned int currentPosition = _motorDriverCardPtr->getMotorControler(_motorDriverId).getActualPosition();
+        if ( _motorControler->getStatus().getStandstillIndicator() == 0) {
             _motorStatus = StepperMotorStatusTypes::MOTOR_IN_MOVE;
             return;
         }
+        
+       
         
         
         if (_setPositionInUnits == _minPositionLimit) {

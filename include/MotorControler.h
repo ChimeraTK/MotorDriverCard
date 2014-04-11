@@ -6,6 +6,7 @@
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 #include "MotorControlerConfig.h"
+#include "MotorReferenceSwitchData.h"
 
 #define DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -46,6 +47,8 @@ namespace mtca4u
     unsigned int getID();
 
     // via direct register access in the fpga
+    // Note: The getters which require hardware accress are not const because they require an SPI write,
+    // and the SPI write cannot be const because it is also used to modify.
 
     unsigned int getActualPosition(); ///< Get the actual position in steps
     unsigned int getActualVelocity(); ///< Get the actual velocity in steps per FIXME
@@ -53,7 +56,7 @@ namespace mtca4u
     unsigned int getMicroStepCount(); ///< Get the micro step value (which units? what does it mean?)
     unsigned int getStallGuardValue(); ///< Get the stall guard value  (which units? what does it mean? Expert?)
     unsigned int getCoolStepValue(); ///< Get the CoolStepValue (in units?, what does it mean? Expert?)
-    unsigned int getStatus(); ///< Get the actual status of the motor driver
+    DriverStatusData getStatus(); ///< Get the status of the motor driver
     unsigned int getDecoderReadoutMode(); ///< Get the decoder readout mode
     unsigned int getDecoderPosition(); ///< Get the decoder position (which units?)
     
@@ -66,6 +69,13 @@ namespace mtca4u
 
     bool isEnabled(); ///< Check whether the motor driver chip is enabled
     
+    MotorReferenceSwitchData getReferenceSwitchData(); ///< Get information about both reference switches of this Motor
+
+    /** Enable or disable the positive reference switch. (true=enabled)*/
+    void setPositiveReferenceSwitchEnabled(bool enableStatus);
+    /** Enable or disable the negative reference switch. (true=enabled)*/
+    void setNegativeReferenceSwitchEnabled(bool enableStatus);
+
     // via spi to the tmc429 motor controler
     /// Set the actual position counter for a recalibration of the actual position
     void setActualPosition(unsigned int steps);
