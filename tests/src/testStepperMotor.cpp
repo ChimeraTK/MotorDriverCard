@@ -4,28 +4,7 @@
 
 
 
-mtca4u::StepperMotorStatus moveToPosition(float newPosition, mtca4u::StepperMotor &motor) {
-    
-    mtca4u::StepperMotorStatus status = motor.getMotorStatus();
-    if (status != mtca4u::StepperMotorStatusTypes::MOTOR_OK)
-        return status;
-    
-    motor.setMotorPosition(newPosition);
-    
-    if (!motor.getAutostart()) {
-        motor.startMotor();
-    }
-    int dummy = 0;
-    do {
-        status = motor.getMotorStatus();
-        if (dummy % 20 == 0)
-            std::cout << dummy << ") Motor in move \n";
-        dummy++;
-    } while( status == mtca4u::StepperMotorStatusTypes::MOTOR_IN_MOVE);
-    std::cout << "Motor status after wait ending: " << status << "\n";
-    return motor.getMotorStatus();
-    
-}
+
 
 
 int main( int argc, char* argv[] ) {
@@ -42,20 +21,20 @@ int main( int argc, char* argv[] ) {
     mtca4u::StepperMotor motor(deviceName, motorDriverId, configFileNameName);
 
     mtca4u::StepperMotorStatus status(motor.getMotorStatus());
-    std::cout << "Current motor status is: " << status.name << "\n";
+    std::cout << "Current motor status is: " << status<< "\n";
     if (status == mtca4u::StepperMotorStatusTypes::MOTOR_DISABLED) {
         std::cout << "Enabling the motor.\n";
         motor.setEnable(true);
     }
 
     status = motor.getMotorStatus();
-    std::cout << "Current motor status is: " << status.name << "\n";
+    std::cout << "Current motor status is: " << status << "\n";
 
     if (status == mtca4u::StepperMotorStatusTypes::MOTOR_IN_ERROR) {
         mtca4u::StepperMotorError error(motor.getMotorError());
-        std::cout << "Motor in error state. Error is: " << error.name << "\n";
+        std::cout << "Motor in error state. Error is: " << error << "\n";
         if (error == mtca4u::StepperMotorErrorTypes::MOTOR_BOTH_ENDSWICHTED_ON) {
-            std::cout << "Both end switches on. Check you hardware." << error.name << "\n";
+            std::cout << "Both end switches on. Check you hardware." << error << "\n";
         }
     } else {
         std::cout << "Disabling autostart.\n";
@@ -77,22 +56,27 @@ int main( int argc, char* argv[] ) {
 
         float currentMotorPosition = motor.getMotorPosition();
         std::cout << "Current motor position is: " << currentMotorPosition << "\n";
-        std::cout << "Move to position: " << currentMotorPosition+1000 << "\n";
-        if (moveToPosition(currentMotorPosition+1000, motor) != mtca4u::StepperMotorStatusTypes::MOTOR_OK) {
+        std::cout << "Move to position: " << currentMotorPosition+10000 << "\n";
+        if (motor.moveToPosition(currentMotorPosition+10000) != mtca4u::StepperMotorStatusTypes::MOTOR_OK) {
             std::cout << "Motor movement failed. Status is: " << motor.getMotorStatus() << std::endl;
         }
-        std::cout << "Current motor position is: " << motor.getMotorPosition() << "\n";
-        sleep(1);
-        std::cout << "Current motor position is: " << motor.getMotorPosition() << "\n";
-    
+        std::cout << "!!!!!!!!!!!!!!Current motor position is: " << motor.getMotorPosition() << "\n";
+         usleep(100000);
+        std::cout << "!!!!!!!!!!!!!!Current motor position is: " << motor.getMotorPosition() << "\n";
+        /*
         std::cout << "Move to position: " << 0<< "\n";
-        if (moveToPosition(0, motor) != mtca4u::StepperMotorStatusTypes::MOTOR_OK) {
+        if (motor.moveToPosition(0) != mtca4u::StepperMotorStatusTypes::MOTOR_OK) {
             std::cout << "Motor movement failed. Status is: " << motor.getMotorStatus() << std::endl;
         }
-        std::cout << "Current motor position is: " << motor.getMotorPosition() << "\n";
-        sleep(1);
-        std::cout << "Current motor position is: " << motor.getMotorPosition() << "\n";
+        std::cout << "!!!!!!!!!!!!!!Current motor position is: " << motor.getMotorPosition() << "\n";
+        usleep(100000);
+        std::cout << "!!!!!!!!!!!!!!Current motor position is: " << motor.getMotorPosition() << "\n";
+         */
     }
+     std::cout << "Calibrate motor\n";
+     motor.calibrateMotor();
+    
+    
     std::cout << "Disabling the motor\n";
     motor.setEnable(false);
     std::cout << "End of Test MotorStepper class !!! \n";

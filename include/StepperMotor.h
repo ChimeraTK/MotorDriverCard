@@ -4,44 +4,37 @@
  *
  * Created on April 8, 2014, 11:49 AM
  */
+
+
+#ifndef MTCA4U_STEPPER_MOTOR_H
+#define	MTCA4U_STEPPER_MOTOR_H
+
 #include <string>
 #include "MotorDriverCardImpl.h"
 #include "MotorControler.h"
 #include <boost/shared_ptr.hpp>
 #include "MotorDriverCardConfigXML.h"
+#include "StatusGeneral.h"
 
-#ifndef MTCA4U_STEPPER_MOTOR_H
-#define	MTCA4U_STEPPER_MOTOR_H
 namespace mtca4u {
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // StepperMotorError structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     class StepperMotorError {
-     
-     public:
-        int id;
-        std::string name;
-        
+     class StepperMotorError :  public StatusGeneral {
+     public:   
         //default constructor
-        StepperMotorError() : id(0), name("No error") {
+        StepperMotorError() : StatusGeneral(0, "NO ERROR") {
         };
         
         //constructor with params
-        StepperMotorError(int itemId, std::string itemName) : id(itemId), name(itemName) {
+        StepperMotorError(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
         };
         
         //copy constructor
-        StepperMotorError(const StepperMotorError &error) : id(error.id), name(error.name){            
+        StepperMotorError(const StepperMotorError &error) : StatusGeneral(error) {            
         }
-        
-        bool operator==(StepperMotorError const& right) const {
-            if (id != right.id) {
-                return false;
-            }
 
-            return true;
-        };
     };
     
     class StepperMotorErrorTypes {
@@ -56,50 +49,27 @@ namespace mtca4u {
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // StepperMotorStatusItem structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    class StepperMotorStatus {
+    class StepperMotorStatus : public StatusGeneral {
     
     public:
-        int id;
-        std::string name;
 
-        StepperMotorStatus() : id(0), name("OK") {
+        StepperMotorStatus() : StatusGeneral(0, "OK") {
         };
         
-        StepperMotorStatus(int itemId, std::string itemName) : id(itemId), name(itemName) {
+        StepperMotorStatus(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
         };
-
         //copy constructor
-        StepperMotorStatus(const StepperMotorStatus &status) : id(status.id), name(status.name){            
+        StepperMotorStatus(const StepperMotorStatus &status) : StatusGeneral(status) {            
         }
         
-        bool operator==(StepperMotorStatus const& right) const {
-            if (id != right.id) {
-                return false;
-            }
-
-            return true;
-        };
-
-        bool operator!=(StepperMotorStatus const& right) const {
-            if (id == right.id) {
-                return false;
-            }
-
-            return true;
-        };
-        
-        friend std::ostream &operator<<(std::ostream &out, const StepperMotorStatus &status) {
-            out << status.name <<"("<<status.id<<")";
-            return out;
-        }
     };
     
     class StepperMotorStatusTypes {
     public:
         static StepperMotorStatus MOTOR_OK;
         static StepperMotorStatus MOTOR_IN_MOVE;
-        static StepperMotorStatus MOTOR_PLUS_END_SWITCHED_ON;
-        static StepperMotorStatus MOTOR_MINUS_END_SWITCHED_ON;
+        static StepperMotorStatus MOTOR_POSITIVE_END_SWITCHED_ON;
+        static StepperMotorStatus MOTOR_NEGATIVE_END_SWITCHED_ON;
         static StepperMotorStatus MOTOR_SOFT_PLUS_END_SWITCHED_ON;
         static StepperMotorStatus MOTOR_SOFT_MINUS_END_SWITCHED_ON;
         static StepperMotorStatus MOTOR_IN_ERROR;
@@ -108,16 +78,31 @@ namespace mtca4u {
 
     };
     // END OF StepperMotorStatusItem structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   
     
+    class StepperMotorCalibrationStatus : public StatusGeneral {
+    public:
+
+        StepperMotorCalibrationStatus() : StatusGeneral(0, "UNKNOWN") {
+        };
+
+        StepperMotorCalibrationStatus(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
+        };
+        //copy constructor
+
+        StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus &status) : StatusGeneral(status) {
+        }
+
+    };
     
     
      class StepperMotorCalibrationStatusType {
      public:
-        static int MOTOR_CALIBRATED;
-        static int MOTOR_NOT_CALIBRATED;
-        static int MOTOR_CALIBRATION_UNKNOWN;
-        static int MOTOR_CALIBRATION_FAILED;
-        static int MOTOR_CALIBRATION_IN_PROGRESS;
+        static StepperMotorCalibrationStatus MOTOR_CALIBRATED;
+        static StepperMotorCalibrationStatus MOTOR_NOT_CALIBRATED;
+        static StepperMotorCalibrationStatus MOTOR_CALIBRATION_UNKNOWN;
+        static StepperMotorCalibrationStatus MOTOR_CALIBRATION_FAILED;
+        static StepperMotorCalibrationStatus MOTOR_CALIBRATION_IN_PROGRESS;
     };   
     
    
@@ -143,6 +128,10 @@ namespace mtca4u {
          */
         ~StepperMotor();
     
+        
+        StepperMotorStatus moveToPosition(float newPosition);
+        
+        
 
         /*! Set new position for the motor. 
          * Motor behavior depends on the Autostart flag value. 
@@ -175,7 +164,7 @@ namespace mtca4u {
         void startMotor();
         void stopMotor();
         void emergencyStopMotor();
-        void calibrateMotor();
+        StepperMotorCalibrationStatus calibrateMotor();
         
         
         // Speed setting
@@ -238,7 +227,7 @@ namespace mtca4u {
         //status and error
         StepperMotorStatus _motorStatus;
         StepperMotorError  _motorError;
-        int _motorCalibrationStatus;
+        StepperMotorCalibrationStatus _motorCalibrationStatus;
         
         //Autostart
         bool _autostartFlag;
