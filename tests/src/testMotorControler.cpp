@@ -42,6 +42,26 @@ void MotorControlerTest::testSet ## NAME (){\
   _motorControler.set ## NAME ( PATTERN );\
   BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & SPI_DATA_MASK) );}
 
+#define DEFINE_SIGNED_GET_SET_TEST( NAME, IDX, NBITS )	\
+void MotorControlerTest::testGet ## NAME (){\
+  SignedIntConverter converter( NBITS );\
+  unsigned int expectedValue = tmc429::testWordFromSpiAddress( _motorControler.getID(),\
+                                                       IDX );\
+  BOOST_CHECK( _motorControler.get ## NAME () == converter.customToThirtyTwo(expectedValue) ); \
+ }\
+void MotorControlerTest::testSet ## NAME (){\
+  unsigned int positiveMask = (1 << (NBITS-1) ) -1 ;\
+  unsigned int negativeBit  = (1 << (NBITS-1) ) ;\
+  _motorControler.set ## NAME ( 0xAAAAAAAA & positiveMask );/* something positive */ \
+  BOOST_CHECK( _motorControler.get ## NAME () == static_cast<int>(0xAAAAAAAA & positiveMask) );\
+  _motorControler.set ## NAME ( (0x55555555 & positiveMask) | negativeBit );/* out of range positive with the custom negative bit active*/ \
+  BOOST_CHECK( _motorControler.get ## NAME () == -static_cast<int>( (0xAAAAAAAA +1) & positiveMask) );/* is interpreted as negative*/ \
+  _motorControler.set ## NAME ( -1 );/* a normal neagative number */	\
+  BOOST_CHECK( _motorControler.get ## NAME () == -1 );\
+  _motorControler.set ## NAME ( 0xFFFFFFFF & ~negativeBit );/* something negative with the negative bit of the custom variable not set*/	\
+  BOOST_CHECK( _motorControler.get ## NAME () == static_cast<int>(0xFFFFFFFF & positiveMask) );/* is interpreted as positive */ \
+}
+
 #define DEFINE_TYPED_GET_SET_TEST( NAME )\
 void MotorControlerTest::testGet ## NAME (){\
   testGetTypedData< NAME >( &MotorControler::get ## NAME );}\
@@ -237,8 +257,8 @@ init_unit_test_suite( int argc, char* argv[] )
       _dummyDevice(dummyDevice){
 }
 
-DEFINE_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 0x555555 )
-DEFINE_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 0xAAAAAA )
+DEFINE_SIGNED_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 24 )
+DEFINE_SIGNED_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 12  )
 DEFINE_GET_SET_TEST( ActualAcceleration, IDX_ACTUAL_ACCELERATION, 0xFFFFFF ) 
 DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA ) 
 
@@ -288,10 +308,10 @@ void MotorControlerTest::testSetIsEnabled(){
   BOOST_CHECK( _motorControler.isEnabled() );
 }
 
-DEFINE_GET_SET_TEST( TargetPosition, IDX_TARGET_POSITION, 0x555555 ) 
+DEFINE_SIGNED_GET_SET_TEST( TargetPosition, IDX_TARGET_POSITION, 24 )
 DEFINE_GET_SET_TEST( MinimumVelocity, IDX_MINIMUM_VELOCITY, 0xFFFFFF )
 DEFINE_GET_SET_TEST( MaximumVelocity, IDX_MAXIMUM_VELOCITY, 0xAAAAAA )
-DEFINE_GET_SET_TEST( TargetVelocity, IDX_TARGET_VELOCITY, 0x555555 )
+DEFINE_SIGNED_GET_SET_TEST( TargetVelocity, IDX_TARGET_VELOCITY, 12 )
 DEFINE_GET_SET_TEST( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION, 0xFFFFFF )
 DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAA )
 DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x555555 )

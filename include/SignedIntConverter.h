@@ -22,7 +22,7 @@ namespace mtca4u{
     /// Although the return value is 32 bit, it is truncated to nBits.
     /// No range check is performed, the bits are just cropped. You might 
     /// lose data!
-    int32_t thrityTwoToCustom(int32_t const & thirtyTwoBitInt);
+    int32_t thirtyTwoToCustom(int32_t const & thirtyTwoBitInt);
 
   private: 
     unsigned int _nBits; ///< the number of bits of the signed int

@@ -18,11 +18,11 @@ BOOST_AUTO_TEST_CASE( from24bits ){
 
 BOOST_AUTO_TEST_CASE( to24bits ){
   SignedIntConverter converter24( 24 );
-  BOOST_CHECK( converter24.thrityTwoToCustom( -1 ) == 0xFFFFFF );
-  BOOST_CHECK( converter24.thrityTwoToCustom( -16 ) == 0xFFFFF0 );
-  BOOST_CHECK( converter24.thrityTwoToCustom( 25 ) == 25 );
-  BOOST_CHECK( converter24.thrityTwoToCustom( 0 ) == 0 );
-  BOOST_CHECK( converter24.thrityTwoToCustom( 0x7FFFFF ) == 0x7FFFFF );
+  BOOST_CHECK( converter24.thirtyTwoToCustom( -1 ) == 0xFFFFFF );
+  BOOST_CHECK( converter24.thirtyTwoToCustom( -16 ) == 0xFFFFF0 );
+  BOOST_CHECK( converter24.thirtyTwoToCustom( 25 ) == 25 );
+  BOOST_CHECK( converter24.thirtyTwoToCustom( 0 ) == 0 );
+  BOOST_CHECK( converter24.thirtyTwoToCustom( 0x7FFFFF ) == 0x7FFFFF );
 }
 
 

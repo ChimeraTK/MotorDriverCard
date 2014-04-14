@@ -7,10 +7,15 @@
 #include "TMC429Words.h"
 #include "MotorControlerConfig.h"
 #include "MotorReferenceSwitchData.h"
+#include "SignedIntConverter.h"
 
 #define DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
   unsigned int get ## NAME ()
+
+#define DECLARE_SIGNED_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
+  void set ## NAME (int VARIABLE_IN_UNITS );	\
+  int get ## NAME ()
 
 #define DECLARE_SET_GET_TYPED_REGISTER( NAME, VARIABLE_NAME )\
   void set ## NAME ( NAME const & VARIABLE_NAME );\
@@ -50,8 +55,8 @@ namespace mtca4u
     // Note: The getters which require hardware accress are not const because they require an SPI write,
     // and the SPI write cannot be const because it is also used to modify.
 
-    unsigned int getActualPosition(); ///< Get the actual position in steps
-    unsigned int getActualVelocity(); ///< Get the actual velocity in steps per FIXME
+    int getActualPosition(); ///< Get the actual position in steps
+    int getActualVelocity(); ///< Get the actual velocity in steps per FIXME
     unsigned int getActualAcceleration(); ///< Get the actual acceleration in steps per square FIXME
     unsigned int getMicroStepCount(); ///< Get the micro step value (which units? what does it mean?)
     unsigned int getStallGuardValue(); ///< Get the stall guard value  (which units? what does it mean? Expert?)
@@ -60,7 +65,7 @@ namespace mtca4u
     unsigned int getDecoderReadoutMode(); ///< Get the decoder readout mode
     unsigned int getDecoderPosition(); ///< Get the decoder position (which units?)
     
-    void setActualVelocity(unsigned int stepsPerFIXME); //FIXME = read only?
+    void setActualVelocity(int stepsPerFIXME); //FIXME = read only?
     void setActualAcceleration(unsigned int stepsPerSquareFIXME);
     //    void setAccelerationThreshold(unsigned int accelerationTreshold);
     void setMicroStepCount(unsigned int microStepCount);
@@ -78,11 +83,11 @@ namespace mtca4u
 
     // via spi to the tmc429 motor controler
     /// Set the actual position counter for a recalibration of the actual position
-    void setActualPosition(unsigned int steps);
-    DECLARE_SET_GET_VALUE( TargetPosition, steps ); ///< Get the target position in steps
+    void setActualPosition(int steps);
+    DECLARE_SIGNED_SET_GET_VALUE( TargetPosition, steps ); ///< Get the target position in steps
     DECLARE_SET_GET_VALUE( MinimumVelocity, stepsPerFIXME );///< Get minimum velocity in FIXME
     DECLARE_SET_GET_VALUE( MaximumVelocity, stepsPerFIXME );///< Get maximum velocity in FIXME
-    DECLARE_SET_GET_VALUE( TargetVelocity, stepsPerFIXME );///< Get target velocity in FIXME
+    DECLARE_SIGNED_SET_GET_VALUE( TargetVelocity, stepsPerFIXME );///< Get target velocity in FIXME
     DECLARE_SET_GET_VALUE( MaximumAcceleration, stepsPerSquareFIXME );///< Get the maximim acceleration in FIXME
     DECLARE_SET_GET_VALUE( PositionTolerance, steps );///< Get the position tolerance in steps
     DECLARE_SET_GET_VALUE( PositionLatched, steps );///< Get the latched position in steps
@@ -159,6 +164,9 @@ namespace mtca4u
        void setTypedDriverData(T const & driverData, T & localDataInstance);
 
      unsigned int _driverSpiWaitingTime;
+
+     SignedIntConverter converter24bits;
+     SignedIntConverter converter12bits;
   };
 
 }// namespace mtca4u
