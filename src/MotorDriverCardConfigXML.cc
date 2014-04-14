@@ -71,6 +71,18 @@ void MotorDriverCardConfigXML::setValueIfFound(std::string const & parameterName
 					       std::string const & tagName){
   pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", 
 								    parameterName.c_str());
+  parameterContent = parameterNode.attribute("value").as_uint( parameterContent, /*default vale*/
+							      0 ); /* readout mode, 
+								      automatic hex and octal detection,
+								      base 10 as default */
+}
+
+void MotorDriverCardConfigXML::setValueIfFound(std::string const & parameterName,
+					       int & parameterContent,
+					       pugi::xml_node const & parentNode,
+					       std::string const & tagName){
+  pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", 
+								    parameterName.c_str());
   parameterContent = parameterNode.attribute("value").as_int( parameterContent, /*default vale*/
 							      0 ); /* readout mode, 
 								      automatic hex and octal detection,
@@ -237,6 +249,18 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
     }
   }
 
+  void MotorDriverCardConfigXML::NodeFiller::addParameter( std::string const & parameterName, 
+							   int value,
+							   int defaultValue,
+							   std::string const & tagName){
+    if ( _writeAlways || (value != defaultValue) ){
+      pugi::xml_node parameterNode = _node.append_child(tagName.c_str());
+      parameterNode.append_attribute("name") = parameterName.c_str();
+      // register content of signed is always written as decimal
+      parameterNode.append_attribute("value") = toDecString(value).c_str();
+    }
+  }
+
   void MotorDriverCardConfigXML::NodeFiller::addParameter( std::string const & registerName, 
 							   TMC429InputWord const & value,
 							   TMC429InputWord const & defaultValue){
@@ -266,11 +290,18 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
     return s.str();
   }
 
-  std::string MotorDriverCardConfigXML::NodeFiller::toDecString(unsigned int value){
+  template<class T>
+  std::string MotorDriverCardConfigXML::NodeFiller::toDecString(T value){
     std::stringstream s;
     s << std::dec << value;
     return s.str();
   }
+
+//  std::string MotorDriverCardConfigXML::NodeFiller::toDecString(int value){
+//    std::stringstream s;
+//    s << std::dec << value;
+//    return s.str();
+//  }
 
 }// namespace mtca4u
 

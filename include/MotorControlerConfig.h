@@ -13,7 +13,7 @@ namespace mtca4u
    */
   struct MotorControlerConfig{
     AccelerationThresholdData accelerationThresholdData;
-    unsigned int actualPosition;
+    int actualPosition;
     ChopperControlData chopperControlData;
     CoolStepControlData coolStepControlData;
     uint32_t decoderReadoutMode;
@@ -30,8 +30,8 @@ namespace mtca4u
     ProportionalityFactorData proportionalityFactorData;
     ReferenceConfigAndRampModeData referenceConfigAndRampModeData;
     StallGuardControlData stallGuardControlData;
-    unsigned int targetPosition; //want it? need it in the config?
-    unsigned int targetVelocity; //want it? need it in the config?
+    int targetPosition; //want it? need it in the config?
+    int targetVelocity; //want it? need it in the config?
 
     unsigned int driverSpiWaitingTime; //< in microseconds
 
