@@ -25,6 +25,15 @@ using namespace mtca4u::tmc429;
   void MotorControler::set ## NAME (unsigned int value){\
   _driverCard.controlerSpiWrite( _id, IDX, value );}
 
+#define DEFINE_SIGNED_GET_SET_VALUE( NAME, IDX , CONVERTER )	\
+  int MotorControler::get ## NAME (){\
+    int readValue = static_cast<int>(_driverCard.controlerSpiRead( _id, IDX ).getDATA()); \
+    return CONVERTER.customToThirtyTwo( readValue );} \
+  void MotorControler::set ## NAME (int value){\
+    unsigned int writeValue = static_cast<unsigned int>(\
+					CONVERTER.thirtyTwoToCustom( value ) );	\
+    _driverCard.controlerSpiWrite( _id, IDX, writeValue );}
+
 #define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( NAME )\
   NAME MotorControler::get ## NAME (){\
     return readTypedRegister< NAME >();}\
@@ -55,7 +64,8 @@ namespace mtca4u
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) ),
       _driverSpiWrite( REG_OBJECT_FROM_SUFFIX( SPI_WRITE_SUFFIX ) ),
-      _driverSpiWaitingTime( motorControlerConfig.driverSpiWaitingTime )
+      _driverSpiWaitingTime( motorControlerConfig.driverSpiWaitingTime ),
+      converter24bits(24), converter12bits(12)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     setActualPosition( motorControlerConfig.actualPosition );
@@ -85,8 +95,10 @@ namespace mtca4u
     return _id;
   }
    
-  unsigned int MotorControler::getActualPosition(){
-    return readRegObject( _actualPosition );
+  int MotorControler::getActualPosition(){
+    int readValue;
+    _actualPosition.readReg( &readValue );
+    return converter24bits.customToThirtyTwo( readValue );
   }
 
   unsigned int MotorControler::readRegObject( devMap<devBase>::regObject const & registerAccessor){
@@ -95,16 +107,20 @@ namespace mtca4u
     return static_cast<unsigned int>(readValue);
   }
 
-  void MotorControler::setActualPosition(unsigned int position){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_POSITION, position );
+  void MotorControler::setActualPosition(int position){
+    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_POSITION,
+       static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)) );
   }
 
-  unsigned int MotorControler::getActualVelocity(){
-    return readRegObject( _actualVelocity );
+  int MotorControler::getActualVelocity(){
+    int readValue;
+    _actualVelocity.readReg( &readValue );
+    return converter12bits.customToThirtyTwo( readValue );
   }
 
-  void MotorControler::setActualVelocity(unsigned int velocity){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_VELOCITY, velocity );
+  void MotorControler::setActualVelocity(int velocity){
+    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_VELOCITY, 
+       static_cast<unsigned int>(converter12bits.thirtyTwoToCustom(velocity)) );
   }
 
   unsigned int MotorControler::getActualAcceleration(){
@@ -157,10 +173,10 @@ namespace mtca4u
      return readRegObject( _enabled );
   }
 
-  DEFINE_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION )
+  DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
   DEFINE_GET_SET_VALUE( MinimumVelocity, IDX_MINIMUM_VELOCITY )
   DEFINE_GET_SET_VALUE( MaximumVelocity, IDX_MAXIMUM_VELOCITY )
-  DEFINE_GET_SET_VALUE( TargetVelocity, IDX_TARGET_VELOCITY )
+  DEFINE_SIGNED_GET_SET_VALUE( TargetVelocity, IDX_TARGET_VELOCITY , converter12bits )
   DEFINE_GET_SET_VALUE( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION )
   DEFINE_GET_SET_VALUE( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE )
   DEFINE_GET_SET_VALUE( PositionLatched, IDX_POSITION_LATCHED )

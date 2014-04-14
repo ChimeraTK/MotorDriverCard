@@ -17,7 +17,7 @@ namespace mtca4u{
     }
   }
   
-  int32_t SignedIntConverter::thrityTwoToCustom(int32_t const & thirtyTwoBitInt){
+  int32_t SignedIntConverter::thirtyTwoToCustom(int32_t const & thirtyTwoBitInt){
     // just crop the 32 bit int. no range check
     return thirtyTwoBitInt & _bitMask;
   }
