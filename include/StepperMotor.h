@@ -66,15 +66,15 @@ namespace mtca4u {
     
     class StepperMotorStatusTypes {
     public:
-        static StepperMotorStatus MOTOR_OK;
-        static StepperMotorStatus MOTOR_IN_MOVE;
-        static StepperMotorStatus MOTOR_POSITIVE_END_SWITCHED_ON;
-        static StepperMotorStatus MOTOR_NEGATIVE_END_SWITCHED_ON;
-        static StepperMotorStatus MOTOR_SOFT_PLUS_END_SWITCHED_ON;
-        static StepperMotorStatus MOTOR_SOFT_MINUS_END_SWITCHED_ON;
-        static StepperMotorStatus MOTOR_IN_ERROR;
-        static StepperMotorStatus MOTOR_DISABLED;
-        static StepperMotorStatus MOTOR_CONFIGURATION_ERROR;
+        static StepperMotorStatus M_OK;
+        static StepperMotorStatus M_IN_MOVE;
+        static StepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
+        static StepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
+        static StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
+        static StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
+        static StepperMotorStatus M_ERROR;
+        static StepperMotorStatus M_DISABLED;
+        static StepperMotorStatus M_CONFIGURATION_ERROR;
 
     };
     // END OF StepperMotorStatusItem structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -98,11 +98,12 @@ namespace mtca4u {
     
      class StepperMotorCalibrationStatusType {
      public:
-        static StepperMotorCalibrationStatus MOTOR_CALIBRATED;
-        static StepperMotorCalibrationStatus MOTOR_NOT_CALIBRATED;
-        static StepperMotorCalibrationStatus MOTOR_CALIBRATION_UNKNOWN;
-        static StepperMotorCalibrationStatus MOTOR_CALIBRATION_FAILED;
-        static StepperMotorCalibrationStatus MOTOR_CALIBRATION_IN_PROGRESS;
+        static StepperMotorCalibrationStatus M_CALIBRATED;
+        static StepperMotorCalibrationStatus M_NOT_CALIBRATED;
+        static StepperMotorCalibrationStatus M_CALIBRATION_UNKNOWN;
+        static StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
+        static StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
+        static StepperMotorCalibrationStatus M_CALIBRATION_STOPED_BY_USER;
     };   
     
    
@@ -130,7 +131,7 @@ namespace mtca4u {
     
         
         StepperMotorStatus moveToPosition(float newPosition);
-        
+        void setCurrentMotorPositionAs(float newPosition);
         
 
         /*! Set new position for the motor. 
@@ -165,6 +166,7 @@ namespace mtca4u {
         void stopMotor();
         void emergencyStopMotor();
         StepperMotorCalibrationStatus calibrateMotor();
+        StepperMotorCalibrationStatus getCalibrationStatus();
         
         
         // Speed setting
@@ -212,8 +214,8 @@ namespace mtca4u {
         unsigned int _currentPostionsInSteps;
         float _currentPostionsInUnits;
         
-        unsigned int _setPositionInSteps;
-        float _setPositionInUnits;
+        unsigned int _targetPositionInSteps;
+        float _targetPositionInUnits;
         
         
         //position limts
@@ -232,9 +234,15 @@ namespace mtca4u {
         //Autostart
         bool _autostartFlag;
         
+        //Stop motor flag for blocking functions
+        bool _stopMotorForBlocking;
         
-
-
+        //calibration
+        int _calibNegativeEndSwitchAtSteps;
+        int _calibNegativeEndSwitchAtUnits;
+        
+        int _calibPositiveEndSwitchAtSteps;
+        int _calibPositiveEndSwitchAtUnits;
  
     };
 

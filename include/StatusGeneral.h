@@ -19,6 +19,8 @@ namespace mtca4u {
         bool operator==(StatusGeneral const& right) const;
 
         bool operator!=(StatusGeneral const& right) const;
+        
+        std::string asString() const;
 
         friend std::ostream &operator<<(std::ostream &out, const StatusGeneral &status);
     };

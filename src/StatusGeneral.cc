@@ -1,5 +1,6 @@
 #include "StatusGeneral.h"
 #include <ostream>
+#include <sstream>
 
 
 namespace mtca4u {
@@ -27,6 +28,12 @@ namespace mtca4u {
             }
 
             return true;
+        }
+        
+        std::string StatusGeneral::asString() const {
+            std::ostringstream stream;
+            stream << name <<"("<<id<<")";
+            return stream.str();
         }
         
         std::ostream &operator<<(std::ostream &out, const StatusGeneral &status) {
