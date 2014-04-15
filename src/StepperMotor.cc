@@ -99,8 +99,12 @@ namespace mtca4u {
         
         _currentPostionsInSteps = this->recalculateUnitsToSteps(newPosition);
         _targetPositionInSteps = this->recalculateUnitsToSteps(newPosition);
-        
+        bool enable = _motorControler->isEnabled();
+        _motorControler->setEnabled(false);
         _motorControler->setActualPosition(_currentPostionsInSteps);
+        _motorControler->setTargetPosition(_currentPostionsInSteps);
+        _motorControler->setEnabled(enable);
+       
     }
     
     StepperMotorStatus StepperMotor::moveToPosition(float newPosition) {
@@ -143,7 +147,7 @@ namespace mtca4u {
         } while (continueWaiting);
         
         status = this->getMotorStatus();
-        std::cout << "StepperMotor::moveToPosition : Motor status after wait ending: " << status << "\n";
+        //std::cout << "StepperMotor::moveToPosition : Motor status after wait ending: " << status << "\n";
 
         return this->getMotorStatus();
 
@@ -303,13 +307,13 @@ namespace mtca4u {
         _targetPositionInSteps = currentPosition;
         _targetPositionInUnits = recalculateStepsToUnits(currentPosition);
         _motorControler->setTargetPosition(currentPosition);
-        
+        /*
         if (this->getMotorStatus() == StepperMotorStatusTypes::M_IN_MOVE) {
             while (this->getMotorStatus() == StepperMotorStatusTypes::M_IN_MOVE) {
                 std::cout << "StepperMotor::stopMotor : Wait to change status for M_IN_MOVE to other.\n" << std::flush;
             }
         }
-        
+        */
         
     }
 
