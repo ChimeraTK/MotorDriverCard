@@ -218,8 +218,8 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
      BOOST_CHECK( motorControlerConfig.referenceConfigAndRampModeData.getDATA()
 		  == motorControler.getReferenceConfigAndRampModeData().getDATA() );
      BOOST_CHECK( motorControlerConfig.stallGuardControlData ==  motorControler.getStallGuardControlData() );
-     BOOST_CHECK( motorControlerConfig.targetPosition = motorControler.getTargetPosition() );
-     BOOST_CHECK( motorControlerConfig.targetVelocity =  motorControler.getTargetVelocity() );
+     BOOST_CHECK( motorControlerConfig.targetPosition == motorControler.getTargetPosition() );
+     BOOST_CHECK( motorControlerConfig.targetVelocity ==  motorControler.getTargetVelocity() );
   }
 
 }

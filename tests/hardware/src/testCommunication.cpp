@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
   time_t startingTime = time(NULL);
   time_t lastPrintTime = startingTime;
 
-  unsigned int initialTargetPosition[2] = {motor0.getTargetPosition(), motor1.getTargetPosition()};
+  int initialTargetPosition[2] = {motor0.getTargetPosition(), motor1.getTargetPosition()};
   unsigned int initialMinVelocity[2] = {motor0.getMinimumVelocity(), motor1.getMinimumVelocity()};
   unsigned int initialMaxVelocity[2] = {motor0.getMaximumVelocity(), motor1.getMaximumVelocity()};
   unsigned int initialMaxAcceleration[2] = {motor0.getMaximumAcceleration(), motor1.getMaximumAcceleration()};

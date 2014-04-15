@@ -49,7 +49,7 @@ class  MotorDriverCardConfigXMLTest
   MotorDriverCardConfig secondHalfCardConfig; ///< second half differs from default  
 
   MotorControlerConfig defaultControlerConfig;
-  MotorControlerConfig plusOneControlerConfig; // all values are default + 1, true <-> false
+  MotorControlerConfig plusOneControlerConfig; // all values are default + 1, true <-> false, signed values are -(default+1)
 
   void checkControlerConfig( MotorControlerConfig const & inputControlerConfig,
 			     unsigned int motorID);
@@ -85,7 +85,7 @@ init_unit_test_suite( int argc, char* argv[] )
 
 MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
   ASSIGN_PLUS_ONE_CONTROLER( accelerationThresholdData );
-  plusOneControlerConfig.actualPosition++;
+  plusOneControlerConfig.actualPosition = -(plusOneControlerConfig.actualPosition+1);
   ASSIGN_PLUS_ONE_CONTROLER( chopperControlData );
   ASSIGN_PLUS_ONE_CONTROLER( coolStepControlData );
   plusOneControlerConfig.decoderReadoutMode++;
@@ -102,8 +102,8 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
   ASSIGN_PLUS_ONE_CONTROLER( proportionalityFactorData );
   ASSIGN_PLUS_ONE_CONTROLER( referenceConfigAndRampModeData );
   ASSIGN_PLUS_ONE_CONTROLER( stallGuardControlData );
-  plusOneControlerConfig.targetPosition++;
-  plusOneControlerConfig.targetVelocity++;
+  plusOneControlerConfig.targetPosition = -(plusOneControlerConfig.targetPosition+1);
+  plusOneControlerConfig.targetVelocity = -(plusOneControlerConfig.targetVelocity+1);
   plusOneControlerConfig.driverSpiWaitingTime++;
 
   completeCardConfig.coverDatagram++;

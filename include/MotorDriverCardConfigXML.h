@@ -26,6 +26,9 @@ namespace mtca4u{
     static void setValueIfFound(std::string const & parameterName, unsigned int & parameterContent,
 				pugi::xml_node const & parentNode, std::string const & tagName = "Register");
 
+    static void setValueIfFound(std::string const & parameterName, int & parameterContent,
+				pugi::xml_node const & parentNode, std::string const & tagName = "Register");
+
     static void setValueIfFound(std::string const & registerName, TMC429InputWord & inputWord,
 				pugi::xml_node const & parentNode);
 
@@ -42,6 +45,8 @@ namespace mtca4u{
       NodeFiller(pugi::xml_node & node, bool sparse);
       void addParameter( std::string const & parameterName, unsigned int value,
 			unsigned int defaultValue, std::string const & tagName = "Register");
+      void addParameter( std::string const & parameterName, int value,
+			int defaultValue, std::string const & tagName = "Register");
       void addParameter( std::string const & registerName, TMC429InputWord const & value,
 			TMC429InputWord const & defaultValue);
       void addParameter( std::string const & registerName, TMC260Word const & value,
@@ -53,7 +58,8 @@ namespace mtca4u{
       bool _writeAlways;
 
       std::string toHexString(unsigned int value);
-      std::string toDecString(unsigned int value);
+      template<class T> std::string toDecString(T value);
+      //std::string toDecString(int value);
     };
   };
 
