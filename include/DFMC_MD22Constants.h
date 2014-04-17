@@ -9,14 +9,20 @@ namespace mtca4u{
 
 namespace dfmc_md22{
 
-  std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_SPI_CTRL";
-  std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_SPI_CTRL_B";
+  std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
+  std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
+  std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_WRITE_SYNC";
+
+  uint32_t const SPI_SYNC_OK = 0;
+  uint32_t const SPI_SYNC_REQUESTED = 0xFF;
+  uint32_t const SPI_SYNC_ERROR = 0xAA;
 
   uint32_t const N_MOTORS_MAX = 2;
 
   std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
   
   std::string const SPI_WRITE_SUFFIX = "SPI_WRITE";
+  std::string const SPI_SYNC_SUFFIX = "WRITE_SYNC";
   std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
   std::string const ACTUAL_VELOCITY_SUFFIX = "V_ACTUAL";
   std::string const ACTUAL_ACCELETATION_SUFFIX = "ACT_ACCEL";
