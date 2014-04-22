@@ -58,6 +58,16 @@ namespace mtca4u{
      */
     void setDriverSpiRegistersForTesting();
 
+    /** The dummy does not react on the SPI write registers if this flag is set true.
+     */
+    void causeSpiTimeouts(bool causeTimeouts);
+
+    /** The dummy always reports an SPI error in the sync registers if this flag is set true.
+     */
+    void causeSpiErrors(bool causeErrors);
+
+    
+
   private:
     // callback functions
     void handleControlerSpiWrite();
@@ -92,9 +102,19 @@ namespace mtca4u{
     void setControlerSpiRegistersForOperation();
     void setControlerSpiRegistersForTesting();
 
-    /// each driver has it's own address space vector<uint>
-    std::vector< std::vector<unsigned int> > _driverSpiAddressSpaces;
-    std::vector< std::pair< unsigned int, unsigned int > > _driverSpiWriteBarAndAddresses;
+    /// Helper struct to simulate the spi for one driver
+    struct DriverSPI{
+      /// each driver has it's own address space vector<uint>
+       std::vector<unsigned int> addressSpace;
+      unsigned int bar;
+      unsigned int pcieWriteAddress;
+      unsigned int pcieSyncAddress;
+    };
+
+    std::vector< DriverSPI > _driverSPIs;
+
+    bool _causeSpiTimeouts;
+    bool _causeSpiErrors;
   };
 }// namespace mtca4u
 

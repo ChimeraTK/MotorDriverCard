@@ -5,6 +5,7 @@
 #include <cerrno>
 
 #include <MtcaMappedDevice/NotImplementedException.h>
+#include "MotorDriverException.h" 
 #include "MotorDriverCardImpl.h"
 using namespace mtca4u::tmc429;
 
@@ -90,7 +91,7 @@ namespace mtca4u{
     }
 
     if (static_cast<unsigned int>(readbackValue)==INVALID_SPI_READBACK_VALUE){
-      throw( MotorDriverException("spi read timed out", MotorDriverException::SPI_READ_TIMEOUT) ); 
+      throw( MotorDriverException("spi read timed out", MotorDriverException::SPI_TIMEOUT) ); 
     }
 
     return TMC429OutputWord(static_cast<unsigned int>(readbackValue));
@@ -109,7 +110,7 @@ namespace mtca4u{
 	std::stringstream errorMessage;
 	errorMessage << "Error sleeping " << microSeconds << " micro seconds!";
 	throw( MotorDriverException(errorMessage.str(),
-				    MotorDriverException::SPI_READ_TIMEOUT));
+				    MotorDriverException::SPI_TIMEOUT));
       }
     }
   }

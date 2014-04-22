@@ -9,6 +9,8 @@ using namespace boost::unit_test_framework;
 #include "SPIviaPCIe.h"
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
+#include "TMC260Words.h"
+#include "MotorDriverException.h" 
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 
@@ -78,14 +80,56 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName)
 					      CONTROLER_SPI_SYNC_ADDRESS_STRING,
 					      CONTROLER_SPI_READBACK_ADDRESS_STRING ) );
 
-  _writeSPIviaPCIe.reset( new SPIviaPCIe( _mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
-					  CONTROLER_SPI_SYNC_ADDRESS_STRING ) );
+  _writeSPIviaPCIe.reset( new SPIviaPCIe( _mappedDevice, MOTOR_REGISTER_PREFIX+"2_"+SPI_WRITE_SUFFIX,
+					  MOTOR_REGISTER_PREFIX+"2_"+SPI_SYNC_SUFFIX) );
 }
 
 void SPIviaPCIeTest::testRead(){
-  BOOST_FAIL( "Not implemented yet" );
+  BOOST_ERROR( "Not implemented yet" );
 }
 
 void SPIviaPCIeTest::testWrite(){
-  BOOST_FAIL( "Not implemented yet" );
+  // This test is hard coded against the dummy implementation of the TCM260 driver chip
+  for (uint32_t motorID = 1; motorID < dfmc_md22::N_MOTORS_MAX ; ++motorID){
+    // the readDriverSpiRegister is a debug function of the dummy which bypasses the SPI interface
+    unsigned int registerContent = _dummyDevice->readDriverSpiRegister( motorID,
+									ChopperControlData().getAddress() );
+
+    ChopperControlData chopperControlData( registerContent+5 );
+    BOOST_CHECK_NO_THROW( _writeSPIviaPCIe->write( chopperControlData.getDataWord() ) );
+
+    BOOST_CHECK(  _dummyDevice->readDriverSpiRegister( motorID,	ChopperControlData().getAddress() ) ==
+		  chopperControlData.getPayloadData() );
+
+    // test the error cases
+    _dummyDevice->causeSpiTimeouts(true);
+    chopperControlData.setPayloadData( chopperControlData.getPayloadData() +1 );
+    try{
+      _writeSPIviaPCIe->write( chopperControlData.getDataWord() );
+      BOOST_ERROR( "SPIviaPCIe::write did not throw as expected." );
+    }catch( MotorDriverException & e ){
+      if (e.getID() != MotorDriverException::SPI_TIMEOUT){
+	BOOST_ERROR( std::string("SPIviaPCIe::write did not throw the right exception ID. Error message: ")
+		     + e.what() );
+      }
+    }
+    BOOST_CHECK(  _dummyDevice->readDriverSpiRegister( motorID,	ChopperControlData().getAddress() ) ==
+		  chopperControlData.getPayloadData()-1 );
+    _dummyDevice->causeSpiTimeouts(false);
+
+    _dummyDevice->causeSpiErrors(true);
+    try{
+      _writeSPIviaPCIe->write( chopperControlData.getDataWord() );
+      BOOST_ERROR( "SPIviaPCIe::write did not throw as expected." );
+    }catch( MotorDriverException & e ){
+      if (e.getID() != MotorDriverException::SPI_ERROR){
+	BOOST_ERROR( std::string("SPIviaPCIe::write did not throw the right exception ID. Error message: ")
+		     + e.what() );
+      }
+    }
+    BOOST_CHECK(  _dummyDevice->readDriverSpiRegister( motorID,	ChopperControlData().getAddress() ) ==
+		  chopperControlData.getPayloadData()-1 );
+    _dummyDevice->causeSpiErrors(false);
+  }
+  
 }

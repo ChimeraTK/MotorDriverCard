@@ -2,6 +2,7 @@
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
 #include <MtcaMappedDevice/NotImplementedException.h>
+#include "MotorDriverException.h"
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -24,7 +25,7 @@ namespace mtca4u{
  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
 				    _controlerSpiWriteAddress(0), _controlerSpiWriteBar(0),
 				    _controlerSpiReadbackAddress(0), _controlerSpiReadbackBar(0),
-				    _powerIsUp(true){
+				   _powerIsUp(true), _causeSpiTimeouts(false), _causeSpiErrors(false){
   }
 
   void DFMC_MD22Dummy::openDev(const std::string &mappingFileName, int perm,
@@ -51,8 +52,7 @@ namespace mtca4u{
     setWriteCallbackFunction( controlerSpiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleControlerSpiWrite, this ) );
 
 
-    _driverSpiAddressSpaces.resize( N_MOTORS_MAX );
-    _driverSpiWriteBarAndAddresses.resize( N_MOTORS_MAX );
+    _driverSPIs.resize( N_MOTORS_MAX );
     for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
 			    createMotorRegisterName( id, ACTUAL_POSITION_SUFFIX ) );
@@ -67,19 +67,24 @@ namespace mtca4u{
 			    createMotorRegisterName( id, MICRO_STEP_COUNT_SUFFIX ) );
       setReadOnly( microStepCountAddressRange );
 
-      _driverSpiAddressSpaces[id].resize(tmc260::SIZE_OF_SPI_ADDRESS_SPACE, 0);
+      _driverSPIs[id].addressSpace.resize(tmc260::SIZE_OF_SPI_ADDRESS_SPACE, 0);
       setDriverSpiRegistersForTesting(id);
 
       DEFINE_ADDRESS_RANGE( driverSpiWriteAddressRange,
 			    createMotorRegisterName( id, SPI_WRITE_SUFFIX ) );
-      _driverSpiWriteBarAndAddresses[id]=std::make_pair( static_cast<unsigned int>(driverSpiWriteAddressRange.bar),
-							 driverSpiWriteAddressRange.offset );
+      DEFINE_ADDRESS_RANGE( driverSpiSyncAddressRange,
+			    createMotorRegisterName( id, SPI_SYNC_SUFFIX ) );
+      if ( driverSpiWriteAddressRange.bar != driverSpiSyncAddressRange.bar ){
+	throw MotorDriverException("SPI write and sync address must be in the same bar",
+				   MotorDriverException::SPI_ERROR );
+      }
+
+      _driverSPIs[id].bar = static_cast<unsigned int>(driverSpiWriteAddressRange.bar);
+      _driverSPIs[id].pcieWriteAddress = driverSpiWriteAddressRange.offset;
+      _driverSPIs[id].pcieSyncAddress = driverSpiSyncAddressRange.offset;
       setWriteCallbackFunction( driverSpiWriteAddressRange, 
 				boost::bind( &DFMC_MD22Dummy::handleDriverSpiWrite, this, id) );
     }
-
-    //    setWriteCallbackFunction( 
-
   }
 
   void DFMC_MD22Dummy::setPCIeRegistersForTesting(){
@@ -93,8 +98,8 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::setDriverSpiRegistersForTesting(unsigned int motorID){
-    for(unsigned int address = 0; address < _driverSpiAddressSpaces[motorID].size(); ++address){
-      _driverSpiAddressSpaces[motorID][address]= tmc260::testWordFromSpiAddress(address, motorID);
+    for(unsigned int address = 0; address < _driverSPIs[motorID].addressSpace.size(); ++address){
+      _driverSPIs[motorID].addressSpace[address]= tmc260::testWordFromSpiAddress(address, motorID);
     }
   }
 
@@ -139,13 +144,37 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::handleDriverSpiWrite(unsigned int ID){
-    unsigned int bar =  _driverSpiWriteBarAndAddresses[ID].first;
-    unsigned int pcieAddress =  _driverSpiWriteBarAndAddresses[ID].second;
-    unsigned int writtenSpiWord = _barContents[bar].at(pcieAddress/sizeof(int32_t));
+    //debug functionality: cause timeouts by ignoring spi writes
+    if (_causeSpiTimeouts){
+      return;
+    }
+
+    unsigned int bar =  _driverSPIs[ID].bar;
+    unsigned int writeIndex =  _driverSPIs[ID].pcieWriteAddress/sizeof(int32_t);
+    unsigned int syncIndex =  _driverSPIs[ID].pcieSyncAddress/sizeof(int32_t);
+
+    //debug functionality: cause errors
+    if (_causeSpiErrors){
+      std::cout << "causing errors " << std::endl;
+      _barContents[bar].at( syncIndex ) = SPI_SYNC_ERROR;
+      return;
+    }
+
+    // check the sync register
+    if ( _barContents[bar].at( syncIndex ) != SPI_SYNC_REQUESTED){
+      _barContents[bar].at( syncIndex ) = SPI_SYNC_ERROR;
+      return;
+    }
+
+    // perform the SPI transfer
+    unsigned int writtenSpiWord = _barContents[bar].at(writeIndex);
     unsigned int spiAddress = tmc260::spiAddressFromDataWord(writtenSpiWord);
     unsigned int payloadDataMask = tmc260::dataMaskFromSpiAddress(spiAddress);
 
-    _driverSpiAddressSpaces.at(ID).at(spiAddress) = writtenSpiWord & payloadDataMask;
+    _driverSPIs[ID].addressSpace.at(spiAddress) = writtenSpiWord & payloadDataMask;
+
+    // SPI transfer ready, set the sync register to ok
+    _barContents[bar].at( syncIndex ) = SPI_SYNC_OK;    
   }
 
   void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content,
@@ -223,7 +252,7 @@ namespace mtca4u{
   }
 
   unsigned int DFMC_MD22Dummy::readDriverSpiRegister( unsigned int motorID, unsigned int driverSpiAddress ){
-    return _driverSpiAddressSpaces.at(motorID).at(driverSpiAddress);
+    return _driverSPIs.at(motorID).addressSpace.at(driverSpiAddress);
   }
   //_WORD_M1_THRESHOLD_ACCEL
 
@@ -235,6 +264,14 @@ namespace mtca4u{
     for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       setDriverSpiRegistersForTesting(id);
     }
+  }
+
+  void  DFMC_MD22Dummy::causeSpiTimeouts(bool causeTimeouts){
+    _causeSpiTimeouts = causeTimeouts;
+  }
+
+  void  DFMC_MD22Dummy::causeSpiErrors(bool causeErrors){
+    _causeSpiErrors = causeErrors;
   }
 
 }// namespace mtca4u

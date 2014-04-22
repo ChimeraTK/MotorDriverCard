@@ -13,9 +13,9 @@ namespace dfmc_md22{
   std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
   std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
 
-  uint32_t const SPI_SYNC_OK = 0;
-  uint32_t const SPI_SYNC_REQUESTED = 0xFF;
-  uint32_t const SPI_SYNC_ERROR = 0xAA;
+  int32_t const SPI_SYNC_OK = 0;
+  int32_t const SPI_SYNC_REQUESTED = 0xFF;
+  int32_t const SPI_SYNC_ERROR = 0xAA;
 
   uint32_t const N_MOTORS_MAX = 2;
 

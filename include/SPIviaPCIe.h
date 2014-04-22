@@ -26,13 +26,13 @@ namespace mtca4u{
 		std::string const & writeRegisterName, std::string const & syncRegisterName,
 		std::string const & readbackRegisterName );
 
-    uint32_t read( uint32_t spiCommand ); ///< Write the command and return the readback value.
+    uint32_t read( int32_t spiCommand ); ///< Write the command and return the readback value.
 
     /** Write the spi command. This methods blocks until the firmware has returned either success
      *  or an error.
      *  @fixme This function should have a timeout. Use asio?
      */
-    void write( uint32_t spiCommand );
+    void write( int32_t spiCommand );
 
   private:
     // No need to keep an instance of the mappedDevice shared pointer. Each accessor has one.

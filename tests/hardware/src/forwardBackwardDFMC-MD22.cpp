@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "MotorDriverCardImpl.h"
+#include "MotorDriverException.h"
 #include "MotorDriverCardConfigXML.h"
 #include <unistd.h>
 #include <signal.h>

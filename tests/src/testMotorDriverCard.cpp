@@ -3,6 +3,7 @@ using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
+#include "MotorDriverException.h"
 #include <MtcaMappedDevice/devMap.h>
 #include <MtcaMappedDevice/libmap.h>
 

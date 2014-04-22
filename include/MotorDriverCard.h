@@ -2,23 +2,11 @@
 #define MTCA4U_MOTOR_DRIVER_CARD_H
 
 #include "TMC429Words.h"
-#include <MtcaMappedDevice/exBase.h>
 
 namespace mtca4u
 {
   class MotorControler;
   class PowerMonitor;
-
-  class MotorDriverException: public mtca4u::exBase {
-  public:
-    
-    enum {  WRONG_MOTOR_ID, SPI_READ_TIMEOUT };
-    
-    MotorDriverException(const std::string & message, unsigned int id):
-      exBase(message, id) {}
-    virtual ~MotorDriverException() throw(){}
-  };
-
 
   /**
    * A class to access the DFMC-MD22 motor driver card, which provides two 
