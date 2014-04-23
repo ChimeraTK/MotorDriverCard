@@ -25,6 +25,7 @@ class SPIviaPCIeTest{
 
   void testRead();
   void testWrite();
+  void testGetSetWaitingTime();
 
  private:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
@@ -53,6 +54,8 @@ public:
 
     add( writeTestCase );
     add( readTestCase );
+    add( BOOST_CLASS_TEST_CASE( &SPIviaPCIeTest::testGetSetWaitingTime, spiViaPCIeTest ) );
+		       
   }
 };
 
@@ -175,4 +178,11 @@ void SPIviaPCIeTest::testWrite(){
     _dummyDevice->causeSpiErrors(false);
   }
   
+}
+
+void SPIviaPCIeTest::testGetSetWaitingTime(){
+  BOOST_CHECK( _writeSPIviaPCIe->getSpiWaitingTime() == SPIviaPCIe::SPI_DEFAULT_WAITING_TIME );
+  
+  _writeSPIviaPCIe->setSpiWaitingTime( 2*SPIviaPCIe::SPI_DEFAULT_WAITING_TIME );
+  BOOST_CHECK( _writeSPIviaPCIe->getSpiWaitingTime() == 2*SPIviaPCIe::SPI_DEFAULT_WAITING_TIME );
 }

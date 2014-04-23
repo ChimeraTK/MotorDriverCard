@@ -10,6 +10,8 @@ namespace mtca4u{
    */
   class SPIviaPCIe{
   public:
+    static unsigned int const SPI_DEFAULT_WAITING_TIME = 40; ///< microseconds
+
     /** Constructor for write-only implementations.
      *  It intentionally is overloaded and not a version with an invalid default value for the 
      *  readback register because the register accessors have to be implemented in the initialiser list,
@@ -17,22 +19,43 @@ namespace mtca4u{
      *
      *  The spi command has to be composed by the calling code in order to keep this class
      *  universal.
+     *
+     *  The spiWaitingTime is in microseconds. It defaults to 40 microseconds which should be ok for
+     *  writing 32 bits at 1 MHz.
      */
     SPIviaPCIe( boost::shared_ptr< devMap<devBase> > & mappedDevice,
-		std::string const & writeRegisterName, std::string const & syncRegisterName );
+		std::string const & writeRegisterName, std::string const & syncRegisterName,
+		unsigned int spiWaitingTime =SPI_DEFAULT_WAITING_TIME );
 
     /// Constructor for write and readback.
     SPIviaPCIe( boost::shared_ptr< devMap<devBase> > & mappedDevice,
 		std::string const & writeRegisterName, std::string const & syncRegisterName,
-		std::string const & readbackRegisterName );
+		std::string const & readbackRegisterName,
+		unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME );
 
     uint32_t read( int32_t spiCommand ); ///< Write the command and return the readback value.
 
     /** Write the spi command. This methods blocks until the firmware has returned either success
-     *  or an error.
-     *  @fixme This function should have a timeout. Use asio?
+     *  or an error. In case of an error a MotorDriverException is thrown.
+     *  After 10 waiting cycles and checks of the synchronisation register the operation is
+     *  timed out and a MotorDriverException is thrown.
+     *
+     *  @throw MotorDriverException
      */
     void write( int32_t spiCommand );
+
+    /** The FPGA needs some time to perform the SPI communication to the connected chip.
+     *  This is the waiting time between the checks of the synchronisation register.
+     *  It should be set to approximately the time needed for the SPI communication (a little bit
+     *  larger to compensate for time jitter, so only one waiting cycle is needed).
+     *  Don't set it to 0 because after 10 attempts without valid synchronisation the read/write operation
+     *  is timed out and an error is reported.
+     */
+    void setSpiWaitingTime(unsigned int microSeconds);
+    
+    /** Read back the waiting time which is set.
+     */
+    unsigned int getSpiWaitingTime() const;
 
   private:
     // No need to keep an instance of the mappedDevice shared pointer. Each accessor has one.
@@ -40,6 +63,11 @@ namespace mtca4u{
     mtca4u::devMap<devBase>::regObject _synchronisationRegister;
     mtca4u::devMap<devBase>::regObject _readbackRegister;
 
+    static void sleepMicroSeconds(unsigned int microSeconds);
+    /** Time in microseconds to wait for the transaction to be finished on the SPI bus
+     */
+    
+    unsigned int _spiWaitingTime;
   };
 
 //  class TMC429SPI{
