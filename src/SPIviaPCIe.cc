@@ -54,4 +54,17 @@ namespace mtca4u{
     }
   }
 
+  uint32_t SPIviaPCIe::read( int32_t spiCommand ){
+    // @fixme this has to be locked by a RECURSIVE mutex
+
+    // this is easy: the write does all the sync. And after a successful sync we know that the 
+    // readback word is valid.
+    write( spiCommand );
+
+    int32_t readbackValue;
+    _readbackRegister.readReg( &readbackValue );
+
+    return readbackValue;
+  }
+
 }// namespace mtca4u

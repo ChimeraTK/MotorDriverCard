@@ -76,9 +76,9 @@ namespace mtca4u{
     // members
     std::vector<unsigned int> _controlerSpiAddressSpace;
     uint32_t _controlerSpiWriteAddress;
-    uint32_t _controlerSpiWriteBar;
+    uint32_t _controlerSpiBar;
     uint32_t _controlerSpiReadbackAddress;
-    uint32_t _controlerSpiReadbackBar;
+    uint32_t _controlerSpiSyncAddress;
     bool _powerIsUp;
     
     // internal and helper functions

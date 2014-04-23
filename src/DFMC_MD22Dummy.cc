@@ -23,8 +23,6 @@ using namespace mtca4u::tmc429;
 namespace mtca4u{
 
  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
-				    _controlerSpiWriteAddress(0), _controlerSpiWriteBar(0),
-				    _controlerSpiReadbackAddress(0), _controlerSpiReadbackBar(0),
 				   _powerIsUp(true), _causeSpiTimeouts(false), _causeSpiErrors(false){
   }
 
@@ -41,13 +39,23 @@ namespace mtca4u{
     mapFile::mapElem registerInformation;
     DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING );
     _controlerSpiWriteAddress = registerInformation.reg_address;
-    _controlerSpiWriteBar = registerInformation.reg_bar;
+    _controlerSpiBar = registerInformation.reg_bar;
 
     _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation );
+    if ( _controlerSpiBar != registerInformation.reg_bar ){
+      throw MotorDriverException("SPI write and readback address must be in the same bar",
+				 MotorDriverException::SPI_ERROR );
+    }
     _controlerSpiReadbackAddress = registerInformation.reg_address;
-    _controlerSpiReadbackBar = registerInformation.reg_bar;
     setReadOnly(registerInformation.reg_address, registerInformation.reg_size,
 		registerInformation.reg_bar);
+
+    _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation );
+    if ( _controlerSpiBar != registerInformation.reg_bar ){
+      throw MotorDriverException("SPI write and sync address must be in the same bar",
+				 MotorDriverException::SPI_ERROR );
+    }
+    _controlerSpiSyncAddress = registerInformation.reg_address;
     
     setWriteCallbackFunction( controlerSpiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleControlerSpiWrite, this ) );
 
@@ -128,8 +136,27 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::handleControlerSpiWrite(){
+    //debug functionality: cause timeouts by ignoring spi writes
+    if (_causeSpiTimeouts){
+      return;
+    }
+
+    //debug functionality: cause errors
+    if (_causeSpiErrors){
+      writeReg( _controlerSpiSyncAddress, SPI_SYNC_ERROR, _controlerSpiBar );
+      return;
+    }
+
+    int32_t controlerSpiSyncWord;
+    readReg( _controlerSpiSyncAddress, &controlerSpiSyncWord, _controlerSpiBar );
+
+    if (controlerSpiSyncWord != SPI_SYNC_REQUESTED){
+      writeReg( _controlerSpiSyncAddress, SPI_SYNC_ERROR, _controlerSpiBar );
+      return;
+    }
+
     int32_t controlerSpiWriteWord;
-    readReg( _controlerSpiWriteAddress, &controlerSpiWriteWord, _controlerSpiWriteBar );
+    readReg( _controlerSpiWriteAddress, &controlerSpiWriteWord, _controlerSpiBar );
 
     TMC429InputWord inputWord(controlerSpiWriteWord);
     uint32_t controlerSpiAddress = inputWord.getADDRESS();
@@ -141,6 +168,10 @@ namespace mtca4u{
     }
 
     triggerActionsOnControlerSpiWrite(inputWord);
+
+    // SPI action done, write sync ok to finish the handshake
+    writeReg( _controlerSpiSyncAddress, SPI_SYNC_OK, _controlerSpiBar );
+    
   }
 
   void DFMC_MD22Dummy::handleDriverSpiWrite(unsigned int ID){
@@ -155,7 +186,6 @@ namespace mtca4u{
 
     //debug functionality: cause errors
     if (_causeSpiErrors){
-      std::cout << "causing errors " << std::endl;
       _barContents[bar].at( syncIndex ) = SPI_SYNC_ERROR;
       return;
     }
@@ -190,7 +220,7 @@ namespace mtca4u{
     outputWord.setDATA( _controlerSpiAddressSpace.at(controlerSpiAddress) );
      writeRegisterWithoutCallback( _controlerSpiReadbackAddress,
 				   outputWord.getDataWord(),
-				   _controlerSpiReadbackBar );
+				   _controlerSpiBar );
   }
 
   void DFMC_MD22Dummy::triggerActionsOnControlerSpiWrite(TMC429InputWord const & inputWord){

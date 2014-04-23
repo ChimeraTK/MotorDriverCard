@@ -10,6 +10,7 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 #include "TMC260Words.h"
+#include "TMC429Words.h"
 #include "MotorDriverException.h" 
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
@@ -50,8 +51,8 @@ public:
     // exceptionally the read depends on the write (usually it is the other way round)
     readTestCase->depends_on(writeTestCase);
 
-    add( readTestCase );
     add( writeTestCase );
+    add( readTestCase );
   }
 };
 
@@ -85,7 +86,49 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName)
 }
 
 void SPIviaPCIeTest::testRead(){
-  BOOST_ERROR( "Not implemented yet" );
+  // prepare a cover datagram word
+  TMC429InputWord coverDatagram;
+  coverDatagram.setSMDA(tmc429::SMDA_COMMON);
+  coverDatagram.setADDRESS(tmc429::JDX_COVER_DATAGRAM);
+
+  // set the payload content and write it
+  coverDatagram.setDATA(0xAAAAAA);
+  _readWriteSPIviaPCIe->write( coverDatagram.getDataWord() );
+
+  // now try to read back. prepare the coverDatagram word for reading
+  coverDatagram.setRW(tmc429::RW_READ);
+  coverDatagram.setDATA(0); 
+
+  unsigned int readbackInt;
+  BOOST_CHECK_NO_THROW( readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord()) );
+  TMC429OutputWord readbackWord;
+  readbackWord.setDataWord( readbackInt );
+  BOOST_CHECK( readbackWord.getDATA() == 0xAAAAAA );
+
+  // test the error cases
+  _dummyDevice->causeSpiTimeouts(true);
+  try{
+    readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord());
+    BOOST_ERROR( "SPIviaPCIe::read did not throw as expected." );
+    }catch( MotorDriverException & e ){
+      if (e.getID() != MotorDriverException::SPI_TIMEOUT){
+	BOOST_ERROR( std::string("SPIviaPCIe::read did not throw the right exception ID. Error message: ")
+		     + e.what() );
+      }
+    }
+  _dummyDevice->causeSpiTimeouts(false);
+  
+  _dummyDevice->causeSpiErrors(true);
+  try{
+    readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord());
+    BOOST_ERROR( "SPIviaPCIe::read did not throw as expected." );
+  }catch( MotorDriverException & e ){
+    if (e.getID() != MotorDriverException::SPI_ERROR){
+      BOOST_ERROR( std::string("SPIviaPCIe::read did not throw the right exception ID. Error message: ")
+		   + e.what() );
+    }
+  }
+  _dummyDevice->causeSpiErrors(false);
 }
 
 void SPIviaPCIeTest::testWrite(){
