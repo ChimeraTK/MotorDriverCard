@@ -81,11 +81,10 @@ namespace mtca4u
     std::vector< boost::shared_ptr<MotorControler> > _motorControlers;
 
     boost::shared_ptr< mtca4u::devMap<devBase> > _mappedDevice;
-    friend class MotorControler;
 
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
-    TMC429SPI _controlerSPI;
+    boost::shared_ptr<TMC429SPI> _controlerSPI;
   };
   
 }// namespace mtca4u

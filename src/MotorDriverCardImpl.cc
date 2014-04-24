@@ -17,9 +17,9 @@ namespace mtca4u{
 					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice),
       _powerMonitor(new PowerMonitor),
-      _controlerSPI( mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
-		     CONTROLER_SPI_SYNC_ADDRESS_STRING,  CONTROLER_SPI_READBACK_ADDRESS_STRING,
-		     cardConfiguration.controlerSpiWaitingTime )
+      _controlerSPI( new TMC429SPI(mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+				   CONTROLER_SPI_SYNC_ADDRESS_STRING,  CONTROLER_SPI_READBACK_ADDRESS_STRING,
+				   cardConfiguration.controlerSpiWaitingTime ) )
   {
     // initialise common registers
     setCoverDatagram( cardConfiguration.coverDatagram );
@@ -34,7 +34,7 @@ namespace mtca4u{
     // initialise motors
     _motorControlers.resize( N_MOTORS_MAX );
     for (unsigned int i = 0; i < _motorControlers.size() ; ++i){
-      _motorControlers[i].reset( new MotorControler( i, *this,
+      _motorControlers[i].reset( new MotorControler( i, mappedDevice, _controlerSPI,
 						     cardConfiguration.motorControlerConfigurations[i]) );
     }
   }
@@ -57,84 +57,84 @@ namespace mtca4u{
   }
 
   unsigned int MotorDriverCardImpl::getControlerChipVersion(){
-    return _controlerSPI.read( SMDA_COMMON, JDX_CHIP_VERSION ).getDATA();
+    return _controlerSPI->read( SMDA_COMMON, JDX_CHIP_VERSION ).getDATA();
   }
 
   void MotorDriverCardImpl::setDatagramLowWord(unsigned int datagramLowWord){
-    _controlerSPI.write( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD, datagramLowWord );
+    _controlerSPI->write( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD, datagramLowWord );
   }
 
   unsigned int MotorDriverCardImpl::getDatagramLowWord(){
-    return _controlerSPI.read( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD ).getDATA();
+    return _controlerSPI->read( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD ).getDATA();
   }
 
   void MotorDriverCardImpl::setDatagramHighWord(unsigned int datagramHighWord){
-    _controlerSPI.write( SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD, datagramHighWord );
+    _controlerSPI->write( SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD, datagramHighWord );
   }
    
   unsigned int MotorDriverCardImpl::getDatagramHighWord(){
-    return _controlerSPI.read( SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD ).getDATA();
+    return _controlerSPI->read( SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD ).getDATA();
   }
 
   void MotorDriverCardImpl::setCoverPositionAndLength(
 		CoverPositionAndLength const & coverPositionAndLength){
-    _controlerSPI.write( coverPositionAndLength );
+    _controlerSPI->write( coverPositionAndLength );
   }
 
   CoverPositionAndLength MotorDriverCardImpl::getCoverPositionAndLength(){
-    return CoverPositionAndLength( _controlerSPI.read(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA());
+    return CoverPositionAndLength( _controlerSPI->read(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA());
   }
 
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram){
-    _controlerSPI.write( SMDA_COMMON, JDX_COVER_DATAGRAM, coverDatagram );
+    _controlerSPI->write( SMDA_COMMON, JDX_COVER_DATAGRAM, coverDatagram );
   }
     
   unsigned int MotorDriverCardImpl::getCoverDatagram(){
-    return _controlerSPI.read( SMDA_COMMON, JDX_COVER_DATAGRAM ).getDATA();
+    return _controlerSPI->read( SMDA_COMMON, JDX_COVER_DATAGRAM ).getDATA();
   }
  
   void MotorDriverCardImpl::setStepperMotorGlobalParameters(
 	   StepperMotorGlobalParameters const & stepperMotorGlobalParameters){
-    _controlerSPI.write( stepperMotorGlobalParameters );
+    _controlerSPI->write( stepperMotorGlobalParameters );
   }
 
   StepperMotorGlobalParameters MotorDriverCardImpl::getStepperMotorGlobalParameters(){
-    return StepperMotorGlobalParameters( _controlerSPI.read(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA());    
+    return StepperMotorGlobalParameters( _controlerSPI->read(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA());    
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(
 	   InterfaceConfiguration const & interfaceConfiguration){
-    _controlerSPI.write( interfaceConfiguration );
+    _controlerSPI->write( interfaceConfiguration );
   }
 
   InterfaceConfiguration MotorDriverCardImpl::getInterfaceConfiguration(){
-    return InterfaceConfiguration( _controlerSPI.read(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA());    
+    return InterfaceConfiguration( _controlerSPI->read(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA());    
   }
 
   void MotorDriverCardImpl::setPositionCompareWord(
            unsigned int positionCompareWord){
-    _controlerSPI.write( SMDA_COMMON, JDX_POSITION_COMPARE, positionCompareWord );
+    _controlerSPI->write( SMDA_COMMON, JDX_POSITION_COMPARE, positionCompareWord );
   }
 
   unsigned int MotorDriverCardImpl::getPositionCompareWord(){
-    return _controlerSPI.read( SMDA_COMMON, JDX_POSITION_COMPARE ).getDATA();
+    return _controlerSPI->read( SMDA_COMMON, JDX_POSITION_COMPARE ).getDATA();
   }
 
   void MotorDriverCardImpl::setPositionCompareInterruptData(
 	PositionCompareInterruptData const & positionCompareInterruptData ){
-    return _controlerSPI.write( positionCompareInterruptData );
+    return _controlerSPI->write( positionCompareInterruptData );
  }
 
   PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptData(){
-    return PositionCompareInterruptData( _controlerSPI.read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());    
+    return PositionCompareInterruptData( _controlerSPI->read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());    
  }
 
   void MotorDriverCardImpl::powerDown(){
-    _controlerSPI.write( SMDA_COMMON, JDX_POWER_DOWN, 1 );
+    _controlerSPI->write( SMDA_COMMON, JDX_POWER_DOWN, 1 );
   }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData(){
-    return  ReferenceSwitchData(_controlerSPI.read( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
+    return  ReferenceSwitchData(_controlerSPI->read( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
   }
 
 }// namespace mtca4u

@@ -73,14 +73,6 @@ namespace mtca4u{
     unsigned int _spiWaitingTime;
   };
 
-//  class TMC429SPI{
-//  public:
-//    TMC429SPI( boost::shared_ptr<devPCIE> );
-//    void read( unsigned int smda, unsigned int idx_jdx );
-//    void write( unsigned int smda, unsigned int idx_jdx, unsigned int data );
-//    void write( TMC429InputWord const & writeWord );
-//  };
-
 }//namespace mtca4u
 
 #endif// MTCA4U_SPI_VIA_PCIE_H

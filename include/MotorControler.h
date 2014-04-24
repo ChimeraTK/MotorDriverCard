@@ -8,6 +8,8 @@
 #include "MotorControlerConfig.h"
 #include "MotorReferenceSwitchData.h"
 #include "SignedIntConverter.h"
+#include "SPIviaPCIe.h"
+#include "TMC429SPI.h"
 
 #define DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -41,12 +43,20 @@ namespace mtca4u
 
   public:
     
+    /// Helper struct to hold the readout modes.
     struct DecoderReadoutMode
     {
       static const unsigned int HEIDENHAIN = 0;
       static const unsigned int INCREMENTAL = 1;
     };
 
+    /** The constructor gets references shared pointers which it copies internally, so the
+     *  object stays valid even if the original shared pointer goes out of scope.
+     *  The config is only used in the constuctor, no reference is kept in the class.
+     */
+    MotorControler( unsigned int ID, boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+		     boost::shared_ptr< TMC429SPI > const & controlerSPI,
+		     MotorControlerConfig const & motorControlerConfig );
 
     /// Get the ID of the motor controler on the FMC board (0 or 1).
     unsigned int getID();
@@ -112,22 +122,7 @@ namespace mtca4u
            
  
   private:
-    /**
-     * The constructor requires a reference to the MotorDriverCard it is
-     * living on. It is private and only the MotorDriverCardImpl, which is declared 
-     * friend, is allowed to create MotorControlers
-     */
-     MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard, 
-		     MotorControlerConfig const & motorControlerConfig );
-     friend class MotorDriverCardImpl;
-
-    /** It is explicitly forbidden to copy MotorControlers. The copy constructor
-     *  is private and intentionally not implemented.
-     */
-     MotorControler( MotorControler const & );
-
-     /// The driver card this motor controler is living on.
-     MotorDriverCardImpl & _driverCard;
+     boost::shared_ptr< devMap<devBase> > _mappedDevice;
 
      unsigned int _id;
 
@@ -148,7 +143,9 @@ namespace mtca4u
      mtca4u::devMap< devBase >::regObject _enabled;
      mtca4u::devMap< devBase >::regObject _decoderReadoutMode;
      mtca4u::devMap< devBase >::regObject _decoderPosition;
-     mtca4u::devMap< devBase >::regObject _driverSpiWrite;
+     
+     mtca4u::SPIviaPCIe _driverSPI;
+     boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
 
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.
@@ -162,8 +159,6 @@ namespace mtca4u
 
      template <class T>
        void setTypedDriverData(T const & driverData, T & localDataInstance);
-
-     unsigned int _driverSpiWaitingTime;
 
      SignedIntConverter converter24bits;
      SignedIntConverter converter12bits;

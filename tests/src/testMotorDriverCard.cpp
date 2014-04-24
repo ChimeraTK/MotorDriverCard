@@ -85,7 +85,7 @@ class  MotorDriverCardTestSuite : public test_suite{
 };
 
 test_suite*
-init_unit_test_suite( int argc, char* argv[] )
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
    framework::master_test_suite().p_name.value = "MotorDriverCard test suite";
 

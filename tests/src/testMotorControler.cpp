@@ -242,7 +242,7 @@ public:
 };// test suite
 
 test_suite*
-init_unit_test_suite( int argc, char* argv[] )
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
    framework::master_test_suite().p_name.value = "MotorControler test suite";
 
