@@ -2,6 +2,7 @@
 #define MTCA4U_MOTOR_DRIVER_CARD_H
 
 #include "TMC429Words.h"
+#include <boost/shared_ptr.hpp>
 
 namespace mtca4u
 {
@@ -18,7 +19,7 @@ namespace mtca4u
      *  Valid IDs are 0 and 1.
      *  Throws a MotorDriverException if the ID is invalid.
      */
-    virtual MotorControler & getMotorControler(unsigned int motorControlerID) = 0;
+    virtual boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID) = 0;
     
     /// Get a reference to the power monitor.
     virtual PowerMonitor & getPowerMonitor() = 0;

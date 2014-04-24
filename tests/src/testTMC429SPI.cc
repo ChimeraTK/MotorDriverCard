@@ -60,9 +60,11 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
   return new TMC429SPITestSuite( MAP_FILE_NAME );
 }
 
-TMC429SPITest::TMC429SPITest(std::string const & mapFileName)
-  :  _dummyDevice( new DFMC_MD22Dummy ), _mappedDevice(new devMap<devBase>){
-  /// we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
+TMC429SPITest::TMC429SPITest(std::string const & mapFileName){
+  _dummyDevice.reset( new DFMC_MD22Dummy );
+
+  // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
+  _mappedDevice.reset(new devMap<devBase>);
   _dummyDevice->openDev( mapFileName );
  
   mapFileParser fileParser;

@@ -68,9 +68,11 @@ init_unit_test_suite( int /*argc*/, char** /* use 'char * argv[]' if you need it
   return new SPIviaPCIeTestSuite( MAP_FILE_NAME );
 }
 
-SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName)
-  :  _dummyDevice( new DFMC_MD22Dummy ), _mappedDevice(new devMap<devBase>){
-  /// we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
+SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName){
+  _dummyDevice.reset(new DFMC_MD22Dummy);
+
+  // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
+  _mappedDevice.reset(new devMap<devBase>);
   _dummyDevice->openDev( mapFileName );
  
   mapFileParser fileParser;

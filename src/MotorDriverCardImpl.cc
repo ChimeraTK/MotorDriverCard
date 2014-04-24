@@ -15,12 +15,17 @@ using namespace mtca4u::dfmc_md22;
 namespace mtca4u{
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 					   MotorDriverCardConfig const & cardConfiguration)
-    : _mappedDevice(mappedDevice),
-      _powerMonitor(new PowerMonitor),
-      _controlerSPI( new TMC429SPI(mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
-				   CONTROLER_SPI_SYNC_ADDRESS_STRING,  CONTROLER_SPI_READBACK_ADDRESS_STRING,
-				   cardConfiguration.controlerSpiWaitingTime ) )
+    : _mappedDevice(mappedDevice)
   {
+    // the shared pointers can only be initialised inside the constructor because execution order
+    // of the new operations is not defined in the contructor. As any new can throw, it might be that the other
+    // object is allocated, but the corresponding smart pointer is not initialised yet, which would lead to
+    // a memory leak.
+    _powerMonitor.reset(new PowerMonitor);
+    _controlerSPI.reset( new TMC429SPI(mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+				       CONTROLER_SPI_SYNC_ADDRESS_STRING,  CONTROLER_SPI_READBACK_ADDRESS_STRING,
+				       cardConfiguration.controlerSpiWaitingTime ) );
+
     // initialise common registers
     setCoverDatagram( cardConfiguration.coverDatagram );
     setCoverPositionAndLength( cardConfiguration.coverPositionAndLength );
@@ -39,9 +44,9 @@ namespace mtca4u{
     }
   }
 
-  MotorControler & MotorDriverCardImpl::getMotorControler(unsigned int motorControlerID){
+  boost::shared_ptr<MotorControler> MotorDriverCardImpl::getMotorControler(unsigned int motorControlerID){
     try{
-      return *(_motorControlers.at(motorControlerID));
+      return _motorControlers.at(motorControlerID);
     }
     catch(std::out_of_range &e){
       std::stringstream errorMessage;

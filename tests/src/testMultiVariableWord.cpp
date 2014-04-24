@@ -166,13 +166,6 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
   return 0;
 }
 
-//test_suite*
-//init_unit_test_suite( int argc, char* argv[] )
-//{
-//  std::cout << "hello, it's the old style" << std::endl;
-//  return new MultiVariableWordTestSuite;
-//}
-
 // The implementations of the individual tests
 
 template <class T> 

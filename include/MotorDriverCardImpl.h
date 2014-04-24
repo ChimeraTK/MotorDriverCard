@@ -32,7 +32,7 @@ namespace mtca4u
     MotorDriverCardImpl(boost::shared_ptr< mtca4u::devMap<devBase> > const & mappedDevice,
 			MotorDriverCardConfig const & cardConfiguration);
 
-    MotorControler & getMotorControler(unsigned int motorControlerID);
+    boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID);
     
  
     /// Get a reference to the power monitor.

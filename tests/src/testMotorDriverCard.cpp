@@ -98,7 +98,7 @@ MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName)
 
 void MotorDriverCardTest::testConstructor(){
   //boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
-  _dummyDevice = boost::shared_ptr<DFMC_MD22Dummy>( new DFMC_MD22Dummy );
+  _dummyDevice.reset( new DFMC_MD22Dummy );
   _dummyDevice->openDev( _mapFileName );
  
   mapFileParser fileParser;
@@ -161,8 +161,7 @@ void MotorDriverCardTest::testConstructor(){
   _dummyDevice->openDev( _mapFileName );
   mappedDevice->openDev( _dummyDevice, registerMapping );
   
-  //  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig )) );
-  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ));
+  _motorDriverCard.reset(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ));
 
   // test that the configuration with the motorDriverCardConfig actually worked
   testConfiguration(motorDriverCardConfig);
@@ -191,35 +190,35 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
 
    for (unsigned int motorID = 0; motorID <  motorDriverCardConfig.motorControlerConfigurations.size();
        ++motorID){
-     MotorControler & motorControler =  _motorDriverCard->getMotorControler(motorID);
+     boost::shared_ptr<MotorControler> motorControler =  _motorDriverCard->getMotorControler(motorID);
      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[motorID];
 
      // only the data content is identical. The motorID is - for the config, and correct for the readback word
      BOOST_CHECK( motorControlerConfig.accelerationThresholdData.getDATA()
-		  == motorControler.getAccelerationThresholdData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler.getActualPosition() );
-     BOOST_CHECK( motorControlerConfig.chopperControlData == motorControler.getChopperControlData() );
-     BOOST_CHECK( motorControlerConfig.coolStepControlData == motorControler.getCoolStepControlData() );
-     BOOST_CHECK( motorControlerConfig.decoderReadoutMode ==  motorControler.getDecoderReadoutMode() );
+		  == motorControler->getAccelerationThresholdData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler->getActualPosition() );
+     BOOST_CHECK( motorControlerConfig.chopperControlData == motorControler->getChopperControlData() );
+     BOOST_CHECK( motorControlerConfig.coolStepControlData == motorControler->getCoolStepControlData() );
+     BOOST_CHECK( motorControlerConfig.decoderReadoutMode ==  motorControler->getDecoderReadoutMode() );
      BOOST_CHECK( motorControlerConfig.dividersAndMicroStepResolutionData.getDATA()
-		  == motorControler.getDividersAndMicroStepResolutionData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.driverConfigData == motorControler.getDriverConfigData() );
-     BOOST_CHECK( motorControlerConfig.driverControlData == motorControler.getDriverControlData() );
-     BOOST_CHECK( motorControlerConfig.enabled == motorControler.isEnabled() );
+		  == motorControler->getDividersAndMicroStepResolutionData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.driverConfigData == motorControler->getDriverConfigData() );
+     BOOST_CHECK( motorControlerConfig.driverControlData == motorControler->getDriverControlData() );
+     BOOST_CHECK( motorControlerConfig.enabled == motorControler->isEnabled() );
      BOOST_CHECK( motorControlerConfig.interruptData.getDATA()
-		  == motorControler.getInterruptData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.maximumAccelleration == motorControler.getMaximumAcceleration() );
-     BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler.getMaximumVelocity() );
-     BOOST_CHECK( motorControlerConfig.microStepCount == motorControler.getMicroStepCount() );
-     BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler.getMinimumVelocity() );
-     BOOST_CHECK( motorControlerConfig.positionTolerance ==  motorControler.getPositionTolerance() );
+		  == motorControler->getInterruptData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.maximumAccelleration == motorControler->getMaximumAcceleration() );
+     BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler->getMaximumVelocity() );
+     BOOST_CHECK( motorControlerConfig.microStepCount == motorControler->getMicroStepCount() );
+     BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler->getMinimumVelocity() );
+     BOOST_CHECK( motorControlerConfig.positionTolerance ==  motorControler->getPositionTolerance() );
      BOOST_CHECK( motorControlerConfig.proportionalityFactorData.getDATA()
-		  == motorControler.getProportionalityFactorData().getDATA() );
+		  == motorControler->getProportionalityFactorData().getDATA() );
      BOOST_CHECK( motorControlerConfig.referenceConfigAndRampModeData.getDATA()
-		  == motorControler.getReferenceConfigAndRampModeData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.stallGuardControlData ==  motorControler.getStallGuardControlData() );
-     BOOST_CHECK( motorControlerConfig.targetPosition == motorControler.getTargetPosition() );
-     BOOST_CHECK( motorControlerConfig.targetVelocity ==  motorControler.getTargetVelocity() );
+		  == motorControler->getReferenceConfigAndRampModeData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.stallGuardControlData ==  motorControler->getStallGuardControlData() );
+     BOOST_CHECK( motorControlerConfig.targetPosition == motorControler->getTargetPosition() );
+     BOOST_CHECK( motorControlerConfig.targetVelocity ==  motorControler->getTargetVelocity() );
   }
 
 }
@@ -336,7 +335,7 @@ void MotorDriverCardTest::testPowerDown(){
 
 void MotorDriverCardTest::testGetMotorControler(){
   for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
-    BOOST_CHECK( _motorDriverCard->getMotorControler(i).getID() == i );
+    BOOST_CHECK( _motorDriverCard->getMotorControler(i)->getID() == i );
   }
   BOOST_CHECK_THROW( _motorDriverCard->getMotorControler( N_MOTORS_MAX ), 
 		     MotorDriverException );

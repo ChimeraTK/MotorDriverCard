@@ -39,80 +39,80 @@ int main( int argc, char* argv[] )
 
   mtca4u::MotorDriverCardImpl motorDriverCard( mappedDevice , mtca4u::MotorDriverCardConfig());
 
-  mtca4u::MotorControler & motor0 = motorDriverCard.getMotorControler(0);
-  mtca4u::MotorControler & motor1 = motorDriverCard.getMotorControler(1);
+  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard.getMotorControler(0);
+  boost::shared_ptr<mtca4u::MotorControler> motor1 = motorDriverCard.getMotorControler(1);
   
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;
   time_t startingTime = time(NULL);
   time_t lastPrintTime = startingTime;
 
-  int initialTargetPosition[2] = {motor0.getTargetPosition(), motor1.getTargetPosition()};
-  unsigned int initialMinVelocity[2] = {motor0.getMinimumVelocity(), motor1.getMinimumVelocity()};
-  unsigned int initialMaxVelocity[2] = {motor0.getMaximumVelocity(), motor1.getMaximumVelocity()};
-  unsigned int initialMaxAcceleration[2] = {motor0.getMaximumAcceleration(), motor1.getMaximumAcceleration()};
-  unsigned int initialPositionTolerance[2] = {motor0.getPositionTolerance(), motor1.getPositionTolerance()};
+  int initialTargetPosition[2] = {motor0->getTargetPosition(), motor1->getTargetPosition()};
+  unsigned int initialMinVelocity[2] = {motor0->getMinimumVelocity(), motor1->getMinimumVelocity()};
+  unsigned int initialMaxVelocity[2] = {motor0->getMaximumVelocity(), motor1->getMaximumVelocity()};
+  unsigned int initialMaxAcceleration[2] = {motor0->getMaximumAcceleration(), motor1->getMaximumAcceleration()};
+  unsigned int initialPositionTolerance[2] = {motor0->getPositionTolerance(), motor1->getPositionTolerance()};
 
   while(1){
     // controler registers (only they can be read back)
     for (unsigned int motorID = 0; motorID <= 1;  ++motorID){
-        mtca4u::MotorControler & motor = motorDriverCard.getMotorControler(motorID);
+        boost::shared_ptr<mtca4u::MotorControler> motor = motorDriverCard.getMotorControler(motorID);
 
 	// test that writing values in a row work
-	motor.setTargetPosition(initialTargetPosition[motorID] + 1000);
-	motor.setMinimumVelocity(initialMinVelocity[motorID] + 1);
-	motor.setMaximumVelocity(initialMaxVelocity[motorID] + 2);
- 	motor.setMaximumAcceleration(initialMaxAcceleration[motorID] + 3);
-	motor.setPositionTolerance(initialPositionTolerance[motorID] + 4);
+	motor->setTargetPosition(initialTargetPosition[motorID] + 1000);
+	motor->setMinimumVelocity(initialMinVelocity[motorID] + 1);
+	motor->setMaximumVelocity(initialMaxVelocity[motorID] + 2);
+ 	motor->setMaximumAcceleration(initialMaxAcceleration[motorID] + 3);
+	motor->setPositionTolerance(initialPositionTolerance[motorID] + 4);
  
-	PRINT_AND_COUNT_ERRORS( motor.getTargetPosition() == initialTargetPosition[motorID] + 1000, motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getMinimumVelocity() == initialMinVelocity[motorID] + 1, motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getMaximumVelocity() == initialMaxVelocity[motorID] + 2, motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getMaximumAcceleration() == initialMaxAcceleration[motorID] + 3, motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getPositionTolerance() ==  initialPositionTolerance[motorID] + 4, motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getTargetPosition() == initialTargetPosition[motorID] + 1000, motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMinimumVelocity() == initialMinVelocity[motorID] + 1, motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMaximumVelocity() == initialMaxVelocity[motorID] + 2, motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMaximumAcceleration() == initialMaxAcceleration[motorID] + 3, motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getPositionTolerance() ==  initialPositionTolerance[motorID] + 4, motorID );
 
 	// set back to the initial values (another test plus needed for the next test round because we have to 
 	// alternate the register content.
 	// This time we write in reverse order, just for the fun of it
-	motor.setPositionTolerance(initialPositionTolerance[motorID]);
- 	motor.setMaximumAcceleration(initialMaxAcceleration[motorID]);
-	motor.setMaximumVelocity(initialMaxVelocity[motorID]);
-	motor.setMinimumVelocity(initialMinVelocity[motorID]);
-	motor.setTargetPosition(initialTargetPosition[motorID]);
+	motor->setPositionTolerance(initialPositionTolerance[motorID]);
+ 	motor->setMaximumAcceleration(initialMaxAcceleration[motorID]);
+	motor->setMaximumVelocity(initialMaxVelocity[motorID]);
+	motor->setMinimumVelocity(initialMinVelocity[motorID]);
+	motor->setTargetPosition(initialTargetPosition[motorID]);
  
-	PRINT_AND_COUNT_ERRORS( motor.getTargetPosition() == initialTargetPosition[motorID], motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getMinimumVelocity() == initialMinVelocity[motorID], motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getMaximumVelocity() == initialMaxVelocity[motorID], motorID );
-	PRINT_AND_COUNT_ERRORS( motor.getMaximumAcceleration() == initialMaxAcceleration[motorID], motorID );	
-	PRINT_AND_COUNT_ERRORS( motor.getPositionTolerance() ==  initialPositionTolerance[motorID], motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getTargetPosition() == initialTargetPosition[motorID], motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMinimumVelocity() == initialMinVelocity[motorID], motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMaximumVelocity() == initialMaxVelocity[motorID], motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMaximumAcceleration() == initialMaxAcceleration[motorID], motorID );	
+	PRINT_AND_COUNT_ERRORS( motor->getPositionTolerance() ==  initialPositionTolerance[motorID], motorID );
     }
 
     // patterns for both motors, including writing to controler and driver registers, where only controler
     // registers can be checked. Nevertheless there might be interference.
-    motor0.setTargetPosition(0xAAAAAA);
-    motor1.setTargetPosition(0x555555);
-    motor0.setChopperControlData( mtca4u::ChopperControlData( 0x15555 ) );
-    motor1.setPositionTolerance( 0xAAA );
-    motor1.setChopperControlData( mtca4u::ChopperControlData( 0x0AAAA ) );
-    motor0.setPositionTolerance( 0x555 );
+    motor0->setTargetPosition(0xAAAAAA);
+    motor1->setTargetPosition(0x555555);
+    motor0->setChopperControlData( mtca4u::ChopperControlData( 0x15555 ) );
+    motor1->setPositionTolerance( 0xAAA );
+    motor1->setChopperControlData( mtca4u::ChopperControlData( 0x0AAAA ) );
+    motor0->setPositionTolerance( 0x555 );
     
-    PRINT_AND_COUNT_ERRORS( motor0.getTargetPosition() == 0xAAAAAA, 0 );
-    PRINT_AND_COUNT_ERRORS( motor1.getTargetPosition() == 0x555555, 1 );
-    PRINT_AND_COUNT_ERRORS( motor0.getPositionTolerance() ==  0x555, 0 );
-    PRINT_AND_COUNT_ERRORS( motor1.getPositionTolerance() ==  0xAAA, 1 );
+    PRINT_AND_COUNT_ERRORS( motor0->getTargetPosition() == 0xAAAAAA, 0 );
+    PRINT_AND_COUNT_ERRORS( motor1->getTargetPosition() == 0x555555, 1 );
+    PRINT_AND_COUNT_ERRORS( motor0->getPositionTolerance() ==  0x555, 0 );
+    PRINT_AND_COUNT_ERRORS( motor1->getPositionTolerance() ==  0xAAA, 1 );
 
     // shuffle the order when setting back to defaults
-    motor0.setTargetPosition(initialTargetPosition[0]);
-    motor0.setChopperControlData( mtca4u::ChopperControlData( 0x0 ) );
-    motor1.setChopperControlData( mtca4u::ChopperControlData( 0x0 ) );
-    motor1.setTargetPosition(initialTargetPosition[1]);
-    motor1.setPositionTolerance( initialPositionTolerance[1] );
-    motor0.setPositionTolerance( initialPositionTolerance[0] );
+    motor0->setTargetPosition(initialTargetPosition[0]);
+    motor0->setChopperControlData( mtca4u::ChopperControlData( 0x0 ) );
+    motor1->setChopperControlData( mtca4u::ChopperControlData( 0x0 ) );
+    motor1->setTargetPosition(initialTargetPosition[1]);
+    motor1->setPositionTolerance( initialPositionTolerance[1] );
+    motor0->setPositionTolerance( initialPositionTolerance[0] );
     
-    PRINT_AND_COUNT_ERRORS( motor0.getTargetPosition() == initialTargetPosition[0], 0 );
-    PRINT_AND_COUNT_ERRORS( motor1.getTargetPosition() == initialTargetPosition[1], 1 );
-    PRINT_AND_COUNT_ERRORS( motor0.getPositionTolerance() == initialPositionTolerance[1], 1 );
-    PRINT_AND_COUNT_ERRORS( motor1.getPositionTolerance() == initialPositionTolerance[0], 0 );
+    PRINT_AND_COUNT_ERRORS( motor0->getTargetPosition() == initialTargetPosition[0], 0 );
+    PRINT_AND_COUNT_ERRORS( motor1->getTargetPosition() == initialTargetPosition[1], 1 );
+    PRINT_AND_COUNT_ERRORS( motor0->getPositionTolerance() == initialPositionTolerance[1], 1 );
+    PRINT_AND_COUNT_ERRORS( motor1->getPositionTolerance() == initialPositionTolerance[0], 0 );
 
     // footer: count up the run count and print a status every second.
     runCounter++;
