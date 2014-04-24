@@ -8,7 +8,7 @@ using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
 
-  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > & mappedDevice,
+  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 			  std::string const & writeRegisterName, std::string const & syncRegisterName,
 			  unsigned int spiWaitingTime)
     : _writeRegister( mappedDevice->getRegObject( writeRegisterName ) ),
@@ -18,7 +18,7 @@ namespace mtca4u{
       _spiWaitingTime(spiWaitingTime)
   {}
 
-  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > & mappedDevice,
+  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 			  std::string const & writeRegisterName, std::string const & syncRegisterName,
 			  std::string const & readbackRegisterName,
 			  unsigned int spiWaitingTime )

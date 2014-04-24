@@ -49,7 +49,6 @@ public:
   DECLARE_GET_SET_TEST( PositionCompareInterruptData );
   void testPowerDown();
   void testGetMotorControler();
-  DECLARE_GET_SET_TEST( ControlerSpiWaitingTime );
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
@@ -82,7 +81,6 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( PositionCompareInterruptData );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
-    ADD_GET_SET_TEST( ControlerSpiWaitingTime );
   }
 };
 
@@ -163,7 +161,8 @@ void MotorDriverCardTest::testConstructor(){
   _dummyDevice->openDev( _mapFileName );
   mappedDevice->openDev( _dummyDevice, registerMapping );
   
-  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig )) );
+  //  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig )) );
+  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ));
 
   // test that the configuration with the motorDriverCardConfig actually worked
   testConfiguration(motorDriverCardConfig);
@@ -355,12 +354,3 @@ unsigned int MotorDriverCardTest::asciiToInt( std::string text ){
   return returnValue;
 }
 
-void MotorDriverCardTest::testGetControlerSpiWaitingTime(){
-  BOOST_CHECK(  _motorDriverCard->getControlerSpiWaitingTime() == CONTROLER_SPI_WAITING_TIME_DEFAULT );
-}
-
-void MotorDriverCardTest::testSetControlerSpiWaitingTime(){
-  unsigned int originalControlerSpiWaitingTime = _motorDriverCard->getControlerSpiWaitingTime();
-  _motorDriverCard->setControlerSpiWaitingTime(originalControlerSpiWaitingTime + 1);
-  BOOST_CHECK(  _motorDriverCard->getControlerSpiWaitingTime() == originalControlerSpiWaitingTime +1 );
-}

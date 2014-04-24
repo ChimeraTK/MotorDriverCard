@@ -16,12 +16,10 @@ namespace mtca4u{
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice),
-      _controlerSpiWriteRegister( 
-           mappedDevice->getRegObject( CONTROLER_SPI_WRITE_ADDRESS_STRING )) ,
-      _controlerSpiReadbackRegister(
-	   mappedDevice->getRegObject( CONTROLER_SPI_READBACK_ADDRESS_STRING )),
       _powerMonitor(new PowerMonitor),
-      _controlerSpiWaitingTime( cardConfiguration.controlerSpiWaitingTime )
+      _controlerSPIviaPCIe( mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+			    CONTROLER_SPI_SYNC_ADDRESS_STRING,  CONTROLER_SPI_READBACK_ADDRESS_STRING,
+			    cardConfiguration.controlerSpiWaitingTime )
   {
     // initialise common registers
     setCoverDatagram( cardConfiguration.coverDatagram );
@@ -72,47 +70,7 @@ namespace mtca4u{
     readRequest.setIDX_JDX(idx_jdx);
     readRequest.setRW(RW_READ);
 
-    controlerSpiWrite(readRequest);
-
-    int readbackValue;
-      _controlerSpiReadbackRegister.readReg( & readbackValue, sizeof(int));
-    // Wait until the correct data word appears in the readback register.
-    // Until the word has been transmitted from the controller to the FPGA whith the 
-    // PCIe end point, this word reads 0xFFFFFFFF.
-    // Limit the loop to 10 attempts with idle time in between
-    // FIXME: Hard coded number of attempts, time and invalid word
-    
-    size_t readbackLoopCounter;
-    for (readbackLoopCounter=0; 
-	 (static_cast<unsigned int>(readbackValue)==INVALID_SPI_READBACK_VALUE) && (readbackLoopCounter < 10);
-	 ++readbackLoopCounter){
-      sleepMicroSeconds(_controlerSpiWaitingTime);
-      _controlerSpiReadbackRegister.readReg( & readbackValue, sizeof(int));
-    }
-
-    if (static_cast<unsigned int>(readbackValue)==INVALID_SPI_READBACK_VALUE){
-      throw( MotorDriverException("spi read timed out", MotorDriverException::SPI_TIMEOUT) ); 
-    }
-
-    return TMC429OutputWord(static_cast<unsigned int>(readbackValue));
-  }
-
-  void MotorDriverCardImpl::sleepMicroSeconds(unsigned int microSeconds){
-    timespec sleepTime;
-    sleepTime.tv_sec = microSeconds / 1000000;
-    sleepTime.tv_nsec = (microSeconds%1000000)*1000;
-
-    timespec remainingTime;
-    remainingTime.tv_sec = 0;
-    remainingTime.tv_nsec = 0;
-    if ( nanosleep(&sleepTime, &remainingTime) ){
-      if (errno == EFAULT){
-	std::stringstream errorMessage;
-	errorMessage << "Error sleeping " << microSeconds << " micro seconds!";
-	throw( MotorDriverException(errorMessage.str(),
-				    MotorDriverException::SPI_TIMEOUT));
-      }
-    }
+    return TMC429OutputWord( _controlerSPIviaPCIe.read( readRequest.getDataWord() ) );
   }
 
   void MotorDriverCardImpl::controlerSpiWrite( unsigned int smda, unsigned int idx_jdx, 
@@ -124,24 +82,13 @@ namespace mtca4u{
     writeMe.setRW(RW_WRITE);
     writeMe.setDATA(data);
     
-    controlerSpiWrite(writeMe);
+    controlerSpiWrite( writeMe );
   }
 
   void MotorDriverCardImpl::controlerSpiWrite( TMC429InputWord const & writeWord ){
-    // FIXME:
-    // lock the controler SPI register using a separate mutex. Access to other registers
-    // of the device is allowed, but SPI has to wait until the word has been processed.
-
-    // we need this intermediate variable because the write function needs a pointer
-    // to int.
-    int temporaryWriteInt = static_cast<int>(writeWord.getDataWord());
-    _controlerSpiWriteRegister.writeReg( &temporaryWriteInt, sizeof(int));
-
-    // sleep to make (reasonably) sure the word has been written
-    // FIXME: Make absolutely sure the word has been written to the controler by introducing an SPI
-    // Sync register
-    sleepMicroSeconds(_controlerSpiWaitingTime);
+    _controlerSPIviaPCIe.write( writeWord.getDataWord() );
   }
+
 
   void MotorDriverCardImpl::setDatagramLowWord(unsigned int datagramLowWord){
     controlerSpiWrite( SMDA_COMMON, JDX_DATAGRAM_LOW_WORD, datagramLowWord );
@@ -218,14 +165,6 @@ namespace mtca4u{
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData(){
     return  ReferenceSwitchData(controlerSpiRead( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
-  }
-
-  void MotorDriverCardImpl::setControlerSpiWaitingTime(unsigned int microSeconds){
-    _controlerSpiWaitingTime = microSeconds;
-  }
-    
-  unsigned int MotorDriverCardImpl::getControlerSpiWaitingTime() const{
-    return _controlerSpiWaitingTime;
   }
 
 }// namespace mtca4u

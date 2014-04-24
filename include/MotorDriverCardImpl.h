@@ -11,6 +11,7 @@
 #include "MotorDriverCardConfig.h"
 #include "PowerMonitor.h"
 #include "TMC429Words.h"
+#include "SPIviaPCIe.h"
 
 namespace mtca4u
 {
@@ -74,18 +75,6 @@ namespace mtca4u
     void powerDown();
     ReferenceSwitchData getReferenceSwitchData();
 
-    /** The FPGA needs some time to perform the SPI communication to the controler chip.
-     *  This is the waiting time added before the write command to the controler SPI register 
-     *  returns. During this time the value should be written and it is safe to write a new word
-     *  to the PCIe register. Writing a sequence of SPI commands without the waiting time
-     *  will cause words in the PCIe register to be overwritten without having been transmittet via
-     *  SPI. There is no SPI command buffer in the FPGA.
-     *  FIXME: Implement a proper handshake (will still need a waiting time for the polling loop).
-     */
-    void setControlerSpiWaitingTime(unsigned int microSeconds);
-    
-    unsigned int getControlerSpiWaitingTime() const;
-
   private:
     // Motor controlers need dynamic allocation, so we cannot store them directly.
     // As we do not want to care about cleaning up we use shared pointers.
@@ -94,9 +83,6 @@ namespace mtca4u
     boost::shared_ptr< mtca4u::devMap<devBase> > _mappedDevice;
     friend class MotorControler;
 
-    mtca4u::devMap<devBase>::regObject _controlerSpiWriteRegister;
-    mtca4u::devMap<devBase>::regObject _controlerSpiReadbackRegister;
-
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
     TMC429OutputWord controlerSpiRead( unsigned int smda, unsigned int idx_jdx );
@@ -104,8 +90,7 @@ namespace mtca4u
     void controlerSpiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
     void controlerSpiWrite( TMC429InputWord const & writeWord );
 
-    static void sleepMicroSeconds(unsigned int microSeconds);
-    unsigned int _controlerSpiWaitingTime; ///< in microseconds
+    SPIviaPCIe _controlerSPIviaPCIe;
   };
   
 }// namespace mtca4u

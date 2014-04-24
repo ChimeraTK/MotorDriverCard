@@ -221,7 +221,7 @@ namespace mtca4u
      // FIXME: Implement a handshake to wait until the word is written
      // Current workaround: introduce a timeout (will also be needed later in the polling
      // loop for the synchronisation)
-     _driverCard.sleepMicroSeconds( _driverSpiWaitingTime );
+     //_driverCard.sleepMicroSeconds( _driverSpiWaitingTime );
 
      // FIXME: End of mutex protected section
   }
