@@ -11,7 +11,7 @@
 #include "MotorDriverCardConfig.h"
 #include "PowerMonitor.h"
 #include "TMC429Words.h"
-#include "SPIviaPCIe.h"
+#include "TMC429SPI.h"
 
 namespace mtca4u
 {
@@ -85,12 +85,7 @@ namespace mtca4u
 
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
-    TMC429OutputWord controlerSpiRead( unsigned int smda, unsigned int idx_jdx );
-
-    void controlerSpiWrite( unsigned int smda, unsigned int idx_jdx, unsigned int data );
-    void controlerSpiWrite( TMC429InputWord const & writeWord );
-
-    SPIviaPCIe _controlerSPIviaPCIe;
+    TMC429SPI _controlerSPI;
   };
   
 }// namespace mtca4u

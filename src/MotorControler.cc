@@ -21,18 +21,18 @@ using namespace mtca4u::tmc429;
 // Otherwise we would need a complete test which checks the macro.
 #define DEFINE_GET_SET_VALUE( NAME, IDX )\
   unsigned int MotorControler::get ## NAME (){\
-    return _driverCard.controlerSpiRead( _id, IDX ).getDATA();}\
+    return _driverCard._controlerSPI.read( _id, IDX ).getDATA();}\
   void MotorControler::set ## NAME (unsigned int value){\
-  _driverCard.controlerSpiWrite( _id, IDX, value );}
+  _driverCard._controlerSPI.write( _id, IDX, value );}
 
 #define DEFINE_SIGNED_GET_SET_VALUE( NAME, IDX , CONVERTER )	\
   int MotorControler::get ## NAME (){\
-    int readValue = static_cast<int>(_driverCard.controlerSpiRead( _id, IDX ).getDATA()); \
+    int readValue = static_cast<int>(_driverCard._controlerSPI.read( _id, IDX ).getDATA()); \
     return CONVERTER.customToThirtyTwo( readValue );} \
   void MotorControler::set ## NAME (int value){\
     unsigned int writeValue = static_cast<unsigned int>(\
 					CONVERTER.thirtyTwoToCustom( value ) );	\
-    _driverCard.controlerSpiWrite( _id, IDX, writeValue );}
+    _driverCard._controlerSPI.write( _id, IDX, writeValue );}
 
 #define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( NAME )\
   NAME MotorControler::get ## NAME (){\
@@ -108,7 +108,7 @@ namespace mtca4u
   }
 
   void MotorControler::setActualPosition(int position){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_POSITION,
+    _driverCard._controlerSPI.write( _id, IDX_ACTUAL_POSITION,
        static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)) );
   }
 
@@ -119,7 +119,7 @@ namespace mtca4u
   }
 
   void MotorControler::setActualVelocity(int velocity){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_VELOCITY, 
+    _driverCard._controlerSPI.write( _id, IDX_ACTUAL_VELOCITY, 
        static_cast<unsigned int>(converter12bits.thirtyTwoToCustom(velocity)) );
   }
 
@@ -128,7 +128,7 @@ namespace mtca4u
   }
 
   void MotorControler::setActualAcceleration(unsigned int acceleration){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_ACCELERATION, acceleration );
+    _driverCard._controlerSPI.write( _id, IDX_ACTUAL_ACCELERATION, acceleration );
   }
 
   unsigned int MotorControler::getMicroStepCount(){
@@ -136,7 +136,7 @@ namespace mtca4u
   }
 
   void MotorControler::setMicroStepCount(unsigned int microStepCount){
-    _driverCard.controlerSpiWrite( _id, IDX_MICRO_STEP_COUNT, microStepCount );
+    _driverCard._controlerSPI.write( _id, IDX_MICRO_STEP_COUNT, microStepCount );
   }
 
   unsigned int MotorControler::getCoolStepValue(){
@@ -185,7 +185,7 @@ namespace mtca4u
   T  MotorControler::readTypedRegister(){
     T typedWord;
     typedWord.setSMDA( _id );
-    TMC429OutputWord readbackWord =  _driverCard.controlerSpiRead( _id, typedWord.getIDX_JDX());
+    TMC429OutputWord readbackWord =  _driverCard._controlerSPI.read( _id, typedWord.getIDX_JDX());
     typedWord.setDATA( readbackWord.getDATA() );
     return typedWord;
   }
@@ -193,7 +193,7 @@ namespace mtca4u
   void MotorControler::writeTypedControlerRegister(TMC429InputWord inputWord){
     // set/overwrite the id with this motors id
     inputWord.setSMDA( _id );
-    _driverCard.controlerSpiWrite( inputWord );
+    _driverCard._controlerSPI.write( inputWord );
  
   }
 
