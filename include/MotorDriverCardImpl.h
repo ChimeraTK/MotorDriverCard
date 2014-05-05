@@ -85,6 +85,9 @@ namespace mtca4u
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
     boost::shared_ptr<TMC429SPI> _controlerSPI;
+
+    /// Checks the firmware version and throws an exception if it is not valid (too old or too new)
+    void checkFirmwareVersion();
   };
   
 }// namespace mtca4u

@@ -37,6 +37,8 @@ namespace mtca4u{
      *  controlerSpiAddress*controlerSpiAddress+13 for the controler SPI address space.
      *  3*address*address+17 for the PCIe addresses.
      *  spiAddress*spiAddress + 7 + motorID for the drivers SPI addres spaces (motor 0 and 1)
+     * 
+     *  Exception: The registers from the standard register set are set to their no1rmal values.
      */
     void setRegistersForTesting();
 
@@ -66,7 +68,14 @@ namespace mtca4u{
      */
     void causeSpiErrors(bool causeErrors);
 
-    
+    /** Overwrite the firmware version for testing. To restore the dummy default use
+     *  resetFirmwareVersion().
+     */
+    void setFirmwareVersion(uint32_t version);
+
+    /** Reset the firmware version to 0xMMmmFFFF (dummy default).
+     */
+    void resetFirmwareVersion();
 
   private:
     // callback functions
@@ -97,6 +106,11 @@ namespace mtca4u{
 					  std::string suffix );
 
     void setPCIeRegistersForTesting();
+    void setStandardRegisters();
+    /** Set the first word of an address range and make it constant. Intended only for
+     *  single word address ranges. In larger address ranges only the first word is set and made const.
+     */
+    void setConstantPCIeRegister( std::string registerName, int32_t content);
     void setDriverSpiRegistersForTesting(unsigned int motorID);
 
     void setControlerSpiRegistersForOperation();

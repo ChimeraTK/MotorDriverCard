@@ -103,6 +103,38 @@ namespace mtca4u{
 	barIter->second[i] = 3*address*address+17;
       }
     }
+    
+    // now reset the known standard registers to their normal valued
+    setStandardRegisters();
+  }
+
+  void DFMC_MD22Dummy::setStandardRegisters(){
+    setConstantPCIeRegister(PROJECT_MAGIC_ADDRESS_STRING,  PROJECT_MAGIC_NUMBER);
+    setConstantPCIeRegister(PROJECT_ID_ADDRESS_STRING, PROJECT_ID);
+    // the dummy firmware has patch level 0xFFFF
+    resetFirmwareVersion(); // call this special function to avoid code duplication in the firmware calculation
+    // date and reserved are left at the debug values
+    setConstantPCIeRegister(PROJECT_RESET_ADDRESS_STRING, 0); // project is not in reset. FIXME: react on user setting to 1
+   setConstantPCIeRegister(PROJECT_NEXT_ADDRESS_STRING, 0); // There is no next project
+  }
+
+  void DFMC_MD22Dummy::setFirmwareVersion(uint32_t version){
+    setConstantPCIeRegister(PROJECT_VERSION_ADDRESS_STRING, version);
+  }
+
+  void DFMC_MD22Dummy::resetFirmwareVersion(){
+    setConstantPCIeRegister(PROJECT_VERSION_ADDRESS_STRING, MINIMAL_FIRMWARE_VERSION | 0xFFFF);
+  }
+
+  void DFMC_MD22Dummy::setConstantPCIeRegister( std::string registerName, int32_t content){
+    mapFile::mapElem registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
+    std::cout << "setting register " << registerName << " to " << std::hex << content << std::dec <<
+      " and making it const." <<std::endl;
+    DEFINE_ADDRESS_RANGE( addressRange, registerName);
+    size_t addressIndex = addressRange.offset/sizeof(uint32_t);
+    _barContents[addressRange.bar][addressIndex] = content;
+    // only set the one word we modified as constant. The address range might be larger
+    setReadOnly( addressRange.offset, addressRange.bar, 1);
   }
 
   void DFMC_MD22Dummy::setDriverSpiRegistersForTesting(unsigned int motorID){

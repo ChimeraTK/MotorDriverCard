@@ -17,6 +17,8 @@ namespace mtca4u{
 					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice)
   {
+    checkFirmwareVersion();
+    
     // the shared pointers can only be initialised inside the constructor because execution order
     // of the new operations is not defined in the contructor. As any new can throw, it might be that the other
     // object is allocated, but the corresponding smart pointer is not initialised yet, which would lead to
@@ -142,4 +144,26 @@ namespace mtca4u{
     return  ReferenceSwitchData(_controlerSPI->read( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
   }
 
+  void  MotorDriverCardImpl::checkFirmwareVersion(){
+    int32_t firmwareVersion;
+    _mappedDevice->readReg(  PROJECT_VERSION_ADDRESS_STRING, &firmwareVersion );
+
+    // only allow firmware versions with the same major number
+    uint32_t maxFirmwareVersion =  (MINIMAL_FIRMWARE_VERSION & 0xFF000000) | 0x00FFFFFF;
+
+    // check the version
+    if ( (static_cast<uint32_t>(firmwareVersion) <  MINIMAL_FIRMWARE_VERSION) || 
+	 (static_cast<uint32_t>(firmwareVersion) >  maxFirmwareVersion) ){
+      std::stringstream errorMessage;
+      errorMessage <<  "MotorDriverCardImpl detected wrong firmware version. " 
+		   << "Current firmware is 0x" << std::hex << firmwareVersion
+		   << ", minumum required version is 0x" << MINIMAL_FIRMWARE_VERSION 
+		   << ", maximum allowed version is 0x" << maxFirmwareVersion << std::dec << ".";
+      std::cerr << errorMessage << std::endl;
+      throw MotorDriverException( errorMessage.str(), MotorDriverException::WRONG_FIRMWARE_VERSION );
+    }
+
+
+  }
+  
 }// namespace mtca4u

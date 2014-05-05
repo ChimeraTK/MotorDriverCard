@@ -12,7 +12,7 @@ namespace mtca4u
     
     /** The different error types of the MotorDriverException.
      */
-    enum {  WRONG_MOTOR_ID, SPI_TIMEOUT, SPI_ERROR };
+    enum {  WRONG_MOTOR_ID, SPI_TIMEOUT, SPI_ERROR, WRONG_FIRMWARE_VERSION };
     
     MotorDriverException(const std::string & message, unsigned int id):
       exBase(message, id) {}

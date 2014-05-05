@@ -160,6 +160,18 @@ void MotorDriverCardTest::testConstructor(){
 
   _dummyDevice->openDev( _mapFileName );
   mappedDevice->openDev( _dummyDevice, registerMapping );
+
+  //try something with a wrong firmware version
+  // wrong major (too large by 1):
+  _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000 );
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+		     MotorDriverException );
+
+  _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION -1 );
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+		     MotorDriverException );
+
+  _dummyDevice->resetFirmwareVersion();
   
   _motorDriverCard.reset(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ));
 
