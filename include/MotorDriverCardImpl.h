@@ -75,6 +75,9 @@ namespace mtca4u
     void powerDown();
     ReferenceSwitchData getReferenceSwitchData();
 
+    /** Get the 8 bit status word which is always send a the most significant byte of the TMC429 readback word.*/
+    TMC429StatusWord getStatusWord();
+
   private:
     // Motor controlers need dynamic allocation, so we cannot store them directly.
     // As we do not want to care about cleaning up we use shared pointers.
@@ -85,6 +88,8 @@ namespace mtca4u
     boost::scoped_ptr<PowerMonitor> _powerMonitor;
 
     boost::shared_ptr<TMC429SPI> _controlerSPI;
+
+    mtca4u::devMap< devBase >::regObject _controlerStatusRegister;
 
     /// Checks the firmware version and throws an exception if it is not valid (too old or too new)
     void checkFirmwareVersion();

@@ -10,6 +10,7 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
+#include "testWordFromPCIeAddress.h"
 using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardConfigDefaults.h"
@@ -39,6 +40,7 @@ public:
   void testConfiguration(MotorDriverCardConfig const & motorDriverCardConfig);
   void testGetControlerChipVersion();
   void testGetReferenceSwitchData();
+  void testGetStatusWord();
   DECLARE_GET_SET_TEST( DatagramLowWord );
   DECLARE_GET_SET_TEST( DatagramHighWord );
   DECLARE_GET_SET_TEST( CoverPositionAndLength );
@@ -53,6 +55,7 @@ public:
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
+  boost::shared_ptr<mapFile> _registerMapping;
   std::string _mapFileName;
   
   unsigned int asciiToInt( std::string text );
@@ -71,6 +74,7 @@ class  MotorDriverCardTestSuite : public test_suite{
     add( constructorTestCase );
     add( getControlerVersionTestCase );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetReferenceSwitchData, motorDriverCardTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetStatusWord, motorDriverCardTest ) );
     ADD_GET_SET_TEST( DatagramLowWord );
     ADD_GET_SET_TEST( DatagramHighWord );
     ADD_GET_SET_TEST( CoverPositionAndLength );
@@ -102,7 +106,7 @@ void MotorDriverCardTest::testConstructor(){
   _dummyDevice->openDev( _mapFileName );
  
   mapFileParser fileParser;
-  boost::shared_ptr<mapFile> registerMapping = fileParser.parse(_mapFileName);
+  _registerMapping = fileParser.parse(_mapFileName);
 
   boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
   MotorDriverCardConfig motorDriverCardConfig;
@@ -159,7 +163,7 @@ void MotorDriverCardTest::testConstructor(){
   mappedDevice->closeDev();
 
   _dummyDevice->openDev( _mapFileName );
-  mappedDevice->openDev( _dummyDevice, registerMapping );
+  mappedDevice->openDev( _dummyDevice, _registerMapping );
 
   //try something with a wrong firmware version
   // wrong major (too large by 1):
@@ -246,6 +250,15 @@ void MotorDriverCardTest::testGetReferenceSwitchData(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_REFERENCE_SWITCH);  
   BOOST_CHECK( _motorDriverCard->getReferenceSwitchData() == ReferenceSwitchData(expectedContent) );
+}
+
+void MotorDriverCardTest::testGetStatusWord(){
+  mapFile::mapElem mapElement;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+
+  unsigned int expectedContent = testWordFromPCIeAddress( mapElement.reg_address );
+
+  BOOST_CHECK( _motorDriverCard->getStatusWord().getDataWord() == expectedContent );
 }
 
 void MotorDriverCardTest::testGetDatagramLowWord(){

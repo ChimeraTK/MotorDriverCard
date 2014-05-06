@@ -15,7 +15,8 @@ using namespace mtca4u::dfmc_md22;
 namespace mtca4u{
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
 					   MotorDriverCardConfig const & cardConfiguration)
-    : _mappedDevice(mappedDevice)
+    : _mappedDevice(mappedDevice),
+      _controlerStatusRegister(_mappedDevice->getRegObject( CONTROLER_STATUS_BITS_ADDRESS_STRING ))
   {
     checkFirmwareVersion();
     
@@ -142,6 +143,12 @@ namespace mtca4u{
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData(){
     return  ReferenceSwitchData(_controlerSPI->read( SMDA_COMMON, JDX_REFERENCE_SWITCH ).getDATA());
+  }
+
+  TMC429StatusWord MotorDriverCardImpl::getStatusWord(){
+    int readValue;
+    _controlerStatusRegister.readReg( &readValue );
+    return TMC429StatusWord( readValue );
   }
 
   void  MotorDriverCardImpl::checkFirmwareVersion(){

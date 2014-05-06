@@ -51,6 +51,7 @@ namespace mtca4u
 				  boost::shared_ptr< TMC429SPI > const & controlerSPI,
 				  MotorControlerConfig const & motorControlerConfig ) 
     : _mappedDevice(mappedDevice), _id(ID),
+      _controlerStatus(mappedDevice->getRegObject( CONTROLER_STATUS_BITS_ADDRESS_STRING )),
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX ) ),
       _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX ) ),
@@ -257,6 +258,20 @@ namespace mtca4u
   }
 
 
-  
+  bool MotorControler::targetPositionReached(){
+    int readValue;
+    _controlerStatus.readReg( &readValue );
+    TMC429StatusWord controlerStatusWord( readValue );
+
+    return controlerStatusWord.getTargetPositionReached(_id);
+  }
+
+  unsigned int MotorControler::getReferenceSwitchBit(){
+    int readValue;
+    _controlerStatus.readReg( &readValue );
+    TMC429StatusWord controlerStatusWord( readValue );
+
+    return controlerStatusWord.getReferenceSwitchBit(_id);
+  }
 
 }// namespace mtca4u

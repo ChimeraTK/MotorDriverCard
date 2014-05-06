@@ -5,8 +5,28 @@
 #include "MotorDriverCardConfigXML.h"
 #include <unistd.h>
 #include <signal.h>
+#include <ctime>
+#include <cerrno>
+#include <stdexcept>
 
 bool volatile keepRunning = true;
+
+void sleepMicroSeconds(unsigned int microSeconds){
+  timespec sleepTime;
+  sleepTime.tv_sec = microSeconds / 1000000;
+  sleepTime.tv_nsec = (microSeconds%1000000)*1000;
+  
+  timespec remainingTime;
+  remainingTime.tv_sec = 0;
+  remainingTime.tv_nsec = 0;
+  if ( nanosleep(&sleepTime, &remainingTime) ){
+    if (errno == EFAULT){
+      std::stringstream errorMessage;
+      errorMessage << "Error sleeping " << microSeconds << " micro seconds!";
+      throw std::runtime_error(errorMessage.str() );
+    }
+  }
+}
 
 void intHandler(int /*dummy*/ = 0) {
     keepRunning = false;
@@ -52,6 +72,14 @@ int main( int argc, char* argv[] )
   unsigned int nStepsMax = (strtoul( argv[3] , NULL, 0 ) & 0x7FFFFF);// limit to the maximal possible position
 
   boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard.getMotorControler(0);
+
+  // check that one or both end switches are inactive. Otherwise there probably is no motor connected.
+  if  (motor0->getReferenceSwitchData().getNegativeSwitchActive () && 
+       motor0->getReferenceSwitchData().getPositiveSwitchActive ()){
+    std::cout << "Both end switches are active. Do you have a motor connected? Exiting programme!" 
+	      << std::endl;
+    return -2;
+  }
 
   try{
     motor0->setEnabled(true);

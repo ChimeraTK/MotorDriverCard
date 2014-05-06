@@ -119,7 +119,13 @@ namespace mtca4u
      CoolStepControlData const & getCoolStepControlData() const;
      StallGuardControlData const & getStallGuardControlData() const;
      DriverConfigData const & getDriverConfigData() const;
-           
+ 
+     /** Extracts the correct bit from the controler status word. */
+     bool targetPositionReached();
+
+     /** Returns the ReferenceSwitchBit for this motor as defined in section 10.1 of the TMC429 data sheet.
+      *  This function the correct bit from the controler status word and stores it as the least significant bit. */
+     unsigned int getReferenceSwitchBit();
  
   private:
      boost::shared_ptr< devMap<devBase> > _mappedDevice;
@@ -132,6 +138,8 @@ namespace mtca4u
      CoolStepControlData _coolStepControlData;
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
+
+     mtca4u::devMap< devBase >::regObject _controlerStatus;
 
      mtca4u::devMap< devBase >::regObject _actualPosition;
      mtca4u::devMap< devBase >::regObject _actualVelocity;

@@ -128,6 +128,9 @@ public:
   void testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardExpert> motorDriverCard );
   void testSetReferenceSwitchEnabled();
   
+  void testTargetPositionReached();
+  void testGetReferenceSwitchBit();
+
 private:
   boost::shared_ptr<MotorControler> _motorControler;
   boost::shared_ptr<mapFile> _registerMapping;
@@ -235,6 +238,10 @@ public:
 					 motorControlerTest,
 					 _motorDriverCard) ));
       add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetReferenceSwitchEnabled,
+				  motorControlerTest ) );
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testTargetPositionReached,
+				  motorControlerTest ) );
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetReferenceSwitchBit,
 				  motorControlerTest ) );
 
    }// for i < N_MOTORS_MAX
@@ -417,4 +424,24 @@ void MotorControlerTest::testSetReferenceSwitchEnabled(){
   _motorControler->setPositiveReferenceSwitchEnabled( originalSetting.getPositiveSwitchEnabled() );
   _motorControler->setNegativeReferenceSwitchEnabled( originalSetting.getNegativeSwitchEnabled() );
 
+}
+
+void MotorControlerTest::testTargetPositionReached(){
+  mapFile::mapElem mapElement;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
+
+  BOOST_CHECK( expectedControlerStatus.getTargetPositionReached( _motorControler->getID() ) ==
+	       _motorControler->targetPositionReached() );
+}
+
+void MotorControlerTest::testGetReferenceSwitchBit(){
+  mapFile::mapElem mapElement;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
+
+  BOOST_CHECK( expectedControlerStatus.getReferenceSwitchBit( _motorControler->getID() ) ==
+	       _motorControler->getReferenceSwitchBit() );
 }
