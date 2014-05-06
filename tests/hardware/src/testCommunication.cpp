@@ -96,8 +96,11 @@ int main( int argc, char* argv[] )
     motor1->setChopperControlData( mtca4u::ChopperControlData( 0x0AAAA ) );
     motor0->setPositionTolerance( 0x555 );
     
-    PRINT_AND_COUNT_ERRORS( motor0->getTargetPosition() == 0xAAAAAA, 0 );
-    PRINT_AND_COUNT_ERRORS( motor1->getTargetPosition() == 0x555555, 1 );
+    // although 0xAAAAAA has been written, the return value is 0xFFAAAAAA.
+    // This is because the value is interpreted as signed 24 bit, and the return value is the
+    // corresponding signed 32 bit integer.
+    PRINT_AND_COUNT_ERRORS( motor0->getTargetPosition() == static_cast<int32_t>(0xFFAAAAAA), 0 );
+    PRINT_AND_COUNT_ERRORS( motor1->getTargetPosition() == static_cast<int32_t>(0x555555), 1 );
     PRINT_AND_COUNT_ERRORS( motor0->getPositionTolerance() ==  0x555, 0 );
     PRINT_AND_COUNT_ERRORS( motor1->getPositionTolerance() ==  0xAAA, 1 );
 
