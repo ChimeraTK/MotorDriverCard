@@ -12,9 +12,10 @@ namespace mtca4u {
 
 
 
-    StepperMotorError StepperMotorErrorTypes::MOTOR_NO_ERROR(0, "No error");
-    StepperMotorError StepperMotorErrorTypes::MOTOR_BOTH_ENDSWICHTED_ON(1, "Both hardware end switches on");
-    StepperMotorError StepperMotorErrorTypes::MOTOR_COMMUNICATION_LOST(2, "Communication with motor lost");
+    StepperMotorError StepperMotorErrorTypes::MOTOR_NO_ERROR(0, "NO ERROR");
+    StepperMotorError StepperMotorErrorTypes::MOTOR_BOTH_ENDSWICHTED_ON(1, "BOTH END SWITCHES ON");
+    StepperMotorError StepperMotorErrorTypes::MOTOR_COMMUNICATION_LOST(2, "COMMUNICATION LOST");
+    StepperMotorError StepperMotorErrorTypes::MOTOR_CONFIGURATION_ERROR(4, "MOTOR CONFIGURATION ERROR");
 
 
     StepperMotorStatus StepperMotorStatusTypes::M_OK(0, "OK");
@@ -22,10 +23,10 @@ namespace mtca4u {
     StepperMotorStatus StepperMotorStatusTypes::M_IN_MOVE(2, "IN MOVE");
     StepperMotorStatus StepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON(4, "HARDWARE POSITIVE END SWITCH ON");
     StepperMotorStatus StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON(8, "HARDWARE NEGATIVE END SWITCH ON");
-    StepperMotorStatus StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON(16, "SOFTWARE PLUS END SWITCH ON");
-    StepperMotorStatus StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON(32, "SOFTWARE MINUS END SWITCH ON");
+    StepperMotorStatus StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON(16, "SOFTWARE POSITIVE END SWITCH ON");
+    StepperMotorStatus StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON(32, "SOFTWARE NEGATIVE END SWITCH ON");
     StepperMotorStatus StepperMotorStatusTypes::M_ERROR(64, "ERROR");
-    StepperMotorStatus StepperMotorStatusTypes::M_CONFIGURATION_ERROR(128, "MOTOR_CONFIGURATION_ERROR");
+
 
     StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN(0, "UNKNOWN");
     StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATED(1, "CALIBRATED");
@@ -146,8 +147,7 @@ namespace mtca4u {
             }
         } while (continueWaiting);
         
-        status = this->getMotorStatus();
-        //std::cout << "StepperMotor::moveToPosition : Motor status after wait ending: " << status << "\n";
+        //std::cout << "StepperMotor::moveToPosition : Motor status after wait ending: " << this->getMotorStatus() << std::endl;
 
         return this->getMotorStatus();
 
@@ -155,7 +155,7 @@ namespace mtca4u {
 
     StepperMotorCalibrationStatus StepperMotor::calibrateMotor() {
         
-        //!!! WE NEED TO BE SURE THAT PHYSICAL END_SWITCHES ARE AVAIABLE AND ARE ON !!!!! - FIX ME !!!!!!!!!!!! maybe read from config, motor config should contain this info if end switches are avaiable
+        //  !!! WE NEED TO BE SURE THAT PHYSICAL END_SWITCHES ARE AVAIABLE AND ARE ON !!!!! - FIX ME !!!!!!!!!!!! maybe read from config, motor config should contain this info if end switches are avaiable
         
         _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS;
         //enable the motor
@@ -232,7 +232,7 @@ namespace mtca4u {
 
             if (takeFlagInAccount && _motorStatus == StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON) {
                 std::cout << "StepperMotor::calibrateMotor : Negative end switch reached when positive expected.\n";
-                _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED;
+                _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED; // FIX ME - we should also store information why it happened
                 return _motorCalibrationStatus;
             }
 
@@ -266,15 +266,9 @@ namespace mtca4u {
     StepperMotorCalibrationStatus StepperMotor::getCalibrationStatus() {
         return _motorCalibrationStatus;
     }
-    
 
     void StepperMotor::setMotorPosition(float newPosition) {
         float position = newPosition;
-        if (newPosition > _maxPositionLimit)
-            position = _maxPositionLimit;
-
-        if (newPosition < _minPositionLimit)
-            position = _minPositionLimit;
 
         _targetPositionInUnits = position;
         _targetPositionInSteps = this->recalculateUnitsToSteps(position);
@@ -290,20 +284,21 @@ namespace mtca4u {
         return _currentPostionsInUnits;
     }
 
-    void StepperMotor::setConversionFunctions(unsigned int (*UnitToStepsPtr)(float), float (*StepsToUnitsPtr)(int)) {
+    void StepperMotor::setConversionFunctions(int (*UnitToStepsPtr)(float), float (*StepsToUnitsPtr)(int)) {
         unitsToSteps = UnitToStepsPtr;
         stepsToUnits = StepsToUnitsPtr;
     }
 
     void StepperMotor::startMotor() {
-        _motorControler->setTargetPosition(_targetPositionInSteps);
+        if (this->getMotorStatus() == StepperMotorStatusTypes::M_OK)
+                _motorControler->setTargetPosition(_targetPositionInSteps);
     }
 
     void StepperMotor::stopMotor() {
         //stopping is done by reading real position and setting it as target one. In reality it can cause that motor will stop and move in reverse direction by couple steps
         //Amount of steps done in reverse direction depends on motor speed and general delay in motor control path
         _stopMotorForBlocking = true;
-        unsigned int currentPosition = _motorControler->getActualPosition();
+        int currentPosition = _motorControler->getActualPosition();
         _targetPositionInSteps = currentPosition;
         _targetPositionInUnits = recalculateStepsToUnits(currentPosition);
         _motorControler->setTargetPosition(currentPosition);
@@ -317,11 +312,11 @@ namespace mtca4u {
         
     }
 
-    void StepperMotor::emergencyStopMotor() {
+    void StepperMotor::stopMotorEmergency() {
         //Emergency stop is done disabling motor driver. It can cause lost of calibration for the motor. After emergency stop calibration flag will be set to FALSE
         _stopMotorForBlocking = true;
         _motorControler->setEnabled(false);
-        // we can execute stopMotor function to stop internal controller counter as close to the emergency stop position
+        // we can execute stopMotor function to stop internal controller counter as close to the emergency stop position. Moreover, it will also interrupt blocking function.
         this->stopMotor();
         this->_motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
     }
@@ -330,7 +325,7 @@ namespace mtca4u {
 
     void StepperMotor::setMotorSpeed(float newSpeed) {
         //FIX ME
-        int ns = static_cast<unsigned int> (fabs(newSpeed));
+        int ns = static_cast<int> (fabs(newSpeed));
         _motorDriverCardPtr->getMotorControler(_motorDriverId).setActualVelocity(ns);
     }
 
@@ -377,6 +372,7 @@ namespace mtca4u {
     void StepperMotor::setAutostart(bool autostart) {
         _autostartFlag = autostart;
 
+        // if flag set to true we need to synchronize target position with from class with one in hardware
         if (_autostartFlag)
             this->startMotor();
     }
@@ -424,12 +420,12 @@ namespace mtca4u {
             return;
         }
 
-        if (_targetPositionInUnits == _maxPositionLimit) {
+        if (_targetPositionInUnits >= _maxPositionLimit) {
             _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
             return;
         }
 
-        if (_targetPositionInUnits == _maxPositionLimit) {
+        if (_targetPositionInUnits <= _minPositionLimit) {
             _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
             return;
         }
@@ -450,7 +446,7 @@ namespace mtca4u {
 
     int StepperMotor::recalculateUnitsToSteps(float units) {
         if (unitsToSteps == NULL)
-            return static_cast<unsigned int> (fabs(units));
+            return static_cast<int> (units);
 
         return unitsToSteps(units);
 

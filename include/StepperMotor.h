@@ -40,9 +40,10 @@ namespace mtca4u {
     class StepperMotorErrorTypes {
     
     public:
-        static struct StepperMotorError MOTOR_NO_ERROR;
-        static struct StepperMotorError MOTOR_BOTH_ENDSWICHTED_ON;
-        static struct StepperMotorError MOTOR_COMMUNICATION_LOST;
+        static StepperMotorError MOTOR_NO_ERROR;
+        static StepperMotorError MOTOR_CONFIGURATION_ERROR;
+        static StepperMotorError MOTOR_BOTH_ENDSWICHTED_ON;
+        static StepperMotorError MOTOR_COMMUNICATION_LOST;
     };
 
 
@@ -117,71 +118,185 @@ namespace mtca4u {
     class StepperMotor {
     
     public:
-        /*! Constructor of the class object
-         * \param motorDriverCardDeviceName - name of the device in MAP file which have Motor Card Driver
-         * \param motorDriverId - each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID define which motor should be represented by this class instantiation  
-         * \param motorDriverCardConfigFileName - name of configuration file 
-         * \return
+
+        /**
+         * @brief  Constructor of the class object
+         * @param  motorDriverCardDeviceName - name of the device in DMAP file
+         * @param  motorDriverId - each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
+         * @param  motorDriverCardConfigFileName - name of configuration file
+         * @return
          */
-        
         StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
-        /*! Destructor of the class
+        
+        /**
+         * @brief  Destructor of the class object
          */
         ~StepperMotor();
-    
-        
-        StepperMotorStatus moveToPosition(float newPosition);
-        void setCurrentMotorPositionAs(float newPosition);
+
+        /**
+         * @brief Sending motor to new position (blocking).
+         * @param  newPosition - new position for the motor 
+         * @return StepperMotorStatus - status of the motor after movement routine finish  
+         * 
+         * @details 
+         * This method sends motor to new position. It is blocking blocking method. It will finish when motor movement will end. 
+         * Function can be interrupted by using 'void stopMotor()' method.\n
+         * Function automatically detects end switches conditions.\n 
+         * It allows to perform movement in case NEGATIVE END SWITCH is active but target position in grater than current one.\n
+         * It allows to perform movement in case POSITIVE END SWITCH is active but target position in smaller than current one.\n
+         * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
+         * 
+         */
+        StepperMotorStatus moveToPosition(float newPosition);     
+
+        /**
+         * @brief  Set new position for the motor (no blocking)
+         * @param  newPosition - new position for the motor 
+         * @return void
+         *  
+         * @details 
+         * Motor behavior depends on the Autostart flag value. \n
+         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by calling 'void startMotor()' method.\n
+         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.\n
+         * This is NO blocking method so user needs to check when motor status will change from StepperMotorStatusTypes::M_IN_MOVE to other.\n
+         * Position is expressed in arbitrary units ex. mm or fs or deg or steps. Recalculation from arbitrary unit to steps is done internally according to the 'UnitsToSteps Conversion function '.\n
+         * 'UnitsToSteps Conversion method ' is set by setConverionFunctions method. By default it is direct conversion: steps = 1 x units \n
+         */
+         void setMotorPosition(float newPosition);
         
 
-        /*! Set new position for the motor. 
-         * Motor behavior depends on the Autostart flag value. 
-         * When Autostart flag is set to TRUE motor will automatically start moving to desired position.
-         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.
-         * Position is expressed in arbitrary units ex. mm or fs or deg or steps. Recalculation from arbitrary unit to steps is done internally according to the 'UnitsToSteps Conversion function '.
-         * 'UnitsToSteps Conversion function ' is set by setConverionFunctions method. By default it is direct conversion: steps = 1 x units
-         * \param newPosition - new position for the motor 
-         * \return void
-         */
-        void setMotorPosition(float newPosition);
-        
-         /*! Return real motor position read directly from the hardware expressed in the arbitrary units.
-          *  Calculation between steps and arbitrary units is done internally according to 'StepsToUnits Conversion function '.
-          * \param 
-          * \return float - current, real position of motor in arbitrary units.
-          */       
+        /**
+         * @brief Return real motor position read directly from the hardware and expressed in the arbitrary units.
+         * @param  
+         * @return float - current, real position of motor in arbitrary units.
+         * 
+         * @details 
+         * Return real motor position read directly from the hardware and expressed in the arbitrary units.\n
+         * Calculation between steps and arbitrary units is done internally according to 'StepsToUnits Conversion method '.\n
+         */     
         float getMotorPosition();
 
-        /*! Set functions which allows convert arbitrary units to steps and steps into arbitrary units.
-         *  By default this functions are set as: "steps = 1 * units" and "unit = 1 * steps"
-         *  
-         * \param UnitToSteps - pointer to the function which allow to convert number of units to number of steps. Function take 'float' type as parameter and return 'int' type
-         * \param StepsToUnits - pointer to the function which allow to convert number of steps to number of units. Function take 'int' type as parameter and return 'float' type
-         * \return
-         */       
-        void setConversionFunctions(unsigned int (*UnitToSteps)(float), float (*StepsToUnits)(int));
-        
-        // Motors command        
+        /**
+         * @brief Set position passed as parameter as current position of the motor
+         * @param  newPosition - new position for the motor expressed in arbitrary units
+         * @return void
+         * 
+         * @details 
+         * Set given position as a current position of the motor.\n
+         * Position is expressed in arbitrary units and internally recalculated into steps.\n
+         * Can be used in example to zeroed current position.
+         */
+        void setCurrentMotorPositionAs(float newPosition);
+
+        /**
+         * @brief Set functions which allows convert arbitrary units to steps and steps into arbitrary units.
+         * @param UnitToSteps - pointer to the function which allow to convert number of units to number of steps. Function take 'float' type as parameter and return 'int' type.
+         * @param StepsToUnits - pointer to the function which allow to convert number of steps to number of units. Function take 'int' type as parameter and return 'float' type
+         * 
+         * @return void
+         * 
+         * @details 
+         * By default this functions are set as: "steps = 1 * units" and "unit = 1 * steps".\n
+         * To keep synchronization UnitToSteps following assumption must be fulfill:\n
+         * 1) UnitToSteps(StepsToUnits(x)) must be equal to 'x'.\n
+         * 2) StepsToUnits(UnitToSteps(x)) must be equal to 'x'.\n
+         */ 
+        void setConversionFunctions(int (*UnitToSteps)(float), float (*StepsToUnits)(int));
+
+        /**
+         * @brief Start the motor 
+         * @param
+         * @return void
+         * 
+         * @details 
+         * Function starts the motor. When 'Autostart' is set to FALSE it make motor moving, but before it checks motor status.\n
+         * When status is StepperMotorStatusTypes::M_OK, target position set by setMotorPosition is passed to hardware and motor moves.\n
+         * In case of 'Autostart' is set to TRUE this method is not performing any action.\n
+         */      
         void startMotor();
+        
+        /**
+         * @brief Stop the motor 
+         * @param
+         * @return void
+         * 
+         * @details 
+         * Function stop the motor in a way that real position from the motor is set as a target position.\n
+         * It also interrupts all blocking functions as 'StepperMotorStatus moveToPosition(float newPosition)' or 'StepperMotorCalibrationStatus calibrateMotor()'.\n
+         * Delays in communication can trigger effect that motor will move a few steps in current movement direction and later will move couple steps back, but this issue can be filtered by motor hysteresis effect.\n
+         */  
         void stopMotor();
-        void emergencyStopMotor();
+
+        /**
+         * @brief Emergency stop the motor by disabling driver.
+         * @param
+         * @return void
+         * 
+         * @details 
+         * Function stops the motor by disabling driver. It means that it is done in the fastest possible way.\n
+         * After emergency stop motor calibration can be lost so execution of this method influence calibration status.\n
+         * Function internally calls 'void stopMotor()' method so all blocking functions will be interrupted.\n
+         */  
+        void stopMotorEmergency();
+
+        /**
+         * @brief Perform calibration of the motor (blocking). 
+         * @param
+         * @return void
+         * 
+         * @details 
+         * TO BE ADDED
+         */ 
         StepperMotorCalibrationStatus calibrateMotor();
+        
+
+        /**
+         * @brief Return current calibration status.
+         * @param
+         * @return StepperMotorCalibrationStatus - current calibration status
+         * 
+         * @details 
+         * Return current calibration status as StepperMotorCalibrationStatus object.\n
+         * Currently following status are forseen:\n
+         * 1) StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN - calibration status in unknown. This is default value after object creation.\n
+         * 2) StepperMotorCalibrationStatusType::M_CALIBRATED - motor calibrated.\n
+         * 3) StepperMotorCalibrationStatusType::M_CALIBRATED -motor not calibrated (ex. after emergency stop).\n
+         * 4) StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED - motor calibration failed.\n
+         * 5) StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS - motor is calibrating now.\n
+         * 6) StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER - motor calibration was triggered by it was stopped by user (ex. execution of 'void stopMotor()' function).\n
+         */
         StepperMotorCalibrationStatus getCalibrationStatus();
+
+        /**
+         * @brief Return current motor status.
+         * @param
+         * @return StepperMotorStatus - current motor status
+         * 
+         * @details 
+         * Return current motor status as StepperMotorStatus object.\n
+         * Every time it is called it checks status of the motor.
+         * Currently following status are forseen:\n
+         * 1) StepperMotorStatusTypes::M_OK - motor is OK and ready for new commands.\n
+         * 2) StepperMotorStatusTypes::M_DISABLED - motor is disabled. No action can be done. to change this use 'void setEnable(bool enable)' method.\n
+         * 3) StepperMotorStatusTypes::M_IN_MOVE -motor in in move.\n
+         * 4) StepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON - hardware positive end switch has been triggered. Motor is on positive end.\n
+         * 5) StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON - hardware negative end switch has been triggered. Motor is on negative end.\n
+         * 6) StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON - target position in greater than value set by 'void setMaxPositionLimit(float maxPos)' method.\n
+         * 7) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
+         * 8) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getMotorError()' method.\n
+         */
+        StepperMotorStatus getMotorStatus();
+        
+        StepperMotorError getMotorError();
         
         
         // Speed setting
         void setMotorSpeed(float newSpeed);
         float getMotorSpeed();
         
-        //Software limits settings
-        void setMaxPositionLimit(float maxPos);
-        void setMinPositionLimit(float minPos);
-        float getMaxPositionLimit();
-        float getMinPositionLimit();      
+     
         
-        //motor statuses
-        StepperMotorStatus getMotorStatus();
-        StepperMotorError getMotorError();
+
         
         //autostart 
         bool getAutostart();
@@ -189,6 +304,12 @@ namespace mtca4u {
         
         
         void setEnable(bool enable);
+
+        //Software limits settings
+        void setMaxPositionLimit(float maxPos);
+        void setMinPositionLimit(float minPos);
+        float getMaxPositionLimit();
+        float getMinPositionLimit(); 
         
     private: // methods
         int recalculateUnitsToSteps(float units);
@@ -211,10 +332,10 @@ namespace mtca4u {
         MotorControler* _motorControler;
 
         // position
-        unsigned int _currentPostionsInSteps;
+        int _currentPostionsInSteps;
         float _currentPostionsInUnits;
         
-        unsigned int _targetPositionInSteps;
+        int _targetPositionInSteps;
         float _targetPositionInUnits;
         
         
@@ -223,7 +344,7 @@ namespace mtca4u {
         float _minPositionLimit;
         
         //pointers to conversion functions
-        unsigned int   (*unitsToSteps) (float);
+        int   (*unitsToSteps) (float);
         float (*stepsToUnits) (int);
         
         //status and error
