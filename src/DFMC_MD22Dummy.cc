@@ -128,8 +128,6 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::setConstantPCIeRegister( std::string registerName, int32_t content){
     mapFile::mapElem registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
-    std::cout << "setting register " << registerName << " to " << std::hex << content << std::dec <<
-      " and making it const." <<std::endl;
     DEFINE_ADDRESS_RANGE( addressRange, registerName);
     size_t addressIndex = addressRange.offset/sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;

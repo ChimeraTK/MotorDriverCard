@@ -71,6 +71,10 @@ namespace mtca4u{
      */
     
     unsigned int _spiWaitingTime;
+
+    // store these two register names for debug output (exception messages)
+    std::string _writeRegisterName;
+    std::string _syncRegisterName;
   };
 
 }//namespace mtca4u
