@@ -15,6 +15,8 @@ using namespace mtca4u;
   << " with motorID = " << MOTOR_ID << " in test cycle " << runCounter <<"!"<<  std::endl; \
   }
 
+#define MASK24( INPUT ) ( (INPUT) & 0xFFFFFF )
+
 int main( int argc, char* argv[] )
 {
   if (argc !=2){
@@ -59,17 +61,18 @@ int main( int argc, char* argv[] )
         boost::shared_ptr<mtca4u::MotorControler> motor = motorDriverCard.getMotorControler(motorID);
 
 	// test that writing values in a row work
-	motor->setTargetPosition(initialTargetPosition[motorID] + 1000);
-	motor->setMinimumVelocity(initialMinVelocity[motorID] + 1);
-	motor->setMaximumVelocity(initialMaxVelocity[motorID] + 2);
- 	motor->setMaximumAcceleration(initialMaxAcceleration[motorID] + 3);
-	motor->setPositionTolerance(initialPositionTolerance[motorID] + 4);
+	// mask then in case the initial values are at the 24 bit data word boundary (readback error)
+	motor->setTargetPosition( MASK24(initialTargetPosition[motorID] + 1000) );
+	motor->setMinimumVelocity( MASK24(initialMinVelocity[motorID] + 1) );
+	motor->setMaximumVelocity( MASK24(initialMaxVelocity[motorID] + 2) );
+ 	motor->setMaximumAcceleration( MASK24(initialMaxAcceleration[motorID] + 3) );
+	motor->setPositionTolerance( MASK24(initialPositionTolerance[motorID] + 4) );
  
-	PRINT_AND_COUNT_ERRORS( motor->getTargetPosition() == initialTargetPosition[motorID] + 1000, motorID );
-	PRINT_AND_COUNT_ERRORS( motor->getMinimumVelocity() == initialMinVelocity[motorID] + 1, motorID );
-	PRINT_AND_COUNT_ERRORS( motor->getMaximumVelocity() == initialMaxVelocity[motorID] + 2, motorID );
-	PRINT_AND_COUNT_ERRORS( motor->getMaximumAcceleration() == initialMaxAcceleration[motorID] + 3, motorID );
-	PRINT_AND_COUNT_ERRORS( motor->getPositionTolerance() ==  initialPositionTolerance[motorID] + 4, motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getTargetPosition() == MASK24(initialTargetPosition[motorID] + 1000), motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMinimumVelocity() == MASK24(initialMinVelocity[motorID] + 1), motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMaximumVelocity() == MASK24(initialMaxVelocity[motorID] + 2), motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getMaximumAcceleration() == MASK24(initialMaxAcceleration[motorID] + 3), motorID );
+	PRINT_AND_COUNT_ERRORS( motor->getPositionTolerance() == MASK24(initialPositionTolerance[motorID] + 4), motorID );
 
 	// set back to the initial values (another test plus needed for the next test round because we have to 
 	// alternate the register content.
