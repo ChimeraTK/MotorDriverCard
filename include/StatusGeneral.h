@@ -21,6 +21,7 @@ namespace mtca4u {
         bool operator!=(StatusGeneral const& right) const;
         
         std::string asString() const;
+        int getId() const;
 
         friend std::ostream &operator<<(std::ostream &out, const StatusGeneral &status);
     };

@@ -40,4 +40,9 @@ namespace mtca4u {
             out << status.name <<"("<<status.id<<")";
             return out;
         }
+        
+        
+        int StatusGeneral::getId() const {
+            return id;
+        }
 }

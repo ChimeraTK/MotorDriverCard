@@ -25,17 +25,32 @@ void* calibrationStopThread(void* ptr) {
 
 int main( int argc, char* argv[] ) {
 
-    std::cout << "Test MotorStepper class !!! \n";
+    std::cout << "Test MotorStepper class !!! : Number of params: " <<   argc <<  "\n";
+
+  
 
 
-    std::string deviceName(argv[1]);
-    std::string configFileNameName(argv[2]);
-    int motorDriverId = boost::lexical_cast<int>(argv[3]);
-
+    std::string deviceName;
+    std::string configFileNameName;
+    int motorDriverId;
+    if (argc == 4 ) {
+        deviceName = std::string(argv[1]);
+        configFileNameName = std::string(argv[2]);
+        motorDriverId = boost::lexical_cast<int>(argv[3]);
+    } else {
+        deviceName = std::string("DFMC-MD22");
+        configFileNameName = std::string("VT21-MotorDriverCardConfig.xml");
+        motorDriverId = 0;
+    }
+    
     std::cout << "Try to open MOTOR CARD with device name: " << deviceName << " with config file: " << configFileNameName << " Motor driver ID is: " << motorDriverId << std::endl;
 
     mtca4u::StepperMotor motor(deviceName, motorDriverId, configFileNameName);
 
+    std::cout << "Change debug stream to the std::cout \n"; 
+    motor.setDebugStream(&std::cout);
+    motor.setDebugLevel(DEBUG_DETAIL);
+    
     mtca4u::StepperMotorStatus status(motor.getMotorStatus());
     std::cout << "Current motor status is: " << status<< "\n";
     if (status == mtca4u::StepperMotorStatusTypes::M_DISABLED) {

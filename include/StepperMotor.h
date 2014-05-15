@@ -41,7 +41,7 @@ namespace mtca4u {
     
     public:
         static StepperMotorError MOTOR_NO_ERROR;
-        static StepperMotorError MOTOR_CONFIGURATION_ERROR;
+        static StepperMotorError MOTOR_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
         static StepperMotorError MOTOR_BOTH_ENDSWICHTED_ON;
         static StepperMotorError MOTOR_COMMUNICATION_LOST;
     };
@@ -69,13 +69,13 @@ namespace mtca4u {
     public:
         static StepperMotorStatus M_OK;
         static StepperMotorStatus M_IN_MOVE;
+        static StepperMotorStatus M_NOT_IN_POSITION;        
         static StepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_ERROR;
         static StepperMotorStatus M_DISABLED;
-        static StepperMotorStatus M_CONFIGURATION_ERROR;
 
     };
     // END OF StepperMotorStatusItem structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -108,13 +108,23 @@ namespace mtca4u {
     };   
     
    
+    class StepperMotorUnitsConverter {
+        public:
+            virtual float stepsToUnits(int steps);
+            virtual int unitsToSteps(float units);
+    };
     
     
      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // StepperMotor class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
-    
-    
+    #define DEBUG_OFF 0
+    #define DEBUG_ERROR 1
+    #define DEBUG_WARNING 2
+    #define DEBUG_INFO 3
+    #define DEBUG_DETAIL 4
+    #define DEBUG_MAX_DETAIL 5
+
     class StepperMotor {
     
     public:
@@ -201,17 +211,20 @@ namespace mtca4u {
          * 1) UnitToSteps(StepsToUnits(x)) must be equal to 'x'.\n
          * 2) StepsToUnits(UnitToSteps(x)) must be equal to 'x'.\n
          */ 
-        void setConversionFunctions(int (*UnitToSteps)(float), float (*StepsToUnits)(int));
+        //void setConversionFunctions(int (*UnitToSteps)(float), float (*StepsToUnits)(int));
 
+        void setStepperMotorUnitsConverter(StepperMotorUnitsConverter* stepperMotorUnitsConverter);
+        
+        
         /**
          * @brief Start the motor 
          * @param
          * @return void
          * 
          * @details 
-         * Function starts the motor. When 'Autostart' is set to FALSE it make motor moving, but before it checks motor status.\n
-         * When status is StepperMotorStatusTypes::M_OK, target position set by setMotorPosition is passed to hardware and motor moves.\n
-         * In case of 'Autostart' is set to TRUE this method is not performing any action.\n
+         * Function starts the motor. When 'Autostart' is set to FALSE it allows to move motor, but before it checks motor status.\n
+         * When status is StepperMotorStatusTypes::M_OK or StepperMotorStatusTypes::M_MOTOR_IN_MOVE, target position set by setMotorPosition is passed to hardware and motor moves.\n
+         * 
          */      
         void startMotor();
         
@@ -294,27 +307,34 @@ namespace mtca4u {
         void setMotorSpeed(float newSpeed);
         float getMotorSpeed();
         
-     
-        
-
-        
         //autostart 
         bool getAutostart();
         void setAutostart(bool autostart);
         
         
         void setEnable(bool enable);
-
+        bool getEnabled() const;
         //Software limits settings
         void setMaxPositionLimit(float maxPos);
         void setMinPositionLimit(float minPos);
         float getMaxPositionLimit();
         float getMinPositionLimit(); 
         
+        
+        //
+        void setDebugLevel(unsigned int newLevel);
+        unsigned int getDebugLevel();    
+        void setDebugStream(std::ostream* debugStream);
+        
+        //end switches positions getters
+        float getPositiveEndSwitchPosition() const;
+        float getNegativeEndSwitchPosition() const;
+        
     private: // methods
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);
         void determineMotorStatusAndError();
+        float truncateMotorPosition(float newPosition);
     
     private: // fields
         std::string _motorDriverCardDeviceName;
@@ -344,8 +364,12 @@ namespace mtca4u {
         float _minPositionLimit;
         
         //pointers to conversion functions
-        int   (*unitsToSteps) (float);
-        float (*stepsToUnits) (int);
+        //int   (*unitsToSteps) (float);
+        //float (*stepsToUnits) (int);
+        
+        //pointer to the units converter class
+        StepperMotorUnitsConverter* _stepperMotorUnitsConverter;
+        
         
         //status and error
         StepperMotorStatus _motorStatus;
@@ -358,13 +382,18 @@ namespace mtca4u {
         //Stop motor flag for blocking functions
         bool _stopMotorForBlocking;
         
-        //calibration
-        int _calibNegativeEndSwitchAtSteps;
-        int _calibNegativeEndSwitchAtUnits;
+        bool _stopMotorCalibration;
         
-        int _calibPositiveEndSwitchAtSteps;
-        int _calibPositiveEndSwitchAtUnits;
- 
+        //calibration
+        int _calibNegativeEndSwitchInSteps;
+        int _calibNegativeEndSwitchInUnits;
+        
+        int _calibPositiveEndSwitchInSteps;
+        int _calibPositiveEndSwitchInUnits;
+        
+        unsigned int _debugLevel;
+        std::ostream* _debugStream;
+        
     };
 
 } //namespace mtca4u
