@@ -21,6 +21,7 @@ namespace mtca4u {
         static StepperMotorError MOTOR_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
         static StepperMotorError MOTOR_BOTH_ENDSWICHTED_ON;
         static StepperMotorError MOTOR_COMMUNICATION_LOST;
+        static StepperMotorError MOTOR_NO_REACTION_ON_COMMAND;
     };
 
 

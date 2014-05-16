@@ -76,7 +76,7 @@ namespace mtca4u {
          * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          * 
          */
-        StepperMotorStatus moveToPosition(float newPosition);     
+        StepperMotorStatus moveToPosition(float newPosition) throw();     
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -179,7 +179,7 @@ namespace mtca4u {
          * @details 
          * TO BE ADDED
          */ 
-        StepperMotorCalibrationStatus calibrateMotor();
+        StepperMotorCalibrationStatus calibrateMotor() throw();
         
 
         /**
@@ -217,9 +217,9 @@ namespace mtca4u {
          * 7) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
          * 8) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getMotorError()' method.\n
          */
-        StepperMotorStatus getMotorStatus();
+        StepperMotorStatus getMotorStatus() throw();
         
-        StepperMotorError getMotorError();
+        StepperMotorError getMotorError() throw();
         
         
         // Speed setting
@@ -252,7 +252,7 @@ namespace mtca4u {
     private: // methods
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);
-        void determineMotorStatusAndError();
+        void determineMotorStatusAndError() throw();
         float truncateMotorPosition(float newPosition);
     
     private: // fields
@@ -281,11 +281,7 @@ namespace mtca4u {
         //position limts
         float _maxPositionLimit;
         float _minPositionLimit;
-        
-        //pointers to conversion functions
-        //int   (*unitsToSteps) (float);
-        //float (*stepsToUnits) (int);
-        
+               
         //pointer to the units converter class
         StepperMotorUnitsConverter* _stepperMotorUnitsConverter;
         
