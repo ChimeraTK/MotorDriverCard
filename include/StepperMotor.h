@@ -10,114 +10,33 @@
 #define	MTCA4U_STEPPER_MOTOR_H
 
 #include <string>
+#include <boost/shared_ptr.hpp>
+
+//MD22 library includes
+#include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorControler.h"
-#include <boost/shared_ptr.hpp>
-#include "MotorDriverCardConfigXML.h"
-#include "StatusGeneral.h"
+
+//Stepper Motor includes
+#include "StepperMotorError.h"
+#include "StepperMotorStatus.h"
+#include "StepperMotorCalibrationStatus.h"
 
 namespace mtca4u {
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // StepperMotorError structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     class StepperMotorError :  public StatusGeneral {
-     public:   
-        //default constructor
-        StepperMotorError() : StatusGeneral(0, "NO ERROR") {
-        };
-        
-        //constructor with params
-        StepperMotorError(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
-        };
-        
-        //copy constructor
-        StepperMotorError(const StepperMotorError &error) : StatusGeneral(error) {            
-        }
 
-    };
-    
-    class StepperMotorErrorTypes {
-    
-    public:
-        static StepperMotorError MOTOR_NO_ERROR;
-        static StepperMotorError MOTOR_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
-        static StepperMotorError MOTOR_BOTH_ENDSWICHTED_ON;
-        static StepperMotorError MOTOR_COMMUNICATION_LOST;
-    };
-
-
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // StepperMotorStatusItem structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    class StepperMotorStatus : public StatusGeneral {
-    
-    public:
-
-        StepperMotorStatus() : StatusGeneral(0, "OK") {
-        };
-        
-        StepperMotorStatus(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
-        };
-        //copy constructor
-        StepperMotorStatus(const StepperMotorStatus &status) : StatusGeneral(status) {            
-        }
-        
-    };
-    
-    class StepperMotorStatusTypes {
-    public:
-        static StepperMotorStatus M_OK;
-        static StepperMotorStatus M_IN_MOVE;
-        static StepperMotorStatus M_NOT_IN_POSITION;        
-        static StepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_ERROR;
-        static StepperMotorStatus M_DISABLED;
-
-    };
-    // END OF StepperMotorStatusItem structure !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   
-    
-    class StepperMotorCalibrationStatus : public StatusGeneral {
-    public:
-
-        StepperMotorCalibrationStatus() : StatusGeneral(0, "UNKNOWN") {
-        };
-
-        StepperMotorCalibrationStatus(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
-        };
-        //copy constructor
-
-        StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus &status) : StatusGeneral(status) {
-        }
-
-    };
-    
-    
-     class StepperMotorCalibrationStatusType {
-     public:
-        static StepperMotorCalibrationStatus M_CALIBRATED;
-        static StepperMotorCalibrationStatus M_NOT_CALIBRATED;
-        static StepperMotorCalibrationStatus M_CALIBRATION_UNKNOWN;
-        static StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
-        static StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
-        static StepperMotorCalibrationStatus M_CALIBRATION_STOPED_BY_USER;
-    };   
-    
    
     class StepperMotorUnitsConverter {
         public:
-            virtual float stepsToUnits(int steps);
-            virtual int unitsToSteps(float units);
+            virtual float stepsToUnits(int steps) = 0;
+            virtual int unitsToSteps(float units) = 0;
     };
     
     
      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // StepperMotor class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+    
     #define DEBUG_OFF 0
     #define DEBUG_ERROR 1
     #define DEBUG_WARNING 2

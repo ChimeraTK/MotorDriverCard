@@ -1,41 +1,12 @@
 #include "StepperMotor.h"
 #include "math.h"
 
-
-
-#define MAX_MOTOR_POS_COUNTS 0x7FFFFF
-#define MIN_MOTOR_POS_COUNTS 0x100000
-
 #define DEBUG(x) if (_debugLevel>=x) *_debugStream 
 
+
+
 namespace mtca4u {
-
-
-
-    StepperMotorError StepperMotorErrorTypes::MOTOR_NO_ERROR(1, "NO ERROR");
-    StepperMotorError StepperMotorErrorTypes::MOTOR_BOTH_ENDSWICHTED_ON(2, "BOTH END SWITCHES ON");
-    StepperMotorError StepperMotorErrorTypes::MOTOR_COMMUNICATION_LOST(4, "COMMUNICATION LOST");
-    StepperMotorError StepperMotorErrorTypes::MOTOR_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX(8, "MOTOR CONFIGURATION ERROR - MIN POSITION GREATER OR EQUAL TO MAX");
-
-
-    StepperMotorStatus StepperMotorStatusTypes::M_OK(1, "OK");
-    StepperMotorStatus StepperMotorStatusTypes::M_DISABLED(2, "DISABLED");
-    StepperMotorStatus StepperMotorStatusTypes::M_IN_MOVE(4, "IN MOVE");
-    StepperMotorStatus StepperMotorStatusTypes::M_NOT_IN_POSITION(8, "NOT IN POSITION");
-    StepperMotorStatus StepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON(16, "HARDWARE POSITIVE END SWITCH ON");
-    StepperMotorStatus StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON(32, "HARDWARE NEGATIVE END SWITCH ON");
-    StepperMotorStatus StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON(64, "SOFTWARE POSITIVE END SWITCH ON");
-    StepperMotorStatus StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON(128, "SOFTWARE NEGATIVE END SWITCH ON");
-    StepperMotorStatus StepperMotorStatusTypes::M_ERROR(256, "ERROR");
-    
-
-    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN(1, "UNKNOWN");
-    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATED(2, "CALIBRATED");
-    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_NOT_CALIBRATED(4, "NOT CALIBRATED");
-    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED(8, "FAILED");
-    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS(16, "IN PROGRESS");
-    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER(32, "STOPPED BY USER");
-
+    /*
     float StepperMotorUnitsConverter::stepsToUnits(int steps) {
         return static_cast<float> (steps);
     }
@@ -43,6 +14,7 @@ namespace mtca4u {
     int StepperMotorUnitsConverter::unitsToSteps(float units) {
         return static_cast<int> (units);
     }
+    */
     
     StepperMotor::StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) 
      {
@@ -266,7 +238,7 @@ namespace mtca4u {
         
         
         DEBUG(DEBUG_DETAIL) << "StepperMotor::calibrateMotor : Current position is: "<< _motorControler->getActualPosition() <<". Go to positive end switch.\n";
-        _motorControler->setTargetPosition(MAX_MOTOR_POS_COUNTS);
+
         dummy = 0;
         takeFlagInAccount = false;
         do {
