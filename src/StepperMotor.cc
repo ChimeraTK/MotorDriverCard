@@ -7,16 +7,6 @@
 
 namespace mtca4u {
 
-    /*
-    float StepperMotorUnitsConverter::stepsToUnits(int steps) {
-        return static_cast<float> (steps);
-    }
-
-    int StepperMotorUnitsConverter::unitsToSteps(float units) {
-        return static_cast<int> (units);
-    }
-     */
-
     StepperMotor::StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) {
         // save basics infos
         _motorDriverId = motorDriverId;
@@ -150,6 +140,16 @@ namespace mtca4u {
                 
                 int currentMotorPosition = _motorControler->getActualPosition();
                 
+                //just in case if we had communication error in the status check --- SHLULD BE REMOVED WHEN SPI COM WILL BE RELIABLE !!!  -- FIX ME
+                if (_motorError == StepperMotorErrorTypes::MOTOR_COMMUNICATION_LOST) {
+                    DEBUG(DEBUG_WARNING) << "StepperMotor::moveToPosition : Communication error found. Retrying." << std::endl;
+                    determineMotorStatusAndError();
+                }
+
+                if (_motorStatus == StepperMotorStatusTypes::M_ERROR) {
+                    return _motorStatus;
+                }
+                
                 if (_stopMotorForBlocking == true) {
                     continueWaiting = false;
                     _stopMotorForBlocking = false;
@@ -218,8 +218,9 @@ namespace mtca4u {
             do {
                 //get current position and send motor to new lower position
                 int currentPosition = _motorControler->getActualPosition();
-                DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Current position: " << currentPosition << " New position: " << currentPosition - 10000 << std::endl;
-                moveToPosition(recalculateStepsToUnits(currentPosition - 10000));
+                float newPosInUnits = recalculateStepsToUnits(currentPosition - 10000);
+                DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Current position (steps): " << currentPosition << " (units): " << recalculateStepsToUnits(currentPosition) << " New position (steps): " << currentPosition - 10000 << " (units): " << newPosInUnits << std::endl;
+                moveToPosition(newPosInUnits);
 
 
                 //determineMotorStatusAndError();
@@ -260,8 +261,9 @@ namespace mtca4u {
             do {
                 //get current position and send motor to new lower position
                 int currentPosition = _motorControler->getActualPosition();
-                DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Current position: " << currentPosition << " New position: " << currentPosition + 10000 << std::endl;
-                moveToPosition(recalculateStepsToUnits(currentPosition + 10000));
+                float newPosInUnits = recalculateStepsToUnits(currentPosition + 10000);
+                DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Current position (steps): " << currentPosition << " (units): " << recalculateStepsToUnits(currentPosition) << " New position (steps): " << currentPosition + 10000 << " (units): " << newPosInUnits << std::endl;
+                moveToPosition(newPosInUnits);
 
                 if (_stopMotorCalibration == true) {
                     _stopMotorCalibration = false;
@@ -291,22 +293,35 @@ namespace mtca4u {
             _calibPositiveEndSwitchInUnits = recalculateStepsToUnits(_calibPositiveEndSwitchInSteps);
 
 
-            DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Negative end switch is at:  " << _calibNegativeEndSwitchInSteps << " Positive end switch at: " << _calibPositiveEndSwitchInSteps << std::endl;
-            float newPos = _calibPositiveEndSwitchInUnits - fabs(_calibPositiveEndSwitchInUnits - _calibNegativeEndSwitchInSteps) / 2;
+            DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Negative end switch is at (steps):  " << _calibNegativeEndSwitchInSteps << " Positive end switch at (steps): " << _calibPositiveEndSwitchInSteps << std::endl;
+            DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Negative end switch is at (units):  " << _calibNegativeEndSwitchInUnits << " Positive end switch at (units): " << _calibPositiveEndSwitchInUnits << std::endl;
+            float newPos = (_calibPositiveEndSwitchInUnits + _calibNegativeEndSwitchInUnits) / 2;
             DEBUG(DEBUG_INFO) << "StepperMotor::calibrateMotor : Sending motor to middle of range:  " << newPos << std::endl;
+            
             this->moveToPosition(newPos);
-            _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATED;
-            return _motorCalibrationStatus;
+            if (_motorStatus == mtca4u::StepperMotorStatusTypes::M_ERROR) {
+                _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED;
+            }
+            else {
+                _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATED;
+            }
 
         } catch (mtca4u::MotorDriverException& ex) {
             DEBUG(DEBUG_ERROR) << "StepperMotor::calibrateMotor : mtca4u::MotorDriverException detected." << std::endl;
             _motorStatus = StepperMotorStatusTypes::M_ERROR;
             _motorError = StepperMotorErrorTypes::MOTOR_COMMUNICATION_LOST;
             _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED;
-            return _motorCalibrationStatus;
+            
         }
-
-
+        
+        //in case when user will stop calibration when moving to the middle range between positive and negative end switch positions
+        if (_stopMotorCalibration == true) {
+            _stopMotorCalibration = false;
+            DEBUG(DEBUG_WARNING) << "StepperMotor::calibrateMotor : StepperMotor::calibrateMotor : Motor stopped by user.\n" << std::flush;
+            _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER;
+        }
+        
+        return _motorCalibrationStatus;
 
     }
 
@@ -450,6 +465,11 @@ namespace mtca4u {
 
     float StepperMotor::truncateMotorPosition(float newPosition) {
         float position = newPosition;
+        
+        // during calibration truncating must be disabled
+        if (_motorCalibrationStatus == StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS)
+            return position;
+        
         // truncate new position according to the internal limits.        
         if (position > _maxPositionLimit) {
             position = _maxPositionLimit;
@@ -511,17 +531,18 @@ namespace mtca4u {
                 _motorStatus = StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON;
                 return;
             }
+            
+            if ( _motorCalibrationStatus != mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS) {
+                if (_targetPositionInUnits >= _maxPositionLimit) {
+                    _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
+                    return;
+                }
 
-            if (_targetPositionInUnits >= _maxPositionLimit) {
-                _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
-                return;
+                if (_targetPositionInUnits <= _minPositionLimit) {
+                    _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
+                    return;
+                }
             }
-
-            if (_targetPositionInUnits <= _minPositionLimit) {
-                _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
-                return;
-            }
-
 
             if (_motorControler->getStatus().getStandstillIndicator() == 0) {
                 _motorStatus = StepperMotorStatusTypes::M_IN_MOVE;

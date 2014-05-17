@@ -248,10 +248,12 @@ namespace mtca4u {
         //end switches positions getters
         float getPositiveEndSwitchPosition() const;
         float getNegativeEndSwitchPosition() const;
-        
-    private: // methods
+
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);
+        
+    private: // methods
+
         void determineMotorStatusAndError() throw();
         float truncateMotorPosition(float newPosition);
     
