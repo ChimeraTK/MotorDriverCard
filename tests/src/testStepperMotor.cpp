@@ -6,18 +6,12 @@
 
 
 
-void* calibrationStopThread(void* ptr) {
+void* statusReaderThreadBody(void* ptr) {
     mtca4u::StepperMotor* motorPointer = (mtca4u::StepperMotor*)ptr;
-    for (int i = 0; i<6; i++) {
-        std::cout << "Stoping thread waiting: " << i << std::endl <<std::flush;
-        if (i%2 == 0) {
-            mtca4u::StepperMotorCalibrationStatus calibrationStatus = motorPointer->getCalibrationStatus();
-            std::cout << "Calibration status during waiting for interruption: " << calibrationStatus << std::endl;
-        }
-        sleep(1);
+    while (1) {
+        std::cout << "Thread:: motor status is: " << motorPointer->getMotorStatus() << std::endl;
+        usleep(100000);
     }
-    
-    motorPointer->stopMotor();
  
     pthread_exit(NULL);
 }
@@ -49,7 +43,7 @@ int main( int argc, char* argv[] ) {
 
     std::cout << "Change debug stream to the std::cout \n"; 
     motor.setDebugStream(&std::cout);
-    motor.setDebugLevel(DEBUG_DETAIL);
+    motor.setDebugLevel(DEBUG_INFO);
     
     mtca4u::StepperMotorStatus status(motor.getMotorStatus());
     std::cout << "Current motor status is: " << status<< "\n";
@@ -68,7 +62,7 @@ int main( int argc, char* argv[] ) {
             std::cout << "Both end switches on. Check you hardware." << error << "\n";
         }
     } else {
-        std::cout << "Disabling autostart.\n";
+        std::cout << "Enabling  autostart.\n";
         motor.setAutostart(true);
         if (motor.getAutostart()) {
             std::cout << "Autostart feature is ENABLED!\n";
@@ -76,7 +70,7 @@ int main( int argc, char* argv[] ) {
             std::cout << "Autostart feature is DISABLED!\n";
         }
 
-        std::cout << "Enabling autostart.\n";
+        std::cout << "Disabling autostart.\n";
         motor.setAutostart(false);
         if (motor.getAutostart()) {
             std::cout << "Autostart feature is ENABLED!\n";
@@ -87,29 +81,23 @@ int main( int argc, char* argv[] ) {
 
         float currentMotorPosition = motor.getMotorPosition();
         std::cout << "Current motor position is: " << currentMotorPosition << "\n";
-        std::cout << "Move to position: " << currentMotorPosition+10000 << "\n";
-        if (motor.moveToPosition(currentMotorPosition+10000) != mtca4u::StepperMotorStatusTypes::M_OK) {
-            std::cout << "Motor movement failed. Status is: " << motor.getMotorStatus() << std::endl;
-        }
-        std::cout << "!!!!!!!!!!!!!!Current motor position is: " << motor.getMotorPosition() << "\n";
-         usleep(100000);
-        std::cout << "!!!!!!!!!!!!!!Current motor position is: " << motor.getMotorPosition() << "\n";
    
     }
     
     mtca4u::StepperMotorCalibrationStatus calibrationStatus = motor.getCalibrationStatus();
     std::cout << "Current calibration status: " << calibrationStatus << std::endl;
     
-    pthread_t stopThread;
+    pthread_t statusReaderThread;
     int rc = 0;
     
-    std::cout << "Creating thread which after 5 seconds will stop calibration.\n" << std::flush;
+    std::cout << "Creating status reader thread.\n" << std::flush;
     
 
-    rc = pthread_create(&stopThread, NULL, calibrationStopThread, (void*)(&motor));
+    rc = pthread_create(&statusReaderThread, NULL, statusReaderThreadBody, (void*)(&motor));
     
     if (rc) {
-        std::cout << "Unable to create thread. Error code: " << rc << std::endl; 
+        std::cout << "Unable to create thread. Error code: " << rc << std::endl;
+        exit(1);
     } 
     
     std::cout << "Calibrate motor start\n";
@@ -117,26 +105,18 @@ int main( int argc, char* argv[] ) {
     std::cout << "Calibration status after interrupted calibration: " << calibrationStatus << std::endl;
    
 
-    std::cout << "Calibrate motor start without interrupting.\n";
-    calibrationStatus = motor.calibrateMotor();
-    std::cout << "Calibration status after not interrupted calibration: " << calibrationStatus << std::endl;
-
-    if (calibrationStatus == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATED) {
-        std::cout << "Testing stopping of the motor." << std::endl;
-        float newPostion = motor.getMotorPosition() + 50000;
-        std::cout << "Current motor position is:" << motor.getMotorPosition() << " . Sending motor to position: " << newPostion << std::endl;
-        std::cout << "Creating thread which after 5 seconds will stop motor movement.\n" << std::flush;
-        rc = pthread_create(&stopThread, NULL, calibrationStopThread, (void*) (&motor));
-
-        if (rc) {
-            std::cout << "Unable to create thread. Error code: " << rc << std::endl;
+    for (int i = 0; i < 10; i++) {
+        motor.calibrateMotor();
+        sleep(1);
+        if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATED) {
+            std::cout << "Calibration " <<i << " done with success !!!!!!!!!!!!!!!!!!!!!!!!!!!!! "   << std::endl;
+        } else {
+            std::cout << "Calibration " <<i << " finished with status: " << motor.getCalibrationStatus() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+            if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER)
+                break;
         }
-        motor.moveToPosition(newPostion);
-        std::cout << "Motor status after stopping is: " << motor.getMotorStatus() << std::endl;
-
     }
-    
-    
+
     std::cout << "Disabling the motor\n";
     motor.setEnable(false);
     std::cout << "End of Test MotorStepper class !!! \n";
