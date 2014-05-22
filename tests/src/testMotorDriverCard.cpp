@@ -3,12 +3,14 @@ using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
+#include "MotorDriverException.h"
 #include <MtcaMappedDevice/devMap.h>
 #include <MtcaMappedDevice/libmap.h>
 
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
+#include "testWordFromPCIeAddress.h"
 using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardConfigDefaults.h"
@@ -38,6 +40,7 @@ public:
   void testConfiguration(MotorDriverCardConfig const & motorDriverCardConfig);
   void testGetControlerChipVersion();
   void testGetReferenceSwitchData();
+  void testGetStatusWord();
   DECLARE_GET_SET_TEST( DatagramLowWord );
   DECLARE_GET_SET_TEST( DatagramHighWord );
   DECLARE_GET_SET_TEST( CoverPositionAndLength );
@@ -48,11 +51,11 @@ public:
   DECLARE_GET_SET_TEST( PositionCompareInterruptData );
   void testPowerDown();
   void testGetMotorControler();
-  DECLARE_GET_SET_TEST( ControlerSpiWaitingTime );
 
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
+  boost::shared_ptr<mapFile> _registerMapping;
   std::string _mapFileName;
   
   unsigned int asciiToInt( std::string text );
@@ -71,6 +74,7 @@ class  MotorDriverCardTestSuite : public test_suite{
     add( constructorTestCase );
     add( getControlerVersionTestCase );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetReferenceSwitchData, motorDriverCardTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetStatusWord, motorDriverCardTest ) );
     ADD_GET_SET_TEST( DatagramLowWord );
     ADD_GET_SET_TEST( DatagramHighWord );
     ADD_GET_SET_TEST( CoverPositionAndLength );
@@ -81,12 +85,11 @@ class  MotorDriverCardTestSuite : public test_suite{
     ADD_GET_SET_TEST( PositionCompareInterruptData );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testPowerDown, motorDriverCardTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
-    ADD_GET_SET_TEST( ControlerSpiWaitingTime );
   }
 };
 
 test_suite*
-init_unit_test_suite( int argc, char* argv[] )
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
    framework::master_test_suite().p_name.value = "MotorDriverCard test suite";
 
@@ -99,11 +102,11 @@ MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName)
 
 void MotorDriverCardTest::testConstructor(){
   //boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
-  _dummyDevice = boost::shared_ptr<DFMC_MD22Dummy>( new DFMC_MD22Dummy );
+  _dummyDevice.reset( new DFMC_MD22Dummy );
   _dummyDevice->openDev( _mapFileName );
  
   mapFileParser fileParser;
-  boost::shared_ptr<mapFile> registerMapping = fileParser.parse(_mapFileName);
+  _registerMapping = fileParser.parse(_mapFileName);
 
   boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
   MotorDriverCardConfig motorDriverCardConfig;
@@ -160,9 +163,21 @@ void MotorDriverCardTest::testConstructor(){
   mappedDevice->closeDev();
 
   _dummyDevice->openDev( _mapFileName );
-  mappedDevice->openDev( _dummyDevice, registerMapping );
+  mappedDevice->openDev( _dummyDevice, _registerMapping );
+
+  //try something with a wrong firmware version
+  // wrong major (too large by 1):
+  _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000 );
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+		     MotorDriverException );
+
+  _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION -1 );
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+		     MotorDriverException );
+
+  _dummyDevice->resetFirmwareVersion();
   
-  BOOST_CHECK_NO_THROW(  _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig )) );
+  _motorDriverCard.reset(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ));
 
   // test that the configuration with the motorDriverCardConfig actually worked
   testConfiguration(motorDriverCardConfig);
@@ -191,35 +206,35 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
 
    for (unsigned int motorID = 0; motorID <  motorDriverCardConfig.motorControlerConfigurations.size();
        ++motorID){
-     MotorControler & motorControler =  _motorDriverCard->getMotorControler(motorID);
+     boost::shared_ptr<MotorControler> motorControler =  _motorDriverCard->getMotorControler(motorID);
      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[motorID];
 
      // only the data content is identical. The motorID is - for the config, and correct for the readback word
      BOOST_CHECK( motorControlerConfig.accelerationThresholdData.getDATA()
-		  == motorControler.getAccelerationThresholdData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler.getActualPosition() );
-     BOOST_CHECK( motorControlerConfig.chopperControlData == motorControler.getChopperControlData() );
-     BOOST_CHECK( motorControlerConfig.coolStepControlData == motorControler.getCoolStepControlData() );
-     BOOST_CHECK( motorControlerConfig.decoderReadoutMode ==  motorControler.getDecoderReadoutMode() );
+		  == motorControler->getAccelerationThresholdData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler->getActualPosition() );
+     BOOST_CHECK( motorControlerConfig.chopperControlData == motorControler->getChopperControlData() );
+     BOOST_CHECK( motorControlerConfig.coolStepControlData == motorControler->getCoolStepControlData() );
+     BOOST_CHECK( motorControlerConfig.decoderReadoutMode ==  motorControler->getDecoderReadoutMode() );
      BOOST_CHECK( motorControlerConfig.dividersAndMicroStepResolutionData.getDATA()
-		  == motorControler.getDividersAndMicroStepResolutionData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.driverConfigData == motorControler.getDriverConfigData() );
-     BOOST_CHECK( motorControlerConfig.driverControlData == motorControler.getDriverControlData() );
-     BOOST_CHECK( motorControlerConfig.enabled == motorControler.isEnabled() );
+		  == motorControler->getDividersAndMicroStepResolutionData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.driverConfigData == motorControler->getDriverConfigData() );
+     BOOST_CHECK( motorControlerConfig.driverControlData == motorControler->getDriverControlData() );
+     BOOST_CHECK( motorControlerConfig.enabled == motorControler->isEnabled() );
      BOOST_CHECK( motorControlerConfig.interruptData.getDATA()
-		  == motorControler.getInterruptData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.maximumAccelleration == motorControler.getMaximumAcceleration() );
-     BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler.getMaximumVelocity() );
-     BOOST_CHECK( motorControlerConfig.microStepCount == motorControler.getMicroStepCount() );
-     BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler.getMinimumVelocity() );
-     BOOST_CHECK( motorControlerConfig.positionTolerance ==  motorControler.getPositionTolerance() );
+		  == motorControler->getInterruptData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.maximumAccelleration == motorControler->getMaximumAcceleration() );
+     BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler->getMaximumVelocity() );
+     BOOST_CHECK( motorControlerConfig.microStepCount == motorControler->getMicroStepCount() );
+     BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler->getMinimumVelocity() );
+     BOOST_CHECK( motorControlerConfig.positionTolerance ==  motorControler->getPositionTolerance() );
      BOOST_CHECK( motorControlerConfig.proportionalityFactorData.getDATA()
-		  == motorControler.getProportionalityFactorData().getDATA() );
+		  == motorControler->getProportionalityFactorData().getDATA() );
      BOOST_CHECK( motorControlerConfig.referenceConfigAndRampModeData.getDATA()
-		  == motorControler.getReferenceConfigAndRampModeData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.stallGuardControlData ==  motorControler.getStallGuardControlData() );
-     BOOST_CHECK( motorControlerConfig.targetPosition == motorControler.getTargetPosition() );
-     BOOST_CHECK( motorControlerConfig.targetVelocity ==  motorControler.getTargetVelocity() );
+		  == motorControler->getReferenceConfigAndRampModeData().getDATA() );
+     BOOST_CHECK( motorControlerConfig.stallGuardControlData ==  motorControler->getStallGuardControlData() );
+     BOOST_CHECK( motorControlerConfig.targetPosition == motorControler->getTargetPosition() );
+     BOOST_CHECK( motorControlerConfig.targetVelocity ==  motorControler->getTargetVelocity() );
   }
 
 }
@@ -235,6 +250,15 @@ void MotorDriverCardTest::testGetReferenceSwitchData(){
   unsigned int expectedContent = testWordFromSpiAddress( SMDA_COMMON,
 							 JDX_REFERENCE_SWITCH);  
   BOOST_CHECK( _motorDriverCard->getReferenceSwitchData() == ReferenceSwitchData(expectedContent) );
+}
+
+void MotorDriverCardTest::testGetStatusWord(){
+  mapFile::mapElem mapElement;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+
+  unsigned int expectedContent = testWordFromPCIeAddress( mapElement.reg_address );
+
+  BOOST_CHECK( _motorDriverCard->getStatusWord().getDataWord() == expectedContent );
 }
 
 void MotorDriverCardTest::testGetDatagramLowWord(){
@@ -336,7 +360,7 @@ void MotorDriverCardTest::testPowerDown(){
 
 void MotorDriverCardTest::testGetMotorControler(){
   for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
-    BOOST_CHECK( _motorDriverCard->getMotorControler(i).getID() == i );
+    BOOST_CHECK( _motorDriverCard->getMotorControler(i)->getID() == i );
   }
   BOOST_CHECK_THROW( _motorDriverCard->getMotorControler( N_MOTORS_MAX ), 
 		     MotorDriverException );
@@ -354,12 +378,3 @@ unsigned int MotorDriverCardTest::asciiToInt( std::string text ){
   return returnValue;
 }
 
-void MotorDriverCardTest::testGetControlerSpiWaitingTime(){
-  BOOST_CHECK(  _motorDriverCard->getControlerSpiWaitingTime() == CONTROLER_SPI_WAITING_TIME_DEFAULT );
-}
-
-void MotorDriverCardTest::testSetControlerSpiWaitingTime(){
-  unsigned int originalControlerSpiWaitingTime = _motorDriverCard->getControlerSpiWaitingTime();
-  _motorDriverCard->setControlerSpiWaitingTime(originalControlerSpiWaitingTime + 1);
-  BOOST_CHECK(  _motorDriverCard->getControlerSpiWaitingTime() == originalControlerSpiWaitingTime +1 );
-}

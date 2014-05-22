@@ -10,9 +10,7 @@ using namespace mtca4u::tmc429;
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX )\
-  _driverCard._mappedDevice->getRegObject( createMotorRegisterName( _id, SUFFIX ) )
-#define REG_OBJECT_FROM_REG_NAME( NAME )\
-  _driverCard._mappedDevice->getRegObject( NAME )
+  mappedDevice->getRegObject( createMotorRegisterName( _id, SUFFIX ) )
 
 // Macros which cover more than one line are not good for the code coverage test, as only the 
 // macro call is checked. In this case it is probably ok because we gain a lot of code because
@@ -21,18 +19,18 @@ using namespace mtca4u::tmc429;
 // Otherwise we would need a complete test which checks the macro.
 #define DEFINE_GET_SET_VALUE( NAME, IDX )\
   unsigned int MotorControler::get ## NAME (){\
-    return _driverCard.controlerSpiRead( _id, IDX ).getDATA();}\
+    return _controlerSPI->read( _id, IDX ).getDATA();}\
   void MotorControler::set ## NAME (unsigned int value){\
-  _driverCard.controlerSpiWrite( _id, IDX, value );}
+    _controlerSPI->write( _id, IDX, value );}
 
-#define DEFINE_SIGNED_GET_SET_VALUE( NAME, IDX , CONVERTER )	\
+#define DEFINE_SIGNED_GET_SET_VALUE( NAME, IDX , CONVERTER )\
   int MotorControler::get ## NAME (){\
-    int readValue = static_cast<int>(_driverCard.controlerSpiRead( _id, IDX ).getDATA()); \
-    return CONVERTER.customToThirtyTwo( readValue );} \
+    int readValue = static_cast<int>(_controlerSPI->read( _id, IDX ).getDATA());\
+    return CONVERTER.customToThirtyTwo( readValue ); }\
   void MotorControler::set ## NAME (int value){\
-    unsigned int writeValue = static_cast<unsigned int>(\
-					CONVERTER.thirtyTwoToCustom( value ) );	\
-    _driverCard.controlerSpiWrite( _id, IDX, writeValue );}
+  unsigned int writeValue = static_cast<unsigned int>(\
+      CONVERTER.thirtyTwoToCustom( value ) ); \
+      _controlerSPI->write( _id, IDX, writeValue );}
 
 #define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( NAME )\
   NAME MotorControler::get ## NAME (){\
@@ -49,13 +47,14 @@ using namespace mtca4u::tmc429;
 namespace mtca4u
 {
 
-  MotorControler::MotorControler( unsigned int ID, MotorDriverCardImpl & driverCard,
-				   MotorControlerConfig const & motorControlerConfig ) 
-    : _driverCard(driverCard) , _id(ID), 
+  MotorControler::MotorControler( unsigned int ID,  boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+				  boost::shared_ptr< TMC429SPI > const & controlerSPI,
+				  MotorControlerConfig const & motorControlerConfig ) 
+    : _mappedDevice(mappedDevice), _id(ID),
+      _controlerStatus(mappedDevice->getRegObject( CONTROLER_STATUS_BITS_ADDRESS_STRING )),
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX ) ),
       _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX ) ),
-      //_accelerationThreshold( REG_OBJECT_FROM_SUFFIX( ACCELERATION_THRESHOLD_SUFFIX ) ),
       _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX ) ),
       _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX ) ),
       _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX ) ),
@@ -63,8 +62,10 @@ namespace mtca4u
       _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) ),
-      _driverSpiWrite( REG_OBJECT_FROM_SUFFIX( SPI_WRITE_SUFFIX ) ),
-      _driverSpiWaitingTime( motorControlerConfig.driverSpiWaitingTime ),
+      _driverSPI( mappedDevice, createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
+		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
+		  motorControlerConfig.driverSpiWaitingTime),
+      _controlerSPI(controlerSPI),
       converter24bits(24), converter12bits(12)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
@@ -108,8 +109,8 @@ namespace mtca4u
   }
 
   void MotorControler::setActualPosition(int position){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_POSITION,
-       static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)) );
+    _controlerSPI->write( _id, IDX_ACTUAL_POSITION,
+			  static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)) );
   }
 
   int MotorControler::getActualVelocity(){
@@ -119,8 +120,8 @@ namespace mtca4u
   }
 
   void MotorControler::setActualVelocity(int velocity){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_VELOCITY, 
-       static_cast<unsigned int>(converter12bits.thirtyTwoToCustom(velocity)) );
+    _controlerSPI->write( _id, IDX_ACTUAL_VELOCITY, 
+			  static_cast<unsigned int>(converter12bits.thirtyTwoToCustom(velocity)) );
   }
 
   unsigned int MotorControler::getActualAcceleration(){
@@ -128,7 +129,7 @@ namespace mtca4u
   }
 
   void MotorControler::setActualAcceleration(unsigned int acceleration){
-    _driverCard.controlerSpiWrite( _id, IDX_ACTUAL_ACCELERATION, acceleration );
+    _controlerSPI->write( _id, IDX_ACTUAL_ACCELERATION, acceleration );
   }
 
   unsigned int MotorControler::getMicroStepCount(){
@@ -136,7 +137,7 @@ namespace mtca4u
   }
 
   void MotorControler::setMicroStepCount(unsigned int microStepCount){
-    _driverCard.controlerSpiWrite( _id, IDX_MICRO_STEP_COUNT, microStepCount );
+    _controlerSPI->write( _id, IDX_MICRO_STEP_COUNT, microStepCount );
   }
 
   unsigned int MotorControler::getCoolStepValue(){
@@ -185,7 +186,7 @@ namespace mtca4u
   T  MotorControler::readTypedRegister(){
     T typedWord;
     typedWord.setSMDA( _id );
-    TMC429OutputWord readbackWord =  _driverCard.controlerSpiRead( _id, typedWord.getIDX_JDX());
+    TMC429OutputWord readbackWord = _controlerSPI->read( _id, typedWord.getIDX_JDX());
     typedWord.setDATA( readbackWord.getDATA() );
     return typedWord;
   }
@@ -193,8 +194,7 @@ namespace mtca4u
   void MotorControler::writeTypedControlerRegister(TMC429InputWord inputWord){
     // set/overwrite the id with this motors id
     inputWord.setSMDA( _id );
-    _driverCard.controlerSpiWrite( inputWord );
- 
+    _controlerSPI->write( inputWord );
   }
 
   DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( AccelerationThresholdData )
@@ -211,25 +211,20 @@ namespace mtca4u
 
   template <class T>
   void MotorControler::setTypedDriverData(T const & driverData, T & localDataInstance){
-    int32_t temporaryWriteWord = static_cast<int32_t>(driverData.getDataWord());
-
     // FIXME: protect the following section by mutex
-     _driverSpiWrite.writeReg( &temporaryWriteWord );
-     // Remember the written word for readback.
-     localDataInstance  = driverData;
-     
-     // FIXME: Implement a handshake to wait until the word is written
-     // Current workaround: introduce a timeout (will also be needed later in the polling
-     // loop for the synchronisation)
-     _driverCard.sleepMicroSeconds( _driverSpiWaitingTime );
-
-     // FIXME: End of mutex protected section
+    _driverSPI.write( driverData.getDataWord() );
+    // Remember the written word for readback.
+    localDataInstance  = driverData;
+        
+    // FIXME: End of mutex protected section
   }
 
   MotorReferenceSwitchData MotorControler::getReferenceSwitchData(){
     // the bit pattern for the active flags
     unsigned int bitMask = 0x3 << 2*_id;
-    unsigned int dataWord = (_driverCard.getReferenceSwitchData().getDATA() & bitMask) >> 2*_id;
+    
+    unsigned int commonReferenceSwitchWord = _controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
+    unsigned int dataWord = (commonReferenceSwitchWord & bitMask) >> 2*_id;
 
     // the enabled flags
     MotorReferenceSwitchData motorReferenceSwitchData(dataWord);
@@ -263,6 +258,20 @@ namespace mtca4u
   }
 
 
-  
+  bool MotorControler::targetPositionReached(){
+    int readValue;
+    _controlerStatus.readReg( &readValue );
+    TMC429StatusWord controlerStatusWord( readValue );
+
+    return controlerStatusWord.getTargetPositionReached(_id);
+  }
+
+  unsigned int MotorControler::getReferenceSwitchBit(){
+    int readValue;
+    _controlerStatus.readReg( &readValue );
+    TMC429StatusWord controlerStatusWord( readValue );
+
+    return controlerStatusWord.getReferenceSwitchBit(_id);
+  }
 
 }// namespace mtca4u

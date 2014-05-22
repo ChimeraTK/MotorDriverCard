@@ -4,6 +4,7 @@ using namespace boost::unit_test_framework;
 
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC429Words.h"
+#include "OutOfRangeException.h"
 using namespace mtca4u;
 using namespace mtca4u::tmc429;
 
@@ -282,6 +283,57 @@ BOOST_AUTO_TEST_CASE( testRemainingIDX ){
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_DELTA_X_REFERENCE_TOLERANCE ) == 0x1A000000 );
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_POSITION_LATCHED ) == 0x1C000000 );
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_MICRO_STEP_COUNT ) == 0x1E000000 );
+}
+
+BOOST_AUTO_TEST_CASE( testTMC429StatusWord ){
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setInterrupt,
+								   &TMC429StatusWord::getInterrupt )
+	      == 0x80 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setCoverDatagramWaiting,
+								   &TMC429StatusWord::getCoverDatagramWaiting )
+	      == 0x40 );
+
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setStepperMotorBits3,
+								   &TMC429StatusWord::getStepperMotorBits3 )
+	      == 0x30 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setReferenceSwitchBit3,
+								   &TMC429StatusWord::getReferenceSwitchBit3 )
+	      == 0x20 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setTargetPositionReached3,
+								   &TMC429StatusWord::getTargetPositionReached3 )
+	      == 0x10 );
+
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setStepperMotorBits2,
+								   &TMC429StatusWord::getStepperMotorBits2 )
+	      == 0x0C );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setReferenceSwitchBit2,
+								   &TMC429StatusWord::getReferenceSwitchBit2 )
+	      == 0x08 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setTargetPositionReached2,
+								   &TMC429StatusWord::getTargetPositionReached2 )
+	      == 0x04 );
+
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setStepperMotorBits1,
+								   &TMC429StatusWord::getStepperMotorBits1 )
+	      == 0x03 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setReferenceSwitchBit1,
+								   &TMC429StatusWord::getReferenceSwitchBit1 )
+	      == 0x02 );
+  BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setTargetPositionReached1,
+								   &TMC429StatusWord::getTargetPositionReached1 )
+	      == 0x01 );
+
+  // Feed in words with just one bit set and try to find it back using getTargetPositionReached and
+  // getReferenceSwitchBit.
+  BOOST_CHECK( TMC429StatusWord(0x1).getTargetPositionReached(0) );
+  BOOST_CHECK( TMC429StatusWord(0x4).getTargetPositionReached(1) );
+  BOOST_CHECK( TMC429StatusWord(0x10).getTargetPositionReached(2) );
+  BOOST_CHECK_THROW( TMC429StatusWord().getTargetPositionReached(3) , OutOfRangeException );
+
+  BOOST_CHECK( TMC429StatusWord(0x2).getReferenceSwitchBit(0)==0x1 );
+  BOOST_CHECK( TMC429StatusWord(0x8).getReferenceSwitchBit(1)==0x1 );
+  BOOST_CHECK( TMC429StatusWord(0x20).getReferenceSwitchBit(2)==0x1 );
+  BOOST_CHECK_THROW( TMC429StatusWord().getReferenceSwitchBit(3) , OutOfRangeException );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

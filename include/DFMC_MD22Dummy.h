@@ -37,6 +37,8 @@ namespace mtca4u{
      *  controlerSpiAddress*controlerSpiAddress+13 for the controler SPI address space.
      *  3*address*address+17 for the PCIe addresses.
      *  spiAddress*spiAddress + 7 + motorID for the drivers SPI addres spaces (motor 0 and 1)
+     * 
+     *  Exception: The registers from the standard register set are set to their no1rmal values.
      */
     void setRegistersForTesting();
 
@@ -58,6 +60,23 @@ namespace mtca4u{
      */
     void setDriverSpiRegistersForTesting();
 
+    /** The dummy does not react on the SPI write registers if this flag is set true.
+     */
+    void causeSpiTimeouts(bool causeTimeouts);
+
+    /** The dummy always reports an SPI error in the sync registers if this flag is set true.
+     */
+    void causeSpiErrors(bool causeErrors);
+
+    /** Overwrite the firmware version for testing. To restore the dummy default use
+     *  resetFirmwareVersion().
+     */
+    void setFirmwareVersion(uint32_t version);
+
+    /** Reset the firmware version to 0xMMmmFFFF (dummy default).
+     */
+    void resetFirmwareVersion();
+
   private:
     // callback functions
     void handleControlerSpiWrite();
@@ -66,9 +85,9 @@ namespace mtca4u{
     // members
     std::vector<unsigned int> _controlerSpiAddressSpace;
     uint32_t _controlerSpiWriteAddress;
-    uint32_t _controlerSpiWriteBar;
+    uint32_t _controlerSpiBar;
     uint32_t _controlerSpiReadbackAddress;
-    uint32_t _controlerSpiReadbackBar;
+    uint32_t _controlerSpiSyncAddress;
     bool _powerIsUp;
     
     // internal and helper functions
@@ -87,14 +106,29 @@ namespace mtca4u{
 					  std::string suffix );
 
     void setPCIeRegistersForTesting();
+    void setStandardRegisters();
+    /** Set the first word of an address range and make it constant. Intended only for
+     *  single word address ranges. In larger address ranges only the first word is set and made const.
+     */
+    void setConstantPCIeRegister( std::string registerName, int32_t content);
     void setDriverSpiRegistersForTesting(unsigned int motorID);
 
     void setControlerSpiRegistersForOperation();
     void setControlerSpiRegistersForTesting();
 
-    /// each driver has it's own address space vector<uint>
-    std::vector< std::vector<unsigned int> > _driverSpiAddressSpaces;
-    std::vector< std::pair< unsigned int, unsigned int > > _driverSpiWriteBarAndAddresses;
+    /// Helper struct to simulate the spi for one driver
+    struct DriverSPI{
+      /// each driver has it's own address space vector<uint>
+       std::vector<unsigned int> addressSpace;
+      unsigned int bar;
+      unsigned int pcieWriteAddress;
+      unsigned int pcieSyncAddress;
+    };
+
+    std::vector< DriverSPI > _driverSPIs;
+
+    bool _causeSpiTimeouts;
+    bool _causeSpiErrors;
   };
 }// namespace mtca4u
 

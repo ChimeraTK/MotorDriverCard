@@ -35,31 +35,31 @@ using namespace mtca4u;
 
 #define DEFINE_GET_SET_TEST( NAME, IDX, PATTERN )\
 void MotorControlerTest::testGet ## NAME (){\
-  unsigned int expectedValue = tmc429::testWordFromSpiAddress( _motorControler.getID(),\
+  unsigned int expectedValue = tmc429::testWordFromSpiAddress( _motorControler->getID(),\
                                                        IDX );\
-  BOOST_CHECK( _motorControler.get ## NAME () == expectedValue );}\
+  BOOST_CHECK( _motorControler->get ## NAME () == expectedValue );}\
 void MotorControlerTest::testSet ## NAME (){\
-  _motorControler.set ## NAME ( PATTERN );\
-  BOOST_CHECK( _motorControler.get ## NAME () == (PATTERN & SPI_DATA_MASK) );}
+  _motorControler->set ## NAME ( PATTERN );\
+  BOOST_CHECK( _motorControler->get ## NAME () == (PATTERN & SPI_DATA_MASK) );}
 
 #define DEFINE_SIGNED_GET_SET_TEST( NAME, IDX, NBITS )	\
 void MotorControlerTest::testGet ## NAME (){\
   SignedIntConverter converter( NBITS );\
-  unsigned int expectedValue = tmc429::testWordFromSpiAddress( _motorControler.getID(),\
+  unsigned int expectedValue = tmc429::testWordFromSpiAddress( _motorControler->getID(),\
                                                        IDX );\
-  BOOST_CHECK( _motorControler.get ## NAME () == converter.customToThirtyTwo(expectedValue) ); \
+  BOOST_CHECK( _motorControler->get ## NAME () == converter.customToThirtyTwo(expectedValue) ); \
  }\
 void MotorControlerTest::testSet ## NAME (){\
   unsigned int positiveMask = (1 << (NBITS-1) ) -1 ;\
   unsigned int negativeBit  = (1 << (NBITS-1) ) ;\
-  _motorControler.set ## NAME ( 0xAAAAAAAA & positiveMask );/* something positive */ \
-  BOOST_CHECK( _motorControler.get ## NAME () == static_cast<int>(0xAAAAAAAA & positiveMask) );\
-  _motorControler.set ## NAME ( (0x55555555 & positiveMask) | negativeBit );/* out of range positive with the custom negative bit active*/ \
-  BOOST_CHECK( _motorControler.get ## NAME () == -static_cast<int>( (0xAAAAAAAA +1) & positiveMask) );/* is interpreted as negative*/ \
-  _motorControler.set ## NAME ( -1 );/* a normal neagative number */	\
-  BOOST_CHECK( _motorControler.get ## NAME () == -1 );\
-  _motorControler.set ## NAME ( 0xFFFFFFFF & ~negativeBit );/* something negative with the negative bit of the custom variable not set*/	\
-  BOOST_CHECK( _motorControler.get ## NAME () == static_cast<int>(0xFFFFFFFF & positiveMask) );/* is interpreted as positive */ \
+  _motorControler->set ## NAME ( 0xAAAAAAAA & positiveMask );/* something positive */ \
+  BOOST_CHECK( _motorControler->get ## NAME () == static_cast<int>(0xAAAAAAAA & positiveMask) );\
+  _motorControler->set ## NAME ( (0x55555555 & positiveMask) | negativeBit );/* out of range positive with the custom negative bit active*/ \
+  BOOST_CHECK( _motorControler->get ## NAME () == -static_cast<int>( (0xAAAAAAAA +1) & positiveMask) );/* is interpreted as negative*/ \
+  _motorControler->set ## NAME ( -1 );/* a normal neagative number */	\
+  BOOST_CHECK( _motorControler->get ## NAME () == -1 );\
+  _motorControler->set ## NAME ( 0xFFFFFFFF & ~negativeBit );/* something negative with the negative bit of the custom variable not set*/	\
+  BOOST_CHECK( _motorControler->get ## NAME () == static_cast<int>(0xFFFFFFFF & positiveMask) );/* is interpreted as positive */ \
 }
 
 #define DEFINE_TYPED_GET_SET_TEST( NAME )\
@@ -82,7 +82,7 @@ using namespace mtca4u;
 
 class MotorControlerTest{
 public:
-  MotorControlerTest(MotorControler & motorControler, 
+  MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler, 
 		     boost::shared_ptr<mapFile> & registerMapping,
 		     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
   // getID() is tested in the MotorDriver card, where 
@@ -128,8 +128,11 @@ public:
   void testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardExpert> motorDriverCard );
   void testSetReferenceSwitchEnabled();
   
+  void testTargetPositionReached();
+  void testGetReferenceSwitchBit();
+
 private:
-  MotorControler & _motorControler;
+  boost::shared_ptr<MotorControler> _motorControler;
   boost::shared_ptr<mapFile> _registerMapping;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
@@ -236,13 +239,17 @@ public:
 					 _motorDriverCard) ));
       add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetReferenceSwitchEnabled,
 				  motorControlerTest ) );
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testTargetPositionReached,
+				  motorControlerTest ) );
+      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetReferenceSwitchBit,
+				  motorControlerTest ) );
 
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
 
 test_suite*
-init_unit_test_suite( int argc, char* argv[] )
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
    framework::master_test_suite().p_name.value = "MotorControler test suite";
 
@@ -250,11 +257,11 @@ init_unit_test_suite( int argc, char* argv[] )
 }
 
 
-  MotorControlerTest::MotorControlerTest(MotorControler & motorControler,
-					 boost::shared_ptr<mapFile> & registerMapping,
-					 boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
-    : _motorControler(motorControler), _registerMapping( registerMapping ),
-      _dummyDevice(dummyDevice){
+MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler,
+				       boost::shared_ptr<mapFile> & registerMapping,
+				       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
+  : _motorControler(motorControler), _registerMapping( registerMapping ),
+    _dummyDevice(dummyDevice){
 }
 
 DEFINE_SIGNED_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 24 )
@@ -266,13 +273,13 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* re
 						std::string const & registerSuffix){
   unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
-  message << "read () " <<  (_motorControler.*readFunction)() 
+  message << "read () " <<  ((*_motorControler).*readFunction)() 
 	  << ", expected " << expectedValue << std::endl;
-  BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)() == expectedValue , message.str());
+  BOOST_CHECK_MESSAGE( ((*_motorControler).*readFunction)() == expectedValue , message.str());
 }
 
 unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
-  std::string registerName = createMotorRegisterName( _motorControler.getID(),
+  std::string registerName = createMotorRegisterName( _motorControler->getID(),
 						      registerSuffix );
   mapFile::mapElem registerInfo;
   _registerMapping->getRegisterInfo( registerName, registerInfo );
@@ -284,9 +291,9 @@ void MotorControlerTest::testReadTypedPCIeRegister( T (MotorControler::* readFun
 						    std::string const & registerSuffix){
   unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
-  message << "read () " <<  (_motorControler.*readFunction)().getDataWord()
+  message << "read () " <<  ((*_motorControler).*readFunction)().getDataWord()
 	  << ", expected " << expectedValue << std::endl;
-  BOOST_CHECK_MESSAGE( (_motorControler.*readFunction)().getDataWord() == expectedValue , message.str());
+  BOOST_CHECK_MESSAGE( ((*_motorControler).*readFunction)().getDataWord() == expectedValue , message.str());
 }
 
 void MotorControlerTest::testGetDecoderReadoutMode(){
@@ -295,17 +302,17 @@ void MotorControlerTest::testGetDecoderReadoutMode(){
 }
 
 void MotorControlerTest::testSetDecoderReadoutMode(){
-  unsigned int readoutMode = _motorControler.getDecoderReadoutMode();
-  _motorControler.setDecoderReadoutMode( ++readoutMode );
-  BOOST_CHECK( _motorControler.getDecoderReadoutMode() == readoutMode );
+  unsigned int readoutMode = _motorControler->getDecoderReadoutMode();
+  _motorControler->setDecoderReadoutMode( ++readoutMode );
+  BOOST_CHECK( _motorControler->getDecoderReadoutMode() == readoutMode );
 }
 
 void MotorControlerTest::testSetIsEnabled(){
-  BOOST_CHECK( _motorControler.isEnabled() );
-  _motorControler.setEnabled( false );
-  BOOST_CHECK( _motorControler.isEnabled()==false );
-  _motorControler.setEnabled();
-  BOOST_CHECK( _motorControler.isEnabled() );
+  BOOST_CHECK( _motorControler->isEnabled() );
+  _motorControler->setEnabled( false );
+  BOOST_CHECK( _motorControler->isEnabled()==false );
+  _motorControler->setEnabled();
+  BOOST_CHECK( _motorControler->isEnabled() );
 }
 
 DEFINE_SIGNED_GET_SET_TEST( TargetPosition, IDX_TARGET_POSITION, 24 )
@@ -320,22 +327,22 @@ template<class T>
 void MotorControlerTest::testGetTypedData( T (MotorControler::* getterFunction)() ){
   T typedWord;
   unsigned int idx = typedWord.getIDX_JDX();
-  unsigned int expectedContent = tmc429::testWordFromSpiAddress( _motorControler.getID(),
+  unsigned int expectedContent = tmc429::testWordFromSpiAddress( _motorControler->getID(),
 								 idx );
   // this assignment checks that the delivered data object actually is the right type of object.
-  typedWord = (_motorControler.*getterFunction)();
+  typedWord = ((*_motorControler).*getterFunction)();
   BOOST_CHECK( typedWord.getDATA() == expectedContent );
-  BOOST_CHECK( typedWord.getSMDA() == _motorControler.getID() );
+  BOOST_CHECK( typedWord.getSMDA() == _motorControler->getID() );
 }
 
 template<class T>
 void MotorControlerTest::testSetTypedData( T (MotorControler::* getterFunction)(),
 					   void (MotorControler::* setterFunction)(T const &) ){
-  T typedWord = (_motorControler.*getterFunction)();
+  T typedWord = ((*_motorControler).*getterFunction)();
   unsigned int dataContent = typedWord.getDATA();
   typedWord.setDATA(++dataContent);
-  (_motorControler.*setterFunction)(typedWord);
-  BOOST_CHECK( (_motorControler.*getterFunction)() == typedWord );    
+  ((*_motorControler).*setterFunction)(typedWord);
+  BOOST_CHECK( ((*_motorControler).*getterFunction)() == typedWord );    
 }
 
 DEFINE_TYPED_GET_SET_TEST( AccelerationThresholdData )
@@ -348,11 +355,11 @@ template <class T>
 void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
 					       unsigned int driverSpiAddress,
 					       unsigned int configDefault){
-  T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler.getID());
+  T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler->getID());
 
-  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
+  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler->getID(), driverSpiAddress )==
 	       expectedWord.getPayloadData() );
-  BOOST_CHECK( (_motorControler.*getterFunction)() == T(configDefault) ); // T is uninitialised at the moment
+  BOOST_CHECK( ((*_motorControler).*getterFunction)() == T(configDefault) ); // T is uninitialised at the moment
 }
 
 template <class T>
@@ -361,12 +368,12 @@ void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFun
 					       unsigned int driverSpiAddress,
 					       unsigned int testPattern){
   T testWord( testPattern );
-  (_motorControler.* setterFunction)(testWord);
+  ((*_motorControler).* setterFunction)(testWord);
 
   // the new word must arrive at the spi register in the "hardware" and a copy has to be in the motor controler
-  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler.getID(), driverSpiAddress )==
+  BOOST_CHECK( _dummyDevice->readDriverSpiRegister( _motorControler->getID(), driverSpiAddress )==
 	       testWord.getPayloadData() );
-  BOOST_CHECK((_motorControler.* getterFunction)() == testWord );
+  BOOST_CHECK(((*_motorControler).* getterFunction)() == testWord );
 }
 
 DEFINE_GET_SET_DRIVER_SPI_DATA( DriverControlData, ADDRESS_DRIVER_CONTROL, DRIVER_CONTROL_DEFAULT , 0x2AAAA)
@@ -380,7 +387,7 @@ void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriv
   // in the implementation, but still be felxible if the register content changes.
   unsigned int referenceWord;
   
-  switch (_motorControler.getID()){
+  switch (_motorControler->getID()){
   case 0 : referenceWord = motorDriverCard->getReferenceSwitchData().getDATA() & 0x3; break;
   case 1 : referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0xC) >> 2); break;
   case 2 : referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0x30) >> 4); break;
@@ -388,33 +395,53 @@ void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriv
     BOOST_FAIL("Invalid MotorID. Either there is something wrong in the code or the test has to be adapted.");
   }
 
-  BOOST_CHECK(_motorControler.getReferenceSwitchData().getSwitchesActiveWord() == referenceWord );
-  BOOST_CHECK(_motorControler.getReferenceSwitchData().getPositiveSwitchEnabled() ==
-	      !_motorControler.getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
-  BOOST_CHECK(_motorControler.getReferenceSwitchData().getNegativeSwitchEnabled() ==
-	      !_motorControler.getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
+  BOOST_CHECK(_motorControler->getReferenceSwitchData().getSwitchesActiveWord() == referenceWord );
+  BOOST_CHECK(_motorControler->getReferenceSwitchData().getPositiveSwitchEnabled() ==
+	      !_motorControler->getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
+  BOOST_CHECK(_motorControler->getReferenceSwitchData().getNegativeSwitchEnabled() ==
+	      !_motorControler->getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
 }
 
 void MotorControlerTest::testSetReferenceSwitchEnabled(){
-  MotorReferenceSwitchData originalSetting = _motorControler.getReferenceSwitchData();
+  MotorReferenceSwitchData originalSetting = _motorControler->getReferenceSwitchData();
 
-  _motorControler.setPositiveReferenceSwitchEnabled(true);
-  _motorControler.setNegativeReferenceSwitchEnabled(true);
-  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x3 );
+  _motorControler->setPositiveReferenceSwitchEnabled(true);
+  _motorControler->setNegativeReferenceSwitchEnabled(true);
+  BOOST_CHECK( _motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x3 );
 
-  _motorControler.setPositiveReferenceSwitchEnabled(false);
-  _motorControler.setNegativeReferenceSwitchEnabled(true);
-  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x2 );
+  _motorControler->setPositiveReferenceSwitchEnabled(false);
+  _motorControler->setNegativeReferenceSwitchEnabled(true);
+  BOOST_CHECK( _motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x2 );
 
-  _motorControler.setPositiveReferenceSwitchEnabled(true);
-  _motorControler.setNegativeReferenceSwitchEnabled(false);
-  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x1 );
+  _motorControler->setPositiveReferenceSwitchEnabled(true);
+  _motorControler->setNegativeReferenceSwitchEnabled(false);
+  BOOST_CHECK( _motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x1 );
 
-  _motorControler.setPositiveReferenceSwitchEnabled(false);
-  _motorControler.setNegativeReferenceSwitchEnabled(false);
-  BOOST_CHECK( _motorControler.getReferenceSwitchData().getSwitchesEnabledWord() == 0x0 );
+  _motorControler->setPositiveReferenceSwitchEnabled(false);
+  _motorControler->setNegativeReferenceSwitchEnabled(false);
+  BOOST_CHECK( _motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x0 );
   
-  _motorControler.setPositiveReferenceSwitchEnabled( originalSetting.getPositiveSwitchEnabled() );
-  _motorControler.setNegativeReferenceSwitchEnabled( originalSetting.getNegativeSwitchEnabled() );
+  _motorControler->setPositiveReferenceSwitchEnabled( originalSetting.getPositiveSwitchEnabled() );
+  _motorControler->setNegativeReferenceSwitchEnabled( originalSetting.getNegativeSwitchEnabled() );
 
+}
+
+void MotorControlerTest::testTargetPositionReached(){
+  mapFile::mapElem mapElement;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
+
+  BOOST_CHECK( expectedControlerStatus.getTargetPositionReached( _motorControler->getID() ) ==
+	       _motorControler->targetPositionReached() );
+}
+
+void MotorControlerTest::testGetReferenceSwitchBit(){
+  mapFile::mapElem mapElement;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
+
+  BOOST_CHECK( expectedControlerStatus.getReferenceSwitchBit( _motorControler->getID() ) ==
+	       _motorControler->getReferenceSwitchBit() );
 }

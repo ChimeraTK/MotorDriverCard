@@ -17,7 +17,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -ansi -ped
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-FIND_PACKAGE(MtcaMappedDevice 00.07 REQUIRED)
+FIND_PACKAGE(MtcaMappedDevice 00.09 REQUIRED)
 include_directories(${MtcaMappedDevice_INCLUDE_DIRS})
 
 FIND_PACKAGE(pugixml 1.3 REQUIRED)
