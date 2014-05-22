@@ -9,6 +9,7 @@ namespace mtca4u {
     StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED(8, "FAILED");
     StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS(16, "IN PROGRESS");
     StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER(32, "STOPPED BY USER");
+    StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE(64, "NOT AVAILABLE");
 
     
     

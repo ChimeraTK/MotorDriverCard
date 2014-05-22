@@ -17,11 +17,11 @@ namespace mtca4u {
     
     class StepperMotorErrorTypes {
     public:
-        static StepperMotorError MOTOR_NO_ERROR;
-        static StepperMotorError MOTOR_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
-        static StepperMotorError MOTOR_BOTH_ENDSWICHTED_ON;
-        static StepperMotorError MOTOR_COMMUNICATION_LOST;
-        static StepperMotorError MOTOR_NO_REACTION_ON_COMMAND;
+        static StepperMotorError M_NO_ERROR;
+        static StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
+        static StepperMotorError M_BOTH_END_SWITCH_ON;
+        static StepperMotorError M_COMMUNICATION_LOST;
+        static StepperMotorError M_NO_REACTION_ON_COMMAND;
     };
 
 

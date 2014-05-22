@@ -14,6 +14,7 @@
 
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
+#include "XMLException.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorControler.h"
 
@@ -118,20 +119,17 @@ namespace mtca4u {
         void setCurrentMotorPositionAs(float newPosition);
 
         /**
-         * @brief Set functions which allows convert arbitrary units to steps and steps into arbitrary units.
+         * @brief Set a pointer to StepperMotorUnitsConverter object.
          * @param UnitToSteps - pointer to the function which allow to convert number of units to number of steps. Function take 'float' type as parameter and return 'int' type.
          * @param StepsToUnits - pointer to the function which allow to convert number of steps to number of units. Function take 'int' type as parameter and return 'float' type
          * 
          * @return void
          * 
          * @details 
-         * By default this functions are set as: "steps = 1 * units" and "unit = 1 * steps".\n
-         * To keep synchronization UnitToSteps following assumption must be fulfill:\n
-         * 1) UnitToSteps(StepsToUnits(x)) must be equal to 'x'.\n
-         * 2) StepsToUnits(UnitToSteps(x)) must be equal to 'x'.\n
+         *  Set a pointer to StepperMotorUnitsConverter object. The StepperMotorUnitsConverter is an interface (abstract class) which
+         *  provides two methods which are converting steps to arbitrary units and vice-versa. The user need to create its own class which inherits from
+         *  StepperMotorUnitsConverter and implements the: 'float stepsToUnits(int steps)' and 'int unitsToSteps(float units)' methods.
          */ 
-        //void setConversionFunctions(int (*UnitToSteps)(float), float (*StepsToUnits)(int));
-
         void setStepperMotorUnitsConverter(StepperMotorUnitsConverter* stepperMotorUnitsConverter);
         
         
@@ -141,8 +139,7 @@ namespace mtca4u {
          * @return void
          * 
          * @details 
-         * Function starts the motor. When 'Autostart' is set to FALSE it allows to move motor, but before it checks motor status.\n
-         * When status is StepperMotorStatusTypes::M_OK or StepperMotorStatusTypes::M_MOTOR_IN_MOVE, target position set by setMotorPosition is passed to hardware and motor moves.\n
+         * Function starts the motor. When 'Autostart' is set to FALSE it allows to move motor.\n
          * 
          */      
         void startMotor();
@@ -196,13 +193,14 @@ namespace mtca4u {
          * 4) StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED - motor calibration failed.\n
          * 5) StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS - motor is calibrating now.\n
          * 6) StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER - motor calibration was triggered by it was stopped by user (ex. execution of 'void stopMotor()' function).\n
+         * 7) StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE - motor calibration is not possible because motor doesn't have physical end switches.\n
          */
         StepperMotorCalibrationStatus getCalibrationStatus();
 
         /**
          * @brief Return current motor status.
          * @param
-         * @return StepperMotorStatus - current motor status
+         * @return StepperMotorStatus - current motor status object which contains of status code and string which describes it in human readable way
          * 
          * @details 
          * Return current motor status as StepperMotorStatus object.\n
@@ -219,20 +217,98 @@ namespace mtca4u {
          */
         StepperMotorStatus getMotorStatus() throw();
         
-        StepperMotorError getMotorError() throw();
+
+        /**
+         * @brief Return current motor status.
+         * @param
+         * @return StepperMotorError - current motor error object which contains of error code and string which describes it in human readable way
+         * 
+         * @details 
+         * Return current motor status as StepperMotorStatus object.\n
+         * Every time it is called it checks status of the motor.
+         * Currently following status are forseen:\n
+         * 1) StepperMotorErrorTypes::M_NO_ERROR - motor is OK and ready for new commands.\n
+         * 2) StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX - error in configuration of software position limits\n
+         * 3) StepperMotorErrorTypes::M_BOTCH_END_SWITCH_ON -both end switch active. Hardware is missing or in error state.\n
+         * 4) StepperMotorErrorTypes::M_COMMUNICATION_LOST - errors and problems with communication with firmware\n
+         * 5) StepperMotorErrorTypes::M_NO_REACION_ON_COMMAND - hardware is no reacting on command.\n
+         * */
+
+        StepperMotorError getMotorError() throw ();
         
         
         // Speed setting
+        /**
+         * @brief Set the new speed of the motor - NOT IMPLEMETNED YET 
+         * @param
+         * @return void
+         * 
+         * @details 
+         * TO BE ADDED
+         */
         void setMotorSpeed(float newSpeed);
+        
+        
+        /**
+         * @brief Get current speed of motor - NOT IMPLEMETNED YET 
+         * @param
+         * @return void
+         * 
+         * @details 
+         * TO BE ADDED
+         */
         float getMotorSpeed();
-        
-        //autostart 
-        bool getAutostart();
+
+        //autostart
+
+
+        /**
+         * @brief Sets of Autostart flag
+         * @param bool autostart - new value for Autostart flag
+         * @return void
+         * 
+         * @details 
+         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void startMotor()' method.\n
+         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.\n
+         * 
+         */
         void setAutostart(bool autostart);
+
+        /**
+         * @brief Get the Autostart flag.
+         * @param
+         * @return bool - Current autostart flag value
+         * 
+         * @details 
+         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void startMotor()' method.\n
+         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.\n
+         * 
+         */
+        bool getAutostart();
         
         
+        /**
+         * @brief Set the Enable flag.
+         * @param bool enable - New value for the Enabled flag
+         * @return
+         * 
+         * @details 
+         * Motor can be disabled or enabled. To work with the motor user need to enable it. When motor disabled it stops moving immediately. 
+         */
         void setEnable(bool enable);
+
+        /**
+         * @brief Get the Enable flag.
+         * @param
+         * @return bool - Current Enabled flag value
+         * 
+         * @details 
+         * Motor can be disabled or enabled. To work with the motor user need to enable it. When motor disabled it stops moving immediately. 
+         */
         bool getEnabled() const;
+        
+        
+        
         //Software limits settings
         void setMaxPositionLimit(float maxPos);
         void setMinPositionLimit(float minPos);
@@ -251,6 +327,10 @@ namespace mtca4u {
 
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);
+        
+        //
+        void setSoftwareLimitsEnabled(bool newVal);
+        bool getSoftwareLimitsEnabled() const;
         
     private: // methods
 
@@ -303,13 +383,15 @@ namespace mtca4u {
         
         //calibration
         int _calibNegativeEndSwitchInSteps;
-        int _calibNegativeEndSwitchInUnits;
+        float _calibNegativeEndSwitchInUnits;
         
         int _calibPositiveEndSwitchInSteps;
-        int _calibPositiveEndSwitchInUnits;
+        float _calibPositiveEndSwitchInUnits;
         
         unsigned int _debugLevel;
         std::ostream* _debugStream;
+        
+        bool _softwareLimitsEnabled;
         
     };
 

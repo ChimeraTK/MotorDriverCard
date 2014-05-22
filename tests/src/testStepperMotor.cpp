@@ -58,7 +58,7 @@ int main( int argc, char* argv[] ) {
     if (status == mtca4u::StepperMotorStatusTypes::M_ERROR) {
         mtca4u::StepperMotorError error(motor.getMotorError());
         std::cout << "Motor in error state. Error is: " << error << "\n";
-        if (error == mtca4u::StepperMotorErrorTypes::MOTOR_BOTH_ENDSWICHTED_ON) {
+        if (error == mtca4u::StepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
             std::cout << "Both end switches on. Check you hardware." << error << "\n";
         }
     } else {

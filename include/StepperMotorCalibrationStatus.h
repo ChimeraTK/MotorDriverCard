@@ -23,6 +23,7 @@ namespace mtca4u {
         static StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
         static StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
         static StepperMotorCalibrationStatus M_CALIBRATION_STOPED_BY_USER;
+        static StepperMotorCalibrationStatus M_CALIBRATION_NOT_AVAILABLE;
     };   
     
 
