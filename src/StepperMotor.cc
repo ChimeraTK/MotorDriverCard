@@ -35,7 +35,7 @@ namespace mtca4u {
 
 
         //_motorControler.reset(&_motorDriverCardPtr->getMotorControler(_motorDriverId));      
-        _motorControler = &_motorDriverCardPtr->getMotorControler(_motorDriverId);
+        _motorControler = _motorDriverCardPtr->getMotorControler(_motorDriverId).get();
 
         //position limits
         _maxPositionLimit = std::numeric_limits<float>::max();
@@ -446,12 +446,12 @@ namespace mtca4u {
     void StepperMotor::setMotorSpeed(float newSpeed) {
         //FIX ME
         int ns = static_cast<int> (fabs(newSpeed));
-        _motorDriverCardPtr->getMotorControler(_motorDriverId).setActualVelocity(ns);
+   
     }
 
     float StepperMotor::getMotorSpeed() {
         //FIX ME
-        return static_cast<float> (_motorControler->getActualVelocity());
+        return static_cast<float> (0);
     }
 
     //Software limits settings
@@ -540,8 +540,10 @@ namespace mtca4u {
             _motorError = StepperMotorErrorTypes::M_NO_ERROR;
 
             _motorControler->isEnabled();
+            
+            
             //first check if disabled
-            if (!_motorDriverCardPtr->getMotorControler(_motorDriverId).isEnabled()) {
+            if (!_motorControler->isEnabled()) {
                 _motorStatus = StepperMotorStatusTypes::M_DISABLED;
                 return;
             }

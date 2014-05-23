@@ -116,7 +116,7 @@ int main( int argc, char* argv[] ) {
                 break;
         }
     }
-
+    
     std::cout << "Disabling the motor\n";
     motor.setEnable(false);
     std::cout << "End of Test MotorStepper class !!! \n";

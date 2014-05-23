@@ -17,6 +17,7 @@
 #include "XMLException.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorControler.h"
+#include "MotorDriverException.h"
 
 //Stepper Motor includes
 #include "StepperMotorError.h"
@@ -62,7 +63,7 @@ namespace mtca4u {
          * @brief  Destructor of the class object
          */
         ~StepperMotor();
-
+        
         /**
          * @brief Sending motor to new position (blocking).
          * @param  newPosition - new position for the motor 
