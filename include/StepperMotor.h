@@ -11,6 +11,7 @@
 
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
@@ -78,7 +79,7 @@ namespace mtca4u {
          * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          * 
          */
-        StepperMotorStatus moveToPosition(float newPosition) throw();     
+        virtual StepperMotorStatus moveToPosition(float newPosition) throw();     
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -117,7 +118,7 @@ namespace mtca4u {
          * Position is expressed in arbitrary units and internally recalculated into steps.\n
          * Can be used in example to zeroed current position.
          */
-        void setCurrentMotorPositionAs(float newPosition);
+        virtual void setCurrentMotorPositionAs(float newPosition);
 
         /**
          * @brief Set a pointer to StepperMotorUnitsConverter object.
@@ -177,7 +178,7 @@ namespace mtca4u {
          * @details 
          * TO BE ADDED
          */ 
-        StepperMotorCalibrationStatus calibrateMotor() throw();
+        virtual StepperMotorCalibrationStatus calibrateMotor() throw();
         
 
         /**
@@ -322,10 +323,6 @@ namespace mtca4u {
         unsigned int getDebugLevel();    
         void setDebugStream(std::ostream* debugStream);
         
-        //end switches positions getters
-        float getPositiveEndSwitchPosition() const;
-        float getNegativeEndSwitchPosition() const;
-
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);
         
@@ -333,12 +330,12 @@ namespace mtca4u {
         void setSoftwareLimitsEnabled(bool newVal);
         bool getSoftwareLimitsEnabled() const;
         
-    private: // methods
+    protected: // methods
 
-        void determineMotorStatusAndError() throw();
+        virtual void determineMotorStatusAndError() throw();
         float truncateMotorPosition(float newPosition);
     
-    private: // fields
+    protected: // fields
         std::string _motorDriverCardDeviceName;
         unsigned int _motorDriverId;
         std::string _motorDriverCardConfigFileName;
@@ -381,18 +378,14 @@ namespace mtca4u {
         bool _stopMotorForBlocking;
         
         bool _stopMotorCalibration;
-        
-        //calibration
-        int _calibNegativeEndSwitchInSteps;
-        float _calibNegativeEndSwitchInUnits;
-        
-        int _calibPositiveEndSwitchInSteps;
-        float _calibPositiveEndSwitchInUnits;
-        
+                
         unsigned int _debugLevel;
         std::ostream* _debugStream;
         
         bool _softwareLimitsEnabled;
+        
+        
+        static boost::mutex mutex;
         
     };
 

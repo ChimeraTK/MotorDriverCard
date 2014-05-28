@@ -14,15 +14,30 @@
 
 namespace mtca4u {
 
+
     class StepperMotorStatus;
+    class LinearStepperMotorStatus;
     
+    class LinearStepperMotorStatusTypes {
+    public:
+        static LinearStepperMotorStatus M_OK;
+        static LinearStepperMotorStatus M_IN_MOVE;
+        static LinearStepperMotorStatus M_NOT_IN_POSITION;        
+        static LinearStepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
+        static LinearStepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
+        static LinearStepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
+        static LinearStepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
+        static LinearStepperMotorStatus M_ERROR;
+        static LinearStepperMotorStatus M_DISABLED;
+
+    };
+    
+
     class StepperMotorStatusTypes {
     public:
         static StepperMotorStatus M_OK;
         static StepperMotorStatus M_IN_MOVE;
         static StepperMotorStatus M_NOT_IN_POSITION;        
-        static StepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
         static StepperMotorStatus M_ERROR;
@@ -43,7 +58,17 @@ namespace mtca4u {
         
     };
 
+    class LinearStepperMotorStatus : public StepperMotorStatus {
+    public:
+        //default constructor
+        LinearStepperMotorStatus();
+        //param constructor
+        LinearStepperMotorStatus(int itemId, std::string itemName);
+        //copy constructor
+        LinearStepperMotorStatus(const LinearStepperMotorStatus &status);
 
+    };
+    
 
 } //namespace mtca4u
 

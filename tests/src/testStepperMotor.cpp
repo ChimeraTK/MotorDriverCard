@@ -1,4 +1,4 @@
-#include "StepperMotor.h"
+#include "LinearStepperMotor.h"
 #include <string>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
@@ -9,7 +9,7 @@
 void* statusReaderThreadBody(void* ptr) {
     mtca4u::StepperMotor* motorPointer = (mtca4u::StepperMotor*)ptr;
     while (1) {
-        std::cout << "Thread:: motor status is: " << motorPointer->getMotorStatus() << std::endl;
+        //std::cout << "Thread:: motor status is: " << motorPointer->getMotorStatus() << std::endl;
         usleep(100000);
     }
  
@@ -39,7 +39,7 @@ int main( int argc, char* argv[] ) {
     
     std::cout << "Try to open MOTOR CARD with device name: " << deviceName << " with config file: " << configFileNameName << " Motor driver ID is: " << motorDriverId << std::endl;
 
-    mtca4u::StepperMotor motor(deviceName, motorDriverId, configFileNameName);
+    mtca4u::LinearStepperMotor motor(deviceName, motorDriverId, configFileNameName);
 
     std::cout << "Change debug stream to the std::cout \n"; 
     motor.setDebugStream(&std::cout);
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] ) {
     std::cout << "Calibration status after interrupted calibration: " << calibrationStatus << std::endl;
    
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1; i++) {
         motor.calibrateMotor();
         sleep(1);
         if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATED) {
