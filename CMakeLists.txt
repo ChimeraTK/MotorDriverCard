@@ -39,9 +39,11 @@ set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
 MACRO( COPY_MAPPING_FILES )
-  foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_broken.map )
+  foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_broken.map
+           mtcadummy_DFMC_MD22_mock.map)
     configure_file( tests/${MAPPING_FILE} ${PROJECT_BINARY_DIR}/${MAPPING_FILE} copyonly)
   endforeach( MAPPING_FILE )
+  configure_file( tests/hardware/VT21-MotorDriverCardConfig.xml ${PROJECT_BINARY_DIR}/VT21-MotorDriverCardConfig.xml copyonly)
 ENDMACRO( COPY_MAPPING_FILES )
 
 MACRO( COPY_XML_FILES )
