@@ -55,10 +55,24 @@ public:
 private:  
   // the components of the test block: Loops which run in individual threads
 
-  /// write, read and check the results for the TMC249 controller chip
-  void controllerSpiReadWriteTestLoop(unsigned int motorID, unsigned int nLoopsMax = 0);
+  /// The base loop is always the same in order to avoid code duplication.
+  /// If nLoopsMax is set to 0 the loop will run infinitely until another thread
+  /// sets the quitCurrentTest flag to true.
+  /// The core of the loop is given as a function pointer.
+  /// This function is a member function of this class, returns void and
+  ///  has references to shared pointers as arguments.
+  /// The first argument is the loop index
+  void baseLoop(unsigned int motorID,
+		unsigned int nLoopsMax,
+		void (SpiReadWriteThreadStressTest::* loopCore)(
+				      unsigned int,
+				      boost::shared_ptr<MotorDriverCard> &,
+				      boost::shared_ptr<MotorControler> & ) );
 
-  
+  /// write, read and check the results for the TMC249 controller chip
+  void controllerSpiWriteReadCheck(unsigned int loopIndex,
+				   boost::shared_ptr<MotorDriverCard> & motorDriverCard,
+				   boost::shared_ptr<MotorControler>  & motorControler );
 
   void preTests();
   void testControllerSpiTwoThreads();
@@ -109,13 +123,13 @@ void SpiReadWriteThreadStressTest::preTests(){
   // the that the version without multi-threading works
   std::cout << "Running single threaded pre-tests..." << std::endl;
   _currentTestName = "Controller read/write  on motor 0";
-  controllerSpiReadWriteTestLoop(0, 1000);
+  baseLoop(0, 1000, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck);
   printStatus();
 
   _currentTestName = "Controller read/write  on motor 1";
   // no need to lock the mutex, not multi-threaded here
   _errorsInThisTest = 0;
-  controllerSpiReadWriteTestLoop(1, 1000);
+  baseLoop(1, 1000, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck);
   printStatus();
 }
 
@@ -144,10 +158,10 @@ void SpiReadWriteThreadStressTest::testControllerSpiTwoThreads(){
   _errorsInThisTest = 0;
 
   // run one instance of in a separate thread...
-  boost::thread motor0Thread( boost::bind( &SpiReadWriteThreadStressTest::controllerSpiReadWriteTestLoop, boost::ref(*this), 0, 10000) );
+  boost::thread motor0Thread( boost::bind( &SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 10000, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck) );
   
   // run the second instance in this thread
-  controllerSpiReadWriteTestLoop(1);
+  baseLoop(1, 0, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck);
   
   // this should return immediately because the separate thread triggers the end of
   // the loop in this thread, so at this point both loops are finished
@@ -157,36 +171,41 @@ void SpiReadWriteThreadStressTest::testControllerSpiTwoThreads(){
   printStatus();
 }
 
-void SpiReadWriteThreadStressTest::controllerSpiReadWriteTestLoop(unsigned int motorID,
-								  unsigned int nLoopsMax){
+void SpiReadWriteThreadStressTest::baseLoop(unsigned int motorID,
+       unsigned int nLoopsMax,
+       void (SpiReadWriteThreadStressTest::* loopCore)(
+		     unsigned int,
+		     boost::shared_ptr<MotorDriverCard> &,
+		     boost::shared_ptr<MotorControler> & ) ){
+
   boost::shared_ptr<MotorDriverCard> motorDriverCard 
     = MotorDriverCardFactory::instance().createMotorDriverCard( _deviceFileName,
 								_mapFileName,
 								_motorConfigFileName );
-
    boost::shared_ptr<MotorControler> motorControler
      = motorDriverCard->getMotorControler(motorID);
 
-   //   std::cout << "controllerSpiReadWriteTestLoop starting for motor " << motorID << std::endl;
-
    for (unsigned int i=0; ( (i < nLoopsMax) || (nLoopsMax==0) ); ++i ){
-     //          std::cout << "Motor " << motorID << " setting target position to "<< (i & tmc429::SPI_DATA_MASK) << std::endl;
-     motorControler->setTargetPosition(i & tmc429::SPI_DATA_MASK);
-     if (  (motorControler->getTargetPosition() & tmc429::SPI_DATA_MASK) 
-	   !=  (i & tmc429::SPI_DATA_MASK) ){
-       increaseErrorCount("controllerSpiReadWriteTestLoop");
-     }
-     //     std::cout << "quitCurrentTest = " <<(_quitCurrentTest?"true":"false")  << std::endl;
+     (this->*loopCore)(i, motorDriverCard, motorControler);
+
      if (_quitCurrentTest){
-       //       std::cout << "Motor " << motorID << " detected _quitCurrentTest=true, breaking loop." << std::endl;
        break;
      }
   }
   
-   //   std::cout << "Motor " << motorID << " loop done." << std::endl;
    _quitCurrentTest=true;
-   //   std::cout << "quitCurrentTest = " <<(_quitCurrentTest?"true":"false")  << std::endl;
-   //   std::cout << "_quitCurrentTest set true" << std::endl;
+}
+
+void SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck(
+		unsigned int loopIndex,
+		boost::shared_ptr<MotorDriverCard> & motorDriverCard,
+		boost::shared_ptr<MotorControler>  & motorControler ){
+
+     motorControler->setTargetPosition(loopIndex & tmc429::SPI_DATA_MASK);
+     if (  (motorControler->getTargetPosition() & tmc429::SPI_DATA_MASK) 
+	   !=  (loopIndex & tmc429::SPI_DATA_MASK) ){
+       increaseErrorCount("controllerSpiWriteReadCheck");
+     }
 }
 
 void SpiReadWriteThreadStressTest::printStatus(){
