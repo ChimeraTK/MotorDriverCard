@@ -2,6 +2,7 @@
 #define MTCA4U_MOTOR_CONTROLER_H
 
 #include <MtcaMappedDevice/devMap.h>
+#include <boost/noncopyable.hpp>
 
 #include "TMC260Words.h"
 #include "TMC429Words.h"
@@ -39,7 +40,7 @@ namespace mtca4u
    * 
    * @author Martin Killenberg <martin.killenberg@desy.de>
    */
-  class MotorControler{
+  class MotorControler: public boost::noncopyable{
 
   public:
     

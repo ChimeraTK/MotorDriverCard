@@ -2,6 +2,7 @@
 #define MTCA4U_SPI_VIA_PCIE_H
 
 #include <MtcaMappedDevice/devMap.h>
+#include <boost/thread/recursive_mutex.hpp>
 
 namespace mtca4u{
   /** This class implements synchronous SPI operation over PCIexpress, using an SPI command register
@@ -75,6 +76,8 @@ namespace mtca4u{
     // store these two register names for debug output (exception messages)
     std::string _writeRegisterName;
     std::string _syncRegisterName;
+
+    mutable boost::recursive_mutex _spiMutex;
   };
 
 }//namespace mtca4u

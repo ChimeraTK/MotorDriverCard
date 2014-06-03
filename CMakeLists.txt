@@ -25,7 +25,7 @@ include_directories(${pugixml_INCLUDE_DIRS})
 
 #currently boost is only needed for the tests
 
-FIND_PACKAGE(Boost COMPONENTS unit_test_framework)
+FIND_PACKAGE(Boost COMPONENTS unit_test_framework thread)
 #ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
@@ -97,7 +97,7 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(excutableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${excutableName} ${hardwareTestSourceFile})
-  target_link_libraries(${excutableName} ${PROJECT_NAME})     
+  target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
 endforeach( hardwareTestSourceFile )
  
 

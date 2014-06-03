@@ -4,6 +4,8 @@
 #include <MtcaMappedDevice/DummyDevice.h>
 #include "TMC429Words.h"
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 namespace mtca4u{
   
   /** Dummy for the DFMC_MD22 Motor driver card.
@@ -77,6 +79,14 @@ namespace mtca4u{
      */
     void resetFirmwareVersion();
 
+    /** Set the simulated SPI delay for the TMC429 controller chip in microseconds.
+     */
+    void setControllerSpiDelay(unsigned int microseconds);
+
+    /** Set the simulated SPI delay for the TMC260 driver chip in microseconds.
+     */
+    void setDriverSpiDelay(unsigned int microseconds);
+
   private:
     // callback functions
     void handleControlerSpiWrite();
@@ -129,6 +139,9 @@ namespace mtca4u{
 
     bool _causeSpiTimeouts;
     bool _causeSpiErrors;
+
+    unsigned int _microsecondsControllerSpiDelay;
+    unsigned int _microsecondsDriverSpiDelay;
   };
 }// namespace mtca4u
 

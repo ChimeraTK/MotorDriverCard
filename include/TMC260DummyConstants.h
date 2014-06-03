@@ -9,6 +9,8 @@ namespace mtca4u{
 namespace tmc260{
 
   uint32_t const SIZE_OF_SPI_ADDRESS_SPACE = 0x8;
+
+  unsigned int const DEFAULT_DUMMY_SPI_DELAY = 20; ///< 20 microseconds
   
   inline unsigned int testWordFromSpiAddress(unsigned int spiAddress, unsigned int motorID){
     return spiAddress*spiAddress + 7 + motorID;

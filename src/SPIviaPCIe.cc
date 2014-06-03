@@ -33,7 +33,7 @@ namespace mtca4u{
   {}
 
   void SPIviaPCIe::write( int32_t spiCommand ){
-    // @fixme Protect this function with a (reentrant?) mutex
+    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
 
     // Implement the write handshake
     // 1. write 0xff to the synch register
@@ -47,7 +47,7 @@ namespace mtca4u{
     _synchronisationRegister.readReg( &syncValue );
     
     for (size_t syncCounter=0; 
-	 (static_cast<unsigned int>(syncValue)==SPI_SYNC_REQUESTED) && (syncCounter < 10);
+	 (syncValue==SPI_SYNC_REQUESTED) && (syncCounter < 10);
 	 ++syncCounter){
       sleepMicroSeconds(_spiWaitingTime);
       _synchronisationRegister.readReg( & syncValue, sizeof(int));
@@ -73,7 +73,7 @@ namespace mtca4u{
   }
 
   uint32_t SPIviaPCIe::read( int32_t spiCommand ){
-    // @fixme this has to be locked by a RECURSIVE mutex
+    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
 
     // this is easy: the write does all the sync. And after a successful sync we know that the 
     // readback word is valid.
@@ -104,10 +104,12 @@ namespace mtca4u{
   }
 
   void SPIviaPCIe::setSpiWaitingTime(unsigned int microSeconds){
+    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
     _spiWaitingTime = microSeconds;
   }
 
   unsigned int SPIviaPCIe::getSpiWaitingTime() const {
+    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
     return _spiWaitingTime;
   }
 

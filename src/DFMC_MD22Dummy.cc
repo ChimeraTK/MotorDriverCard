@@ -7,6 +7,7 @@ using namespace mtca4u::dfmc_md22;
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/thread.hpp>
 
 #include "TMC429Words.h"
 #include "TMC260Words.h"
@@ -23,7 +24,10 @@ using namespace mtca4u::tmc429;
 namespace mtca4u{
 
  DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
-				   _powerIsUp(true), _causeSpiTimeouts(false), _causeSpiErrors(false){
+				   _powerIsUp(true), _causeSpiTimeouts(false), 
+				   _causeSpiErrors(false),
+				   _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
+				   _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY){
   }
 
   void DFMC_MD22Dummy::openDev(const std::string &mappingFileName, int perm,
@@ -192,9 +196,15 @@ namespace mtca4u{
     uint32_t controlerSpiAddress = inputWord.getADDRESS();
     if (inputWord.getRW() == RW_READ){
       writeControlerSpiContentToReadbackRegister(controlerSpiAddress);
+      // it takes some time to perform this in firmware. Implement a short delay,
+      // which proabaly will cause rescheduling, twice for write and read
+      boost::this_thread::sleep(boost::posix_time::microseconds(2*_microsecondsControllerSpiDelay));
     }
     else{
       writeContentToControlerSpiRegister(inputWord.getDATA(), controlerSpiAddress);
+      // it takes some time to perform this in firmware. Implement a short delay,
+      // which proabaly will cause rescheduling.
+      boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsControllerSpiDelay));
     }
 
     triggerActionsOnControlerSpiWrite(inputWord);
@@ -230,6 +240,8 @@ namespace mtca4u{
     unsigned int writtenSpiWord = _barContents[bar].at(writeIndex);
     unsigned int spiAddress = tmc260::spiAddressFromDataWord(writtenSpiWord);
     unsigned int payloadDataMask = tmc260::dataMaskFromSpiAddress(spiAddress);
+
+    boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsDriverSpiDelay));
 
     _driverSPIs[ID].addressSpace.at(spiAddress) = writtenSpiWord & payloadDataMask;
 
