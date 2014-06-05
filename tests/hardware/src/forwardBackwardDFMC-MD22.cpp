@@ -3,6 +3,7 @@
 #include "MotorDriverCardImpl.h"
 #include "MotorDriverException.h"
 #include "MotorDriverCardConfigXML.h"
+#include "MotorDriverCardFactory.h"
 #include <unistd.h>
 #include <signal.h>
 #include <ctime>
@@ -55,23 +56,14 @@ int main( int argc, char* argv[] )
   std::pair<std::string, std::string> deviceFileAndMapFileName =
     dmapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
 
-  boost::shared_ptr< devPCIE > ioDevice( new devPCIE );
-  ioDevice->openDev( deviceFileAndMapFileName.first );
-
-  boost::shared_ptr< mapFile > registerMapping =  mapFileParser().parse(deviceFileAndMapFileName.second);
-
-  boost::shared_ptr< devMap< devBase > > mappedDevice( new devMap<devBase> );
-  mappedDevice->openDev( ioDevice, registerMapping );
-
-  mtca4u::MotorDriverCardConfig motorDriverCardConfig = MotorDriverCardConfigXML::read( argv[2] );
-
-  mtca4u::MotorDriverCardImpl motorDriverCard( mappedDevice , motorDriverCardConfig );
+  boost::shared_ptr<mtca4u::MotorDriverCardImpl> motorDriverCard
+    = boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileAndMapFileName.first,  deviceFileAndMapFileName.second, argv[2] ));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the motor
 
   unsigned int nStepsMax = (strtoul( argv[3] , NULL, 0 ) & 0x7FFFFF);// limit to the maximal possible position
 
-  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard.getMotorControler(0);
+  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard->getMotorControler(0);
 
   // check that one or both end switches are inactive. Otherwise there probably is no motor connected.
   if  (motor0->getReferenceSwitchData().getNegativeSwitchActive () && 
@@ -90,11 +82,11 @@ int main( int argc, char* argv[] )
     motor0->setActualPosition(0x7FFFFF); // the maximal possible position
     motor0->setTargetPosition(0x100000); // the minimal possible position
 
-    while(  motorDriverCard.getReferenceSwitchData().getLeft1() != 0x1 ){
+    while(  motorDriverCard->getReferenceSwitchData().getLeft1() != 0x1 ){
       std::cout << "\r Position: " << motor0->getActualPosition()<< std::hex << " ,  switches are 0x" 
-		<< motorDriverCard.getReferenceSwitchData().getDATA()
+		<< motorDriverCard->getReferenceSwitchData().getDATA()
 		<< "        " << std::dec <<std::flush;
-      if (motorDriverCard.getReferenceSwitchData().getRight1() ){
+      if (motorDriverCard->getReferenceSwitchData().getRight1() ){
 	std::cout << std::endl << "WARNING: Right end switch went active when the left switch was expected!"
 		  << " Check you end switch cabeling!" 
 		  << std::endl;
@@ -108,7 +100,7 @@ int main( int argc, char* argv[] )
     
     std::cout << std::endl;
 
-    //    std::cout << std::hex << "switches are 0x" << motorDriverCard.getReferenceSwitchData().getDataWord() 
+    //    std::cout << std::hex << "switches are 0x" << motorDriverCard->getReferenceSwitchData().getDataWord() 
     //	      << std::dec << std::endl;
 
     //    std::cout << "Position is " << motor0->getActualPosition() << std::endl;
@@ -129,9 +121,9 @@ int main( int argc, char* argv[] )
 	while (motor0->getActualPosition() != motor0->getTargetPosition() ){
 	  std::cout << "\r Position: " << motor0->getActualPosition()  << "    "
 		    << " ,    switches are : 0x" << std::hex 
-		    << motorDriverCard.getReferenceSwitchData().getDataWord() << std::dec
+		    << motorDriverCard->getReferenceSwitchData().getDataWord() << std::dec
 		    << "    " << std::flush;
-	  if( motorDriverCard.getReferenceSwitchData().getRight1() ){
+	  if( motorDriverCard->getReferenceSwitchData().getRight1() ){
 	    nStepsMax = static_cast<unsigned int>( 0.8*motor0->getActualPosition() );
 	  std::cout << std::endl <<"Right end switch reached. Adapting nStepsMax to " << nStepsMax << std::endl;
 	    break;
@@ -152,9 +144,9 @@ int main( int argc, char* argv[] )
 	while (motor0->getActualPosition() != motor0->getTargetPosition() ){
 	  std::cout << "\r Position: " << motor0->getActualPosition() 
 		    << " ,    switches are : 0x" << std::hex 
-		    << motorDriverCard.getReferenceSwitchData().getDataWord() << std::dec
+		    << motorDriverCard->getReferenceSwitchData().getDataWord() << std::dec
 		    << "    " << std::flush;
-	  if( motorDriverCard.getReferenceSwitchData().getLeft1() ){
+	  if( motorDriverCard->getReferenceSwitchData().getLeft1() ){
 	    std::cout << "Left end switch reached. Adapting calibration." << std::endl;
 	    motor0->setActualPosition(0);
 	    break;

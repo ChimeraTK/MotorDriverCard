@@ -1,5 +1,6 @@
 #include "StepperMotor.h"
 #include "math.h"
+#include "MotorDriverCardFactory.h"
 
 #define DEBUG(x) if (_debugLevel>=x) *_debugStream 
 
@@ -13,31 +14,19 @@ namespace mtca4u {
         // save basics infos
         _motorDriverId = motorDriverId;
         _motorDriverCardDeviceName = motorDriverCardDeviceName;
-        _motorDriverCardConfigFileName = motorDriverCardConfigFileName;
 
         //open device and prepare to initialize MotorDriverCardImpl and MotorControler objects
         //this->hw_device->openDev(dmapFilesParser(".").getdMapFileElem(dev_name_lsp_->value()).getDeviceFileAndMapFileName());
 
 
         //std::pair<std::string, std::string> deviceFileAndMapFileName = dmapFileParser().parse(_motorDriverCardDeviceName)->begin()->getDeviceFileAndMapFileName();
-        std::string devicePath(dmapFilesParser(".").getdMapFileElem(_motorDriverCardDeviceName).dev_file);
-        std::string deviceMapFileName(dmapFilesParser(".").getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
+        std::string deviceFileName(dmapFilesParser(".").getdMapFileElem(_motorDriverCardDeviceName).dev_file);
+        std::string mapFileName(dmapFilesParser(".").getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
 
-        boost::shared_ptr< devPCIE > ioDevice(new devPCIE);
-        ioDevice->openDev(devicePath);
-
-        boost::shared_ptr< mapFile > registerMapping = mapFileParser().parse(deviceMapFileName);
-
-        boost::shared_ptr< devMap< devBase > > mappedDevice(new devMap<devBase>);
-        mappedDevice->openDev(ioDevice, registerMapping);
-
-        _motorDriverCardConfig = MotorDriverCardConfigXML::read(_motorDriverCardConfigFileName);
-
-        _motorDriverCardPtr.reset(new MotorDriverCardImpl(mappedDevice, _motorDriverCardConfig));
-
-
-        //_motorControler.reset(&_motorDriverCardPtr->getMotorControler(_motorDriverId));      
-        _motorControler = _motorDriverCardPtr->getMotorControler(_motorDriverId).get();
+	_motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
+			     deviceFileName, mapFileName, motorDriverCardConfigFileName);
+										   
+        _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
 
         //position limits
         _maxPositionLimit = std::numeric_limits<float>::max();

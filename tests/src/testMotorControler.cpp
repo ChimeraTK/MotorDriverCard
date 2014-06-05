@@ -78,7 +78,7 @@ void MotorControlerTest::testSet ## NAME (){\
 				SPI_ADDRESS,\
                                 TEST_PATTERN );}
 
-using namespace mtca4u;
+namespace mtca4u{
 
 class MotorControlerTest{
 public:
@@ -247,14 +247,6 @@ public:
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
-
-test_suite*
-init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
-{
-   framework::master_test_suite().p_name.value = "MotorControler test suite";
-
-   return new MotorControlerTestSuite(MAP_FILE_NAME);
-}
 
 
 MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler,
@@ -445,3 +437,14 @@ void MotorControlerTest::testGetReferenceSwitchBit(){
   BOOST_CHECK( expectedControlerStatus.getReferenceSwitchBit( _motorControler->getID() ) ==
 	       _motorControler->getReferenceSwitchBit() );
 }
+
+}//namespace mtca4u
+
+test_suite*
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
+{
+   framework::master_test_suite().p_name.value = "MotorControler test suite";
+
+   return new mtca4u::MotorControlerTestSuite(MAP_FILE_NAME);
+}
+

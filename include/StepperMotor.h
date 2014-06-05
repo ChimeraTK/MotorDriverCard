@@ -338,17 +338,10 @@ namespace mtca4u {
     protected: // fields
         std::string _motorDriverCardDeviceName;
         unsigned int _motorDriverId;
-        std::string _motorDriverCardConfigFileName;
                 
         //pointers to objects which controls the physical driver, we will use boost::shared_ptr
-        MotorDriverCardConfig _motorDriverCardConfig;
-
-        
-        boost::shared_ptr<MotorDriverCard> _motorDriverCardPtr;
-        //MotorDriverCard* _motorDriverCardPtr;
-        
-        //boost::shared_ptr<MotorControler> _motorControler;
-        MotorControler* _motorControler;
+	boost::shared_ptr<MotorDriverCard> _motorDriverCard;
+	boost::shared_ptr<MotorControler> _motorControler;
 
         // position
         int _currentPostionsInSteps;

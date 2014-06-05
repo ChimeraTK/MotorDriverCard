@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "MotorDriverCardFactory.h"
 #include "MotorDriverCardImpl.h"
 #include <unistd.h>
 #include <ctime>
@@ -39,10 +40,14 @@ int main( int argc, char* argv[] )
   boost::shared_ptr< devMap< devBase > > mappedDevice( new devMap<devBase> );
   mappedDevice->openDev( ioDevice, registerMapping );
 
-  mtca4u::MotorDriverCardImpl motorDriverCard( mappedDevice , mtca4u::MotorDriverCardConfig());
+  boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard
+    = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( 
+		deviceFileAndMapFileName.first,
+		deviceFileAndMapFileName.second,
+		""); // default motor config
 
-  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard.getMotorControler(0);
-  boost::shared_ptr<mtca4u::MotorControler> motor1 = motorDriverCard.getMotorControler(1);
+  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard->getMotorControler(0);
+  boost::shared_ptr<mtca4u::MotorControler> motor1 = motorDriverCard->getMotorControler(1);
   
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;
@@ -58,7 +63,7 @@ int main( int argc, char* argv[] )
   while(1){
     // controler registers (only they can be read back)
     for (unsigned int motorID = 0; motorID <= 1;  ++motorID){
-        boost::shared_ptr<mtca4u::MotorControler> motor = motorDriverCard.getMotorControler(motorID);
+        boost::shared_ptr<mtca4u::MotorControler> motor = motorDriverCard->getMotorControler(motorID);
 
 	// test that writing values in a row work
 	// mask then in case the initial values are at the 24 bit data word boundary (readback error)

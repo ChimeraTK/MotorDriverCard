@@ -29,7 +29,7 @@ using namespace mtca4u::tmc429;
   add( get ## NAME ## TestCase );\
   add( set ## NAME ## TestCase )
 
-using namespace mtca4u;
+namespace mtca4u{
 
 class MotorDriverCardTest{
 public:
@@ -87,14 +87,6 @@ class  MotorDriverCardTestSuite : public test_suite{
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetMotorControler, motorDriverCardTest ) );
   }
 };
-
-test_suite*
-init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
-{
-   framework::master_test_suite().p_name.value = "MotorDriverCard test suite";
-
-  return new MotorDriverCardTestSuite;
-}
 
 MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName)
   : _mapFileName(mapFileName){
@@ -378,3 +370,12 @@ unsigned int MotorDriverCardTest::asciiToInt( std::string text ){
   return returnValue;
 }
 
+}//namespace mtca4u
+
+test_suite*
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
+{
+   framework::master_test_suite().p_name.value = "MotorDriverCard test suite";
+
+   return new mtca4u::MotorDriverCardTestSuite;
+}
