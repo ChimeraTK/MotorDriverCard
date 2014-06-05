@@ -244,9 +244,23 @@ namespace mtca4u{
     boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsDriverSpiDelay));
 
     _driverSPIs[ID].addressSpace.at(spiAddress) = writtenSpiWord & payloadDataMask;
+    
+    driverSpiActions(ID, spiAddress, writtenSpiWord & payloadDataMask);
 
     // SPI transfer ready, set the sync register to ok
     _barContents[bar].at( syncIndex ) = SPI_SYNC_OK;    
+  }
+
+  void DFMC_MD22Dummy::driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData){
+    switch( spiAddress ){
+    case tmc260::ADDRESS_STALL_GUARD_CONFIG:
+	// according to the data sheet the cool step value (read response) is between 1/4 or 1/2 
+	// (depending on the SEMIN bit in the coolStep control register) and 1/1 of the current scaling value.
+	// Just setting it to 1/1 (which seems to be happenening during my tests) should be fine
+	StallGuardControlData stallGuardControlData(payloadData);
+	setConstantPCIeRegister( createMotorRegisterName( ID, COOL_STEP_VALUE_SUFFIX),
+				 stallGuardControlData.getCurrentScale() );
+    }
   }
 
   void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content,

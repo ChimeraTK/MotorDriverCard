@@ -126,6 +126,8 @@ namespace mtca4u{
     void setControlerSpiRegistersForOperation();
     void setControlerSpiRegistersForTesting();
 
+    void driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData);
+
     /// Helper struct to simulate the spi for one driver
     struct DriverSPI{
       /// each driver has it's own address space vector<uint>

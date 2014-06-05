@@ -371,12 +371,20 @@ void SpiReadWriteThreadStressTest::writeCheckStallGuard(
 		boost::shared_ptr<MotorControler>  & motorControler ){
 
   motorControler->setStallGuardControlData( 0x1F );
-  // FIXME: Check SE4:0
+  // according to the data sheet the cool step value is always between 1/4 and 1/1 of the current scaling value
+  // (which we just set as the last 5 bits of the StallGuardControlData word)
+  // The value is interpreted as dataContent + 1, so 1F is 32, 0x7 is 8
+  if( (motorControler-> getCoolStepValue() > 0x1F ) ||
+      (motorControler-> getCoolStepValue() < 0x7 ) ){
+    increaseErrorCount("writeCheckStallGuard");
+  }
   if (loopIndex%2){
     boost::this_thread::sleep(boost::posix_time::milliseconds(1));
   }
-  motorControler->setStallGuardControlData( 0x7 );
-  // FIXME: Check SE4:0
+  motorControler->setStallGuardControlData( 0x3 );
+  if(motorControler-> getCoolStepValue() > 0x3){
+    increaseErrorCount("writeCheckStallGuard");
+  }
   if (loopIndex%2){
     boost::this_thread::sleep(boost::posix_time::milliseconds(1));
   }
