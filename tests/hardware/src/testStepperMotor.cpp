@@ -55,13 +55,20 @@ int main( int argc, char* argv[] ) {
     status = motor.getMotorStatus();
     std::cout << "Current motor status is: " << status << "\n";
 
+    
+
+    
     if (status == mtca4u::StepperMotorStatusTypes::M_ERROR) {
         mtca4u::StepperMotorError error(motor.getMotorError());
         std::cout << "Motor in error state. Error is: " << error << "\n";
         if (error == mtca4u::StepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
             std::cout << "Both end switches on. Check you hardware." << error << "\n";
         }
+        
+        return 1;
+        
     } else {
+        
         std::cout << "Enabling  autostart.\n";
         motor.setAutostart(true);
         if (motor.getAutostart()) {
@@ -82,11 +89,35 @@ int main( int argc, char* argv[] ) {
         float currentMotorPosition = motor.getMotorPosition();
         std::cout << "Current motor position is: " << currentMotorPosition << "\n";
    
+        float newPosition = currentMotorPosition+1000000;
+        std::cout << "Move motor to new position: " << newPosition << std::endl;
+        motor.moveToPosition(newPosition);
+        
+        mtca4u::StepperMotorStatus status = motor.getMotorStatus();
+        if (status != mtca4u::LinearStepperMotorStatusTypes::M_OK) {
+            std::cout << "Moving to target position failed. Current motor status is: " << status << "\n";
+        }
+        
+        if (motor.getMotorStatus() == mtca4u::LinearStepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON) {
+            newPosition = motor.getMotorPosition() - 1000000;
+            std::cout << "Stepper Motor at positive end-switch. Move to negative direction to position: " << newPosition << std::endl;
+            motor.moveToPosition(newPosition);
+            status = motor.getMotorStatus();
+            if (motor.getMotorStatus() != mtca4u::LinearStepperMotorStatusTypes::M_OK) {
+                std::cout << "Moving to target position failed. Current motor status is: " << status << "\n";
+            }
+            
+        }
     }
+
+    //std::cout << "Disabling the motor\n";
+    //motor.setEnable(false);
+    //std::cout << "End of Test MotorStepper class !!! \n";
+    //return 0;
     
     mtca4u::StepperMotorCalibrationStatus calibrationStatus = motor.getCalibrationStatus();
     std::cout << "Current calibration status: " << calibrationStatus << std::endl;
-    
+    /*
     pthread_t statusReaderThread;
     int rc = 0;
     
@@ -99,23 +130,18 @@ int main( int argc, char* argv[] ) {
         std::cout << "Unable to create thread. Error code: " << rc << std::endl;
         exit(1);
     } 
-    
+    */
     std::cout << "Calibrate motor start\n";
     calibrationStatus = motor.calibrateMotor();
-    std::cout << "Calibration status after interrupted calibration: " << calibrationStatus << std::endl;
-   
-
-    for (int i = 0; i < 1; i++) {
-        motor.calibrateMotor();
-        sleep(1);
-        if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATED) {
-            std::cout << "Calibration " <<i << " done with success !!!!!!!!!!!!!!!!!!!!!!!!!!!!! "   << std::endl;
-        } else {
-            std::cout << "Calibration " <<i << " finished with status: " << motor.getCalibrationStatus() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-            if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER)
-                break;
-        }
+    sleep(1);
+    if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATED) {
+        std::cout << "Calibration done with success !!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
+    } else {
+        std::cout << "Calibration finished with status: " << motor.getCalibrationStatus() << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        //if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER)
+           // break;
     }
+
     
     std::cout << "Disabling the motor\n";
     motor.setEnable(false);
