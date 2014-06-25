@@ -9,7 +9,7 @@
 #define	STEPPER_MOTOR_ERROR_H
 
 #include <string>
-#include "StatusGeneral.h"
+#include "GeneralStatus.h"
 
 
 namespace mtca4u {
@@ -29,7 +29,7 @@ namespace mtca4u {
     // StepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    class StepperMotorError : public StatusGeneral {
+    class StepperMotorError : public GeneralStatus {
     public:
         //default constructor
         StepperMotorError();

@@ -7,22 +7,22 @@
 
 namespace mtca4u {
 
-    class StatusGeneral {
+    class GeneralStatus {
     protected:
         int id;
         std::string name;
         boost::mutex mutex;
     public:
-        StatusGeneral();
-        StatusGeneral(int itemId, std::string itemName);
+        GeneralStatus();
+        GeneralStatus(int itemId, std::string itemName);
         //copy constructor
-        StatusGeneral(const StatusGeneral &status);     
+        GeneralStatus(const GeneralStatus &status);     
         //assigment operator
-        StatusGeneral& operator= (const StatusGeneral& other);
+        GeneralStatus& operator= (const GeneralStatus& other);
     
-        bool operator==(StatusGeneral const& right) const;
+        bool operator==(GeneralStatus const& right) const;
 
-        bool operator!=(StatusGeneral const& right) const;
+        bool operator!=(GeneralStatus const& right) const;
         
 
         
@@ -30,7 +30,7 @@ namespace mtca4u {
         
         int getId() const;
 
-        friend std::ostream &operator<<(std::ostream &out, const StatusGeneral &status);
+        friend std::ostream &operator<<(std::ostream &out, const GeneralStatus &status);
     };
 
 } //namespace mtca4u

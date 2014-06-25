@@ -17,12 +17,12 @@ namespace mtca4u {
     //StepperMotorCalibrationStatus class definition !!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
     
-    StepperMotorCalibrationStatus::StepperMotorCalibrationStatus() : StatusGeneral(1, "UNKNOWN") {
+    StepperMotorCalibrationStatus::StepperMotorCalibrationStatus() : GeneralStatus(1, "UNKNOWN") {
     }
 
-    StepperMotorCalibrationStatus::StepperMotorCalibrationStatus(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
+    StepperMotorCalibrationStatus::StepperMotorCalibrationStatus(int itemId, std::string itemName) : GeneralStatus(itemId, itemName) {
     }
 
-    StepperMotorCalibrationStatus::StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus &error) : StatusGeneral(error) {
+    StepperMotorCalibrationStatus::StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus &error) : GeneralStatus(error) {
     }
 }

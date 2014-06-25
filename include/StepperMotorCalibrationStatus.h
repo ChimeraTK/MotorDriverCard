@@ -8,7 +8,7 @@
 #define	STEPPER_MOTOR_CALIBRATION_STATUS_H
 
 #include <string>
-#include "StatusGeneral.h"
+#include "GeneralStatus.h"
 
 namespace mtca4u {
     
@@ -27,7 +27,7 @@ namespace mtca4u {
     };   
     
 
-    class StepperMotorCalibrationStatus : public StatusGeneral {
+    class StepperMotorCalibrationStatus : public GeneralStatus {
     
     public:
         //default constructor

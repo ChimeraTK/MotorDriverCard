@@ -9,7 +9,7 @@
 void* statusReaderThreadBody(void* ptr) {
     mtca4u::StepperMotor* motorPointer = (mtca4u::StepperMotor*)ptr;
     while (1) {
-        //std::cout << "Thread:: motor status is: " << motorPointer->getMotorStatus() << std::endl;
+        //std::cout << "Thread:: motor status is: " << motorPointer->getStatus() << std::endl;
         usleep(100000);
     }
  
@@ -45,21 +45,21 @@ int main( int argc, char* argv[] ) {
     motor.setDebugStream(&std::cout);
     motor.setDebugLevel(DEBUG_INFO);
     
-    mtca4u::StepperMotorStatus status(motor.getMotorStatus());
+    mtca4u::StepperMotorStatus status(motor.getStatus());
     std::cout << "Current motor status is: " << status<< "\n";
     if (status == mtca4u::StepperMotorStatusTypes::M_DISABLED) {
         std::cout << "Enabling the motor.\n";
-        motor.setEnable(true);
+        motor.setEnabled(true);
     }
 
-    status = motor.getMotorStatus();
+    status = motor.getStatus();
     std::cout << "Current motor status is: " << status << "\n";
 
     
 
     
     if (status == mtca4u::StepperMotorStatusTypes::M_ERROR) {
-        mtca4u::StepperMotorError error(motor.getMotorError());
+        mtca4u::StepperMotorError error(motor.getError());
         std::cout << "Motor in error state. Error is: " << error << "\n";
         if (error == mtca4u::StepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
             std::cout << "Both end switches on. Check you hardware." << error << "\n";
@@ -86,24 +86,24 @@ int main( int argc, char* argv[] ) {
         }
 
 
-        float currentMotorPosition = motor.getMotorPosition();
+        float currentMotorPosition = motor.getCurrentPosition();
         std::cout << "Current motor position is: " << currentMotorPosition << "\n";
    
         float newPosition = currentMotorPosition+1000000;
         std::cout << "Move motor to new position: " << newPosition << std::endl;
         motor.moveToPosition(newPosition);
         
-        mtca4u::StepperMotorStatus status = motor.getMotorStatus();
+        mtca4u::StepperMotorStatus status = motor.getStatus();
         if (status != mtca4u::LinearStepperMotorStatusTypes::M_OK) {
             std::cout << "Moving to target position failed. Current motor status is: " << status << "\n";
         }
         
-        if (motor.getMotorStatus() == mtca4u::LinearStepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON) {
-            newPosition = motor.getMotorPosition() - 1000000;
+        if (motor.getStatus() == mtca4u::LinearStepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON) {
+            newPosition = motor.getCurrentPosition() - 1000000;
             std::cout << "Stepper Motor at positive end-switch. Move to negative direction to position: " << newPosition << std::endl;
             motor.moveToPosition(newPosition);
-            status = motor.getMotorStatus();
-            if (motor.getMotorStatus() != mtca4u::LinearStepperMotorStatusTypes::M_OK) {
+            status = motor.getStatus();
+            if (motor.getStatus() != mtca4u::LinearStepperMotorStatusTypes::M_OK) {
                 std::cout << "Moving to target position failed. Current motor status is: " << status << "\n";
             }
             
@@ -111,7 +111,7 @@ int main( int argc, char* argv[] ) {
     }
 
     //std::cout << "Disabling the motor\n";
-    //motor.setEnable(false);
+    //motor.setEnabled(false);
     //std::cout << "End of Test MotorStepper class !!! \n";
     //return 0;
     
@@ -144,7 +144,7 @@ int main( int argc, char* argv[] ) {
 
     
     std::cout << "Disabling the motor\n";
-    motor.setEnable(false);
+    motor.setEnabled(false);
     std::cout << "End of Test MotorStepper class !!! \n";
     return 0;
 }

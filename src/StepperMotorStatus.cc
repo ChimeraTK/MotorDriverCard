@@ -48,13 +48,13 @@ namespace mtca4u {
     //StepperMotorStatus class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
-    StepperMotorStatus::StepperMotorStatus() : StatusGeneral(1, "OK") {
+    StepperMotorStatus::StepperMotorStatus() : GeneralStatus(1, "OK") {
     }
 
-    StepperMotorStatus::StepperMotorStatus(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
+    StepperMotorStatus::StepperMotorStatus(int itemId, std::string itemName) : GeneralStatus(itemId, itemName) {
     }
 
-    StepperMotorStatus::StepperMotorStatus(const StepperMotorStatus &status) : StatusGeneral(status) {
+    StepperMotorStatus::StepperMotorStatus(const StepperMotorStatus &status) : GeneralStatus(status) {
     }
 }
 

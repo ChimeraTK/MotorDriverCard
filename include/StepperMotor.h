@@ -88,15 +88,17 @@ namespace mtca4u {
          *  
          * @details 
          * Motor behavior depends on the Autostart flag value. \n
-         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by calling 'void startMotor()' method.\n
-         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.\n
+         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by calling 'void start()' method.\n
+         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of start() method is necessary to start motor.\n
          * This is NO blocking method so user needs to check when motor status will change from StepperMotorStatusTypes::M_IN_MOVE to other.\n
          * Position is expressed in arbitrary units ex. mm or fs or deg or steps. Recalculation from arbitrary unit to steps is done internally according to the 'UnitsToSteps Conversion function '.\n
          * 'UnitsToSteps Conversion method ' is set by setConverionFunctions method. By default it is direct conversion: steps = 1 x units \n
          */
-         void setMotorPosition(float newPosition);
+         void setTargetPosition(float newPosition); // old name: setMotorPosition
         
-
+         float getTargetPosition() const;
+         
+         
         /**
          * @brief Return real motor position read directly from the hardware and expressed in the arbitrary units.
          * @param  
@@ -106,7 +108,7 @@ namespace mtca4u {
          * Return real motor position read directly from the hardware and expressed in the arbitrary units.\n
          * Calculation between steps and arbitrary units is done internally according to 'StepsToUnits Conversion method '.\n
          */     
-        float getMotorPosition();
+        float getCurrentPosition(); //old name: getMotorPosition
 
         /**
          * @brief Set position passed as parameter as current position of the motor
@@ -118,7 +120,7 @@ namespace mtca4u {
          * Position is expressed in arbitrary units and internally recalculated into steps.\n
          * Can be used in example to zeroed current position.
          */
-        virtual void setCurrentMotorPositionAs(float newPosition);
+        virtual void setCurrenPositionAs(float newPosition); // old name: setCurrentMotorPositionAs
 
         /**
          * @brief Set a pointer to StepperMotorUnitsConverter object.
@@ -132,7 +134,7 @@ namespace mtca4u {
          *  provides two methods which are converting steps to arbitrary units and vice-versa. The user need to create its own class which inherits from
          *  StepperMotorUnitsConverter and implements the: 'float stepsToUnits(int steps)' and 'int unitsToSteps(float units)' methods.
          */ 
-        void setStepperMotorUnitsConverter(StepperMotorUnitsConverter* stepperMotorUnitsConverter);
+        void setStepperMotorUnitsConverter(boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
         
         
         /**
@@ -144,7 +146,7 @@ namespace mtca4u {
          * Function starts the motor. When 'Autostart' is set to FALSE it allows to move motor.\n
          * 
          */      
-        void startMotor();
+        void start();
         
         /**
          * @brief Stop the motor 
@@ -168,7 +170,7 @@ namespace mtca4u {
          * After emergency stop motor calibration can be lost so execution of this method influence calibration status.\n
          * Function internally calls 'void stopMotor()' method so all blocking functions will be interrupted.\n
          */  
-        void stopMotorEmergency();
+        void emergencyStop(); // old name: stopMotorEmergency
 
         /**
          * @brief Perform calibration of the motor (blocking). 
@@ -209,15 +211,15 @@ namespace mtca4u {
          * Every time it is called it checks status of the motor.
          * Currently following status are forseen:\n
          * 1) StepperMotorStatusTypes::M_OK - motor is OK and ready for new commands.\n
-         * 2) StepperMotorStatusTypes::M_DISABLED - motor is disabled. No action can be done. to change this use 'void setEnable(bool enable)' method.\n
+         * 2) StepperMotorStatusTypes::M_DISABLED - motor is disabled. No action can be done. to change this use 'void setEnabled(bool enable)' method.\n
          * 3) StepperMotorStatusTypes::M_IN_MOVE -motor in in move.\n
          * 4) StepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON - hardware positive end switch has been triggered. Motor is on positive end.\n
          * 5) StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON - hardware negative end switch has been triggered. Motor is on negative end.\n
          * 6) StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON - target position in greater than value set by 'void setMaxPositionLimit(float maxPos)' method.\n
          * 7) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
-         * 8) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getMotorError()' method.\n
+         * 8) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getError()' method.\n
          */
-        StepperMotorStatus getMotorStatus() throw();
+        StepperMotorStatus getStatus() throw(); // old name: getMotorStatus
         
 
         /**
@@ -236,7 +238,7 @@ namespace mtca4u {
          * 5) StepperMotorErrorTypes::M_NO_REACION_ON_COMMAND - hardware is no reacting on command.\n
          * */
 
-        StepperMotorError getMotorError() throw ();
+        StepperMotorError getError() throw (); //old name: getMotorError
         
         
         // Speed setting
@@ -270,8 +272,8 @@ namespace mtca4u {
          * @return void
          * 
          * @details 
-         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void startMotor()' method.\n
-         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.\n
+         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void start()' method.\n
+         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of start() method is necessary to start motor.\n
          * 
          */
         void setAutostart(bool autostart);
@@ -282,8 +284,8 @@ namespace mtca4u {
          * @return bool - Current autostart flag value
          * 
          * @details 
-         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void startMotor()' method.\n
-         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of startMotor() method is necessary to start motor.\n
+         * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void start()' method.\n
+         * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of start() method is necessary to start motor.\n
          * 
          */
         bool getAutostart();
@@ -297,7 +299,7 @@ namespace mtca4u {
          * @details 
          * Motor can be disabled or enabled. To work with the motor user need to enable it. When motor disabled it stops moving immediately. 
          */
-        void setEnable(bool enable);
+        void setEnabled(bool enable);
 
         /**
          * @brief Get the Enable flag.
@@ -356,7 +358,7 @@ namespace mtca4u {
         float _minPositionLimit;
                
         //pointer to the units converter class
-        StepperMotorUnitsConverter* _stepperMotorUnitsConverter;
+        boost::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
         
         
         //status and error

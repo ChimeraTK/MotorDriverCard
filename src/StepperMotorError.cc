@@ -15,12 +15,12 @@ namespace mtca4u {
     //StepperMotorError class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
-    StepperMotorError::StepperMotorError() : StatusGeneral(1, "NO ERROR") {
+    StepperMotorError::StepperMotorError() : GeneralStatus(1, "NO ERROR") {
     }
 
-    StepperMotorError::StepperMotorError(int itemId, std::string itemName) : StatusGeneral(itemId, itemName) {
+    StepperMotorError::StepperMotorError(int itemId, std::string itemName) : GeneralStatus(itemId, itemName) {
     }
 
-    StepperMotorError::StepperMotorError(const StepperMotorError &error) : StatusGeneral(error) {
+    StepperMotorError::StepperMotorError(const StepperMotorError &error) : GeneralStatus(error) {
     }
 }

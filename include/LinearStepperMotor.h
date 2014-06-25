@@ -34,7 +34,7 @@ namespace mtca4u {
          */
         ~LinearStepperMotor();
 
-        virtual void setCurrentMotorPositionAs(float newPosition);
+        virtual void setCurrenPositionAs(float newPosition);
         virtual StepperMotorStatus moveToPosition(float newPosition) throw ();
         
         
