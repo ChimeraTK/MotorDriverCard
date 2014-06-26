@@ -1,26 +1,90 @@
 #include "StepperMotorError.h"
 
 namespace mtca4u {
-   
-    StepperMotorError StepperMotorErrorTypes::M_NO_ERROR(1, "NO ERROR");
-    StepperMotorError StepperMotorErrorTypes::M_BOTH_END_SWITCH_ON(2, "BOTH END SWITCHES ON");
-    StepperMotorError StepperMotorErrorTypes::M_COMMUNICATION_LOST(4, "COMMUNICATION LOST");
-    StepperMotorError StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX(8, "MOTOR CONFIGURATION ERROR - MIN POSITION GREATER OR EQUAL TO MAX");
-    StepperMotorError StepperMotorErrorTypes::M_NO_REACTION_ON_COMMAND(16, "NO REACTION ON COMMAND");
 
+    const StepperMotorError StepperMotorErrorTypes::M_NO_ERROR(1);
+    const StepperMotorError StepperMotorErrorTypes::M_COMMUNICATION_LOST(2);
+    const StepperMotorError StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX(4);
+    const StepperMotorError StepperMotorErrorTypes::M_NO_REACTION_ON_COMMAND(8);
+    const StepperMotorError StepperMotorErrorTypes::M_HARDWARE_NOT_CONNECTED(16);
+    
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //LinearStepperMotorErrorTypes class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
     
     
-    
+    const LinearStepperMotorError LinearStepperMotorErrorTypes::M_BOTH_END_SWITCH_ON(32);
+
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //StepperMotorError class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    
-    StepperMotorError::StepperMotorError() : GeneralStatus(1, "NO ERROR") {
+
+    StepperMotorError::StepperMotorError() : GeneralStatus(1) {
     }
 
-    StepperMotorError::StepperMotorError(int itemId, std::string itemName) : GeneralStatus(itemId, itemName) {
+    StepperMotorError::StepperMotorError(int id) : GeneralStatus(id) {
     }
 
     StepperMotorError::StepperMotorError(const StepperMotorError &error) : GeneralStatus(error) {
     }
+
+    std::string StepperMotorError::asString() const {
+
+        std::ostringstream stream;
+
+        if (_id == StepperMotorErrorTypes::M_NO_ERROR) {
+            stream << "Motor is NOT IN ERROR (";
+        } else if (_id == StepperMotorErrorTypes::M_COMMUNICATION_LOST) {
+            stream << "Motor lost communication with hardware (";
+        } else if (_id == StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX) {
+            stream << "Error in configuration. Minimal software limit is greater than maximum software limit (";
+        } else if (_id == StepperMotorErrorTypes::M_NO_REACTION_ON_COMMAND) {
+            stream << "Motor is not reacting of last command (";
+        } else if (_id == StepperMotorErrorTypes::M_HARDWARE_NOT_CONNECTED) {
+            stream << "Hardware seems to be not connected. Check your hardware (";
+        } else {
+            return GeneralStatus::asString();
+        }
+
+        stream << _id << ")";
+        return stream.str();
+
+    }
+
+    
+    
+    
+    
+
+
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //LinearStepperMotorError class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    LinearStepperMotorError::LinearStepperMotorError() : StepperMotorError(1) {
+    }
+
+    LinearStepperMotorError::LinearStepperMotorError(int id) : StepperMotorError(id) {
+    }
+
+    LinearStepperMotorError::LinearStepperMotorError(const LinearStepperMotorError &error) : StepperMotorError(error) {
+    }
+
+    std::string LinearStepperMotorError::asString() const {
+
+        std::ostringstream stream;
+
+        if (_id == LinearStepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
+            stream << "Both hardware end switches on. Check your hardware ";
+        } else {
+            return StepperMotorError::asString();
+        }
+
+        stream << _id << ")";
+        return stream.str();
+
+    }
+
+
 }
+

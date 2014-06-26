@@ -9,12 +9,12 @@ namespace mtca4u {
 
     class GeneralStatus {
     protected:
-        int id;
-        std::string name;
-        boost::mutex mutex;
+        int _id;
+        //std::string name;
+        //boost::mutex mutex;
     public:
         GeneralStatus();
-        GeneralStatus(int itemId, std::string itemName);
+        GeneralStatus(int id);
         //copy constructor
         GeneralStatus(const GeneralStatus &status);     
         //assigment operator
@@ -26,10 +26,13 @@ namespace mtca4u {
         
 
         
-        std::string asString() const;
+        virtual std::string asString() const;
         
         int getId() const;
 
+        
+        operator int () const;
+        
         friend std::ostream &operator<<(std::ostream &out, const GeneralStatus &status);
     };
 

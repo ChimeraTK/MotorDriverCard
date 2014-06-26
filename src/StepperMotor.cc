@@ -8,7 +8,7 @@
 
 namespace mtca4u {
 
-    boost::mutex StepperMotor::mutex;
+    //boost::mutex StepperMotor::mutex;
     
     StepperMotor::StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) {
   
@@ -215,7 +215,7 @@ namespace mtca4u {
         return _softwareLimitsEnabled;
     }
 
-    void StepperMotor::setCurrenPositionAs(float newPosition) {
+    void StepperMotor::setCurrentPositionAs(float newPosition) {
 
         _currentPostionsInUnits = newPosition;
         _targetPositionInUnits = newPosition;

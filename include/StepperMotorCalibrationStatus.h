@@ -17,26 +17,27 @@ namespace mtca4u {
     
      class StepperMotorCalibrationStatusType {
      public:
-        static StepperMotorCalibrationStatus M_CALIBRATED;
-        static StepperMotorCalibrationStatus M_NOT_CALIBRATED;
-        static StepperMotorCalibrationStatus M_CALIBRATION_UNKNOWN;
-        static StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
-        static StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
-        static StepperMotorCalibrationStatus M_CALIBRATION_STOPED_BY_USER;
-        static StepperMotorCalibrationStatus M_CALIBRATION_NOT_AVAILABLE;
+        static const StepperMotorCalibrationStatus M_CALIBRATED;
+        static const StepperMotorCalibrationStatus M_NOT_CALIBRATED;
+        static const StepperMotorCalibrationStatus M_CALIBRATION_UNKNOWN;
+        static const StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
+        static const StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
+        static const StepperMotorCalibrationStatus M_CALIBRATION_STOPED_BY_USER;
+        static const StepperMotorCalibrationStatus M_CALIBRATION_NOT_AVAILABLE;
     };   
     
 
     class StepperMotorCalibrationStatus : public GeneralStatus {
-    
+
     public:
         //default constructor
         StepperMotorCalibrationStatus();
         //param constructor
-        StepperMotorCalibrationStatus(int itemId, std::string itemName);
+        StepperMotorCalibrationStatus(int id);
         //copy constructor
         StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus &status);
-        
+
+        virtual std::string asString() const;
     };
 
 } 

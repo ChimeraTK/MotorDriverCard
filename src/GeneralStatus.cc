@@ -5,29 +5,28 @@
 
 namespace mtca4u {
 
-    GeneralStatus::GeneralStatus() : id(0), name("OK") {
+    GeneralStatus::GeneralStatus() : _id(0) {
     }
 
-    GeneralStatus::GeneralStatus(int itemId, std::string itemName) : id(itemId), name(itemName) {
+    GeneralStatus::GeneralStatus(int id) : _id(id) {
     }
 
     //copy constructor
 
-    GeneralStatus::GeneralStatus(const GeneralStatus &status) : id(status.id), name(status.name) {
+    GeneralStatus::GeneralStatus(const GeneralStatus &status) : _id(status._id) {
     }
 
     GeneralStatus& GeneralStatus::operator=(const GeneralStatus& other) {
-        boost::lock_guard<boost::mutex> lock_guard(mutex);
+        //boost::lock_guard<boost::mutex> lock_guard(mutex);
         if (this != &other) {
-            id = other.id;
-            name = other.name;
+            _id = other._id;
         }
    
         return *this;
     }
 
     bool GeneralStatus::operator==(GeneralStatus const& right) const {
-        if (id != right.id) {
+        if (_id != right._id) {
             return false;
         }
 
@@ -35,16 +34,21 @@ namespace mtca4u {
     }
 
     bool GeneralStatus::operator!=(GeneralStatus const& right) const {
-        if (id == right.id) {
+        if (_id == right._id) {
             return false;
         }
 
         return true;
     }
 
+    GeneralStatus::operator int() const {
+        return _id;
+    }
+    
+    
     std::string GeneralStatus::asString() const {
         std::ostringstream stream;
-        stream << name << "(" << id << ")";
+        stream << "No name available. Status id: " << "(" << _id << ")";
         return stream.str();
     }
 
@@ -54,7 +58,7 @@ namespace mtca4u {
     }
 
     int GeneralStatus::getId() const {
-        return id;
+        return _id;
     }
 
 

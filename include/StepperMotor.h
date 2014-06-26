@@ -120,7 +120,7 @@ namespace mtca4u {
          * Position is expressed in arbitrary units and internally recalculated into steps.\n
          * Can be used in example to zeroed current position.
          */
-        virtual void setCurrenPositionAs(float newPosition); // old name: setCurrentMotorPositionAs
+        virtual void setCurrentPositionAs(float newPosition); // old name: setCurrentMotorPositionAs
 
         /**
          * @brief Set a pointer to StepperMotorUnitsConverter object.
@@ -360,11 +360,7 @@ namespace mtca4u {
         //pointer to the units converter class
         boost::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
         
-        
-        //status and error
-        StepperMotorStatus _motorStatus;
-        StepperMotorError  _motorError;
-        StepperMotorCalibrationStatus _motorCalibrationStatus;
+       
         
         //Autostart
         bool _autostartFlag;
@@ -379,8 +375,13 @@ namespace mtca4u {
         
         bool _softwareLimitsEnabled;
         
+        //status and error
+        StepperMotorError  _motorError;
+        StepperMotorCalibrationStatus _motorCalibrationStatus;
+        StepperMotorStatus _motorStatus;
         
-        static boost::mutex mutex;
+        
+        //static boost::mutex mutex;
         
     };
 

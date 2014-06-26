@@ -18,31 +18,17 @@ namespace mtca4u {
     class StepperMotorStatus;
     class LinearStepperMotorStatus;
     
-    class LinearStepperMotorStatusTypes {
-    public:
-        static LinearStepperMotorStatus M_OK;
-        static LinearStepperMotorStatus M_IN_MOVE;
-        static LinearStepperMotorStatus M_NOT_IN_POSITION;        
-        static LinearStepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
-        static LinearStepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
-        static LinearStepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
-        static LinearStepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
-        static LinearStepperMotorStatus M_ERROR;
-        static LinearStepperMotorStatus M_DISABLED;
 
-    };
-    
 
     class StepperMotorStatusTypes {
     public:
-        static StepperMotorStatus M_OK;
-        static StepperMotorStatus M_IN_MOVE;
-        static StepperMotorStatus M_NOT_IN_POSITION;        
-        static StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
-        static StepperMotorStatus M_ERROR;
-        static StepperMotorStatus M_DISABLED;
-
+        static const StepperMotorStatus M_OK;
+        static const StepperMotorStatus M_DISABLED;
+        static const StepperMotorStatus M_IN_MOVE;
+        static const StepperMotorStatus M_NOT_IN_POSITION;        
+        static const StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
+        static const StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
+        static const StepperMotorStatus M_ERROR;
     };
     
 
@@ -52,10 +38,20 @@ namespace mtca4u {
         //default constructor
         StepperMotorStatus();
         //param constructor
-        StepperMotorStatus(int itemId, std::string itemName);
+        StepperMotorStatus(int id);
         //copy constructor
         StepperMotorStatus(const StepperMotorStatus &status);
-        
+        //overload of asString method
+        virtual std::string asString() const;
+    };
+    
+   
+    
+    
+    class LinearStepperMotorStatusTypes : public StepperMotorStatusTypes {
+    public:
+        static const LinearStepperMotorStatus M_POSITIVE_END_SWITCHED_ON;
+        static const LinearStepperMotorStatus M_NEGATIVE_END_SWITCHED_ON;
     };
 
     class LinearStepperMotorStatus : public StepperMotorStatus {
@@ -63,10 +59,12 @@ namespace mtca4u {
         //default constructor
         LinearStepperMotorStatus();
         //param constructor
-        LinearStepperMotorStatus(int itemId, std::string itemName);
+        LinearStepperMotorStatus(int id);
         //copy constructor
         LinearStepperMotorStatus(const LinearStepperMotorStatus &status);
-
+        
+        //overload of asString method
+        virtual std::string asString() const;
     };
     
 

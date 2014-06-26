@@ -14,14 +14,19 @@
 
 namespace mtca4u {
     class StepperMotorError;
+    class LinearStepperMotorError;
     
+    
+    
+
     class StepperMotorErrorTypes {
     public:
-        static StepperMotorError M_NO_ERROR;
-        static StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
-        static StepperMotorError M_BOTH_END_SWITCH_ON;
-        static StepperMotorError M_COMMUNICATION_LOST;
-        static StepperMotorError M_NO_REACTION_ON_COMMAND;
+        
+        static const StepperMotorError M_NO_ERROR;
+        static const StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;        
+        static const StepperMotorError M_COMMUNICATION_LOST;
+        static const StepperMotorError M_NO_REACTION_ON_COMMAND;
+        static const StepperMotorError M_HARDWARE_NOT_CONNECTED;
     };
 
 
@@ -34,12 +39,42 @@ namespace mtca4u {
         //default constructor
         StepperMotorError();
         //constructor with params
-        StepperMotorError(int itemId, std::string itemName);
+        StepperMotorError(int id);
         //copy constructor
         StepperMotorError(const StepperMotorError &error);
 
+        virtual std::string asString() const;
+        
     };
 
+    
+    
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // LinearStepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    class LinearStepperMotorError : public StepperMotorError {
+    public:
+        //default constructor
+        LinearStepperMotorError();
+        //constructor with params
+        LinearStepperMotorError(int id);
+        //copy constructor
+        LinearStepperMotorError(const LinearStepperMotorError &error);
+
+        virtual std::string asString() const;
+        
+    };
+    
+    
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // LinearStepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    class LinearStepperMotorErrorTypes {
+    public:
+        static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
+    };
 
 } //namespace mtca4u
 

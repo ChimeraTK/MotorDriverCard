@@ -4,15 +4,22 @@
 #include <fstream>
 #include <pthread.h>
 
+pthread_t statusReaderThreadTab[5];
+bool threadActive = false;
+bool finishThread = false;
 
 
 void* statusReaderThreadBody(void* ptr) {
-    mtca4u::StepperMotor* motorPointer = (mtca4u::StepperMotor*)ptr;
+    threadActive = true;
+    mtca4u::LinearStepperMotor* motorPointer = (mtca4u::LinearStepperMotor*)ptr;
     while (1) {
-        //std::cout << "Thread:: motor status is: " << motorPointer->getStatus() << std::endl;
-        usleep(100000);
+        std::cout << "Thread:: " << (unsigned int)(pthread_self()) << " motor status is: " << motorPointer->getStatus().asString() << std::endl;
+        usleep(10000);
+        if (finishThread)
+            break;
     }
- 
+    std::cout << "Thread:: Finish thread: " << (unsigned int)(pthread_self()) << std::endl;
+    threadActive = false;
     pthread_exit(NULL);
 }
 
@@ -20,9 +27,6 @@ void* statusReaderThreadBody(void* ptr) {
 int main( int argc, char* argv[] ) {
 
     std::cout << "Test MotorStepper class !!! : Number of params: " <<   argc <<  "\n";
-
-  
-
 
     std::string deviceName;
     std::string configFileNameName;
@@ -45,9 +49,9 @@ int main( int argc, char* argv[] ) {
     motor.setDebugStream(&std::cout);
     motor.setDebugLevel(DEBUG_INFO);
     
-    mtca4u::StepperMotorStatus status(motor.getStatus());
+    mtca4u::LinearStepperMotorStatus status(motor.getStatus());
     std::cout << "Current motor status is: " << status<< "\n";
-    if (status == mtca4u::StepperMotorStatusTypes::M_DISABLED) {
+    if (status == mtca4u::LinearStepperMotorStatusTypes::M_DISABLED) {
         std::cout << "Enabling the motor.\n";
         motor.setEnabled(true);
     }
@@ -58,11 +62,11 @@ int main( int argc, char* argv[] ) {
     
 
     
-    if (status == mtca4u::StepperMotorStatusTypes::M_ERROR) {
-        mtca4u::StepperMotorError error(motor.getError());
+    if (status == mtca4u::LinearStepperMotorStatusTypes::M_ERROR) {
+        mtca4u::LinearStepperMotorError error(motor.getError());
         std::cout << "Motor in error state. Error is: " << error << "\n";
-        if (error == mtca4u::StepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
-            std::cout << "Both end switches on. Check you hardware." << error << "\n";
+        if (error == mtca4u::LinearStepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
+            std::cout << "Both end switches on. Check you hardware. (" << error << "\n";
         }
         
         return 1;
@@ -88,7 +92,7 @@ int main( int argc, char* argv[] ) {
 
         float currentMotorPosition = motor.getCurrentPosition();
         std::cout << "Current motor position is: " << currentMotorPosition << "\n";
-   
+        /*
         float newPosition = currentMotorPosition+1000000;
         std::cout << "Move motor to new position: " << newPosition << std::endl;
         motor.moveToPosition(newPosition);
@@ -108,6 +112,7 @@ int main( int argc, char* argv[] ) {
             }
             
         }
+        */ 
     }
 
     //std::cout << "Disabling the motor\n";
@@ -117,23 +122,22 @@ int main( int argc, char* argv[] ) {
     
     mtca4u::StepperMotorCalibrationStatus calibrationStatus = motor.getCalibrationStatus();
     std::cout << "Current calibration status: " << calibrationStatus << std::endl;
-    /*
-    pthread_t statusReaderThread;
-    int rc = 0;
+    
+
+    int rc[5] = {0,0,0,0,0};
     
     std::cout << "Creating status reader thread.\n" << std::flush;
     
+    for (int i=0; i<1;i++) {
+        rc[i] = pthread_create(&statusReaderThreadTab[i], NULL, statusReaderThreadBody, (void*)(&motor));
 
-    rc = pthread_create(&statusReaderThread, NULL, statusReaderThreadBody, (void*)(&motor));
-    
-    if (rc) {
-        std::cout << "Unable to create thread. Error code: " << rc << std::endl;
-        exit(1);
-    } 
-    */
+        if (rc[i]) {
+            std::cout << "Unable to create thread. Error code: " << rc << std::endl;
+            exit(1);
+        } 
+    }
     std::cout << "Calibrate motor start\n";
     calibrationStatus = motor.calibrateMotor();
-    sleep(1);
     if (motor.getCalibrationStatus() == mtca4u::StepperMotorCalibrationStatusType::M_CALIBRATED) {
         std::cout << "Calibration done with success !!!!!!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl;
     } else {
@@ -145,6 +149,11 @@ int main( int argc, char* argv[] ) {
     
     std::cout << "Disabling the motor\n";
     motor.setEnabled(false);
+    
+    std::cout << "Stopping thread\n";
+    finishThread = true;
+    while(threadActive);
+    
     std::cout << "End of Test MotorStepper class !!! \n";
     return 0;
 }
