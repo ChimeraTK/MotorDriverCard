@@ -24,11 +24,10 @@
 #include "StepperMotorError.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
+#include "Logger.h"
 
 namespace mtca4u {
 
-
-   
     class StepperMotorUnitsConverter {
         public:
             virtual float stepsToUnits(int steps) = 0;
@@ -321,9 +320,8 @@ namespace mtca4u {
         
         
         //
-        void setDebugLevel(unsigned int newLevel);
-        unsigned int getDebugLevel();    
-        void setDebugStream(std::ostream* debugStream);
+        void setLogingLevel(Logger::LogingLevel newLevel);
+        Logger::LogingLevel getLogingLevel();    
         
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);
@@ -370,9 +368,6 @@ namespace mtca4u {
         
         bool _stopMotorCalibration;
                 
-        unsigned int _debugLevel;
-        std::ostream* _debugStream;
-        
         bool _softwareLimitsEnabled;
         
         //status and error
@@ -382,6 +377,7 @@ namespace mtca4u {
         
         
         //static boost::mutex mutex;
+        Logger _logger;
         
     };
 

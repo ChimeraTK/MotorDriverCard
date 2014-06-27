@@ -48,7 +48,7 @@ namespace mtca4u {
     
     std::string GeneralStatus::asString() const {
         std::ostringstream stream;
-        stream << "No name available. Status id: " << "(" << _id << ")";
+        stream << "No name available in GeneralStatus object. Status id: " << "(" << _id << ")";
         return stream.str();
     }
 

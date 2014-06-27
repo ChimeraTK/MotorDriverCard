@@ -2,9 +2,6 @@
 #include "math.h"
 #include "MotorDriverCardFactory.h"
 
-#define DEBUG(x) if (_debugLevel>=x) *_debugStream 
-
-
 
 namespace mtca4u {
 
@@ -46,12 +43,12 @@ namespace mtca4u {
         _stopMotorForBlocking = false;
         _stopMotorCalibration = false;
 
-        _debugLevel = DEBUG_OFF;
-        _debugStream = &std::cout;
 
         _softwareLimitsEnabled = true;
         _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN;
-
+ 
+ 
+        
     }
 
     StepperMotor::~StepperMotor() {
@@ -77,13 +74,13 @@ namespace mtca4u {
             do {
 
                 determineMotorStatusAndError();
-                DEBUG(DEBUG_MAX_DETAIL) << dummy++ << ") StepperMotor::moveToPosition : Motor in move. Current position: " << this->getCurrentPosition() << ". Target position: " << _targetPositionInSteps << ". Current status: " << _motorStatus << std::endl;
+                _logger(Logger::FULL_DETAIL) << dummy++ << ") StepperMotor::moveToPosition : Motor in move. Current position: " << this->getCurrentPosition() << ". Target position: " << _targetPositionInSteps << ". Current status: " << _motorStatus << std::endl;
 
                 int currentMotorPosition = _motorControler->getActualPosition();
 
                 //just in case if we had communication error in the status check --- SHLULD BE REMOVED WHEN SPI COM WILL BE RELIABLE !!!  -- FIX ME
                 if (_motorError == StepperMotorErrorTypes::M_COMMUNICATION_LOST) {
-                    DEBUG(DEBUG_WARNING) << "StepperMotor::moveToPosition : Communication error found. Retrying." << std::endl;
+                    _logger(Logger::WARNING) << "StepperMotor::moveToPosition : Communication error found. Retrying." << std::endl;
                     this->determineMotorStatusAndError();
                 }
 
@@ -94,9 +91,9 @@ namespace mtca4u {
                 if (_stopMotorForBlocking == true) {
                     continueWaiting = false;
                     _stopMotorForBlocking = false;
-                    DEBUG(DEBUG_WARNING) << "StepperMotor::moveToPosition : Motor stopped by user." << std::endl;
+                    _logger(Logger::WARNING) << "StepperMotor::moveToPosition : Motor stopped by user." << std::endl;
                     while (_motorStatus == StepperMotorStatusTypes::M_IN_MOVE || _motorStatus == StepperMotorStatusTypes::M_NOT_IN_POSITION) {
-                        DEBUG(DEBUG_DETAIL) << "StepperMotor::moveToPosition : Wait to change status from M_IN_MOVE/M_NOT_IN_POSITION to other." << std::endl;
+                        _logger(Logger::DETAIL)  << "StepperMotor::moveToPosition : Wait to change status from M_IN_MOVE/M_NOT_IN_POSITION to other." << std::endl;
                         this->determineMotorStatusAndError();
                     }
                 } else if (_motorStatus == mtca4u::StepperMotorStatusTypes::M_IN_MOVE || _motorStatus == StepperMotorStatusTypes::M_NOT_IN_POSITION) {
@@ -105,7 +102,7 @@ namespace mtca4u {
                         notInPositionCounter++;
                         usleep(1000);
                         if (currentMotorPosition == _motorControler->getActualPosition() && notInPositionCounter > 1000) {
-                            DEBUG(DEBUG_ERROR) << "StepperMotor::moveToPosition(float) : Motor seems not to move after 1 second waiting. Current position. " << getCurrentPosition() << std::endl;
+                            _logger(Logger::ERROR)  << "StepperMotor::moveToPosition(float) : Motor seems not to move after 1 second waiting. Current position. " << getCurrentPosition() << std::endl;
                             _motorStatus = StepperMotorStatusTypes::M_ERROR;
                             _motorError = StepperMotorErrorTypes::M_NO_REACTION_ON_COMMAND;
                             continueWaiting = false;
@@ -122,7 +119,7 @@ namespace mtca4u {
             return _motorStatus;
 
         } catch (mtca4u::MotorDriverException& ex) {
-            DEBUG(DEBUG_ERROR) << "StepperMotor::moveToPosition(float) : mtca4u::MotorDriverException detected." << std::endl;
+            _logger(Logger::ERROR)  << "StepperMotor::moveToPosition(float) : mtca4u::MotorDriverException detected." << std::endl;
             _motorStatus = StepperMotorStatusTypes::M_ERROR;
             _motorError = StepperMotorErrorTypes::M_COMMUNICATION_LOST;
             return _motorStatus;
@@ -402,7 +399,7 @@ namespace mtca4u {
                 return;
             }
         } catch (mtca4u::MotorDriverException& ex) {
-            DEBUG(DEBUG_ERROR) << "StepperMotor::determineMotorStatusAndError : mtca4u::MotorDriverException detected." << std::endl;
+            _logger(Logger::ERROR)  << "StepperMotor::determineMotorStatusAndError : mtca4u::MotorDriverException detected." << std::endl;
             _motorStatus = StepperMotorStatusTypes::M_ERROR;
             _motorError = StepperMotorErrorTypes::M_COMMUNICATION_LOST;
         }
@@ -411,15 +408,12 @@ namespace mtca4u {
 
     //
 
-    void StepperMotor::setDebugLevel(unsigned int newLevel) {
-        _debugLevel = newLevel;
+    void StepperMotor::setLogingLevel(Logger::LogingLevel newLevel) {
+        _logger.setLogingLevel(newLevel);
     }
 
-    unsigned int StepperMotor::getDebugLevel() {
-        return _debugLevel;
+    Logger::LogingLevel StepperMotor::getLogingLevel() {
+        return _logger.getLogingLevel();
     }
 
-    void StepperMotor::setDebugStream(std::ostream* debugStream) {
-        _debugStream = debugStream;
-    }
 } 
