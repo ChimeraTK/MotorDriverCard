@@ -13,6 +13,7 @@
  * Logger class which provides logging feature with 5 different logging levels.
  * Example of usage:
  *  
+\code
     Logger loger;
     loger.setLogingLevel(Logger::FULL_DETAIL);  // set logging level to FULL_DETAIL (all messages, except NO_LOGGING, will be logged )
     std::cout << loger << std::endl;
@@ -43,6 +44,7 @@
     loger(Logger::INFO) << " INFO message" << std::endl;                // WILL NOT BE LOGGED
     loger(Logger::DETAIL) << " DETAIL message" << std::endl;            // WILL NOT BE LOGGED
     loger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;  // WILL NOT BE LOGGED
+\endcode
  */
 class Logger {
 public:
@@ -65,12 +67,12 @@ public:
     /**
      * Available logging levels created as a constant static fields. They are used to mark logging level of messages.
      * The FULL_DETAIL level is highest and the NO_LOGGING is lowest.
-     * When logging level of Logger class object is set to FULL_DETAIL (highest), all messages are logged (except of ones marked as NO_LOGGING).
-     * When logging level of Logger class object is set to DETAIL, messages marked as ERROR, WARNING, INFO, DETAIL are logged.
-     * When logging level of Logger class object is set to INFO, messages marked as ERROR, WARNING, INFO are logged.
-     * When logging level of Logger class object is set to WARNING, messages marked as ERROR, WARNING are logged.
-     * When logging level of Logger class object is set to ERROR, messages marked as ERROR are logged.
-     * When logging level of Logger class object is set to NO_LOGGING, no messages are logged (even marked as NO_LOGGING)
+     * \li When logging level of Logger class object is set to FULL_DETAIL (highest), all messages are logged (except of ones marked as NO_LOGGING).
+     * \li When logging level of Logger class object is set to DETAIL, messages marked as ERROR, WARNING, INFO, DETAIL are logged.
+     * \li When logging level of Logger class object is set to INFO, messages marked as ERROR, WARNING, INFO are logged.
+     * \li When logging level of Logger class object is set to WARNING, messages marked as ERROR, WARNING are logged.
+     * \li When logging level of Logger class object is set to ERROR, messages marked as ERROR are logged.
+     * \li When logging level of Logger class object is set to NO_LOGGING, no messages are logged (even marked as NO_LOGGING)
      */
     const static Logger::LogingLevel NO_LOGGING;
     const static Logger::LogingLevel ERROR;
