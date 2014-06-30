@@ -320,8 +320,8 @@ namespace mtca4u {
         
         
         //
-        void setLogingLevel(Logger::LogingLevel newLevel);
-        Logger::LogingLevel getLogingLevel();    
+        void setLogLevel(Logger::LogLevel newLevel);
+        Logger::LogLevel getLogLevel();    
         
         int recalculateUnitsToSteps(float units);
         float recalculateStepsToUnits(int steps);

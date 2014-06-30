@@ -46,7 +46,7 @@ int main( int argc, char* argv[] ) {
     mtca4u::LinearStepperMotor motor(deviceName, motorDriverId, configFileNameName);
 
     std::cout << "Change debug stream to the std::cout \n"; 
-    motor.setLogingLevel(Logger::INFO);
+    motor.setLogLevel(mtca4u::Logger::INFO);
     
     mtca4u::LinearStepperMotorStatus status(motor.getStatus());
     std::cout << "Current motor status is: " << status<< "\n";

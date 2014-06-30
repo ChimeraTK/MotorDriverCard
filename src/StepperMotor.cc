@@ -408,12 +408,12 @@ namespace mtca4u {
 
     //
 
-    void StepperMotor::setLogingLevel(Logger::LogingLevel newLevel) {
-        _logger.setLogingLevel(newLevel);
+    void StepperMotor::setLogLevel(Logger::LogLevel newLevel) {
+        _logger.setLogLevel(newLevel);
     }
 
-    Logger::LogingLevel StepperMotor::getLogingLevel() {
-        return _logger.getLogingLevel();
+    Logger::LogLevel StepperMotor::getLogLevel() {
+        return _logger.getLogLevel();
     }
 
 } 
