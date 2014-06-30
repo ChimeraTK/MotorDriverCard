@@ -75,7 +75,7 @@ namespace mtca4u {
         std::ostringstream stream;
 
         if (_id == LinearStepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
-            stream << "Both hardware end switches on. Check your hardware ";
+            stream << "Both hardware end switches on. Check your hardware (";
         } else {
             return StepperMotorError::asString();
         }

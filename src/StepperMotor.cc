@@ -259,7 +259,7 @@ namespace mtca4u {
 
     void StepperMotor::setMotorSpeed(float newSpeed) {
         //FIX ME
-        int ns = static_cast<int> (fabs(newSpeed));
+        //int ns = static_cast<int> (fabs(newSpeed));
    
     }
 

@@ -8,7 +8,7 @@ namespace mtca4u {
     const StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_NOT_CALIBRATED(4);
     const StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED(8);
     const StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS(16);
-    const StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER(32);
+    const StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER(32);
     const StepperMotorCalibrationStatus StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE(64);
 
     
@@ -39,8 +39,8 @@ namespace mtca4u {
             stream << "Motor calibration FAILED (";
         } else if (_id == StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS) {
             stream << "Motor calibration is IN PROGRESS (";
-        } else if (_id == StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER) {
-            stream << "Motor calibration is IN PROGRESS (";
+        } else if (_id == StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER) {
+            stream << "Motor calibration STOPPED BY USER (";
         } else if (_id == StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE) {
             stream << "Motor calibration NOT AVAILABLE (";
         } else {

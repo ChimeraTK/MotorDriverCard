@@ -71,7 +71,7 @@ namespace mtca4u {
     // LinearStepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    class LinearStepperMotorErrorTypes {
+    class LinearStepperMotorErrorTypes : public StepperMotorErrorTypes {
     public:
         static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
     };

@@ -141,7 +141,7 @@ namespace mtca4u {
                     _stopMotorCalibration = false;
                     _logger(Logger::WARNING) << "LinearStepperMotor::calibrateMotor : Calibration stopped by user." << std::endl;
                     _softwareLimitsEnabled = originalSoftwareLimitEnabled;
-                    _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER;
+                    _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER;
                     return _motorCalibrationStatus;
                 }
 
@@ -183,7 +183,7 @@ namespace mtca4u {
                 if (_stopMotorCalibration == true) {
                     _stopMotorCalibration = false;
                     _logger(Logger::WARNING) << "LinearStepperMotor::calibrateMotor : StepperMotor::calibrateMotor : Motor stopped by user.\n" << std::flush;
-                    _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER;
+                    _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER;
                     _softwareLimitsEnabled = originalSoftwareLimitEnabled;
                     return _motorCalibrationStatus;
                 }
@@ -235,7 +235,7 @@ namespace mtca4u {
         if (_stopMotorCalibration == true) {
             _stopMotorCalibration = false;
             _logger(Logger::WARNING) << "LinearStepperMotor::calibrateMotor : StepperMotor::calibrateMotor : Motor stopped by user.\n" << std::flush;
-            _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPED_BY_USER;
+            _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER;
         }
 
         _softwareLimitsEnabled = originalSoftwareLimitEnabled;
