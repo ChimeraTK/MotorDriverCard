@@ -2,6 +2,7 @@
 
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverCardImpl.h"
+#include "MotorControlerExpert.h"
 #include <unistd.h>
 #include <ctime>
 
@@ -46,8 +47,12 @@ int main( int argc, char* argv[] )
 		deviceFileAndMapFileName.second,
 		""); // default motor config
 
-  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard->getMotorControler(0);
-  boost::shared_ptr<mtca4u::MotorControler> motor1 = motorDriverCard->getMotorControler(1);
+  boost::shared_ptr<mtca4u::MotorControlerExpert> motor0 
+    = boost::dynamic_pointer_cast<mtca4u::MotorControlerExpert>
+                                               (motorDriverCard->getMotorControler(0));
+  boost::shared_ptr<mtca4u::MotorControlerExpert> motor1 
+    = boost::dynamic_pointer_cast<mtca4u::MotorControlerExpert>
+                                               (motorDriverCard->getMotorControler(1));
   
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;

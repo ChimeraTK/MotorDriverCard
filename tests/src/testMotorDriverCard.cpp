@@ -3,6 +3,7 @@ using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
+#include "MotorControlerExpert.h"
 #include "MotorDriverException.h"
 #include <MtcaMappedDevice/devMap.h>
 #include <MtcaMappedDevice/libmap.h>
@@ -198,7 +199,8 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
 
    for (unsigned int motorID = 0; motorID <  motorDriverCardConfig.motorControlerConfigurations.size();
        ++motorID){
-     boost::shared_ptr<MotorControler> motorControler =  _motorDriverCard->getMotorControler(motorID);
+     boost::shared_ptr<MotorControlerExpert> motorControler =
+       boost::dynamic_pointer_cast<MotorControlerExpert>(_motorDriverCard->getMotorControler(motorID));
      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[motorID];
 
      // only the data content is identical. The motorID is - for the config, and correct for the readback word

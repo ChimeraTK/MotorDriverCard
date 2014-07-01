@@ -5,6 +5,7 @@ using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
+#include "MotorControlerImpl.h"
 #include <MtcaMappedDevice/devMap.h>
 #include <MtcaMappedDevice/libmap.h>
 
@@ -64,17 +65,17 @@ void MotorControlerTest::testSet ## NAME (){\
 
 #define DEFINE_TYPED_GET_SET_TEST( NAME )\
 void MotorControlerTest::testGet ## NAME (){\
-  testGetTypedData< NAME >( &MotorControler::get ## NAME );}\
+  testGetTypedData< NAME >( &MotorControlerImpl::get ## NAME );}\
 void MotorControlerTest::testSet ## NAME (){\
-  testSetTypedData< NAME >( &MotorControler::get ## NAME ,\
-			    &MotorControler::set ## NAME );}
+  testSetTypedData< NAME >( &MotorControlerImpl::get ## NAME ,\
+			    &MotorControlerImpl::set ## NAME );}
 
 #define DEFINE_GET_SET_DRIVER_SPI_DATA( NAME, SPI_ADDRESS, CONFIG_DEFAULT, TEST_PATTERN ) \
 void MotorControlerTest::testGet ## NAME (){\
-  testGetDriverSpiData< NAME >( &MotorControler::get ## NAME , SPI_ADDRESS, CONFIG_DEFAULT );} \
+  testGetDriverSpiData< NAME >( &MotorControlerImpl::get ## NAME , SPI_ADDRESS, CONFIG_DEFAULT );} \
 void MotorControlerTest::testSet ## NAME (){\
-  testSetDriverSpiData< NAME >( &MotorControler::set ## NAME ,\
-                                &MotorControler::get ## NAME ,\
+  testSetDriverSpiData< NAME >( &MotorControlerImpl::set ## NAME ,\
+                                &MotorControlerImpl::get ## NAME ,\
 				SPI_ADDRESS,\
                                 TEST_PATTERN );}
 
@@ -94,12 +95,12 @@ public:
   DECLARE_GET_SET_TEST( MicroStepCount );
 
   // for testing direct read from pcie registers (with default values from the dummy)
-  void testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
+  void testReadPCIeRegister( unsigned int(MotorControlerImpl::* readFunction)(void),
 			     std::string const & registerSuffix);
 
   // for reading registers which do not return an int but a MultiVariableWord
   template<class T>
-  void testReadTypedPCIeRegister( T (MotorControler::* readFunction)(void),
+  void testReadTypedPCIeRegister( T (MotorControlerImpl::* readFunction)(void),
 				  std::string const & registerSuffix);
 
   void testSetIsEnabled();
@@ -125,30 +126,30 @@ public:
   DECLARE_GET_SET_TEST( StallGuardControlData );
   DECLARE_GET_SET_TEST( DriverConfigData );
 
-  void testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardExpert> motorDriverCard );
+  void testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardImpl> motorDriverCard );
   void testSetReferenceSwitchEnabled();
   
   void testTargetPositionReached();
   void testGetReferenceSwitchBit();
 
 private:
-  boost::shared_ptr<MotorControler> _motorControler;
+  boost::shared_ptr<MotorControlerImpl> _motorControler;
   boost::shared_ptr<mapFile> _registerMapping;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
   template<class T>
-  void testGetTypedData( T (MotorControler::* getterFunction)() );
+  void testGetTypedData( T (MotorControlerImpl::* getterFunction)() );
 
   template<class T>
-  void testSetTypedData( T (MotorControler::* getterFunction)(),
-			       void (MotorControler::* setterFunction)(T const &) );
+  void testSetTypedData( T (MotorControlerImpl::* getterFunction)(),
+			       void (MotorControlerImpl::* setterFunction)(T const &) );
   template <class T>
-  void testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
+  void testGetDriverSpiData( T const & (MotorControlerImpl::* getterFunction)() const,
 			     unsigned int driverSpiAddress,
 			     unsigned int configDefault);
   template <class T>
-  void testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
-			     T const & (MotorControler::* getterFunction)() const,
+  void testSetDriverSpiData( void (MotorControlerImpl::* setterFunction)(T const &),
+			     T const & (MotorControlerImpl::* getterFunction)() const,
 			     unsigned int driverSpiAddress,
 			     unsigned int testPattern);
 
@@ -158,7 +159,7 @@ private:
 
 class  MotorControlerTestSuite : public test_suite{
 private:
-    boost::shared_ptr<MotorDriverCardExpert> _motorDriverCard;
+    boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
 public:
   MotorControlerTestSuite(std::string const & mapFileName) 
     : test_suite(" MotorControler test suite"){
@@ -194,11 +195,11 @@ public:
       add( BOOST_TEST_CASE(
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
 			   motorControlerTest,
-			   &MotorControler::getStallGuardValue,  STALL_GUARD_VALUE_SUFFIX ) ));
+			   &MotorControlerImpl::getStallGuardValue,  STALL_GUARD_VALUE_SUFFIX ) ));
       add( BOOST_TEST_CASE(
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
 			   motorControlerTest,
-			   &MotorControler::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
+			   &MotorControlerImpl::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
       add( BOOST_TEST_CASE(
 			   boost::bind( &MotorControlerTest::testReadTypedPCIeRegister<DriverStatusData>,
 			   motorControlerTest,
@@ -252,8 +253,8 @@ public:
 MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler,
 				       boost::shared_ptr<mapFile> & registerMapping,
 				       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
-  : _motorControler(motorControler), _registerMapping( registerMapping ),
-    _dummyDevice(dummyDevice){
+  : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)),
+    _registerMapping( registerMapping ), _dummyDevice(dummyDevice){
 }
 
 DEFINE_SIGNED_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 24 )
@@ -261,7 +262,7 @@ DEFINE_SIGNED_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 12  )
 DEFINE_GET_SET_TEST( ActualAcceleration, IDX_ACTUAL_ACCELERATION, 0xFFFFFF ) 
 DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA ) 
 
-void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControler::* readFunction)(void),
+void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::* readFunction)(void),
 						std::string const & registerSuffix){
   unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
@@ -279,7 +280,7 @@ unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & reg
 }
 
 template<class T>
-void MotorControlerTest::testReadTypedPCIeRegister( T (MotorControler::* readFunction)(void),
+void MotorControlerTest::testReadTypedPCIeRegister( T (MotorControlerImpl::* readFunction)(void),
 						    std::string const & registerSuffix){
   unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
@@ -289,7 +290,7 @@ void MotorControlerTest::testReadTypedPCIeRegister( T (MotorControler::* readFun
 }
 
 void MotorControlerTest::testGetDecoderReadoutMode(){
-  testReadPCIeRegister( &MotorControler::getDecoderReadoutMode,
+  testReadPCIeRegister( &MotorControlerImpl::getDecoderReadoutMode,
 			DECODER_READOUT_MODE_SUFFIX );
 }
 
@@ -316,7 +317,7 @@ DEFINE_GET_SET_TEST( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAA
 DEFINE_GET_SET_TEST( PositionLatched, IDX_POSITION_LATCHED, 0x555555 )
 
 template<class T>
-void MotorControlerTest::testGetTypedData( T (MotorControler::* getterFunction)() ){
+void MotorControlerTest::testGetTypedData( T (MotorControlerImpl::* getterFunction)() ){
   T typedWord;
   unsigned int idx = typedWord.getIDX_JDX();
   unsigned int expectedContent = tmc429::testWordFromSpiAddress( _motorControler->getID(),
@@ -328,8 +329,8 @@ void MotorControlerTest::testGetTypedData( T (MotorControler::* getterFunction)(
 }
 
 template<class T>
-void MotorControlerTest::testSetTypedData( T (MotorControler::* getterFunction)(),
-					   void (MotorControler::* setterFunction)(T const &) ){
+void MotorControlerTest::testSetTypedData( T (MotorControlerImpl::* getterFunction)(),
+					   void (MotorControlerImpl::* setterFunction)(T const &) ){
   T typedWord = ((*_motorControler).*getterFunction)();
   unsigned int dataContent = typedWord.getDATA();
   typedWord.setDATA(++dataContent);
@@ -344,7 +345,7 @@ DEFINE_TYPED_GET_SET_TEST( InterruptData )
 DEFINE_TYPED_GET_SET_TEST( DividersAndMicroStepResolutionData )
 
 template <class T>
-void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* getterFunction)() const,
+void MotorControlerTest::testGetDriverSpiData( T const & (MotorControlerImpl::* getterFunction)() const,
 					       unsigned int driverSpiAddress,
 					       unsigned int configDefault){
   T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler->getID());
@@ -355,8 +356,8 @@ void MotorControlerTest::testGetDriverSpiData( T const & (MotorControler::* gett
 }
 
 template <class T>
-void MotorControlerTest::testSetDriverSpiData( void (MotorControler::* setterFunction)(T const &),
-					       T const & (MotorControler::* getterFunction)() const,
+void MotorControlerTest::testSetDriverSpiData( void (MotorControlerImpl::* setterFunction)(T const &),
+					       T const & (MotorControlerImpl::* getterFunction)() const,
 					       unsigned int driverSpiAddress,
 					       unsigned int testPattern){
   T testWord( testPattern );
@@ -374,7 +375,7 @@ DEFINE_GET_SET_DRIVER_SPI_DATA( CoolStepControlData, ADDRESS_COOL_STEP_CONFIG, C
 DEFINE_GET_SET_DRIVER_SPI_DATA( StallGuardControlData, ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT, 0x1AAAA )
 DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT , 0x1AAAA )
 
-void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardExpert> motorDriverCard ){
+void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardImpl> motorDriverCard ){
   // This approach is intentinally clumsy and manual in order not to use the same algorithm as 
   // in the implementation, but still be felxible if the register content changes.
   unsigned int referenceWord;

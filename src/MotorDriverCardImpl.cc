@@ -7,6 +7,7 @@
 #include <MtcaMappedDevice/NotImplementedException.h>
 #include "MotorDriverException.h" 
 #include "MotorDriverCardImpl.h"
+#include "MotorControlerImpl.h"
 using namespace mtca4u::tmc429;
 
 #include "DFMC_MD22Constants.h"
@@ -42,8 +43,8 @@ namespace mtca4u{
     // initialise motors
     _motorControlers.resize( N_MOTORS_MAX );
     for (unsigned int i = 0; i < _motorControlers.size() ; ++i){
-      _motorControlers[i].reset( new MotorControler( i, mappedDevice, _controlerSPI,
-						     cardConfiguration.motorControlerConfigurations[i]) );
+      _motorControlers[i].reset( new MotorControlerImpl( i, mappedDevice, _controlerSPI,
+							 cardConfiguration.motorControlerConfigurations[i]) );
     }
   }
 
