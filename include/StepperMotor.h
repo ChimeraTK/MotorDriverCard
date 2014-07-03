@@ -39,13 +39,6 @@ namespace mtca4u {
     // StepperMotor class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
     
-    #define DEBUG_OFF 0
-    #define DEBUG_ERROR 1
-    #define DEBUG_WARNING 2
-    #define DEBUG_INFO 3
-    #define DEBUG_DETAIL 4
-    #define DEBUG_MAX_DETAIL 5
-
     class StepperMotor {
     
     public:
