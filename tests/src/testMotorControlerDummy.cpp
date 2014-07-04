@@ -33,10 +33,7 @@ class MotorControlerDummyTest
   void testGetSetDecoderReadoutMode();
   void testGetDecoderPosition();
 
-  //  MotorReferenceSwitchData getReferenceSwitchData();
-
-  //  void setPositiveReferenceSwitchEnabled(bool enableStatus);
-  //  void setNegativeReferenceSwitchEnabled(bool enableStatus);
+  void testReferenceSwitchData();
 
   DECLARE_GET_SET_THROW_TEST(MinimumVelocity)
   DECLARE_GET_SET_THROW_TEST(MaximumVelocity)
@@ -45,10 +42,7 @@ class MotorControlerDummyTest
   DECLARE_GET_SET_THROW_TEST(PositionTolerance)
   DECLARE_GET_SET_THROW_TEST(PositionLatched)
 
-  //  bool targetPositionReached();
-  //  unsigned int getReferenceSwitchBit();
-  //
-  //  void moveTowardsTarget(float fraction);
+  void testMoveTowardsTarget();
   
 
  private:
@@ -93,7 +87,11 @@ public:
 				motorControlerDummyTest) );
     add( BOOST_CLASS_TEST_CASE( &MotorControlerDummyTest::testGetDecoderPosition,
 				motorControlerDummyTest) );
-  }
+    add( BOOST_CLASS_TEST_CASE( &MotorControlerDummyTest::testReferenceSwitchData,
+				motorControlerDummyTest) );
+    add( BOOST_CLASS_TEST_CASE( &MotorControlerDummyTest::testMoveTowardsTarget,
+				motorControlerDummyTest) );
+ }
 };
 
 test_suite*
@@ -144,10 +142,13 @@ void MotorControlerDummyTest::testIsSetEnabled(){
 void MotorControlerDummyTest::testGetSetTargetPosition(){
   // upon initialisation all positions must be 0
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 0);
+  BOOST_CHECK( _motorControlerDummy.targetPositionReached() );
   _motorControlerDummy.setTargetPosition(1234);
+  BOOST_CHECK( _motorControlerDummy.targetPositionReached() == false );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 1234);
   // set it back to 0 to simplify further tests
   _motorControlerDummy.setTargetPosition(0);  
+  BOOST_CHECK( _motorControlerDummy.targetPositionReached() );
 }
 
 void MotorControlerDummyTest::testGetSetActualPosition(){
@@ -223,4 +224,201 @@ void MotorControlerDummyTest::testGetDecoderPosition(){
   _motorControlerDummy.moveTowardsTarget(1);
   
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 12000 );  
+}
+
+void MotorControlerDummyTest::testReferenceSwitchData(){
+  MotorReferenceSwitchData motorReferenceSwitchData =
+    _motorControlerDummy.getReferenceSwitchData();
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchActive() == false);
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() == false);
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 0 );
+
+  // move to the positive end switch and recheck
+  _motorControlerDummy.setTargetPosition( _motorControlerDummy.getActualPosition() 
+					  + 2000000);
+  _motorControlerDummy.moveTowardsTarget(1);
+  motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchActive() );
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() == false);
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 1 );
+
+  // deactivate the positive end switch. Although it is still active in hardware,
+  // this should not be reported
+  _motorControlerDummy.setPositiveReferenceSwitchEnabled(false);
+  motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled() == false);
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchActive() == false );
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() == false);
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 0 );
+
+  // reenable the switch and to the same for the negative switch
+  _motorControlerDummy.setPositiveReferenceSwitchEnabled(true);
+  _motorControlerDummy.setTargetPosition( _motorControlerDummy.getActualPosition() 
+					  - 2000000);
+  _motorControlerDummy.moveTowardsTarget(1);
+  motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchEnabled());
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchActive() == false);
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() );
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 1 );
+
+  // deactivate the positive end switch. Although it is still active in hardware,
+  // this should not be reported
+  _motorControlerDummy.setNegativeReferenceSwitchEnabled(false);
+  motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled() );
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchEnabled() == false );
+  BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchActive() == false );
+  BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() == false);
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 0 );
+
+  // reenable the switch and to the same for the negative switch
+  _motorControlerDummy.setNegativeReferenceSwitchEnabled(true);
+}
+
+void MotorControlerDummyTest::testMoveTowardsTarget(){
+  // ok, we are at the negative end switch. reset target and actual position to 0
+  // for a clean test environment.
+  _motorControlerDummy.setActualPosition(0);
+  _motorControlerDummy.setTargetPosition(0);
+ 
+  // move to a target position in the range in multiple steps
+  _motorControlerDummy.setTargetPosition(4000);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 0 );
+
+  _motorControlerDummy.moveTowardsTarget(0.25);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 1000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 1000 );
+
+  _motorControlerDummy.moveTowardsTarget(0.5);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 2500 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 2500 );
+
+  // moving backwards works differently, this does nothing
+  _motorControlerDummy.moveTowardsTarget(-0.25);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 2500 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 2500 );
+
+  // moving further than the target position also does not work
+  _motorControlerDummy.moveTowardsTarget(2);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4000 );
+
+  // ok, let's recalibrate and do the stuff backwards
+  _motorControlerDummy.setActualPosition(0);
+  _motorControlerDummy.setTargetPosition(-400); // we intentionally do not move all the 
+  // way back to the end switch
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4000 );
+  
+  // this moves backwards because the target position is smaller than the actual one
+  _motorControlerDummy.moveTowardsTarget(0.25);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -100 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 3900 );
+
+  _motorControlerDummy.moveTowardsTarget(0.5);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -250 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 3750 );
+
+  // moving backwards works differently, this does nothing
+  _motorControlerDummy.moveTowardsTarget(-0.25);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -250 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 3750 );
+
+  // moving further than the target position also does not work
+  _motorControlerDummy.moveTowardsTarget(2);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -400 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 3600 );
+  
+  // now check that the end switches are handled correctly
+  // move to the middle and recalibrate for easier readability
+  
+  _motorControlerDummy.setTargetPosition(6000);
+  _motorControlerDummy.moveTowardsTarget(1);
+  _motorControlerDummy.setActualPosition(0);
+  _motorControlerDummy.setTargetPosition(0);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 0 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 10000 );
+
+  // set a target position outside the end switches and see what happes
+  _motorControlerDummy.setTargetPosition(11000);
+  // only move half the way, should be fine
+  _motorControlerDummy.moveTowardsTarget(0.5);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 5500 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 11000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 15500 );
+  // move the rest, it should stop at the end switch and not be moving any more
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 10000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 11000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 20000 );
+  BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchData().getPositiveSwitchActive() );
+
+  // Move back, deactivate the end switch and try again
+  // (Don't try this at home. It will break your hardware!)
+  _motorControlerDummy.setTargetPosition(5500);
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 5500 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 5500 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 15500 );
+  
+  _motorControlerDummy.setPositiveReferenceSwitchEnabled(false);
+  _motorControlerDummy.setTargetPosition(11000);
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 11000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 11000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 21000 );
+  
+  // now the same for the negative end switch
+  // set a target position outside the end switches and see what happes
+  _motorControlerDummy.setTargetPosition(-11000);
+  // only move half the way, should be fine
+  _motorControlerDummy.moveTowardsTarget(0.5);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -11000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 10000 );
+  // move the rest, it should stop at the end switch and not be moving any more
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -10000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -11000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 0 );
+  BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchData().getNegativeSwitchActive() );
+
+  // Move back, deactivate the end switch and try again
+  // (Don't try this at home. It will break your hardware!)
+  _motorControlerDummy.setTargetPosition(-5500);
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -5500 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -5500 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4500 );
+  
+  _motorControlerDummy.setNegativeReferenceSwitchEnabled(false);
+  _motorControlerDummy.setTargetPosition(-11000);
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == -11000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -11000 );
+  // the decoder delivers a huge value because it is unsigned. We broke the hardware
+  // anyway ;-) Negative positons are not possible.
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() 
+	       == static_cast<unsigned int>(-1000) );
 }
