@@ -17,6 +17,9 @@ namespace mtca4u{
  *
  *  If deviceFileName and mapFileName are the same (both have to
  *  be the map file name) a DFMC_MD22 is used in place of a real device.
+ *
+ *  If deviceFileName is '/dummy/MotorDriverCard' a MotorDriverCardDummy is created. As ususal
+ *  there will be only one instance also for this special device name.
  */
 class MotorDriverCardFactory{
   /** The constructor is private because this class is a singleton.

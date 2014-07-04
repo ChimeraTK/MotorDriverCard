@@ -4,16 +4,16 @@
 #include "MotorControler.h"
 
 #define MCD_DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
-  void set ## NAME (unsigned int VARIABLE_IN_UNITS )=0;	\
-  unsigned int get ## NAME ()=0
+  void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
+  unsigned int get ## NAME ()
 
 #define MCD_DECLARE_SIGNED_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
-  void set ## NAME (int VARIABLE_IN_UNITS )=0;	\
-  int get ## NAME ()=0
+  void set ## NAME (int VARIABLE_IN_UNITS );	\
+  int get ## NAME ()
 
 #define MCD_DECLARE_SET_GET_TYPED_REGISTER( NAME, VARIABLE_NAME )\
-  void set ## NAME ( NAME const & VARIABLE_NAME )=0;\
-  NAME get ## NAME ()=0
+  void set ## NAME ( NAME const & VARIABLE_NAME );\
+  NAME get ## NAME ()
 
 namespace mtca4u{
 
@@ -40,6 +40,7 @@ namespace mtca4u{
 
     DriverStatusData getStatus();
     unsigned int getDecoderReadoutMode();
+    /// The negative end switch position is decoder 0.
     unsigned int getDecoderPosition();
     
     void setActualVelocity(int stepsPerFIXME);
@@ -72,7 +73,11 @@ namespace mtca4u{
      *  no end switch is reached.
      *  @param fraction The fraction of the full way to the target position.
      *   Valid range [0..1]. 1 moves all the way to the target, 0.5 only half the way etc.
-     */
+     *  @attention The 'actual' position is where the step counter currently is.
+    *  it is not the hardware positon (absolute position). If the motor is disabled
+    *  the motor is stepping and the target position will be reached if the 
+    *  motor is not at an end switch. The motor will not be moving, tough.
+    */
     void moveTowardsTarget(float fraction);
 
     // FIXME : Which errors can occur?
@@ -92,9 +97,17 @@ namespace mtca4u{
 
     unsigned int _id;
 
-    /** determines if the motor is considered as moving. This is the case
+    /** determines if the motor is considered as "stepping". This is the case
      *  if the target position is not reached, no end switch is reached and 
-     *  no error has been detected.
+     *  no error has been detected. In this case the current position is moving
+     *  towards the target position. The motor will only move if it is enabled.
+     *  In this case also the absolute position is changing and an end switch can
+     *  be activated which was inactive before.
+     */
+    bool isStepping();
+
+    /** The motor is moving if it is stepping (see isStepping() ) and it is
+     *  enabled.
      */
     bool isMoving();
 

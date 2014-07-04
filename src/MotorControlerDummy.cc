@@ -21,8 +21,10 @@ namespace mtca4u{
   }
 
   int MotorControlerDummy::getActualVelocity(){
+    // the velocity is only not zero if the motor is actually moving
+    // FIXME: or if the motor is stepping?
     if (isMoving()){
-      return ( _targetPosition < _currentPosition ? 25 : -25 );
+      return ( _targetPosition < _currentPosition ? -25 : 25 );
     }
     else{
       return 0;
@@ -30,7 +32,11 @@ namespace mtca4u{
   }
 
   bool MotorControlerDummy::isMoving(){
-    // if the motor is at the end position the motor is not moving
+    return (_enabled && isStepping() );
+  }
+
+  bool MotorControlerDummy::isStepping(){
+    // if the motor is at the target position the motor is not stepping
     if (_targetPosition == _currentPosition){return false;}
 
     // FIXME: check for errors. To be implemented....
@@ -68,8 +74,8 @@ namespace mtca4u{
   }
 
   unsigned int MotorControlerDummy::getDecoderPosition(){
-    //FIXME: this returns unsigned
-    return _absolutePosition;
+    // make the negative end switch "decoder 0"
+    return _absolutePosition - _negativeEndSwitchPosition;
   }
     
   void MotorControlerDummy::setActualVelocity(int /*stepsPerFIXME*/){
@@ -164,7 +170,7 @@ namespace mtca4u{
       throw NotImplementedException("MotorControlerDummy::setPositionLatched() is not implemented yet!");              
   }
   unsigned int MotorControlerDummy::getPositionLatched(){
-      throw NotImplementedException("MotorControlerDummy:gsetPositionLatched() is not implemented yet!");              
+      throw NotImplementedException("MotorControlerDummy:getPositionLatched() is not implemented yet!");              
   }
 
   bool MotorControlerDummy::targetPositionReached(){
@@ -185,8 +191,9 @@ namespace mtca4u{
   }
 
   void MotorControlerDummy::moveTowardsTarget(float fraction){
-    // check if the motor is considered to be moving, otherwise return immediately
-    if (!isMoving()){return;}
+    // check if the motor is should to be moving if it was enabled
+    // otherwise return immediately
+    if (!isStepping()){return;}
     
     // range check for the input parameter 'fraction', just force it to 0..1
     if (fraction <= 0){return;}
@@ -195,17 +202,36 @@ namespace mtca4u{
     // calculate the new abolute target position for this move operation
     int relativeSteps = (_targetPosition - _currentPosition)*fraction;
     int absoluteTargetInThisMove = _absolutePosition + relativeSteps;
+    int targetInThisMove = _currentPosition + relativeSteps;
+
+    if (!_enabled){
+      // the motor is stepping to the target position, but the actual positon 
+      // does not change. Thus no end switch will be hit.
+      _currentPosition = targetInThisMove;
+      return;
+    }
+    
+    // ok, so the motor is really moving.
 
     // check whether an end switch would be hit
-    if (absoluteTargetInThisMove > _positiveEndSwitchPosition){
+    if ( _positiveEndSwitchEnabled && 
+	 (absoluteTargetInThisMove > _positiveEndSwitchPosition) ){
       absoluteTargetInThisMove =  _positiveEndSwitchPosition;
+      // also the current positon stops if an end switch is reached
+      int stepsToEndSwitch = _positiveEndSwitchPosition - _absolutePosition;
+      targetInThisMove = _currentPosition + stepsToEndSwitch;
     }
-    if (absoluteTargetInThisMove < _negativeEndSwitchPosition){
+    if ( _negativeEndSwitchEnabled &&
+	 (absoluteTargetInThisMove < _negativeEndSwitchPosition) ){
       absoluteTargetInThisMove =  _negativeEndSwitchPosition;
+      // also the current positon stops if an end switch is reached
+      int stepsToEndSwitch = _negativeEndSwitchPosition - _absolutePosition;
+      targetInThisMove = _currentPosition + stepsToEndSwitch;
     }
     
     // finally 'move' the motor
     _absolutePosition = absoluteTargetInThisMove;
+    _currentPosition = targetInThisMove;
   }
 
 }// namespace mtca4u

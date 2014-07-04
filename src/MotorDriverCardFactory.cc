@@ -6,6 +6,7 @@
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
+#include "MotorDriverCardDummy.h"
 
 namespace mtca4u{
 
@@ -34,27 +35,33 @@ namespace mtca4u{
     // create a new instance of the motor driver card if the shared pointer is
     // empty, which means it has just been added to the map
     if (!motorDriverCard){
-      boost::shared_ptr< devBase > ioDevice;
+      if (deviceFileName=="/dummy/MotorDriverCard"){
+	// just create a MotorDriverCardDummy
+	motorDriverCard.reset(new MotorDriverCardDummy());
+      }else{
+	// create a real MotorDriverCardImpl, with either pcie or dummy io device
+	boost::shared_ptr< devBase > ioDevice;
 
-      if (deviceFileName == mapFileName){
-	ioDevice.reset(new DFMC_MD22Dummy());
-      }
-      else{
-	ioDevice.reset(new devPCIE);
-      }
+	if (deviceFileName == mapFileName){
+	  ioDevice.reset(new DFMC_MD22Dummy());
+	}else{
+	  ioDevice.reset(new devPCIE);
+	}
 
-      ioDevice->openDev(deviceFileName);
+	ioDevice->openDev(deviceFileName);
 
-      boost::shared_ptr< mapFile > registerMapping = mapFileParser().parse(mapFileName);
+	boost::shared_ptr< mapFile > registerMapping = mapFileParser().parse(mapFileName);
 
-      boost::shared_ptr< devMap< devBase > > mappedDevice(new devMap<devBase>);
-      mappedDevice->openDev(ioDevice, registerMapping);
+	boost::shared_ptr< devMap< devBase > > mappedDevice(new devMap<devBase>);
+	mappedDevice->openDev(ioDevice, registerMapping);
 
-      MotorDriverCardConfig cardConfig = 
-	MotorDriverCardConfigXML::read(motorConfigFileName);
+	MotorDriverCardConfig cardConfig = 
+	  MotorDriverCardConfigXML::read(motorConfigFileName);
 
-      motorDriverCard.reset(new MotorDriverCardImpl(mappedDevice, cardConfig));
-    }
+	motorDriverCard.reset(new MotorDriverCardImpl(mappedDevice, cardConfig));
+      }// else deviceFileName=="/dummy/MotorDriverCard" 
+
+    }// if (!motorDriverCard)
 
     return motorDriverCard;
   }
