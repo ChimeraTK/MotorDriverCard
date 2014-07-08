@@ -65,7 +65,9 @@ namespace mtca4u{
   }
 
   DriverStatusData MotorControlerDummy::getStatus(){
-    throw NotImplementedException("MotorControlerDummy::getStatus() is not implemented yet!");
+    DriverStatusData statusData;
+    statusData.setStandstillIndicator( !isMoving() );
+    return statusData;
   }
 
   unsigned int MotorControlerDummy::getDecoderReadoutMode(){

@@ -206,7 +206,17 @@ void MotorControlerDummyTest::testGetSetMicroStepCount(){
 
 
 void MotorControlerDummyTest::testGetStatus(){
-  BOOST_CHECK_THROW(_motorControlerDummy.getStatus(), NotImplementedException);
+  DriverStatusData referenceStatusData;
+  referenceStatusData.setStandstillIndicator(1); // reference when motor is not moving
+
+  // we are at the negative end switch. The motor should not be moving.
+  BOOST_CHECK(_motorControlerDummy.getStatus() == referenceStatusData);
+  
+  // the actual position is 5000. Move away from it
+  _motorControlerDummy.setTargetPosition(6000);
+  // motor is moving, now all bits should be 0
+  BOOST_CHECK(_motorControlerDummy.getStatus() == 0);
+  
 }
 
 void MotorControlerDummyTest::testGetSetDecoderReadoutMode(){
