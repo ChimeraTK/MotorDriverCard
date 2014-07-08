@@ -326,6 +326,12 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4000 );
 
+  // we are already there. Moving again should not do anything
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK( _motorControlerDummy.getActualPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 4000 );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4000 );
+
   // ok, let's recalibrate and do the stuff backwards
   _motorControlerDummy.setActualPosition(0);
   _motorControlerDummy.setTargetPosition(-400); // we intentionally do not move all the 
