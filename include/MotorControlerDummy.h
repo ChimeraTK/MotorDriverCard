@@ -78,7 +78,7 @@ namespace mtca4u{
     *  the motor is stepping and the target position will be reached if the 
     *  motor is not at an end switch. The motor will not be moving, tough.
     */
-    void moveTowardsTarget(float fraction);
+    void moveTowardsTarget(float fraction, bool blockMotor = false);
 
     // FIXME : Which errors can occur?
 
@@ -113,6 +113,8 @@ namespace mtca4u{
 
     bool isPositiveEndSwitchActive();
     bool isNegativeEndSwitchActive();
+    
+    bool _blockMotor;
   };  
 
 }// namespace mtca4u

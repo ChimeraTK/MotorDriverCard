@@ -35,7 +35,22 @@ namespace mtca4u {
     };
     
     
-     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    class MotorStatusAndError {
+    public:
+        StepperMotorStatus status;
+        StepperMotorError error;
+        
+        MotorStatusAndError(StepperMotorStatus statusParam, StepperMotorError errorParam) {
+            status = statusParam;
+            error = errorParam;
+        }
+        
+        MotorStatusAndError() {
+        }
+    };
+    
+    
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // StepperMotor class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
     
@@ -50,7 +65,7 @@ namespace mtca4u {
          * @param  motorDriverCardConfigFileName - name of configuration file
          * @return
          */
-        StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
+        StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
         
         /**
          * @brief  Destructor of the class object
@@ -71,7 +86,7 @@ namespace mtca4u {
          * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          * 
          */
-        virtual StepperMotorStatus moveToPosition(float newPosition) throw();     
+        virtual MotorStatusAndError moveToPosition(float newPosition);     
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -150,7 +165,7 @@ namespace mtca4u {
          * It also interrupts all blocking functions as 'StepperMotorStatus moveToPosition(float newPosition)' or 'StepperMotorCalibrationStatus calibrateMotor()'.\n
          * Delays in communication can trigger effect that motor will move a few steps in current movement direction and later will move couple steps back, but this issue can be filtered by motor hysteresis effect.\n
          */  
-        void stopMotor();
+        virtual void stop();
 
         /**
          * @brief Emergency stop the motor by disabling driver.
@@ -172,7 +187,7 @@ namespace mtca4u {
          * @details 
          * TO BE ADDED
          */ 
-        virtual StepperMotorCalibrationStatus calibrateMotor() throw();
+        virtual StepperMotorCalibrationStatus calibrateMotor();
         
 
         /**
@@ -211,7 +226,7 @@ namespace mtca4u {
          * 7) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
          * 8) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getError()' method.\n
          */
-        StepperMotorStatus getStatus() throw(); // old name: getMotorStatus
+        StepperMotorStatus getStatus(); // old name: getMotorStatus
         
 
         /**
@@ -230,7 +245,7 @@ namespace mtca4u {
          * 5) StepperMotorErrorTypes::M_NO_REACION_ON_COMMAND - hardware is no reacting on command.\n
          * */
 
-        StepperMotorError getError() throw (); //old name: getMotorError
+        StepperMotorError getError(); //old name: getMotorError
         
         
         // Speed setting
@@ -325,7 +340,7 @@ namespace mtca4u {
         
     protected: // methods
 
-        virtual void determineMotorStatusAndError() throw();
+        virtual MotorStatusAndError determineMotorStatusAndError();
         float truncateMotorPosition(float newPosition);
     
     protected: // fields
@@ -359,7 +374,7 @@ namespace mtca4u {
         //Stop motor flag for blocking functions
         bool _stopMotorForBlocking;
         
-        bool _stopMotorCalibration;
+
                 
         bool _softwareLimitsEnabled;
         
@@ -372,6 +387,33 @@ namespace mtca4u {
         //static boost::mutex mutex;
         Logger _logger;
         
+        //flag which indicate error in blocking function
+        bool _blockingFunctionActive;
+        
+        //not implemented yet - FIXME
+        int _currentSpeed;
+        
+        boost::mutex _mutex;
+        
+       
+        
+        /*
+        class InternalMutex {
+        private:
+            StepperMotor* _instance;
+        public:
+            InternalMutex(StepperMotor* instance) {
+                _instance = instance;                
+                _instance->mutex.lock();
+                //std::cout << "LOCKING MUTEX !!!" << std::endl;
+            }
+            ~InternalMutex() {
+                _instance->mutex.unlock();
+                //std::cout << "UNLOCKING MUTEX !!!" << std::endl;
+            }
+        };
+        friend class InternalMutex;
+        */
     };
 
 } //namespace mtca4u

@@ -437,4 +437,33 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   // anyway ;-) Negative positons are not possible.
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() 
 	       == static_cast<unsigned int>(-1000) );
+  
+  
+  //test blocking of movement
+  //reset positions and disable end switches
+  _motorControlerDummy.setActualPosition(0);
+  _motorControlerDummy.setTargetPosition(0);
+  _motorControlerDummy.setNegativeReferenceSwitchEnabled(false);
+  _motorControlerDummy.setPositiveReferenceSwitchEnabled(false);
+  _motorControlerDummy.setEnabled(true);
+  //try to move, but enable blocking
+  _motorControlerDummy.setTargetPosition(1000);
+  _motorControlerDummy.moveTowardsTarget(1, true);
+  BOOST_CHECK(_motorControlerDummy.getActualPosition() == 0);
+  BOOST_CHECK(_motorControlerDummy.getTargetPosition() == 1000);
+  BOOST_CHECK(_motorControlerDummy.getStatus().getStandstillIndicator() == 1);
+
+  //try to move, but enable blocking
+  _motorControlerDummy.setTargetPosition(-1000);
+  _motorControlerDummy.moveTowardsTarget(1, true);
+  BOOST_CHECK(_motorControlerDummy.getActualPosition() == 0);
+  BOOST_CHECK(_motorControlerDummy.getTargetPosition() == -1000);
+  BOOST_CHECK(_motorControlerDummy.getStatus().getStandstillIndicator() == 1);
+          
+  //try to move, but disable blocking
+  _motorControlerDummy.setTargetPosition(1000);
+  _motorControlerDummy.moveTowardsTarget(1);
+  BOOST_CHECK(_motorControlerDummy.getActualPosition() == 1000);
+  BOOST_CHECK(_motorControlerDummy.getTargetPosition() == 1000);
+  _motorControlerDummy.setEnabled(false);
 }

@@ -35,8 +35,9 @@ namespace mtca4u {
         ~LinearStepperMotor();
 
         virtual void setCurrentPositionAs(float newPosition);
-        virtual StepperMotorStatus moveToPosition(float newPosition) throw ();
+        virtual MotorStatusAndError moveToPosition(float newPosition);
         
+        virtual void stop();
         
         /**
          * @brief Perform calibration of the motor (blocking). 
@@ -46,7 +47,7 @@ namespace mtca4u {
          * @details 
          * TO BE ADDED
          */ 
-        virtual StepperMotorCalibrationStatus calibrateMotor() throw();
+        virtual StepperMotorCalibrationStatus calibrateMotor();
 
 
         
@@ -54,12 +55,12 @@ namespace mtca4u {
         float getPositiveEndSwitchPosition() const;
         float getNegativeEndSwitchPosition() const;
 
-         LinearStepperMotorStatus getStatus() throw();
-         LinearStepperMotorError getError() throw();
+         LinearStepperMotorStatus getStatus();
+         LinearStepperMotorError getError();
         
     protected: // methods
 
-        virtual void determineMotorStatusAndError() throw();
+        virtual MotorStatusAndError determineMotorStatusAndError();
 
     
     private: // fields
@@ -71,6 +72,9 @@ namespace mtca4u {
         
         int _calibPositiveEndSwitchInSteps;
         float _calibPositiveEndSwitchInUnits;
+        
+        
+        bool _stopMotorCalibration;
           
     };
 

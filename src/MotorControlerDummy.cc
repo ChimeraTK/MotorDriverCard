@@ -9,7 +9,7 @@ namespace mtca4u{
   MotorControlerDummy::MotorControlerDummy(unsigned int id)
     : _absolutePosition(0), _targetPosition(0), _currentPosition(0),
       _positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true),
-      _enabled(false), _id(id)
+      _enabled(false), _id(id), _blockMotor(false)
   {}
 
   unsigned int MotorControlerDummy::getID(){
@@ -39,6 +39,9 @@ namespace mtca4u{
     // if the motor is at the target position the motor is not stepping
     if (_targetPosition == _currentPosition){return false;}
 
+    if (_blockMotor) {
+        return false;
+    }    
     // FIXME: check for errors. To be implemented....
 
     // Just checking the end switches is not enough. One has to be 
@@ -192,7 +195,10 @@ namespace mtca4u{
     return _negativeEndSwitchEnabled && (_absolutePosition==_negativeEndSwitchPosition);
   }
 
-  void MotorControlerDummy::moveTowardsTarget(float fraction){
+  void MotorControlerDummy::moveTowardsTarget(float fraction, bool block){
+    _blockMotor = block;
+    if (_blockMotor) {return;}
+      
     // check if the motor is should to be moving if it was enabled
     // otherwise return immediately
     if (!isStepping()){return;}
