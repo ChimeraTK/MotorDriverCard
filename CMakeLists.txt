@@ -23,10 +23,9 @@ include_directories(${MtcaMappedDevice_INCLUDE_DIRS})
 FIND_PACKAGE(pugixml 1.3 REQUIRED)
 include_directories(${pugixml_INCLUDE_DIRS})
 
-#currently boost is only needed for the tests
+FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
-FIND_PACKAGE(Boost COMPONENTS unit_test_framework thread)
-#ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
+FIND_PACKAGE(Boost COMPONENTS unit_test_framework)
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
   ENABLE_TESTING()
@@ -90,7 +89,7 @@ endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES} ${pugixml_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES} ${pugixml_LIBRARIES}  ${Boost_THREAD_LIBRARIES})
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
