@@ -78,14 +78,16 @@ namespace mtca4u{
     *  the motor is stepping and the target position will be reached if the 
     *  motor is not at an end switch. The motor will not be moving, tough.
     */
-    void moveTowardsTarget(float fraction, bool blockMotor = false);
+    void moveTowardsTarget(float fraction, bool blockMotor = false, bool bothEndSwitchesAlwaysOn = false, bool zeroPositions = false);
 
     // FIXME : Which errors can occur?
 
+
+    static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
+    static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
     int _absolutePosition; ///< Like the real absolute position of a motor, in steps
-    static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps
-    static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps
+
 
     int _targetPosition; ///< Target position in steps
     int _currentPosition; ///< The current position can be set by the user (calibration)
@@ -115,6 +117,7 @@ namespace mtca4u{
     bool isNegativeEndSwitchActive();
     
     bool _blockMotor;
+    bool _bothEndSwitchesAlwaysOn;
   };  
 
 }// namespace mtca4u

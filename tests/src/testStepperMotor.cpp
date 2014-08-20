@@ -20,7 +20,7 @@ using namespace mtca4u;
 static const unsigned int THE_ID = 17;
 
 static const std::string stepperMotorDeviceName("DFMC-MD22-DUMMY");
-static const std::string stepperMotorDeviceConfigFile("VT21-MotorDiverCardConfig.xml");
+static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string dmapPath(".");
 
 
@@ -63,8 +63,6 @@ class StepperMotorTest
  private:
   boost::shared_ptr<StepperMotor> _stepperMotor;
   boost::shared_ptr<MotorControlerDummy> _motorControlerDummy;
-  boost::shared_ptr<StepperMotor> _stepperMotor1;
-  boost::shared_ptr<MotorControlerDummy> _motorControlerDummy1;
   
   boost::shared_ptr<TestUnitConveter> _testUnitConveter;
   
@@ -116,7 +114,7 @@ public:
 };
 
 test_suite*
-init_unit_test_suite( int /* argc */, char * /* argv */ [] )
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
   framework::master_test_suite().p_name.value = "StepperMotor test suite";
   return new StepperMotorTestSuite;
@@ -130,10 +128,9 @@ StepperMotorTest::StepperMotorTest() {
     _testUnitConveter.reset(new TestUnitConveter);
 
     _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, stepperMotorDeviceConfigFile)->getMotorControler(0));
-    _motorControlerDummy1 = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, stepperMotorDeviceConfigFile)->getMotorControler(1));
     
     _stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, 0, stepperMotorDeviceConfigFile, dmapPath));
-    _stepperMotor1.reset(new StepperMotor(stepperMotorDeviceName, 1, stepperMotorDeviceConfigFile, dmapPath));
+
     
     
     //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
@@ -518,22 +515,22 @@ void StepperMotorTest::thread(int testCase) {
 
     
     if (testCase == 1) {
-        std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
+        //std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
         //sleep between thread start and first command to give time for run moveToPosition
         usleep(10000);
         // simulate the movement
         _motorControlerDummy->moveTowardsTarget(0.4, false);
-        std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
+        //std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
         usleep(10000);
         //change condition to simulate error
         _stepperMotor->setSoftwareLimitsEnabled(true);
-        std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
+        //std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
         //sleep to give time to react on error
         usleep(50000);
-        std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
+        //std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
         //disable the configuration error
         _stepperMotor->setSoftwareLimitsEnabled(false);
-        std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
+        //std::cout << "Status " << _stepperMotor->getStatus() << " Error " << _stepperMotor->getError() << std::endl;
     }
     
     if (testCase == 2) {

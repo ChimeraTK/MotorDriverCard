@@ -14,6 +14,19 @@
 
 namespace mtca4u {
 
+    class LinearMotorStatusAndError {
+    public:
+        LinearStepperMotorStatus status;
+        LinearStepperMotorError error;
+
+        LinearMotorStatusAndError(StepperMotorStatus statusParam, StepperMotorError errorParam) {
+            status = static_cast<LinearStepperMotorStatus>(statusParam);
+            error = static_cast<LinearStepperMotorError>(errorParam);
+        }
+
+        LinearMotorStatusAndError() {
+        }
+    };
 
 
     class LinearStepperMotor : public StepperMotor {
@@ -27,7 +40,7 @@ namespace mtca4u {
          * @param  motorDriverCardConfigFileName - name of configuration file
          * @return
          */
-        LinearStepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
+        LinearStepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
         
         /**
          * @brief  Destructor of the class object
@@ -35,9 +48,10 @@ namespace mtca4u {
         ~LinearStepperMotor();
 
         virtual void setCurrentPositionAs(float newPosition);
-        virtual MotorStatusAndError moveToPosition(float newPosition);
+        LinearMotorStatusAndError moveToPosition(float newPosition);
         
         virtual void stop();
+        virtual void emergencyStop();
         
         /**
          * @brief Perform calibration of the motor (blocking). 
@@ -57,10 +71,12 @@ namespace mtca4u {
 
          LinearStepperMotorStatus getStatus();
          LinearStepperMotorError getError();
+
+       
         
     protected: // methods
 
-        virtual MotorStatusAndError determineMotorStatusAndError();
+        LinearMotorStatusAndError determineMotorStatusAndError();
 
     
     private: // fields

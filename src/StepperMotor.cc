@@ -69,7 +69,7 @@ namespace mtca4u {
             return statusAndError;
         }
         
-        if (statusAndError.status == StepperMotorStatusTypes::M_ERROR) {
+        if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
             return statusAndError;
         }
         
@@ -170,7 +170,6 @@ namespace mtca4u {
         _motorControler->setEnabled(false);
         // we can execute stop function to stop internal controller counter as close to the emergency stop position. Moreover, it will also interrupt blocking function.
         this->stop();
-        this->_motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
     }
 
     int StepperMotor::recalculateUnitsToSteps(float units) {

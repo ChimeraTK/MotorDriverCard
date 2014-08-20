@@ -86,7 +86,7 @@ namespace mtca4u {
          * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          * 
          */
-        virtual MotorStatusAndError moveToPosition(float newPosition);     
+        MotorStatusAndError moveToPosition(float newPosition);     
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -338,9 +338,12 @@ namespace mtca4u {
         void setSoftwareLimitsEnabled(bool newVal);
         bool getSoftwareLimitsEnabled() const;
         
+        
+        
+        
     protected: // methods
 
-        virtual MotorStatusAndError determineMotorStatusAndError();
+        MotorStatusAndError determineMotorStatusAndError();
         float truncateMotorPosition(float newPosition);
     
     protected: // fields
