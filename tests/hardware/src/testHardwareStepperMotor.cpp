@@ -15,7 +15,7 @@ void* statusReaderThreadBody(void* ptr) {
     threadActive = true;
     mtca4u::LinearStepperMotor* motorPointer = (mtca4u::LinearStepperMotor*)ptr;
     while (1) {
-        std::cout << "Thread:: " << (unsigned int)(pthread_self()) << " motor status is: " << motorPointer->getStatus().asString() << std::endl;
+        std::cout << "Thread:: " << (unsigned int)(pthread_self()) << " motor status is: " << motorPointer->getStatusAndError().status.asString() << std::endl;
         usleep(10000);
         if (finishThread)
             break;
@@ -50,21 +50,21 @@ int main( int argc, char* argv[] ) {
     std::cout << "Change debug stream to the std::cout \n"; 
     motor.setLogLevel(mtca4u::Logger::INFO);
     
-    mtca4u::LinearStepperMotorStatus status(motor.getStatus());
+    mtca4u::LinearStepperMotorStatus status(motor.getStatusAndError().status);
     std::cout << "Current motor status is: " << status<< "\n";
     if (status == mtca4u::LinearStepperMotorStatusTypes::M_DISABLED) {
         std::cout << "Enabling the motor.\n";
         motor.setEnabled(true);
     }
 
-    status = motor.getStatus();
+    status = motor.getStatusAndError().status;
     std::cout << "Current motor status is: " << status << "\n";
 
     
 
     
     if (status == mtca4u::LinearStepperMotorStatusTypes::M_ERROR) {
-        mtca4u::LinearStepperMotorError error(motor.getError());
+        mtca4u::LinearStepperMotorError error(motor.getStatusAndError().error);
         std::cout << "Motor in error state. Error is: " << error << "\n";
         if (error == mtca4u::LinearStepperMotorErrorTypes::M_BOTH_END_SWITCH_ON) {
             std::cout << "Both end switches on. Check you hardware. (" << error << "\n";

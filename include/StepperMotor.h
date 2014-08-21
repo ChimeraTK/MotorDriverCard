@@ -27,25 +27,32 @@
 #include "Logger.h"
 
 namespace mtca4u {
-
+    /**
+     * @class StepperMotorUnitsConverter
+     * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class. \n
+     *          Methods allows to recalculate steps to arbitrary units and arbitrary units into steps.
+     */  
     class StepperMotorUnitsConverter {
         public:
             virtual float stepsToUnits(int steps) = 0;
             virtual int unitsToSteps(float units) = 0;
     };
-    
-    
-    class MotorStatusAndError {
+
+    /**
+     * @class StepperMotorStatusAndError
+     * @details Container class for status and error of StepperMotor. These two object describes the state of motor and create a pair.
+     */  
+    class StepperMotorStatusAndError {
     public:
         StepperMotorStatus status;
         StepperMotorError error;
         
-        MotorStatusAndError(StepperMotorStatus statusParam, StepperMotorError errorParam) {
+        StepperMotorStatusAndError(StepperMotorStatus statusParam, StepperMotorError errorParam) {
             status = statusParam;
             error = errorParam;
         }
         
-        MotorStatusAndError() {
+        StepperMotorStatusAndError() {
         }
     };
     
@@ -63,6 +70,7 @@ namespace mtca4u {
          * @param  motorDriverCardDeviceName - name of the device in DMAP file
          * @param  motorDriverId - each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
          * @param  motorDriverCardConfigFileName - name of configuration file
+         * @param  pathToDmapFile - path to place where dmap file is located. Default is current directory (./)
          * @return
          */
         StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
@@ -75,18 +83,14 @@ namespace mtca4u {
         /**
          * @brief Sending motor to new position (blocking).
          * @param  newPosition - new position for the motor 
-         * @return StepperMotorStatus - status of the motor after movement routine finish  
+         * @return StepperMotorStatusAndError - status of the motor after movement routine finish  
          * 
          * @details 
-         * This method sends motor to new position. It is blocking blocking method. It will finish when motor movement will end. 
+         * This method sends motor to new position. It is blocking blocking method. It will finish when motor movement will end with success or error. 
          * Function can be interrupted by using 'void stopMotor()' method.\n
-         * Function automatically detects end switches conditions.\n 
-         * It allows to perform movement in case NEGATIVE END SWITCH is active but target position in grater than current one.\n
-         * It allows to perform movement in case POSITIVE END SWITCH is active but target position in smaller than current one.\n
-         * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
-         * 
+         * Function returns StepperMotorStatusAndError object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          */
-        MotorStatusAndError moveToPosition(float newPosition);     
+        StepperMotorStatusAndError moveToPosition(float newPosition);     
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -97,23 +101,29 @@ namespace mtca4u {
          * Motor behavior depends on the Autostart flag value. \n
          * When Autostart flag is set to TRUE motor will automatically start moving to desired position by calling 'void start()' method.\n
          * When Autostart flag is set to FALSE motor will NOT automatically start moving to desired position. Additionally, execution of start() method is necessary to start motor.\n
-         * This is NO blocking method so user needs to check when motor status will change from StepperMotorStatusTypes::M_IN_MOVE to other.\n
-         * Position is expressed in arbitrary units ex. mm or fs or deg or steps. Recalculation from arbitrary unit to steps is done internally according to the 'UnitsToSteps Conversion function '.\n
-         * 'UnitsToSteps Conversion method ' is set by setConverionFunctions method. By default it is direct conversion: steps = 1 x units \n
+         * This is NO blocking method so user needs to monitor motor status.\n
+         * Position is expressed in arbitrary units ex. mm or fs or deg or steps. Recalculation from arbitrary unit to steps is done by object of StepperMotorUnitsConverter.\n
+         * StepperMotorUnitsConverter can be set by setStepperMotorUnitsConverter method. When not set conversion coefficient is 1 (steps = 1 x units). \n
          */
          void setTargetPosition(float newPosition); // old name: setMotorPosition
-        
+
+         /**
+         * @brief Return target motor position in the arbitrary units.
+         * @param  
+         * @return float - target position of motor in arbitrary units.
+         * 
+         * @details 
+         */  
          float getTargetPosition() const;
-         
-         
-        /**
+        
+         /**
          * @brief Return real motor position read directly from the hardware and expressed in the arbitrary units.
          * @param  
          * @return float - current, real position of motor in arbitrary units.
          * 
          * @details 
          * Return real motor position read directly from the hardware and expressed in the arbitrary units.\n
-         * Calculation between steps and arbitrary units is done internally according to 'StepsToUnits Conversion method '.\n
+         * Calculation between steps and arbitrary units is done internally.\n
          */     
         float getCurrentPosition(); //old name: getMotorPosition
 
@@ -131,8 +141,7 @@ namespace mtca4u {
 
         /**
          * @brief Set a pointer to StepperMotorUnitsConverter object.
-         * @param UnitToSteps - pointer to the function which allow to convert number of units to number of steps. Function take 'float' type as parameter and return 'int' type.
-         * @param StepsToUnits - pointer to the function which allow to convert number of steps to number of units. Function take 'int' type as parameter and return 'float' type
+         * @param stepperMotorUnitsConverter - shared pointer to the converter object.
          * 
          * @return void
          * 
@@ -142,8 +151,7 @@ namespace mtca4u {
          *  StepperMotorUnitsConverter and implements the: 'float stepsToUnits(int steps)' and 'int unitsToSteps(float units)' methods.
          */ 
         void setStepperMotorUnitsConverter(boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
-        
-        
+            
         /**
          * @brief Start the motor 
          * @param
@@ -162,7 +170,7 @@ namespace mtca4u {
          * 
          * @details 
          * Function stop the motor in a way that real position from the motor is set as a target position.\n
-         * It also interrupts all blocking functions as 'StepperMotorStatus moveToPosition(float newPosition)' or 'StepperMotorCalibrationStatus calibrateMotor()'.\n
+         * It also interrupts all blocking functions as 'StepperMotorStatusAndError moveToPosition(float newPosition)'. \n
          * Delays in communication can trigger effect that motor will move a few steps in current movement direction and later will move couple steps back, but this issue can be filtered by motor hysteresis effect.\n
          */  
         virtual void stop();
@@ -174,7 +182,6 @@ namespace mtca4u {
          * 
          * @details 
          * Function stops the motor by disabling driver. It means that it is done in the fastest possible way.\n
-         * After emergency stop motor calibration can be lost so execution of this method influence calibration status.\n
          * Function internally calls 'void stopMotor()' method so all blocking functions will be interrupted.\n
          */  
         void emergencyStop(); // old name: stopMotorEmergency
@@ -189,7 +196,6 @@ namespace mtca4u {
          */ 
         virtual StepperMotorCalibrationStatus calibrateMotor();
         
-
         /**
          * @brief Return current calibration status.
          * @param
@@ -209,46 +215,34 @@ namespace mtca4u {
         StepperMotorCalibrationStatus getCalibrationStatus();
 
         /**
-         * @brief Return current motor status.
+         * @brief Return object which contains current status and error.
          * @param
-         * @return StepperMotorStatus - current motor status object which contains of status code and string which describes it in human readable way
+         * @return StepperMotorStatusAndError - object which contains of status and error code
          * 
          * @details 
-         * Return current motor status as StepperMotorStatus object.\n
-         * Every time it is called it checks status of the motor.
+         * Return current motor status and error as StepperMotorStatusAndError object.\n
+         * It give possibility to check what was an error type when status is set to StepperMotorStatusTypes::M_ERROR.
+         * Status and error create pair which describes current state of the object.
+         * Every time it is called it checks status of the motor. 
+         * 
          * Currently following status are forseen:\n
          * 1) StepperMotorStatusTypes::M_OK - motor is OK and ready for new commands.\n
          * 2) StepperMotorStatusTypes::M_DISABLED - motor is disabled. No action can be done. to change this use 'void setEnabled(bool enable)' method.\n
          * 3) StepperMotorStatusTypes::M_IN_MOVE -motor in in move.\n
-         * 4) StepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON - hardware positive end switch has been triggered. Motor is on positive end.\n
-         * 5) StepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON - hardware negative end switch has been triggered. Motor is on negative end.\n
-         * 6) StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON - target position in greater than value set by 'void setMaxPositionLimit(float maxPos)' method.\n
-         * 7) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
-         * 8) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getError()' method.\n
-         */
-        StepperMotorStatus getStatus(); // old name: getMotorStatus
-        
-
-        /**
-         * @brief Return current motor status.
-         * @param
-         * @return StepperMotorError - current motor error object which contains of error code and string which describes it in human readable way
+         * 4) StepperMotorStatusTypes::M_NOT_IN_POSITION - target position in different than current one and motor is not moving \n
+         * 5) StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON - target position in greater than value set by 'void setMaxPositionLimit(float maxPos)' method.\n
+         * 6) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
+         * 7) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getError()' method.\n
          * 
-         * @details 
-         * Return current motor status as StepperMotorStatus object.\n
-         * Every time it is called it checks status of the motor.
-         * Currently following status are forseen:\n
+         * Currently following errors are forseen:\n
          * 1) StepperMotorErrorTypes::M_NO_ERROR - motor is OK and ready for new commands.\n
          * 2) StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX - error in configuration of software position limits\n
-         * 3) StepperMotorErrorTypes::M_BOTCH_END_SWITCH_ON -both end switch active. Hardware is missing or in error state.\n
-         * 4) StepperMotorErrorTypes::M_COMMUNICATION_LOST - errors and problems with communication with firmware\n
-         * 5) StepperMotorErrorTypes::M_NO_REACION_ON_COMMAND - hardware is no reacting on command.\n
+         * 3) StepperMotorErrorTypes::M_COMMUNICATION_LOST - errors and problems with communication with firmware\n
+         * 4) StepperMotorErrorTypes::M_NO_REACION_ON_COMMAND - hardware is no reacting on command.\n
+         * 5) StepperMotorErrorTypes::M_HARDWARE_NOT_CONNECTED - hardware is not connected.\n
          * */
+        StepperMotorStatusAndError getStatusAndError();
 
-        StepperMotorError getError(); //old name: getMotorError
-        
-        
-        // Speed setting
         /**
          * @brief Set the new speed of the motor - NOT IMPLEMETNED YET 
          * @param
@@ -259,7 +253,6 @@ namespace mtca4u {
          */
         void setMotorSpeed(float newSpeed);
         
-        
         /**
          * @brief Get current speed of motor - NOT IMPLEMETNED YET 
          * @param
@@ -269,9 +262,6 @@ namespace mtca4u {
          * TO BE ADDED
          */
         float getMotorSpeed();
-
-        //autostart
-
 
         /**
          * @brief Sets of Autostart flag
@@ -297,9 +287,8 @@ namespace mtca4u {
          */
         bool getAutostart();
         
-        
         /**
-         * @brief Set the Enable flag.
+         * @brief Enables the motor.
          * @param bool enable - New value for the Enabled flag
          * @return
          * 
@@ -309,7 +298,7 @@ namespace mtca4u {
         void setEnabled(bool enable);
 
         /**
-         * @brief Get the Enable flag.
+         * @brief Get the enable status.
          * @param
          * @return bool - Current Enabled flag value
          * 
@@ -318,32 +307,115 @@ namespace mtca4u {
          */
         bool getEnabled() const;
         
-        
-        
-        //Software limits settings
+        /**
+         * @brief Set soft limit on the maximum position of the motor expressed in arbitrary units
+         * @param float maxPos - Greatest position which motor will be able to reach
+         * @return void
+         * 
+         * @details 
+         * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
+         */
         void setMaxPositionLimit(float maxPos);
+        
+        /**
+         * @brief Set soft limit on the minimum position of the motor expressed in arbitrary units
+         * @param float maxPos - Smallest position which motor will be able to reach
+         * @return void
+         * 
+         * @details 
+         * 
+         */
         void setMinPositionLimit(float minPos);
+                      
+        /**
+         * @brief Set soft limit enabled or disabled. 
+         * @param bool enabled - When true soft limits will be checked and validated, in false they will not
+         * @return
+         * 
+         * @details 
+         * 
+         */  
+        void setSoftwareLimitsEnabled(bool enabled);
+
+        /**
+         * @brief Get current soft limit enabled flag. 
+         * @param 
+         * @return bool - When true soft limits will be checked and validated, in false they will not
+         * 
+         * @details 
+         */ 
+        bool getSoftwareLimitsEnabled() const;
+               
+        /**
+         * @brief Returns soft limit on the maximum position of the motor expressed in arbitrary units
+         * @param 
+         * @return float - Maximum position which motor is able to reach
+         * 
+         * @details 
+         * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
+         */ 
         float getMaxPositionLimit();
+                
+        /**
+         * @brief Returns soft limit on the minimum position of the motor expressed in arbitrary units
+         * @param 
+         * @return float - Minimum position which motor is able to reach
+         * 
+         * @details 
+         * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
+         */
         float getMinPositionLimit(); 
         
         
-        //
-        void setLogLevel(Logger::LogLevel newLevel);
-        Logger::LogLevel getLogLevel();    
-        
+        /**
+         * @brief Recalculate arbitrary units into steps
+         * @param float units -Arbitrary units in which position is expressed
+         * @return int - steps value which corresponds to given as parameter value of arbitrary units.
+         * 
+         * @details 
+         * 
+         */
         int recalculateUnitsToSteps(float units);
+
+        /**
+         * @brief Recalculate arbitrary units into steps
+         * @param float units -Arbitrary units in which position is expressed
+         * @return int - steps value which corresponds to given as parameter value of arbitrary units.
+         * 
+         * @details 
+         * 
+         */
         float recalculateStepsToUnits(int steps);
         
-        //
-        void setSoftwareLimitsEnabled(bool newVal);
-        bool getSoftwareLimitsEnabled() const;
-        
-        
-        
+        /**
+         * @brief Set log level of the motor
+         * @param Logger::LogLevel newLevel - new level of log
+         * @return void
+         * 
+         * @details 
+         * Set the log level for the StepperMotor object.\n
+         * Log levels are:\n
+         * Logger::LogLevel NO_LOGGING\n
+         * Logger::LogLevel ERROR;\n
+         * Logger::LogLevel WARNING;\n
+         * Logger::LogLevel INFO;\n
+         * Logger::LogLevel DETAIL;\n
+         * Logger::LogLevel FULL_DETAIL;\n
+         */
+        void setLogLevel(Logger::LogLevel newLevel);
+
+        /**
+         * @brief Get current log level of the motor
+         * @param 
+         * @return Logger::LogLevel - current log level
+         * 
+         * @details 
+         */      
+        Logger::LogLevel getLogLevel();      
         
     protected: // methods
 
-        MotorStatusAndError determineMotorStatusAndError();
+        StepperMotorStatusAndError determineMotorStatusAndError();
         float truncateMotorPosition(float newPosition);
     
     protected: // fields
@@ -354,71 +426,59 @@ namespace mtca4u {
 	boost::shared_ptr<MotorDriverCard> _motorDriverCard;
 	boost::shared_ptr<MotorControler> _motorControler;
 
-        // position
+        // current position
         int _currentPostionsInSteps;
         float _currentPostionsInUnits;
-        
+        // current target
         int _targetPositionInSteps;
         float _targetPositionInUnits;
-        
-        
-        //position limts
+        //position limits
         float _maxPositionLimit;
         float _minPositionLimit;
-               
         //pointer to the units converter class
         boost::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-        
-       
-        
         //Autostart
         bool _autostartFlag;
-        
         //Stop motor flag for blocking functions
         bool _stopMotorForBlocking;
-        
-
-                
+        //soft limits enabled flag
         bool _softwareLimitsEnabled;
-        
         //status and error
         StepperMotorError  _motorError;
         StepperMotorCalibrationStatus _motorCalibrationStatus;
         StepperMotorStatus _motorStatus;
-        
-        
-        //static boost::mutex mutex;
-        Logger _logger;
-        
         //flag which indicate error in blocking function
         bool _blockingFunctionActive;
-        
         //not implemented yet - FIXME
         int _currentSpeed;
-        
+        Logger _logger;
         boost::mutex _mutex;
-        
-       
-        
-        /*
-        class InternalMutex {
-        private:
-            StepperMotor* _instance;
-        public:
-            InternalMutex(StepperMotor* instance) {
-                _instance = instance;                
-                _instance->mutex.lock();
-                //std::cout << "LOCKING MUTEX !!!" << std::endl;
-            }
-            ~InternalMutex() {
-                _instance->mutex.unlock();
-                //std::cout << "UNLOCKING MUTEX !!!" << std::endl;
-            }
-        };
-        friend class InternalMutex;
-        */
     };
 
 } //namespace mtca4u
 #endif	/* MTCA4U_STEPPER_MOTOR_H */
 
+
+
+
+
+
+
+
+/*
+class InternalMutex {
+private:
+    StepperMotor* _instance;
+public:
+    InternalMutex(StepperMotor* instance) {
+        _instance = instance;                
+        _instance->mutex.lock();
+        //std::cout << "LOCKING MUTEX !!!" << std::endl;
+    }
+    ~InternalMutex() {
+        _instance->mutex.unlock();
+        //std::cout << "UNLOCKING MUTEX !!!" << std::endl;
+    }
+};
+friend class InternalMutex;
+ */
