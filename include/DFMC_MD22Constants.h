@@ -9,14 +9,32 @@ namespace mtca4u{
 
 namespace dfmc_md22{
 
-  std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_SPI_CTRL";
-  std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_SPI_CTRL_B";
+  int32_t const MINIMAL_FIRMWARE_VERSION = 0x02020000;
+  int32_t const PROJECT_ID = 0x0;
+  int32_t const PROJECT_MAGIC_NUMBER = 0x50524F4A;
+
+  /// @fixme This has to be WORD_PROJ_VERSION in the project, but how to identify the project?
+  std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM1";
+  std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID1";
+  std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION1";
+  std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET1";
+  std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT1";
+
+  std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
+  std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
+  std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
+  std::string const CONTROLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
+
+  int32_t const SPI_SYNC_OK = 0;
+  int32_t const SPI_SYNC_REQUESTED = 0xFF;
+  int32_t const SPI_SYNC_ERROR = 0xAA;
 
   uint32_t const N_MOTORS_MAX = 2;
 
   std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
   
   std::string const SPI_WRITE_SUFFIX = "SPI_WRITE";
+  std::string const SPI_SYNC_SUFFIX = "SPI_SYNC";
   std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
   std::string const ACTUAL_VELOCITY_SUFFIX = "V_ACTUAL";
   std::string const ACTUAL_ACCELETATION_SUFFIX = "ACT_ACCEL";

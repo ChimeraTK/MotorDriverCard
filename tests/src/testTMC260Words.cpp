@@ -57,6 +57,15 @@ BOOST_AUTO_TEST_CASE( testStallGuardControlData ){
   BOOST_CHECK( createOutputMaskUsingSetterGetter<StallGuardControlData> ( &StallGuardControlData::setPayloadData,
 									  &StallGuardControlData::getPayloadData )
                == 0xDFFFF );
+  BOOST_CHECK( createOutputMaskUsingSetterGetter<StallGuardControlData> ( &StallGuardControlData::setFilterEnable,
+									  &StallGuardControlData::getFilterEnable )
+               == 0xD0000 );
+  BOOST_CHECK( createOutputMaskUsingSetterGetter<StallGuardControlData> ( &StallGuardControlData::setStallGuardThreshold,
+									  &StallGuardControlData::getStallGuardThreshold)
+               == 0xC7F00 );
+  BOOST_CHECK( createOutputMaskUsingSetterGetter<StallGuardControlData> ( &StallGuardControlData::setCurrentScale,
+									  &StallGuardControlData::getCurrentScale )
+               == 0xC001F );
 }
 
 BOOST_AUTO_TEST_CASE( testDriverConfigData ){

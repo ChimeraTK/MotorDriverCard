@@ -11,22 +11,21 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
  
 #use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
 
-#set(CMAKE_CXX_FLAGS "-Wall  -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
+#set(CMAKE_CXX_FLAGS "-Wall -g -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
 #skip -Weffc++ for the moment. It gives too many false positives
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 --coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -ansi -pedantic -Wuninitialized -pthread")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-FIND_PACKAGE(MtcaMappedDevice 00.07 REQUIRED)
+FIND_PACKAGE(MtcaMappedDevice 00.09 REQUIRED)
 include_directories(${MtcaMappedDevice_INCLUDE_DIRS})
 
 FIND_PACKAGE(pugixml 1.3 REQUIRED)
 include_directories(${pugixml_INCLUDE_DIRS})
 
-#currently boost is only needed for the tests
+FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
 FIND_PACKAGE(Boost COMPONENTS unit_test_framework)
-#ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK) 
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
   ENABLE_TESTING()
@@ -39,9 +38,11 @@ set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
 MACRO( COPY_MAPPING_FILES )
-  foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_broken.map )
+  foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_broken.map
+           mtcadummy_DFMC_MD22_mock.map MD22_on_DAMC2.dmap)
     configure_file( tests/${MAPPING_FILE} ${PROJECT_BINARY_DIR}/${MAPPING_FILE} copyonly)
   endforeach( MAPPING_FILE )
+  configure_file( tests/hardware/VT21-MotorDriverCardConfig.xml ${PROJECT_BINARY_DIR}/VT21-MotorDriverCardConfig.xml copyonly)
 ENDMACRO( COPY_MAPPING_FILES )
 
 MACRO( COPY_XML_FILES )
@@ -88,14 +89,14 @@ endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES} ${pugixml_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES} ${pugixml_LIBRARIES}  ${Boost_THREAD_LIBRARIES})
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(excutableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${excutableName} ${hardwareTestSourceFile})
-  target_link_libraries(${excutableName} ${PROJECT_NAME})     
+  target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
 endforeach( hardwareTestSourceFile )
  
 

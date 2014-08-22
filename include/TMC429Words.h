@@ -254,6 +254,51 @@ namespace mtca4u{
      }
     };
 
+  /** The status word contains the eight status bits of each output word,
+      now shifted to the least significant byte.
+   *  See TMC429 data sheet, page 15, Table 7-4
+   */
+  class TMC429StatusWord: public MultiVariableWord {
+    public:
+      TMC429StatusWord(unsigned int dataWord = 0): MultiVariableWord(dataWord){}
+      /** Data sheet syntax INT. */
+      ADD_VARIABLE(Interrupt, 7, 7 );
+
+      /**  Data sheet syntax CDGW. */
+      ADD_VARIABLE(CoverDatagramWaiting, 6, 6 );
+
+      /** Data sheet syntax SM3 */
+      ADD_VARIABLE(StepperMotorBits3, 4, 5 );
+      /** Data sheet syntax RS3 */
+      ADD_VARIABLE(ReferenceSwitchBit3, 5, 5 );
+      /** Data sheet syntax xEQt3 */
+      ADD_VARIABLE(TargetPositionReached3, 4, 4 );
+
+      /** Data sheet syntax SM2 */
+      ADD_VARIABLE(StepperMotorBits2, 2, 3 );
+      /** Data sheet syntax RS2 */
+      ADD_VARIABLE(ReferenceSwitchBit2, 3, 3 )
+      /** Data sheet syntax xEQt2 */
+      ADD_VARIABLE(TargetPositionReached2, 2, 2 );
+
+      /** Data sheet syntax SM1 */
+      ADD_VARIABLE(StepperMotorBits1, 0, 1 );
+      /** Data sheet syntax RS2 */
+      ADD_VARIABLE(ReferenceSwitchBit1, 1, 1 );
+      /** Data sheet syntax xEQt1 */
+      ADD_VARIABLE(TargetPositionReached1, 0, 0 );
+
+      /** Convenience function to avoid switch statements on the motor ID. 
+       *  Throws an OutOfRangeException for invalid motor IDs.
+       */
+      bool getTargetPositionReached(unsigned int motorID);
+
+      /** Convenience function to avoid switch statements on the motor ID. 
+       *  Throws an OutOfRangeException for invalid motor IDs.
+       */
+      unsigned int getReferenceSwitchBit(unsigned int motorID);
+  };
+
 }// namespace mtca4u
 
 #endif// MTCA4U_TMC429WORDS_H

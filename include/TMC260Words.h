@@ -59,6 +59,9 @@ namespace mtca4u{
       setPayloadData(dataWord);}
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
+    ADD_VARIABLE(FilterEnable, 16, 16);
+    ADD_VARIABLE(StallGuardThreshold, 8, 14);
+    ADD_VARIABLE(CurrentScale, 0, 4);
   };
   
   class DriverConfigData: public TMC260Word{

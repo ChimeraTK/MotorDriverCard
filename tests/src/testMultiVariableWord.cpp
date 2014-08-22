@@ -151,10 +151,8 @@ public:
   }
 };
 
-// Although the compiler complains that argc and argv are not used they 
-// cannot be commented out. This somehow changes the signature and linking fails.
 test_suite*
-init_unit_test_suite( int argc, char* argv[] )
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
   framework::master_test_suite().p_name.value = "MultiVariableWordTest";
   
@@ -167,13 +165,6 @@ init_unit_test_suite( int argc, char* argv[] )
 
   return 0;
 }
-
-//test_suite*
-//init_unit_test_suite( int argc, char* argv[] )
-//{
-//  std::cout << "hello, it's the old style" << std::endl;
-//  return new MultiVariableWordTestSuite;
-//}
 
 // The implementations of the individual tests
 
