@@ -43,21 +43,14 @@ public:
     LinearStepperMotorTest();
 
     void testSoftLimits();
-    void testAutostart();
-    void testStart();
     void testStop();
     void testEmergencyStop();
-    void testEnabledDisabled();
-    void testDebugLevel();
     void testCalibration();
     void threadCalibration(int i);
     void testSetPositionAs();
-    void testSetGetSpeed();
 
     void testMoveToPosition();
     void threadMoveToPostion(int i);
-
-    void testUnitConverter();
 
 private:
     boost::shared_ptr<LinearStepperMotor> _stepperMotor;
@@ -77,18 +70,6 @@ public:
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testSoftLimits,
                 stepperMotorTest));
 
-        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testAutostart,
-                stepperMotorTest));
-
-        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testStart,
-                stepperMotorTest));
-
-        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testEnabledDisabled,
-                stepperMotorTest));
-
-        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testDebugLevel,
-                stepperMotorTest));
-
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testStop,
                 stepperMotorTest));
 
@@ -98,13 +79,7 @@ public:
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testSetPositionAs,
                 stepperMotorTest));
 
-        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testSetGetSpeed,
-                stepperMotorTest));
-
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testMoveToPosition,
-                stepperMotorTest));
-
-        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testUnitConverter,
                 stepperMotorTest));
 
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testCalibration,
@@ -222,73 +197,6 @@ void LinearStepperMotorTest::testSoftLimits() {
     _stepperMotor->setEnabled(false);
 }
 
-void LinearStepperMotorTest::testAutostart() {
-    std::cout << "testAutostart()" << std::endl;
-
-    _stepperMotor->setEnabled(true);
-
-    _stepperMotor->setAutostart(true);
-    BOOST_CHECK(_stepperMotor->getAutostart() == true);
-
-    _stepperMotor->setAutostart(false);
-    BOOST_CHECK(_stepperMotor->getAutostart() == false);
-
-
-    int initTargetPosition = _motorControlerDummy->getTargetPosition();
-    _stepperMotor->setAutostart(false);
-    _stepperMotor->setTargetPosition(1000);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == initTargetPosition);
-
-
-    _stepperMotor->setAutostart(true);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 1000);
-
-
-    _stepperMotor->setTargetPosition(2000);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 2000);
-
-    _stepperMotor->setTargetPosition(-2000);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == -2000);
-
-    _stepperMotor->setAutostart(false);
-}
-
-void LinearStepperMotorTest::testStart() {
-    std::cout << "testStart()" << std::endl;
-
-    _motorControlerDummy->setTargetPosition(0);
-    _motorControlerDummy->setActualPosition(0);
-
-
-    _stepperMotor->setEnabled(true);
-    _stepperMotor->setAutostart(false);
-
-    //test start function
-    _stepperMotor->setTargetPosition(500);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 0);
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_NOT_IN_POSITION);
-
-
-    _stepperMotor->start();
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == (500));
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_IN_MOVE);
-    _motorControlerDummy->moveTowardsTarget(0.5);
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_IN_MOVE);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == (500 * 0.5));
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-
-
-    _motorControlerDummy->moveTowardsTarget(1);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == (500));
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_OK);
-
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_OK);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getTargetPosition());
-
-}
-
 void LinearStepperMotorTest::testStop() {
     std::cout << "testStop()" << std::endl;
 
@@ -351,51 +259,6 @@ void LinearStepperMotorTest::testEmergencyStop() {
 
 }
 
-void LinearStepperMotorTest::testEnabledDisabled() {
-    std::cout << "testEnabledDisabled()" << std::endl;
-
-    _stepperMotor->setEnabled(true);
-
-    _stepperMotor->setSoftwareLimitsEnabled(false);
-    _stepperMotor->setTargetPosition(_motorControlerDummy->getActualPosition());
-
-    BOOST_CHECK(_motorControlerDummy->isEnabled() == true);
-    BOOST_CHECK(_stepperMotor->getEnabled() == true);
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_OK);
-
-    _stepperMotor->setEnabled(false);
-
-    BOOST_CHECK(_motorControlerDummy->isEnabled() == false);
-    BOOST_CHECK(_stepperMotor->getEnabled() == false);
-    BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_DISABLED);
-
-}
-
-void LinearStepperMotorTest::testDebugLevel() {
-    std::cout << "testDebugLevel()" << std::endl;
-
-    _stepperMotor->setLogLevel(Logger::NO_LOGGING);
-    BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::NO_LOGGING);
-
-    _stepperMotor->setLogLevel(Logger::ERROR);
-    BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::ERROR);
-
-    _stepperMotor->setLogLevel(Logger::WARNING);
-    BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::WARNING);
-
-    _stepperMotor->setLogLevel(Logger::INFO);
-    BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::INFO);
-
-    _stepperMotor->setLogLevel(Logger::DETAIL);
-    BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::DETAIL);
-
-    _stepperMotor->setLogLevel(Logger::FULL_DETAIL);
-    BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::FULL_DETAIL);
-
-    _stepperMotor->setLogLevel(Logger::NO_LOGGING);
-
-}
-
 void LinearStepperMotorTest::testSetPositionAs() {
     std::cout << "testSetPositionAs()" << std::endl;
 
@@ -418,17 +281,6 @@ void LinearStepperMotorTest::testSetPositionAs() {
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getTargetPosition());
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_DISABLED);
-}
-
-void LinearStepperMotorTest::testSetGetSpeed() {
-    std::cout << "testSetGetSpeed()" << std::endl;
-
-    _stepperMotor->setMotorSpeed(100);
-    BOOST_CHECK(_stepperMotor->getMotorSpeed() == 100);
-    _stepperMotor->setMotorSpeed(200);
-    BOOST_CHECK(_stepperMotor->getMotorSpeed() == 200);
-    _stepperMotor->setMotorSpeed(0);
-    BOOST_CHECK(_stepperMotor->getMotorSpeed() == 0);
 }
 
 void LinearStepperMotorTest::testMoveToPosition() {
@@ -795,36 +647,3 @@ void LinearStepperMotorTest::threadCalibration(int testCase) {
 
     //_motorControlerDummy->moveTowardsTarget(1, false);
 }
-
-void LinearStepperMotorTest::testUnitConverter() {
-    std::cout << "testUnitConverter()" << std::endl;
-
-    _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
-
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 100);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -100);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10.5) == 105);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10.5) == -105);
-
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(100) == 10);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -10);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 10.5);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -10.5);
-
-
-    _testUnitConveter.reset();
-    _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
-
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 10);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -10);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10.5) == 10);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10.5) == -10);
-
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(100) == 100);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -100);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 105);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -105);
-}
-
-
-

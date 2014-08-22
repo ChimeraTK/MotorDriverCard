@@ -1,7 +1,7 @@
 #include "StepperMotor.h"
 #include "math.h"
 #include "MotorDriverCardFactory.h"
-
+#include <MtcaMappedDevice/NotImplementedException.h>
 
 namespace mtca4u {
 
@@ -227,12 +227,12 @@ namespace mtca4u {
         _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
     }
 
-    void StepperMotor::setMotorSpeed(float newSpeed) {
-        _currentSpeed = newSpeed;
+    void StepperMotor::setMotorSpeed(float /*newSpeed*/) {
+        throw NotImplementedException("Setting and reading the motor speed is currently not supported yet!");
     }
 
     float StepperMotor::getMotorSpeed() {
-        return _currentSpeed;
+        throw NotImplementedException("Setting and reading the motor speed is currently not supported yet!");
     }
 
     void StepperMotor::setMaxPositionLimit(float maxPos) {

@@ -449,8 +449,6 @@ namespace mtca4u {
         StepperMotorStatus _motorStatus;
         //flag which indicate error in blocking function
         bool _blockingFunctionActive;
-        //not implemented yet - FIXME
-        int _currentSpeed;
         Logger _logger;
         boost::mutex _mutex;
     };

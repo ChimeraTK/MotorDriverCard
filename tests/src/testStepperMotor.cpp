@@ -7,7 +7,7 @@ using namespace boost::unit_test_framework;
 #include "StepperMotor.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
-
+#include <MtcaMappedDevice/NotImplementedException.h>
 
 #include <boost/thread.hpp>
 
@@ -419,13 +419,8 @@ void StepperMotorTest::testSetPositionAs() {
 }
 
 void StepperMotorTest::testSetGetSpeed() {
-
-    _stepperMotor->setMotorSpeed(100);
-    BOOST_CHECK(_stepperMotor->getMotorSpeed() == 100);
-    _stepperMotor->setMotorSpeed(200);
-    BOOST_CHECK(_stepperMotor->getMotorSpeed() == 200);
-    _stepperMotor->setMotorSpeed(0);
-    BOOST_CHECK(_stepperMotor->getMotorSpeed() == 0);
+    BOOST_CHECK_THROW(_stepperMotor->setMotorSpeed(100), mtca4u::NotImplementedException);
+    BOOST_CHECK_THROW(_stepperMotor->getMotorSpeed(), mtca4u::NotImplementedException);
 }
 
 void StepperMotorTest::testMoveToPosition() {
