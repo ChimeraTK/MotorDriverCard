@@ -378,7 +378,7 @@ DEFINE_GET_SET_DRIVER_SPI_DATA( DriverConfigData, ADDRESS_DRIVER_CONFIG, DRIVER_
 void MotorControlerTest::testGetReferenceSwitchData( boost::shared_ptr<MotorDriverCardImpl> motorDriverCard ){
   // This approach is intentinally clumsy and manual in order not to use the same algorithm as 
   // in the implementation, but still be felxible if the register content changes.
-  unsigned int referenceWord;
+  unsigned int referenceWord=0; //setting to 0 to avoid compiler warning in default case.
   
   switch (_motorControler->getID()){
   case 0 : referenceWord = motorDriverCard->getReferenceSwitchData().getDATA() & 0x3; break;

@@ -7,13 +7,13 @@
 		<Register name="driverControlData" value="0x4" />
 		<!-- filtered stallGuard with 4/32 current scale -->
 		<Register name="stallGuardControlData" value="0x10003" />
-	</MotorControlerConfig>
-	<MotorControlerConfig motorID="1">
-	        <!--coolStep with 1/4 CS minimum current (taken directly from the data sheet)  -->
-		<Register name="coolStepControlData" value="0x8202" />
-		<!-- 16 microsteps per 90 degrees -->
-		<Register name="driverControlData" value="0x4" />
-		<!-- filtered stallGuard with 3/32 current scale -->
-		<Register name="stallGuardControlData" value="0x10002" />
+		<!-- end switches enabled -->
+		<Register name="referenceConfigAndRampModeData" value="0x0" />
+		<!-- should be 1 in usual applications -->
+		<Register name="minimumVelocity" value="0x1" />
+		<Register name="maximumAccelleration" value="0x96" />
+		<Register name="maximumVelocity" value="0x576" />
+		<Register name="proportionalityFactorData" value="0x9405" />
+		<Register name="dividersAndMicroStepResolutionData" value="0x7804" />
 	</MotorControlerConfig>
 </MotorDriverCardConfig>

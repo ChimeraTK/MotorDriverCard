@@ -9,7 +9,7 @@
 		<Register name="accelerationThresholdData" value="0x1" />
 		<Register name="actualPosition" value="-1" />
 		<Register name="chopperControlData" value="0x107B6" />
-		<Register name="coolStepControlData" value="0x1" />
+		<Register name="coolStepControlData" value="0x8203" />
 		<Register name="decoderReadoutMode" value="0x2" />
 		<Register name="dividersAndMicroStepResolutionData" value="0x3705" />
 		<Register name="driverConfigData" value="0x41" />
@@ -19,11 +19,11 @@
 		<Register name="maximumAccelleration" value="0x15" />
 		<Register name="maximumVelocity" value="0x65" />
 		<Register name="microStepCount" value="0x1" />
-		<Register name="minimumVelocity" value="0xB" />
+		<Register name="minimumVelocity" value="0x2" />
 		<Register name="positionTolerance" value="0x1" />
 		<Register name="proportionalityFactorData" value="0xC50B" />
 		<Register name="referenceConfigAndRampModeData" value="0x1" />
-		<Register name="stallGuardControlData" value="0x511" />
+		<Register name="stallGuardControlData" value="0x10001" />
 		<Register name="targetPosition" value="-1" />
 		<Register name="targetVelocity" value="-1" />
 		<Parameter name="driverSpiWaitingTime" value="51" />
