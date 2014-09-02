@@ -25,7 +25,7 @@ const double ParametersCalculator::nCurrentScaleValues = 32;
 
 ParametersCalculator::TMC429Parameters 
 ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParameters physicalParameters){
-  // inputcheck();
+  std::list<std::string> warnings = inputcheck( physicalParameters );
 
   // this also checks the validity of microsteps
   unsigned int driverMicroStepValue = 
@@ -101,7 +101,8 @@ ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParamet
 			  pDiv, pMul,
 			  controllerMicroStepValue,
 			  driverMicroStepValue,
-			  currentScale );
+			  currentScale,
+			  warnings);
  
 }
 
@@ -125,4 +126,35 @@ unsigned int ParametersCalculator::calculateDriverMicroStepValue(double microste
   default:
     throw std::invalid_argument("The number of microsteps has to be 2^i with i being an integer in the range 0..6.");
   }
+}
+
+std::list<std::string> ParametersCalculator::inputcheck(PhysicalParameters physicalParameters ){
+  std::list<std::string> warnings;
+
+  if ( (physicalParameters.systemClock > 32) || 
+       (physicalParameters.systemClock < 1) ){
+    throw std::invalid_argument("systemClock must be in the range 1..32");
+  }
+
+  if (physicalParameters.iMax <= 0){
+    throw std::invalid_argument("iMax must be positive");  
+  }
+
+  if (physicalParameters.maxRPM <= 0){
+    throw std::invalid_argument("maxRPM must be positive");  
+  }
+
+  if (physicalParameters.nStepsPerTurn <= 0){
+    throw std::invalid_argument("nStepsPerTurn must be positive");  
+  }
+
+  if (physicalParameters.timeToVMax <= 0){
+    throw std::invalid_argument("timeToVMax must be positive");  
+  }
+
+ if (physicalParameters.iMax > iMaxMD22){
+    warnings.push_back("iMax is too large. Current is limited to 1.8 A");
+  }
+
+  return warnings;
 }

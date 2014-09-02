@@ -1,6 +1,9 @@
 #ifndef MTCA4U_TMC429_PARAMETERS_CALCULATOR_H
 #define MTCA4U_TMC429_PARAMETERS_CALCULATOR_H
 
+#include <list>
+#include <string>
+
 class ParametersCalculator{
  public:
   
@@ -44,6 +47,8 @@ class ParametersCalculator{
   };
 
   /** The parameters for the TMC426 controller and TMC260 driver chips.
+   *  It contains a list of warnings which are generated during the 
+   *  conversion.
    */
   struct TMC429Parameters{
     unsigned int pulseDiv;
@@ -56,6 +61,8 @@ class ParametersCalculator{
     unsigned int driverMicroStepValue;
     unsigned int currentScale;
 
+    std::list<std::string> warnings;
+    
     /** Convenience constructor to set all values
      */
     TMC429Parameters(unsigned int pulseDiv_,
@@ -66,12 +73,13 @@ class ParametersCalculator{
 		     unsigned int pMul_,
 		     unsigned int controllerMicroStepValue_,
 		     unsigned int driverMicroStepValue_,
-		     unsigned int currentScale_) :
+		     unsigned int currentScale_,
+		     std::list<std::string> const & warnings_) :
     pulseDiv(pulseDiv_), rampDiv(rampDiv_), aMax(aMax_), vMax(vMax_),
     pDiv(pDiv_), pMul(pMul_), 
     controllerMicroStepValue(controllerMicroStepValue_),
     driverMicroStepValue(driverMicroStepValue_),
-    currentScale(currentScale_){}
+    currentScale(currentScale_), warnings(warnings_){}
   };
 
 //  /** The (hex) values which have to be written to the registers.
@@ -116,6 +124,8 @@ class ParametersCalculator{
   /** Performs the calculation of the parameter and does a validity check
    */
   static unsigned int calculateDriverMicroStepValue(double microsteps);
+  
+  static std::list<std::string> inputcheck(PhysicalParameters physicalParameters );
 };
 
 #endif// MTCA4U_TMC429_PARAMETERS_CALCULATOR_H

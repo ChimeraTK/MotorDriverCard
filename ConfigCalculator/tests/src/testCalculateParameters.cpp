@@ -14,22 +14,25 @@ using namespace boost::unit_test_framework;
   BOOST_CHECK( tmc429Parameters.driverMicroStepValue == driverValue);\
   BOOST_CHECK( tmc429Parameters.controllerMicroStepValue == controllerValue);}
 
+// ough, a global variable. But it saves tons of tying
+
+// The parameters as used for the VT21 are used to check the calculated
+// values as a random sample
+const ParametersCalculator::PhysicalParameters 
+  vt21Parameters( 32, //MHz system clock
+		  16, // microsteps
+		  200, //steps per turn
+		  200, // maxRPM
+		  0.5, // s to vMax
+		  0.24); // iMax
 
 BOOST_AUTO_TEST_SUITE( CalculateParametersTestSuite )
 
 // The parameters as used for the VT21 are used to check the calculated
 // values as a random sample
 BOOST_AUTO_TEST_CASE( testVT21Parameters ){
-  ParametersCalculator::PhysicalParameters 
-    physicalParameters( 32, //MHz system clock
-			16, // microsteps
-			200, //steps per turn
-			200, // maxRPM
-			0.5, // s to vMax
-			0.24); // iMax
-
   ParametersCalculator::TMC429Parameters tmc429Parameters
-    = ParametersCalculator::calculateParameters( physicalParameters );
+    = ParametersCalculator::calculateParameters( vt21Parameters );
 
   BOOST_CHECK( tmc429Parameters.pulseDiv == 6);
   BOOST_CHECK( tmc429Parameters.rampDiv == 11);
@@ -43,13 +46,8 @@ BOOST_AUTO_TEST_CASE( testVT21Parameters ){
 }
 
 BOOST_AUTO_TEST_CASE( testMirosteps ){
-  ParametersCalculator::PhysicalParameters 
-    physicalParameters( 32, //MHz system clock
-			1, // 1 microsteps = fullstep
-			200, //steps per turn
-			200, // maxRPM
-			0.5, // s to vMax
-			0.24); // iMax
+  ParametersCalculator::PhysicalParameters physicalParameters = 
+    vt21Parameters;
 
   CHECK_MICROSTEPS( 1, 8, 0 );
   CHECK_MICROSTEPS( 2, 7, 1 );
@@ -69,5 +67,74 @@ BOOST_AUTO_TEST_CASE( testMirosteps ){
  
 }
     
+BOOST_AUTO_TEST_CASE( testClocks ){
+  ParametersCalculator::PhysicalParameters physicalParameters = 
+    vt21Parameters;
+
+  physicalParameters.systemClock = 33;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+  
+  physicalParameters.systemClock = 0.5;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+
+    
+}
+
+BOOST_AUTO_TEST_CASE( testCurrents ){
+  ParametersCalculator::PhysicalParameters physicalParameters = 
+    vt21Parameters;
+
+  physicalParameters.iMax = 2;
+  ParametersCalculator::TMC429Parameters tmc429Parameters
+    = ParametersCalculator::calculateParameters( physicalParameters );
+  BOOST_CHECK( tmc429Parameters.currentScale == 31 );
+  BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
+
+  physicalParameters.iMax = 0.001;
+  tmc429Parameters = 
+    ParametersCalculator::calculateParameters( physicalParameters );
+  BOOST_CHECK( tmc429Parameters.currentScale == 0 );
+  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+
+  physicalParameters.iMax = 0;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+  
+  physicalParameters.iMax = -1;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );   
+}
+
+// the other input parameters must be positive
+BOOST_AUTO_TEST_CASE( testPositive ){
+  ParametersCalculator::PhysicalParameters physicalParameters = 
+    vt21Parameters;
+
+  physicalParameters.maxRPM = 0;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+  physicalParameters.maxRPM = -1;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );   
+
+  // reset to good parameters, only modify one parameter at a time
+  physicalParameters = vt21Parameters;
+  physicalParameters.nStepsPerTurn = 0;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+  physicalParameters.nStepsPerTurn = -1;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+
+  physicalParameters = vt21Parameters;
+  physicalParameters.timeToVMax = 0;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+  physicalParameters.timeToVMax = -1;
+  BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
+		     std::invalid_argument );
+}
 
 BOOST_AUTO_TEST_SUITE_END()
