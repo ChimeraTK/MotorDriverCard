@@ -134,4 +134,4 @@ include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 # The instructions to create a debian package are loaded from a separate file
 include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
 
-
+add_subdirectory(ConfigCalculator) 
