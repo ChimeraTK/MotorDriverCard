@@ -82,25 +82,10 @@ class ParametersCalculator{
     currentScale(currentScale_), warnings(warnings_){}
   };
 
-//  /** The (hex) values which have to be written to the registers.
-//   */
-//  struct RegisterValues{
-//    uint32_t driverControlData;
-//    uint32_t stallGuardControlData;
-//    uint32_t referenceConfigAndRampModeData;
-//    uint32_t proportionalityFactorData;
-//    uint32_t dividersAndMicroStepResolutionData;
-//    uint32_t maximumVelocity;
-//    uint32_t maximumAcceleration;
-//  };
-
-    /** Calculate the TMC429 parameters from the physical parameters
-     */
+  /** Calculate the TMC429 parameters from the physical parameters
+   */
   static TMC429Parameters
     calculateParameters(PhysicalParameters physicalParameters);
-  
-//  static RegisterValues
-//    calculateRegisterValues(TMC429Parameters TMC429Parameters);
   
  private:
   static const double secondsPerMinute;

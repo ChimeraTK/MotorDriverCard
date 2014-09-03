@@ -6,6 +6,7 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
 
 #not a shared library, just link it to all the executables statically
 add_library(${PROJECT_NAME} ${calculator_library_sources} )
+target_link_libraries(${PROJECT_NAME} MotorDriverCard)    
 
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests/include)
