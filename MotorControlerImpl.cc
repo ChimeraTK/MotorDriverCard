@@ -78,7 +78,7 @@ namespace mtca4u
     setDriverConfigData( motorControlerConfig.driverConfigData );
     setDriverControlData( motorControlerConfig.driverControlData );
     setInterruptData( motorControlerConfig.interruptData );
-    setMaximumAcceleration( motorControlerConfig.maximumAccelleration );
+    setMaximumAcceleration( motorControlerConfig.maximumAcceleration );
     setMaximumVelocity( motorControlerConfig.maximumVelocity );
     setMicroStepCount( motorControlerConfig.microStepCount );
     setMinimumVelocity( motorControlerConfig.minimumVelocity );
