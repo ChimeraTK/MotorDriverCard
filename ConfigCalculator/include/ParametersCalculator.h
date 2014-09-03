@@ -55,7 +55,7 @@ class ParametersCalculator{
     unsigned int rampDiv;
     unsigned int aMax;
     unsigned int vMax;
-    unsigned int pDiv;
+    unsigned int pDiv;///< No typo: pulseDiv and pDiv are completely different things :-(
     unsigned int pMul;
     unsigned int controllerMicroStepValue;
     unsigned int driverMicroStepValue;
@@ -104,16 +104,28 @@ class ParametersCalculator{
   
  private:
   static const double secondsPerMinute;
-  static const double nVelocityValues;
-  static const double maxVelocityValue;
-  static const double nAccelerationValues;
-  static const double maxAccelerationValue;
+  static const double nVMaxValues;
+  static const double maximumAllowedVMax;
+  static const double nAMaxValues;
+  static const double maximumAllowedAMax;
+  static const double minimumRecommendedAMax;
   // see page 23, block clk_div32
   static const double systemClockPreDivider;
   // see section 9.14, page 29 (part of the 2^29)
   static const double velocityAccumulationClockPreDivider;
-  static const double pMulMin;
-  static const double pMulMax;
+
+  static const double minimumAllowedPMul;
+  static const double maximumAllowedPMul;
+
+  static const double minimumAllowedPDiv;
+  static const double maximumAllowedPDiv;
+
+  // no typo: pDiv and pulseDiv are completely different things :-(
+  static const double minimumAllowedPulseDiv;
+  static const double maximumAllowedPulseDiv;
+
+  static const double minimumAllowedRampDiv;
+  static const double maximumAllowedRampDiv;
 
   static const double reductionValue;
 

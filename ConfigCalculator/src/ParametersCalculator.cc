@@ -1,12 +1,15 @@
 #include "ParametersCalculator.h"
 #include <cmath>
 #include <stdexcept>
+#include <sstream>
+#include <iostream>
 
 const double ParametersCalculator::secondsPerMinute =60.;
-const double ParametersCalculator::nVelocityValues = 2048;
-const double ParametersCalculator::maxVelocityValue = nVelocityValues-1;
-const double ParametersCalculator::nAccelerationValues = 2048;
-const double ParametersCalculator::maxAccelerationValue = nAccelerationValues-1;
+const double ParametersCalculator::nVMaxValues = 2048;
+const double ParametersCalculator::maximumAllowedVMax = nVMaxValues-1;
+const double ParametersCalculator::nAMaxValues = 2048;
+const double ParametersCalculator::maximumAllowedAMax = nAMaxValues-1;
+const double ParametersCalculator::minimumRecommendedAMax = 20;
 
 // see page 23, block clk_div32
 const double ParametersCalculator::systemClockPreDivider = 32;
@@ -14,8 +17,17 @@ const double ParametersCalculator::systemClockPreDivider = 32;
 //see section 9.14, page 29 (part of the 2^29)
 const double ParametersCalculator::velocityAccumulationClockPreDivider = 256;
 
-const double ParametersCalculator::pMulMin = 128;
-const double ParametersCalculator::pMulMax = 255;
+const double ParametersCalculator::minimumAllowedPMul = 128;
+const double ParametersCalculator::maximumAllowedPMul = 255;
+
+const double ParametersCalculator::minimumAllowedPDiv = 0;
+const double ParametersCalculator::maximumAllowedPDiv = 13;
+
+const double ParametersCalculator::minimumAllowedPulseDiv = 0;
+const double ParametersCalculator::maximumAllowedPulseDiv = 13;
+
+const double ParametersCalculator::minimumAllowedRampDiv = 0;
+const double ParametersCalculator::maximumAllowedRampDiv = 13;
 
 // 5 % as recommended in section 9.11 page 24
 const double ParametersCalculator::reductionValue = 0.05; 
@@ -43,58 +55,151 @@ ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParamet
   double dividedSystemClockInHz = 
     physicalParameters.systemClock * 1e6 / systemClockPreDivider;
 
-  unsigned int pulseDiv = 
-    static_cast<unsigned int>(log2( dividedSystemClockInHz 
-				    / targetMicrostepFrequency
-				    * maxVelocityValue/nVelocityValues));
-  
+  // I use double instead of unsigned to check for range overflows
+  // (also int does not cut it because static_cast<int>(-0.8) 
+  // yields 0, but it should issue a warning
+  double pulseDiv = log2( dividedSystemClockInHz 
+			  / targetMicrostepFrequency
+			  * maximumAllowedVMax/nVMaxValues);
+
+  // range check on pulseDiv (0..13)
+  if (pulseDiv < minimumAllowedPulseDiv){
+    pulseDiv = minimumAllowedPulseDiv;
+    warnings.push_back("pulseDiv was too small. Check you settings, you might have to decrease maxRPM.");
+  }
+
+  // now that we know that pulseDiv is not negative
+  //  "round" to the next lowest integet (as a cast to int would do).
+  // This is essential for the following calculations
+  pulseDiv = std::floor(pulseDiv);
+
+  // after rounding the value has to be <= 13
+  if (pulseDiv > maximumAllowedPulseDiv){
+    pulseDiv = maximumAllowedPulseDiv;
+    warnings.push_back("pulseDiv was too large. Check you settings, you might have to increase maxRPM.");
+  }
+
+  // This for instance would give the target frequency if
+  // pulseDiv was not rounded down.
   double maxMirostepFrequencyWithThisPulseDiv = 
-    dividedSystemClockInHz * maxVelocityValue/nVelocityValues
+    dividedSystemClockInHz * maximumAllowedVMax/nVMaxValues
     / pow(2, pulseDiv);
 
-  unsigned int vMax = 
-    static_cast<unsigned int>( targetMicrostepFrequency
+  int vMax = 
+    static_cast<int>( targetMicrostepFrequency
 			       / maxMirostepFrequencyWithThisPulseDiv 
-			       * maxVelocityValue);
+			       * maximumAllowedVMax);
+
+  if (vMax > maximumAllowedVMax){
+    std::stringstream warning;
+    warning << "vMax was too high. The maximum possible RPM now is "
+	    << maximumAllowedVMax / vMax * physicalParameters.maxRPM
+	    << ". Adjust your input parameters.";
+    warnings.push_back(warning.str());
+    vMax = maximumAllowedVMax;
+  }
+
+  // this is only possible for insanely low speed, but we cannot 
+  // continue because the motor would never move
+  if (vMax == 0){
+    throw std::out_of_range("vMax is calculated to 0. The motor will never move with these settings. Check you input Parameters!");
+  }
 
   double targetMicrostepAcceleration = 
     targetMicrostepFrequency / physicalParameters.timeToVMax;
 
-  unsigned int rampDiv = 
-    static_cast<unsigned int>(log2( dividedSystemClockInHz
-				    *dividedSystemClockInHz
-				    * maxAccelerationValue
-				    / targetMicrostepAcceleration
-				    / pow(2, pulseDiv)
-				    / nAccelerationValues
-				    /velocityAccumulationClockPreDivider));
+  double rampDiv = log2( dividedSystemClockInHz
+			 *dividedSystemClockInHz
+			 * maximumAllowedAMax
+			 / targetMicrostepAcceleration
+			 / pow(2, pulseDiv)
+			 / nAMaxValues
+			 /velocityAccumulationClockPreDivider);
+
+  // range check on rampDiv (0..13)
+  if (rampDiv < minimumAllowedRampDiv){
+    rampDiv = minimumAllowedRampDiv;
+    warnings.push_back("rampDiv was too small. Check you settings, you might have to increase timeToVMax.");
+  }
+
+  // now that we know that rampDiv is not negative
+  //  "round" to the next lowest integet (as a cast to int would do).
+  // This is essential for the following calculations
+  rampDiv = std::floor(rampDiv);
+
+  // after rounding the value has to be <= 13
+  if (rampDiv > maximumAllowedRampDiv){
+    rampDiv = maximumAllowedRampDiv;
+    warnings.push_back("rampDiv was too large. Check you settings, you might have to decrease timeToVMax.");
+  }
 
   double maxMicrostepAccelerationWithThisRampDiv =
     dividedSystemClockInHz * dividedSystemClockInHz
-    * maxAccelerationValue / nAccelerationValues
+    * maximumAllowedAMax / nAMaxValues
     /velocityAccumulationClockPreDivider / pow(2, rampDiv + pulseDiv);
 
-  unsigned int aMax = 
-    static_cast<int>( targetMicrostepAcceleration
-		      / maxMicrostepAccelerationWithThisRampDiv
-		      * maxAccelerationValue );
+  double aMax = targetMicrostepAcceleration
+                / maxMicrostepAccelerationWithThisRampDiv
+                * maximumAllowedAMax;
 
-  double p = aMax/pMulMin/ pow(2, rampDiv-pulseDiv);
+  if (aMax > maximumAllowedAMax){
+    std::stringstream warning;
+    warning << "aMax was too high. The time to reach VMax now is "
+	    << aMax / maximumAllowedAMax * physicalParameters.timeToVMax
+	    << ". Adjust your input parameters.";
+    warnings.push_back(warning.str());
+    aMax = maximumAllowedAMax;
+  }
+
+  if (aMax < minimumRecommendedAMax){
+    warnings.push_back("aMax is very low. Check your input parameters." );
+  }
+
+    // after rounding down 0 and negative values are not allowed
+  if (aMax < 1){
+    throw std::out_of_range("aMax is calculated as 0. The motor would never move. Check your input parameters (especially timeToVMax)!");
+  }
+
+  aMax = std::floor(aMax);
+
+  double p = aMax/minimumAllowedPMul/ pow(2, rampDiv-pulseDiv);
 
   double reducedP = (1.- reductionValue) * p;
 
-  // sorry for the hard coded 3. it is log2( maxAccelerationValue / 256 )
+  // This is the formula as calculated from the data sheet. Please leave
+  // this block for reference, although a different calculation is used.
+  // 
+  // Sorry for the hard coded 3. it is log2( maximumAllowedAMax / 256 )
   // where it is not clear where the 256 comes from. Yet another divider. 
-  unsigned int pDiv = 
-    static_cast<unsigned int>(log2( pMulMax / reducedP ) - 3); 
+  //int pDiv = 
+  //static_cast<int>(log2( maximumAllowedPMul / reducedP ) - 3); 
+    
+  // The formula above itself is not in the data sheet, they use the
+  // method to calculate all pairs and pick the "right" combination
+  // manually. This derrived formula leads to pmul being in the range
+  // 127..254, while it has to be in 128..255. This is fixed by exchanging
+  // maximumAllowedPMul=255 with 256, which simplifies the formula to 
+  double pDiv = log2( 32 / reducedP ) ; 
 
-  unsigned int pMul =
-    static_cast<unsigned int>(reducedP * pow(2, pDiv+3));
+  if (pDiv <  minimumAllowedPDiv){
+    throw std::out_of_range("pDiv is too small and pMul too large. Check your input parameters, expecially timeToVMax.");
+  }
+
+  // now that we know that pDiv is not negative round
+  // to the next lowest int
+  pDiv = std::floor( pDiv);
+
+  if (pDiv > maximumAllowedPDiv){
+    throw std::out_of_range("pDiv is too large and pMul too small. Check your input parameters, expecially timeToVMax.");
+  }
+ 
+  int pMul =
+    static_cast<int>(reducedP * pow(2, pDiv+3));
 
   double maxPossibleCurrent = std::min(iMaxMD22, physicalParameters.iMax);
 
-  unsigned int currentScale = 
-    static_cast<unsigned int>( std::ceil(maxPossibleCurrent/iMaxMD22
+  int currentScale = 
+    static_cast<int>( std::ceil(maxPossibleCurrent/iMaxMD22
 					 * nCurrentScaleValues) ) -1;
 
   return TMC429Parameters(pulseDiv, rampDiv, aMax, vMax,
