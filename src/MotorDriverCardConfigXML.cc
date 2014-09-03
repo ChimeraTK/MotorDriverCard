@@ -134,7 +134,7 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
   setValueIfFound("driverControlData", controlerConfig.driverControlData, controlerConfigXML);
   setValueIfFound("enabled", controlerConfig.enabled, controlerConfigXML);
   setValueIfFound("interruptData", controlerConfig.interruptData, controlerConfigXML);
-  setValueIfFound("maximumAccelleration", controlerConfig.maximumAccelleration, controlerConfigXML);
+  setValueIfFound("maximumAcceleration", controlerConfig.maximumAcceleration, controlerConfigXML);
   setValueIfFound("maximumVelocity", controlerConfig.maximumVelocity, controlerConfigXML);
   setValueIfFound("microStepCount", controlerConfig.microStepCount, controlerConfigXML);
   setValueIfFound("minimumVelocity", controlerConfig.minimumVelocity, controlerConfigXML);
@@ -205,7 +205,7 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
       CONTROLER_CONFIG_ADD_REGISTER( driverControlData );
       CONTROLER_CONFIG_ADD_REGISTER( enabled);
       CONTROLER_CONFIG_ADD_REGISTER( interruptData );
-      CONTROLER_CONFIG_ADD_REGISTER( maximumAccelleration );
+      CONTROLER_CONFIG_ADD_REGISTER( maximumAcceleration );
       CONTROLER_CONFIG_ADD_REGISTER( maximumVelocity );
       CONTROLER_CONFIG_ADD_REGISTER( microStepCount );
       CONTROLER_CONFIG_ADD_REGISTER( minimumVelocity );

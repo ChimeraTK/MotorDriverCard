@@ -126,7 +126,7 @@ void MotorDriverCardTest::testConstructor(){
     motorControlerConfig.driverControlData.setPayloadData( asciiToInt("cl") + motorID );
     motorControlerConfig.enabled = true;
     motorControlerConfig.interruptData.setDATA( asciiToInt("INTR") + motorID );
-    motorControlerConfig.maximumAccelleration =  asciiToInt("am") + motorID;
+    motorControlerConfig.maximumAcceleration =  asciiToInt("am") + motorID;
     motorControlerConfig.maximumVelocity = asciiToInt("vm") + motorID;
     motorControlerConfig.microStepCount =  asciiToInt("mu") + motorID;
     motorControlerConfig.minimumVelocity = asciiToInt("vn");
@@ -217,7 +217,7 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
      BOOST_CHECK( motorControlerConfig.enabled == motorControler->isEnabled() );
      BOOST_CHECK( motorControlerConfig.interruptData.getDATA()
 		  == motorControler->getInterruptData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.maximumAccelleration == motorControler->getMaximumAcceleration() );
+     BOOST_CHECK( motorControlerConfig.maximumAcceleration == motorControler->getMaximumAcceleration() );
      BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler->getMaximumVelocity() );
      BOOST_CHECK( motorControlerConfig.microStepCount == motorControler->getMicroStepCount() );
      BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler->getMinimumVelocity() );

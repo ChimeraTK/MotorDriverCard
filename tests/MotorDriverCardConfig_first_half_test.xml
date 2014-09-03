@@ -16,7 +16,7 @@
 		<Register name="driverControlData" value="0x1" />
 		<Register name="enabled" value="true" />
 		<Register name="interruptData" value="0x1" />
-		<Register name="maximumAccelleration" value="0x15" />
+		<Register name="maximumAcceleration" value="0x15" />
 		<Register name="maximumVelocity" value="0x65" />
 		<Register name="microStepCount" value="0x1" />
 		<Register name="minimumVelocity" value="0x2" />

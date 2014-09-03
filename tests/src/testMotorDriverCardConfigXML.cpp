@@ -94,7 +94,7 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
   ASSIGN_PLUS_ONE_CONTROLER( driverControlData );
   plusOneControlerConfig.enabled = !(plusOneControlerConfig.enabled);
   ASSIGN_PLUS_ONE_CONTROLER( interruptData );
-  plusOneControlerConfig.maximumAccelleration++;
+  plusOneControlerConfig.maximumAcceleration++;
   plusOneControlerConfig.maximumVelocity++;
   plusOneControlerConfig.microStepCount++;
   plusOneControlerConfig.minimumVelocity++;
@@ -182,7 +182,7 @@ void MotorDriverCardConfigXMLTest::checkControlerConfig( MotorControlerConfig co
   CONTROLER_CHECK( driverControlData );
   CONTROLER_CHECK( enabled );
   CONTROLER_CHECK( interruptData );
-  CONTROLER_CHECK( maximumAccelleration );
+  CONTROLER_CHECK( maximumAcceleration );
   CONTROLER_CHECK( maximumVelocity );
   CONTROLER_CHECK( microStepCount );
   CONTROLER_CHECK( minimumVelocity );

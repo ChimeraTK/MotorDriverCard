@@ -14,7 +14,7 @@ namespace mtca4u
       driverControlData(DRIVER_CONTROL_DEFAULT),
       enabled(false),
       interruptData(0),
-      maximumAccelleration(MAXIMUM_ACCELERATION_DEFAULT),
+      maximumAcceleration(MAXIMUM_ACCELERATION_DEFAULT),
       maximumVelocity(MAXIMUM_VELOCITY_DEFAULT),
       microStepCount(0),
       minimumVelocity(MINIMUM_VELOCITY_DEFAULT),
@@ -38,7 +38,7 @@ namespace mtca4u
 	     (driverControlData			  == right.driverControlData) &&
 	     (enabled				  == right.enabled) &&
 	     (interruptData			  == right.interruptData) &&
-	     (maximumAccelleration		  == right.maximumAccelleration) &&
+	     (maximumAcceleration		  == right.maximumAcceleration) &&
 	     (maximumVelocity			  == right.maximumVelocity) &&
 	     (microStepCount			  == right.microStepCount) &&
 	     (minimumVelocity			  == right.minimumVelocity) &&

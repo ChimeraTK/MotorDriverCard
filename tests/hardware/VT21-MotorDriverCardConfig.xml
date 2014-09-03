@@ -11,7 +11,7 @@
 		<Register name="referenceConfigAndRampModeData" value="0x0" />
 		<!-- should be 1 in usual applications -->
 		<Register name="minimumVelocity" value="0x1" />
-		<Register name="maximumAccelleration" value="0x96" />
+		<Register name="maximumAcceleration" value="0x96" />
 		<Register name="maximumVelocity" value="0x576" />
 		<Register name="proportionalityFactorData" value="0x9405" />
 		<Register name="dividersAndMicroStepResolutionData" value="0x7804" />

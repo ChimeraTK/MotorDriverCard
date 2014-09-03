@@ -22,7 +22,7 @@ namespace mtca4u
     DriverControlData driverControlData;
     bool enabled;
     InterruptData interruptData;
-    uint32_t maximumAccelleration;
+    uint32_t maximumAcceleration;
     uint32_t maximumVelocity;
     unsigned int microStepCount;
     uint32_t minimumVelocity;
