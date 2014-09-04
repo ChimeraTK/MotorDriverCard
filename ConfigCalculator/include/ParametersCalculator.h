@@ -117,6 +117,7 @@ class ParametersCalculator{
   /// The maximum possible current on the MD22 board in A
   static const double iMaxMD22;
   static const double nCurrentScaleValues;
+  static const double minimumAllowedCurrentScale;
 
   /** Performs the calculation of the parameter and does a validity check
    */

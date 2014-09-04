@@ -8,6 +8,10 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
 add_library(${PROJECT_NAME} ${calculator_library_sources} )
 target_link_libraries(${PROJECT_NAME} MotorDriverCard)    
 
+add_executable(ConfigCalculatorCLI  executables/ConfigCalculatorCLI.cpp)
+target_link_libraries(ConfigCalculatorCLI ${PROJECT_NAME})    
+
+
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests/include)
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tests/src calculatorTestSources)
@@ -19,4 +23,12 @@ if(TESTING_IS_ENABLED)
     add_test(${excutableName} ${excutableName})
   endforeach( testSourceFile )
   
+  # add a test for the CLI executable
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/generatedVT21Config.xml
+    ${PROJECT_BINARY_DIR}/generatedVT21Config.xml copyonly)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/testConfigCalculatorCLI.sh
+    ${PROJECT_BINARY_DIR}/testConfigCalculatorCLI.sh copyonly)
+  add_test(testConfigCalculatorCLI
+    ${PROJECT_BINARY_DIR}/testConfigCalculatorCLI.sh)
+
 endif(TESTING_IS_ENABLED)

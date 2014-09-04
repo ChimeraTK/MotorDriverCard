@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE( testVT21Parameters ){
   BOOST_CHECK( tmc429Parameters.pMul == 174);
   BOOST_CHECK( tmc429Parameters.controllerMicroStepValue == 4);
   BOOST_CHECK( tmc429Parameters.driverMicroStepValue == 4);
-  BOOST_CHECK( tmc429Parameters.currentScale == 4);
+  BOOST_CHECK( tmc429Parameters.currentScale == 3);
 }
 
 BOOST_AUTO_TEST_CASE( testMirosteps ){
@@ -94,23 +94,51 @@ BOOST_AUTO_TEST_CASE( testClocks ){
 BOOST_AUTO_TEST_CASE( testCurrents ){
   ParametersCalculator::PhysicalParameters physicalParameters = 
     vt21Parameters;
-
+  
+  // above 1.8 A there is a warning that the current scale might be too
+  // low
   physicalParameters.iMax = 2;
   ParametersCalculator::TMC429Parameters tmc429Parameters
     = ParametersCalculator::calculateParameters( physicalParameters );
   BOOST_CHECK( tmc429Parameters.currentScale == 31 );
   BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
 
+  // if the current is smaller than 1.8 A / 32 it is smaller than 
+  // the smallest value in the current scale. This gives a warning
   physicalParameters.iMax = 0.001;
+  tmc429Parameters = 
+    ParametersCalculator::calculateParameters( physicalParameters );
+  BOOST_CHECK( tmc429Parameters.currentScale == 0 );
+  BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
+
+  // Just above 1/32 the value still is 0, but there is no warning
+  physicalParameters.iMax = 0.06;
   tmc429Parameters = 
     ParametersCalculator::calculateParameters( physicalParameters );
   BOOST_CHECK( tmc429Parameters.currentScale == 0 );
   BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
 
+  // A current scale of 31 without warning is only possible with exactly
+  // 1.8
+  physicalParameters.iMax = 1.8;
+  tmc429Parameters = 
+    ParametersCalculator::calculateParameters( physicalParameters );
+  BOOST_CHECK( tmc429Parameters.currentScale == 31 );
+  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+
+  // slighly below the current scale already is 30
+  physicalParameters.iMax = 1.79;
+  tmc429Parameters = 
+    ParametersCalculator::calculateParameters( physicalParameters );
+  BOOST_CHECK( tmc429Parameters.currentScale == 30 );
+  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+
+  // 0 is not a reasonable coil current
   physicalParameters.iMax = 0;
   BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
 		     std::invalid_argument );
   
+  // negative currrents are not allowed
   physicalParameters.iMax = -1;
   BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( physicalParameters), 
 		     std::invalid_argument );   

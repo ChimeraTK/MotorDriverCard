@@ -33,7 +33,8 @@ const double ParametersCalculator::maximumAllowedRampDiv = 13;
 const double ParametersCalculator::reductionValue = 0.05; 
 
 const double ParametersCalculator::iMaxMD22 = 1.8;
-const double ParametersCalculator::nCurrentScaleValues = 32; 
+const double ParametersCalculator::nCurrentScaleValues = 32;
+const double ParametersCalculator::minimumAllowedCurrentScale = 0;
 
 ParametersCalculator::TMC429Parameters 
 ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParameters physicalParameters){
@@ -198,9 +199,27 @@ ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParamet
 
   double maxPossibleCurrent = std::min(iMaxMD22, physicalParameters.iMax);
 
+  // use floor to always get the current scale which is below or
+  // equal to the maximim current, never above
   int currentScale = 
-    static_cast<int>( std::ceil(maxPossibleCurrent/iMaxMD22
+    static_cast<int>( std::floor(maxPossibleCurrent/iMaxMD22
 					 * nCurrentScaleValues) ) -1;
+
+  // For small currents < 1/32 iMaxMD22 the calculated current scale now
+  // is negative, which is invalid. Change it to 0 and add a warning.
+  // There is nothing we can do about it, one has to allow some current in
+  // the motor, it cannot be 0.
+  if (currentScale < minimumAllowedCurrentScale){
+    std::stringstream warning;
+    warning << "Current scale at minimum."
+	    << " The configured maximal current of " 
+	    << iMaxMD22/nCurrentScaleValues*(currentScale + 1)
+	    <<  " A is larger than the maximal coil current of " 
+	    << physicalParameters.iMax << " A!";
+    warnings.push_back(warning.str());
+
+    currentScale = minimumAllowedCurrentScale;
+  }
 
   return TMC429Parameters(pulseDiv, rampDiv, aMax, vMax,
 			  pDiv, pMul,

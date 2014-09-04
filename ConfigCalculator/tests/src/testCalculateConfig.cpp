@@ -5,6 +5,8 @@ using namespace boost::unit_test_framework;
 
 #include "ConfigCalculator.h"
 
+#include <stdexcept>
+
 BOOST_AUTO_TEST_SUITE( CalculateConfigTestSuite )
 
 BOOST_AUTO_TEST_CASE( testCalculateConfig ){
@@ -44,6 +46,44 @@ BOOST_AUTO_TEST_CASE( testCalculateConfig ){
 	      == 0x1207);
   BOOST_CHECK(controllerConfig.maximumVelocity == 4);
   BOOST_CHECK(controllerConfig.maximumAcceleration == 3);
+}
+
+BOOST_AUTO_TEST_CASE( testeEndSwitchConfig ){
+  // Test that an exception is thrown if you write something invalid to
+  // the end switch config enum via static_cast
+  // Just use the same parameters as above
+  ParametersCalculator::TMC429Parameters
+    tmc429Parameters( 1, //pulseDiv
+		      2, //rampDiv
+		      3, //aMax
+		      4, //vMax
+		      5, //pDiv
+		      0x86, //pMul has to be between 128 and 255
+		      7, //controllerMicroStepValue
+		      8, //driverMicroStepValue
+		      9, //currentScale
+		      std::list<std::string>() ); // an empty list
+
+  BOOST_CHECK_NO_THROW(
+    ConfigCalculator::calculateConfig( tmc429Parameters,
+				       ConfigCalculator::IGNORE_BOTH) );
+  BOOST_CHECK_NO_THROW(
+    ConfigCalculator::calculateConfig( tmc429Parameters,
+				       ConfigCalculator::IGNORE_POSITIVE) );
+  BOOST_CHECK_NO_THROW(
+    ConfigCalculator::calculateConfig( tmc429Parameters,
+				       ConfigCalculator::IGNORE_NEGATIVE) );
+  BOOST_CHECK_NO_THROW(
+    ConfigCalculator::calculateConfig( tmc429Parameters,
+				       ConfigCalculator::IGNORE_BOTH) );
+  BOOST_CHECK_NO_THROW(
+    ConfigCalculator::calculateConfig( tmc429Parameters,
+				       ConfigCalculator::USE_BOTH) );
+
+  BOOST_CHECK_THROW(
+    ConfigCalculator::calculateConfig( tmc429Parameters,
+      static_cast<ConfigCalculator::EndSwitchConfig>(5)),
+    std::invalid_argument );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
