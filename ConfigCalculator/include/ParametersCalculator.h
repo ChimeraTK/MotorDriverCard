@@ -1,9 +1,14 @@
-#ifndef MTCA4U_TMC429_PARAMETERS_CALCULATOR_H
-#define MTCA4U_TMC429_PARAMETERS_CALCULATOR_H
+#ifndef MTCA4U_TMC429_TMC260_PARAMETERS_CALCULATOR_H
+#define MTCA4U_TMC429_TMC260_PARAMETERS_CALCULATOR_H
 
 #include <list>
 #include <string>
 
+/** A class which provides a function to convert
+ *  the physical motor parameters like coil current and 
+ *  rotation velocity to steering parameters for the 
+ *  TMC429 controller and TMC260 driver chips.
+ */
 class ParametersCalculator{
  public:
   
@@ -32,11 +37,11 @@ class ParametersCalculator{
      */
     double timeToVMax;
 
-    /** maximum coil current in A
+    /** Maximum coil current in A
      */
     double iMax;
 
-    /** convenience constructor to set all values
+    /** Convenience constructor to set all values
      */
     PhysicalParameters(double systemClock_, double microsteps_,
 		       double nStepsPerTurn_, double maxRPM_,
@@ -50,7 +55,7 @@ class ParametersCalculator{
    *  It contains a list of warnings which are generated during the 
    *  conversion.
    */
-  struct TMC429Parameters{
+  struct ChipParameters{
     unsigned int pulseDiv;
     unsigned int rampDiv;
     unsigned int aMax;
@@ -65,7 +70,7 @@ class ParametersCalculator{
     
     /** Convenience constructor to set all values
      */
-    TMC429Parameters(unsigned int pulseDiv_,
+    ChipParameters(unsigned int pulseDiv_,
 		     unsigned int rampDiv_,
 		     unsigned int aMax_,
 		     unsigned int vMax_,
@@ -82,9 +87,10 @@ class ParametersCalculator{
     currentScale(currentScale_), warnings(warnings_){}
   };
 
-  /** Calculate the TMC429 parameters from the physical parameters
+  /** Calculate the TMC429 and TMC260 parameters
+   *  from the physical parameters
    */
-  static TMC429Parameters
+  static ChipParameters
     calculateParameters(PhysicalParameters physicalParameters);
   
  private:
@@ -114,16 +120,18 @@ class ParametersCalculator{
 
   static const double reductionValue;
 
-  /// The maximum possible current on the MD22 board in A
-  static const double iMaxMD22;
+  /// The maximum possible current of the TMC260 chip
+  static const double iMaxTMC260;
   static const double nCurrentScaleValues;
   static const double minimumAllowedCurrentScale;
 
-  /** Performs the calculation of the parameter and does a validity check
+  /** Performs the calculation of the TMC260 micropstep value and does a validity check
    */
   static unsigned int calculateDriverMicroStepValue(double microsteps);
   
+  /** Check the ranges for the input parameters
+   */
   static std::list<std::string> inputcheck(PhysicalParameters physicalParameters );
 };
 
-#endif// MTCA4U_TMC429_PARAMETERS_CALCULATOR_H
+#endif// MTCA4U_TMC429_TMC260_PARAMETERS_CALCULATOR_H

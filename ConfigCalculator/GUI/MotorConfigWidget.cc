@@ -8,8 +8,8 @@
 
 MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
   : QWidget( parent_ ),
-    // the tmc429Parameters do not have a default constructor
-    _tmc429Parameters( 6,  //pulseDiv_
+    // the chipParameters do not have a default constructor
+    _chipParameters( 6,  //pulseDiv_
 		       11, // rampDiv_
 		       1466, // aMax_
 		       1398, // vMax_
@@ -24,32 +24,32 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 
   // recalculate all parameters whenever an input changes
   connect(_motorConfigWidgetForm.iMax, SIGNAL(valueChanged(double)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.nStepsPerTurn, SIGNAL(valueChanged(int)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.maxRPM, SIGNAL(valueChanged(int)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.timeToVMax, SIGNAL(valueChanged(double)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.microsteps, SIGNAL(currentIndexChanged(int)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.systemClock, SIGNAL(valueChanged(int)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.positiveSwitchCheckBox, SIGNAL(stateChanged(int)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 
   connect(_motorConfigWidgetForm.negativeSwitchCheckBox, SIGNAL(stateChanged(int)),
-	  this, SLOT(recalculateTMC429Parameters()));
+	  this, SLOT(recalculateChipParameters()));
 }
 
 mtca4u::MotorControlerConfig MotorConfigWidget::getConfig(){
-  return ConfigCalculator::calculateConfig( _tmc429Parameters, 
+  return ConfigCalculator::calculateConfig( _chipParameters, 
 					    getEndSwitchConfig() );
 }
 
@@ -57,7 +57,7 @@ bool MotorConfigWidget::motorIsEnabled(){
   return _motorConfigWidgetForm.motorEnabledCheckBox->isChecked();
 }
 
-void MotorConfigWidget::recalculateTMC429Parameters(){
+void MotorConfigWidget::recalculateChipParameters(){
   unsigned int microsteps = pow(2, _motorConfigWidgetForm.microsteps->currentIndex() );
 
   ParametersCalculator::PhysicalParameters
@@ -68,7 +68,7 @@ void MotorConfigWidget::recalculateTMC429Parameters(){
 			_motorConfigWidgetForm.timeToVMax->value(),
 			_motorConfigWidgetForm.iMax->value() );
   try{ 
-    _tmc429Parameters = ParametersCalculator::calculateParameters( physicalParameters );
+    _chipParameters = ParametersCalculator::calculateParameters( physicalParameters );
   }catch(std::exception & e){
      QString errorMessage("Error, could not calculate parameters!\n\n");
      errorMessage += QString("An exception was thrown:\n") + e.what();
@@ -80,36 +80,36 @@ void MotorConfigWidget::recalculateTMC429Parameters(){
 
 void MotorConfigWidget::updateChipParameters(){
   _motorConfigWidgetForm.pulseDivDisplay->setText( 
-    QString::number( _tmc429Parameters.pulseDiv ) );
+    QString::number( _chipParameters.pulseDiv ) );
 
   _motorConfigWidgetForm.rampDivDisplay->setText( 
-    QString::number( _tmc429Parameters.rampDiv ) );
+    QString::number( _chipParameters.rampDiv ) );
 
   _motorConfigWidgetForm.vMaxDisplay->setText( 
-    QString::number( _tmc429Parameters.vMax ) );
+    QString::number( _chipParameters.vMax ) );
 
   _motorConfigWidgetForm.aMaxDisplay->setText( 
-    QString::number( _tmc429Parameters.aMax ) );
+    QString::number( _chipParameters.aMax ) );
 
   _motorConfigWidgetForm.pMulDisplay->setText( 
-    QString::number( _tmc429Parameters.pMul ) );
+    QString::number( _chipParameters.pMul ) );
 
   _motorConfigWidgetForm.pDivDisplay->setText( 
-    QString::number( _tmc429Parameters.pDiv ) );
+    QString::number( _chipParameters.pDiv ) );
 
   _motorConfigWidgetForm.controllerMicrostepValueDisplay->setText( 
-    QString::number( _tmc429Parameters.controllerMicroStepValue ));
+    QString::number( _chipParameters.controllerMicroStepValue ));
 
   _motorConfigWidgetForm.driverMicrostepValueDisplay->setText( 
-    QString::number( _tmc429Parameters.driverMicroStepValue ));
+    QString::number( _chipParameters.driverMicroStepValue ));
 
   _motorConfigWidgetForm.currentScaleDisplay->setText( 
-    QString::number( _tmc429Parameters.currentScale ) );
+    QString::number( _chipParameters.currentScale ) );
 
   QString warningText;
   for (std::list<std::string>::const_iterator warningIter = 
-	 _tmc429Parameters.warnings.begin();
-       warningIter != _tmc429Parameters.warnings.end();
+	 _chipParameters.warnings.begin();
+       warningIter != _chipParameters.warnings.end();
        ++warningIter){
     warningText += QString(warningIter->c_str()) + "\n";
   }

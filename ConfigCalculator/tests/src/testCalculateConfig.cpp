@@ -13,8 +13,8 @@ BOOST_AUTO_TEST_CASE( testCalculateConfig ){
   // Very simple test: check that all values end up in the right 
   // bit patterns.
   // Just use numbers counting up from 1
-  ParametersCalculator::TMC429Parameters
-    tmc429Parameters( 1, //pulseDiv
+  ParametersCalculator::ChipParameters
+    chipParameters( 1, //pulseDiv
 		      2, //rampDiv
 		      3, //aMax
 		      4, //vMax
@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE( testCalculateConfig ){
 		      std::list<std::string>() ); // an empty list
 
   mtca4u::MotorControlerConfig controllerConfig =
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
 				       ConfigCalculator::IGNORE_BOTH);
 
   BOOST_CHECK(controllerConfig.driverControlData.getPayloadData() == 8);
@@ -52,8 +52,8 @@ BOOST_AUTO_TEST_CASE( testeEndSwitchConfig ){
   // Test that an exception is thrown if you write something invalid to
   // the end switch config enum via static_cast
   // Just use the same parameters as above
-  ParametersCalculator::TMC429Parameters
-    tmc429Parameters( 1, //pulseDiv
+  ParametersCalculator::ChipParameters
+    chipParameters( 1, //pulseDiv
 		      2, //rampDiv
 		      3, //aMax
 		      4, //vMax
@@ -65,23 +65,23 @@ BOOST_AUTO_TEST_CASE( testeEndSwitchConfig ){
 		      std::list<std::string>() ); // an empty list
 
   BOOST_CHECK_NO_THROW(
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
 				       ConfigCalculator::IGNORE_BOTH) );
   BOOST_CHECK_NO_THROW(
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
 				       ConfigCalculator::IGNORE_POSITIVE) );
   BOOST_CHECK_NO_THROW(
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
 				       ConfigCalculator::IGNORE_NEGATIVE) );
   BOOST_CHECK_NO_THROW(
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
 				       ConfigCalculator::IGNORE_BOTH) );
   BOOST_CHECK_NO_THROW(
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
 				       ConfigCalculator::USE_BOTH) );
 
   BOOST_CHECK_THROW(
-    ConfigCalculator::calculateConfig( tmc429Parameters,
+    ConfigCalculator::calculateConfig( chipParameters,
       static_cast<ConfigCalculator::EndSwitchConfig>(5)),
     std::invalid_argument );
 }

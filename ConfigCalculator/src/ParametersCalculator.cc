@@ -32,11 +32,11 @@ const double ParametersCalculator::maximumAllowedRampDiv = 13;
 // 5 % as recommended in section 9.11 page 24
 const double ParametersCalculator::reductionValue = 0.05; 
 
-const double ParametersCalculator::iMaxMD22 = 1.8;
+const double ParametersCalculator::iMaxTMC260 = 1.8;
 const double ParametersCalculator::nCurrentScaleValues = 32;
 const double ParametersCalculator::minimumAllowedCurrentScale = 0;
 
-ParametersCalculator::TMC429Parameters 
+ParametersCalculator::ChipParameters 
 ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParameters physicalParameters){
   std::list<std::string> warnings = inputcheck( physicalParameters );
 
@@ -197,31 +197,31 @@ ParametersCalculator::calculateParameters( ParametersCalculator::PhysicalParamet
   int pMul =
     static_cast<int>(reducedP * pow(2, pDiv+3));
 
-  double maxPossibleCurrent = std::min(iMaxMD22, physicalParameters.iMax);
+  double maxPossibleCurrent = std::min(iMaxTMC260, physicalParameters.iMax);
 
   // use floor to always get the current scale which is below or
   // equal to the maximim current, never above
   int currentScale = 
-    static_cast<int>( std::floor(maxPossibleCurrent/iMaxMD22
+    static_cast<int>( std::floor(maxPossibleCurrent/iMaxTMC260
 					 * nCurrentScaleValues) ) -1;
 
-  // For small currents < 1/32 iMaxMD22 the calculated current scale now
+  // For small currents < 1/32 iMaxTMC260 the calculated current scale now
   // is negative, which is invalid. Change it to 0 and add a warning.
   // There is nothing we can do about it, one has to allow some current in
   // the motor, it cannot be 0.
   if (currentScale < minimumAllowedCurrentScale){
+    currentScale = minimumAllowedCurrentScale;
+
     std::stringstream warning;
     warning << "Current scale at minimum."
 	    << " The configured maximal current of " 
-	    << iMaxMD22/nCurrentScaleValues*(currentScale + 1)
+	    << iMaxTMC260/nCurrentScaleValues*(currentScale + 1)
 	    <<  " A is larger than the maximal coil current of " 
 	    << physicalParameters.iMax << " A!";
     warnings.push_back(warning.str());
-
-    currentScale = minimumAllowedCurrentScale;
   }
 
-  return TMC429Parameters(pulseDiv, rampDiv, aMax, vMax,
+  return ChipParameters(pulseDiv, rampDiv, aMax, vMax,
 			  pDiv, pMul,
 			  controllerMicroStepValue,
 			  driverMicroStepValue,
@@ -276,7 +276,7 @@ std::list<std::string> ParametersCalculator::inputcheck(PhysicalParameters physi
     throw std::invalid_argument("timeToVMax must be positive");  
   }
 
- if (physicalParameters.iMax > iMaxMD22){
+ if (physicalParameters.iMax > iMaxTMC260){
     warnings.push_back("iMax is too large. Current is limited to 1.8 A");
   }
 

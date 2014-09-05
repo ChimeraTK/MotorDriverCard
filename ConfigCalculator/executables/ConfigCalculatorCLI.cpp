@@ -71,20 +71,20 @@ int main(int argc, char * argv []){
 		       timeToVMax,
 		       iMax);
    
-  ParametersCalculator::TMC429Parameters tmc429Parameters = 
+  ParametersCalculator::ChipParameters chipParameters = 
     ParametersCalculator::calculateParameters(physicalParameters);
 
-  if (tmc429Parameters.warnings.size()){
+  if (chipParameters.warnings.size()){
     std::cout << "\n Warnings during conversion:" <<std::endl;
     for( std::list<std::string>::const_iterator it = 
-	   tmc429Parameters.warnings.begin();
-	 it != tmc429Parameters.warnings.end(); ++it){
+	   chipParameters.warnings.begin();
+	 it != chipParameters.warnings.end(); ++it){
       std::cout << *it << std::endl;
     }    
   }
 
   mtca4u::MotorControlerConfig motorConfig =
-    ConfigCalculator::calculateConfig( tmc429Parameters, 
+    ConfigCalculator::calculateConfig( chipParameters, 
 				       static_cast<ConfigCalculator::EndSwitchConfig>(endSwitchConfig));
   
   mtca4u::MotorDriverCardConfig cardConfig;
@@ -98,5 +98,5 @@ int main(int argc, char * argv []){
 
   mtca4u::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);
 
-  return tmc429Parameters.warnings.size();
+  return chipParameters.warnings.size();
 }

@@ -18,10 +18,10 @@ void printWarnings( std::list<std::string> const & warnings ){
 
 #define CHECK_MICROSTEPS( nMicrosteps,  driverValue,  controllerValue )	\
   physicalParameters.microsteps = nMicrosteps;\
-  { ParametersCalculator::TMC429Parameters tmc429Parameters		\
+  { ParametersCalculator::ChipParameters chipParameters		\
       = ParametersCalculator::calculateParameters( physicalParameters );\
-  BOOST_CHECK( tmc429Parameters.driverMicroStepValue == driverValue);\
-  BOOST_CHECK( tmc429Parameters.controllerMicroStepValue == controllerValue);}
+  BOOST_CHECK( chipParameters.driverMicroStepValue == driverValue);\
+  BOOST_CHECK( chipParameters.controllerMicroStepValue == controllerValue);}
 
 // ough, a global variable. But it saves tons of tying
 
@@ -40,18 +40,18 @@ BOOST_AUTO_TEST_SUITE( CalculateParametersTestSuite )
 // The parameters as used for the VT21 are used to check the calculated
 // values as a random sample
 BOOST_AUTO_TEST_CASE( testVT21Parameters ){
-  ParametersCalculator::TMC429Parameters tmc429Parameters
+  ParametersCalculator::ChipParameters chipParameters
     = ParametersCalculator::calculateParameters( vt21Parameters );
 
-  BOOST_CHECK( tmc429Parameters.pulseDiv == 6);
-  BOOST_CHECK( tmc429Parameters.rampDiv == 11);
-  BOOST_CHECK( tmc429Parameters.vMax == 1398);
-  BOOST_CHECK( tmc429Parameters.aMax == 1466);
-  BOOST_CHECK( tmc429Parameters.pDiv == 6);
-  BOOST_CHECK( tmc429Parameters.pMul == 174);
-  BOOST_CHECK( tmc429Parameters.controllerMicroStepValue == 4);
-  BOOST_CHECK( tmc429Parameters.driverMicroStepValue == 4);
-  BOOST_CHECK( tmc429Parameters.currentScale == 3);
+  BOOST_CHECK( chipParameters.pulseDiv == 6);
+  BOOST_CHECK( chipParameters.rampDiv == 11);
+  BOOST_CHECK( chipParameters.vMax == 1398);
+  BOOST_CHECK( chipParameters.aMax == 1466);
+  BOOST_CHECK( chipParameters.pDiv == 6);
+  BOOST_CHECK( chipParameters.pMul == 174);
+  BOOST_CHECK( chipParameters.controllerMicroStepValue == 4);
+  BOOST_CHECK( chipParameters.driverMicroStepValue == 4);
+  BOOST_CHECK( chipParameters.currentScale == 3);
 }
 
 BOOST_AUTO_TEST_CASE( testMirosteps ){
@@ -98,40 +98,40 @@ BOOST_AUTO_TEST_CASE( testCurrents ){
   // above 1.8 A there is a warning that the current scale might be too
   // low
   physicalParameters.iMax = 2;
-  ParametersCalculator::TMC429Parameters tmc429Parameters
+  ParametersCalculator::ChipParameters chipParameters
     = ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.currentScale == 31 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
+  BOOST_CHECK( chipParameters.currentScale == 31 );
+  BOOST_CHECK( chipParameters.warnings.size() == 1 );
 
   // if the current is smaller than 1.8 A / 32 it is smaller than 
   // the smallest value in the current scale. This gives a warning
   physicalParameters.iMax = 0.001;
-  tmc429Parameters = 
+  chipParameters = 
     ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.currentScale == 0 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
+  BOOST_CHECK( chipParameters.currentScale == 0 );
+  BOOST_CHECK( chipParameters.warnings.size() == 1 );
 
   // Just above 1/32 the value still is 0, but there is no warning
   physicalParameters.iMax = 0.06;
-  tmc429Parameters = 
+  chipParameters = 
     ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.currentScale == 0 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.currentScale == 0 );
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
 
   // A current scale of 31 without warning is only possible with exactly
   // 1.8
   physicalParameters.iMax = 1.8;
-  tmc429Parameters = 
+  chipParameters = 
     ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.currentScale == 31 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.currentScale == 31 );
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
 
   // slighly below the current scale already is 30
   physicalParameters.iMax = 1.79;
-  tmc429Parameters = 
+  chipParameters = 
     ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.currentScale == 30 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.currentScale == 30 );
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
 
   // 0 is not a reasonable coil current
   physicalParameters.iMax = 0;
@@ -184,10 +184,10 @@ BOOST_AUTO_TEST_CASE( testPluseDivVMaxRanges ){
 			   0.24); 
   // should lead to pulse div = 16, but the max is 13
 
-  ParametersCalculator::TMC429Parameters tmc429Parameters
+  ParametersCalculator::ChipParameters chipParameters
     = ParametersCalculator::calculateParameters( maxPulseDivParameters );
-  BOOST_CHECK( tmc429Parameters.pulseDiv == 13 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
+  BOOST_CHECK( chipParameters.pulseDiv == 13 );
+  BOOST_CHECK( chipParameters.warnings.size() == 1 );
   
   // check that pulseDiv = 13 can be reached without warning
   ParametersCalculator::PhysicalParameters 
@@ -195,10 +195,10 @@ BOOST_AUTO_TEST_CASE( testPluseDivVMaxRanges ){
   largePulseDivParameters.maxRPM=2;
   largePulseDivParameters.timeToVMax=1.8;
 
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( largePulseDivParameters );
-  BOOST_CHECK( tmc429Parameters.pulseDiv == 13 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.pulseDiv == 13 );
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
 
   // check with settings where the not rounded
   // value of pulseDiv is ]0..-1[, so the special case
@@ -217,11 +217,11 @@ BOOST_AUTO_TEST_CASE( testPluseDivVMaxRanges ){
   // Two warnings expected
   
 
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( minPulseDivParameters );
-  BOOST_CHECK( tmc429Parameters.pulseDiv == 0 );
-  BOOST_CHECK( tmc429Parameters.vMax == 2047 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 2 );
+  BOOST_CHECK( chipParameters.pulseDiv == 0 );
+  BOOST_CHECK( chipParameters.vMax == 2047 );
+  BOOST_CHECK( chipParameters.warnings.size() == 2 );
 
   // check that pulseDiv = 0 can be reached without warning
   // v_max must be smaller than the maximum
@@ -233,11 +233,11 @@ BOOST_AUTO_TEST_CASE( testPluseDivVMaxRanges ){
 			     0.5,
 			     0.24); 
 
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( smallPulseDivParameters );
-  BOOST_CHECK( tmc429Parameters.pulseDiv == 0 );
-  BOOST_CHECK( tmc429Parameters.vMax == 1747);
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.pulseDiv == 0 );
+  BOOST_CHECK( chipParameters.vMax == 1747);
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
 
   // If the requested speed is way too slow vMax will be calculated as 0,
   // which will lead to an exception
@@ -257,20 +257,20 @@ BOOST_AUTO_TEST_CASE( testRampDivAMaxRanges ){
     maxRampDivParameters = vt21Parameters;
   maxRampDivParameters.timeToVMax = 10; // very slow acceleration
 
-  ParametersCalculator::TMC429Parameters tmc429Parameters
+  ParametersCalculator::ChipParameters chipParameters
     = ParametersCalculator::calculateParameters( maxRampDivParameters );
-  BOOST_CHECK( tmc429Parameters.rampDiv == 13 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 1 );
+  BOOST_CHECK( chipParameters.rampDiv == 13 );
+  BOOST_CHECK( chipParameters.warnings.size() == 1 );
 
   // check that rampDiv = 13 can be reached without warning
   ParametersCalculator::PhysicalParameters 
     largeRampDivParameters = vt21Parameters;
   largeRampDivParameters.timeToVMax = 2; // slow acceleration
 
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( largeRampDivParameters );
-  BOOST_CHECK( tmc429Parameters.rampDiv == 13 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.rampDiv == 13 );
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
   
   // Tuned so the other parameters stay in range.
   // Check with settings where the not rounded
@@ -288,11 +288,11 @@ BOOST_AUTO_TEST_CASE( testRampDivAMaxRanges ){
   // This leads to a a_max which is out of range (2236) and has to be
   // limited. => desired a_max cannot be reached 
   // Two warnings expected
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( minRampDivParameters );
-  BOOST_CHECK( tmc429Parameters.rampDiv == 0 );
-  BOOST_CHECK( tmc429Parameters.aMax == 2047 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 2 );
+  BOOST_CHECK( chipParameters.rampDiv == 0 );
+  BOOST_CHECK( chipParameters.aMax == 2047 );
+  BOOST_CHECK( chipParameters.warnings.size() == 2 );
 
   // check that rampDiv = 0 can be reached without warning
   // aMax must not be maximum
@@ -304,11 +304,11 @@ BOOST_AUTO_TEST_CASE( testRampDivAMaxRanges ){
 			    2000,
 			    0.001, // very fast acceleration
 			    0.24); 
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( smallRampDivParameters );
-  BOOST_CHECK( tmc429Parameters.rampDiv == 0 );
-  BOOST_CHECK( tmc429Parameters.aMax == 1789 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 0 );
+  BOOST_CHECK( chipParameters.rampDiv == 0 );
+  BOOST_CHECK( chipParameters.aMax == 1789 );
+  BOOST_CHECK( chipParameters.warnings.size() == 0 );
 
   ParametersCalculator::PhysicalParameters lowAMaxParameters 
     = vt21Parameters;
@@ -316,11 +316,11 @@ BOOST_AUTO_TEST_CASE( testRampDivAMaxRanges ){
   lowAMaxParameters.maxRPM = 20; // with 200 also pDiv is out of range
   // AMax is below the recommended value of 20, there whould be
   // an additional warning
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( lowAMaxParameters );
-  BOOST_CHECK( tmc429Parameters.rampDiv == 13 );
-  BOOST_CHECK( tmc429Parameters.aMax == 15 );
-  BOOST_CHECK( tmc429Parameters.warnings.size() == 2 );
+  BOOST_CHECK( chipParameters.rampDiv == 13 );
+  BOOST_CHECK( chipParameters.aMax == 15 );
+  BOOST_CHECK( chipParameters.warnings.size() == 2 );
 
   // If the requested acceleration way too slow aMax will be calculated 
   // as 0, which will lead to an exception
@@ -346,15 +346,15 @@ BOOST_AUTO_TEST_CASE( testPDiv ){
 
   // check that pDiv = 13 can be reached
   physicalParameters.timeToVMax = 60;
-  ParametersCalculator::TMC429Parameters tmc429Parameters
+  ParametersCalculator::ChipParameters chipParameters
     = ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.pDiv == 13 );
+  BOOST_CHECK( chipParameters.pDiv == 13 );
 
   // check that pDiv = 0 can be reached
   physicalParameters.timeToVMax = 0.01;
-  tmc429Parameters
+  chipParameters
     = ParametersCalculator::calculateParameters( physicalParameters );
-  BOOST_CHECK( tmc429Parameters.pDiv == 0 );
+  BOOST_CHECK( chipParameters.pDiv == 0 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
