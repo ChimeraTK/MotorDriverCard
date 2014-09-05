@@ -32,3 +32,9 @@ if(TESTING_IS_ENABLED)
     ${PROJECT_BINARY_DIR}/testConfigCalculatorCLI.sh)
 
 endif(TESTING_IS_ENABLED)
+
+FIND_PACKAGE(Qt4)
+
+if(QT4_FOUND)
+  add_subdirectory(GUI)
+endif(QT4_FOUND)
