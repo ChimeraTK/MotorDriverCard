@@ -2,6 +2,7 @@
 #define MOTOR_CONFIG_WIDGET_H
 
 #include "ParametersCalculator.h"
+#include "ConfigCalculator.h"
 #include <QWidget>
 #include "ui_MotorConfigWidget.h"
 
@@ -10,9 +11,11 @@ class MotorConfigWidget: public QWidget{
 
  public:
    MotorConfigWidget(QWidget * parent_ = NULL);
+ 
+   mtca4u::MotorControlerConfig getConfig();
+   bool motorIsEnabled();
 
-   ParametersCalculator::TMC429Parameters getTMC429Parameters();
-   bool motorIsActive();
+   void setMotorEnabled(bool motorEnabled);
 
  private slots:
    void recalculateTMC429Parameters();
@@ -20,6 +23,7 @@ class MotorConfigWidget: public QWidget{
  private:
    ParametersCalculator::TMC429Parameters _tmc429Parameters;
    void updateChipParameters();
+   ConfigCalculator::EndSwitchConfig getEndSwitchConfig();
 
    Ui::MotorConfigWidgetForm _motorConfigWidgetForm;
 };

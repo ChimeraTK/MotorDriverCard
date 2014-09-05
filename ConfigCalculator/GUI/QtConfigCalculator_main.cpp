@@ -1,15 +1,15 @@
 #include <QtGui>
-#include "MotorConfigWidget.h"
+#include "QtConfigCalculator.h"
 
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
 
-  MotorConfigWidget motorConfigWidget;
-  motorConfigWidget.setWindowTitle("QtConfigCalculator");
-  motorConfigWidget.setWindowIcon(  QIcon(":/DESY_logo_nofade.png") );
+  QtConfigCalculator qtConfigCalculator;
+  qtConfigCalculator.setWindowTitle("QtConfigCalculator");
+  //motorConfigWidget.setWindowIcon(  QIcon(":/DESY_logo_nofade.png") );
 
-  motorConfigWidget.show();
+  qtConfigCalculator.show();
 
   return app.exec();
 }

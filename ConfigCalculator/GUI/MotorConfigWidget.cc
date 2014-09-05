@@ -48,12 +48,13 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 	  this, SLOT(recalculateTMC429Parameters()));
 }
 
-ParametersCalculator::TMC429Parameters MotorConfigWidget::getTMC429Parameters(){
-  return _tmc429Parameters;
+mtca4u::MotorControlerConfig MotorConfigWidget::getConfig(){
+  return ConfigCalculator::calculateConfig( _tmc429Parameters, 
+					    getEndSwitchConfig() );
 }
 
-bool MotorConfigWidget::motorIsActive(){
-  return _motorConfigWidgetForm.motorActiveCheckBox->isChecked();
+bool MotorConfigWidget::motorIsEnabled(){
+  return _motorConfigWidgetForm.motorEnabledCheckBox->isChecked();
 }
 
 void MotorConfigWidget::recalculateTMC429Parameters(){
@@ -114,4 +115,24 @@ void MotorConfigWidget::updateChipParameters(){
   }
 
   _motorConfigWidgetForm.warningsBrowser->setText( warningText );
+}
+
+void MotorConfigWidget::setMotorEnabled(bool motorEnabled){
+  _motorConfigWidgetForm.motorEnabledCheckBox->setChecked(motorEnabled);
+}
+
+ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig(){
+  if(_motorConfigWidgetForm.positiveSwitchCheckBox->isChecked()){
+    if(_motorConfigWidgetForm.negativeSwitchCheckBox->isChecked()){
+      return ConfigCalculator::USE_BOTH;
+    }else{
+      return ConfigCalculator::IGNORE_NEGATIVE;
+    }
+ }else{
+    if(_motorConfigWidgetForm.negativeSwitchCheckBox->isChecked()){
+      return ConfigCalculator::IGNORE_POSITIVE;
+    }else{
+      return ConfigCalculator::IGNORE_BOTH;
+    }
+  }
 }
