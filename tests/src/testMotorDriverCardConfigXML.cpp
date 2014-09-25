@@ -5,16 +5,18 @@ using namespace mtca4u;
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#define COMPLETE_XML_FILE_NAME "MotorDriverCardConfig_complete_test.xml"
-#define FIRST_HALF_XML_FILE_NAME "MotorDriverCardConfig_first_half_test.xml"
-#define SECOND_HALF_XML_FILE_NAME "MotorDriverCardConfig_second_half_test.xml"
-#define MINIMAL_XML_FILE_NAME "MotorDriverCardConfig_minimal_test.xml"
+static const std::string COMPLETE_XML_FILE_NAME("MotorDriverCardConfig_complete_test.xml");
+static const std::string FIRST_HALF_XML_FILE_NAME("MotorDriverCardConfig_first_half_test.xml");
+static const std::string SECOND_HALF_XML_FILE_NAME("MotorDriverCardConfig_second_half_test.xml");
+static const std::string MINIMAL_XML_FILE_NAME("MotorDriverCardConfig_minimal_test.xml");
+static const std::string OLD_INVALID_XML_PREFIX("MotorDriverCardConfig_invalid_");
+static const std::string OLD_INVALID_XML_SUFFIX(".xml");
 
-#define WRITE_FULL_COMPLETE_OUTPUT_FILE_NAME "MotorDriverCardConfig_complete_full_output.xml"
-#define WRITE_SPARSE_COMPLETE_OUTPUT_FILE_NAME "MotorDriverCardConfig_complete_sparse_output.xml"
-#define WRITE_SPARSE_FIRST_HALF_OUTPUT_FILE_NAME "MotorDriverCardConfig_first_half_sparse_output.xml"
-#define WRITE_FULL_SECOND_HALF_OUTPUT_FILE_NAME "MotorDriverCardConfig_second_half_full_output.xml"
-#define WRITE_MINIMAL_OUTPUT_FILE_NAME "MotorDriverCardConfig_minimal_output.xml"
+static const std::string WRITE_FULL_COMPLETE_OUTPUT_FILE_NAME("MotorDriverCardConfig_complete_full_output.xml");
+static const std::string WRITE_SPARSE_COMPLETE_OUTPUT_FILE_NAME("MotorDriverCardConfig_complete_sparse_output.xml");
+static const std::string WRITE_SPARSE_FIRST_HALF_OUTPUT_FILE_NAME("MotorDriverCardConfig_first_half_sparse_output.xml");
+static const std::string WRITE_FULL_SECOND_HALF_OUTPUT_FILE_NAME("MotorDriverCardConfig_second_half_full_output.xml");
+static const std::string WRITE_MINIMAL_OUTPUT_FILE_NAME("MotorDriverCardConfig_minimal_output.xml");
 
 #define ASSIGN_PLUS_ONE_CONTROLER( VARIABLE )\
  plusOneControlerConfig. VARIABLE .setDataWord( defaultControlerConfig. VARIABLE .getDataWord() +1 )
@@ -41,6 +43,7 @@ class  MotorDriverCardConfigXMLTest
 
   void testWrite();
   void testInvalidOutput();
+  void testOldInvalidRegister(std::string const & registerName);
  
  private:
   MotorDriverCardConfig defaultCardConfig;
@@ -68,7 +71,9 @@ public:
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testReadSecondHalf, xmlTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testWrite, xmlTest ) );
     add( BOOST_CLASS_TEST_CASE( &MotorDriverCardConfigXMLTest::testInvalidOutput, xmlTest ) );
-   }
+    add( BOOST_TEST_CASE( boost::bind( &MotorDriverCardConfigXMLTest::testOldInvalidRegister, xmlTest,
+				       "maximumAccelleration" ) ) );  // (typo with two 'l's)
+  }
 };
 
 
@@ -243,3 +248,20 @@ void MotorDriverCardConfigXMLTest::testInvalidOutput(){
 		     XMLException );  
 }
 
+void MotorDriverCardConfigXMLTest::testOldInvalidRegister(std::string const & registerName){
+  // check that an exception is thrown if any of the register name appears
+  // (note: only do one invalid name per file so it is excatly this name which is triggering
+  //  the exception)
+
+  std::string fileName = OLD_INVALID_XML_PREFIX + registerName +  OLD_INVALID_XML_SUFFIX;
+  BOOST_CHECK_THROW( MotorDriverCardConfigXML::read(fileName), XMLException );
+
+  try{
+    MotorDriverCardConfigXML::read(fileName);
+  }
+  catch(XMLException &e){
+    std::string expectedMessage("Found old, invalid Register name ");
+    expectedMessage += registerName + ". Please update your config file!";
+    BOOST_CHECK( expectedMessage.compare(e.what()) == 0);
+  }
+}

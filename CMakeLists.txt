@@ -48,7 +48,8 @@ ENDMACRO( COPY_MAPPING_FILES )
 MACRO( COPY_XML_FILES )
   foreach( XML_FILE MotorDriverCardConfig_minimal_test.xml MotorDriverCardConfig_complete_test.xml
                     MotorDriverCardConfig_first_half_test.xml MotorDriverCardConfig_second_half_test.xml
-		    MotorDriverCardConfig_second_half_full_test.xml )
+		    MotorDriverCardConfig_second_half_full_test.xml
+		    MotorDriverCardConfig_invalid_maximumAccelleration.xml)
     configure_file( tests/${XML_FILE} ${PROJECT_BINARY_DIR}/${XML_FILE} copyonly)
   endforeach( XML_FILE )
 ENDMACRO( COPY_XML_FILES )

@@ -40,6 +40,14 @@ namespace mtca4u{
 
     static MotorControlerConfig parseControlerConfig(  pugi::xml_node const & controlerConfigXML );
 
+    /** As we do not use a validating parser, we have to do checks on schema evolution manually :-(
+     *  check that the old name is not there so we don't accidentally ignore a parameter that is meant
+     *  to be set.
+     */
+    static void checkForOldInvalidTagName( std::string const & parameterName,
+					   pugi::xml_node const & parentNode, 
+					   std::string const & tagName = "Register" );
+
     class NodeFiller{
     public:
       NodeFiller(pugi::xml_node & node, bool sparse);

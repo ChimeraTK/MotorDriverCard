@@ -148,6 +148,11 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
   setValueIfFound("driverSpiWaitingTime", controlerConfig.driverSpiWaitingTime, controlerConfigXML,
 		  "Parameter");  
 
+  // A parameter name has changed. As we do not use a validating parser we have to manually
+  // check that the old name is not there so we don't accidentally ignore a parameter that is meant
+  // to be set.
+  checkForOldInvalidTagName( "maximumAccelleration", 
+			     controlerConfigXML );  
   return controlerConfig;
 }
 
@@ -222,6 +227,19 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
     if (!doc.save_file( fileName.c_str() )){
       std::stringstream message;
       message << "Could not write XML file \"" << fileName << "\"";
+      throw XMLException(message.str());
+    }
+  }
+
+  void MotorDriverCardConfigXML::checkForOldInvalidTagName( std::string const & parameterName,
+							    pugi::xml_node const & parentNode, 
+							    std::string const & tagName){
+    pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", 
+								      parameterName.c_str());
+    if (parameterNode){
+      std::stringstream message;
+      message << "Found old, invalid " << tagName << " name " << parameterName
+	      << ". Please update your config file!";
       throw XMLException(message.str());
     }
   }
