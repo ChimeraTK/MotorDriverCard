@@ -1,5 +1,5 @@
-#ifndef QT_CONFIG_CALCULATOR_H
-#define QT_CONFIG_CALCULATOR_H
+#ifndef QT_MOTOR_CONFIG_CALCULATOR_H
+#define QT_MOTOR_CONFIG_CALCULATOR_H
 
 #include "MotorConfigWidget.h"
 #include <QTabWidget>
@@ -8,14 +8,14 @@
 /** A widget containing two MotorConfigWidget in a TabWidget,
  *  and a write button which write the config to an XML file\
  */
-class QtConfigCalculator: public QWidget{
+class QtMotorConfigCalculator: public QWidget{
    Q_OBJECT
 
  public:
   /** The constructor expects no parameters except for the 
    *  parent widget.
    */
-   QtConfigCalculator(QWidget * parent_ = NULL);
+   QtMotorConfigCalculator(QWidget * parent_ = NULL);
 
  private:
    QVBoxLayout *verticalLayout;
@@ -31,4 +31,4 @@ class QtConfigCalculator: public QWidget{
 
 };
 
-#endif// QT_CONFIG_CALCULATOR_H
+#endif// QT_MOTOR_CONFIG_CALCULATOR_H

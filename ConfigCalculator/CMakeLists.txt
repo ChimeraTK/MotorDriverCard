@@ -8,9 +8,12 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
 add_library(${PROJECT_NAME} ${calculator_library_sources} )
 target_link_libraries(${PROJECT_NAME} MotorDriverCard)    
 
-add_executable(ConfigCalculatorCLI  executables/ConfigCalculatorCLI.cpp)
-target_link_libraries(ConfigCalculatorCLI ${PROJECT_NAME})    
-
+add_executable(MotorConfigCalculator     executables/ConfigCalculatorCLI.cpp)
+target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})    
+install(TARGETS MotorConfigCalculator
+        RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+)
 
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests/include)
@@ -26,10 +29,10 @@ if(TESTING_IS_ENABLED)
   # add a test for the CLI executable
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/generatedVT21Config.xml
     ${PROJECT_BINARY_DIR}/generatedVT21Config.xml copyonly)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/testConfigCalculatorCLI.sh
-    ${PROJECT_BINARY_DIR}/testConfigCalculatorCLI.sh copyonly)
-  add_test(testConfigCalculatorCLI
-    ${PROJECT_BINARY_DIR}/testConfigCalculatorCLI.sh)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/testMotorConfigCalculator.sh
+    ${PROJECT_BINARY_DIR}/testMotorConfigCalculator.sh copyonly)
+  add_test(testMotorConfigCalculator
+    ${PROJECT_BINARY_DIR}/testMotorConfigCalculator.sh)
 
 endif(TESTING_IS_ENABLED)
 

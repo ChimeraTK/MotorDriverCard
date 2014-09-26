@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # One parameter too few
-./ConfigCalculatorCLI calculatorTest.xml 0.24 200
+./MotorConfigCalculator calculatorTest.xml 0.24 200
 if [ $? -ne 255 ] ; then echo test 1 failed; exit -1 ; fi 
 
 # One parameter too much
-./ConfigCalculatorCLI calculatorTest.xml 0.24 200 200 0.5 0x0 16 17
+./MotorConfigCalculator calculatorTest.xml 0.24 200 200 0.5 0x0 16 17
 if [ $? -ne 255 ] ; then echo test 2 failed; exit -2 ; fi 
 
 # minimum number, but parametes which cause warnings
-./ConfigCalculatorCLI calculatorTest.xml 1 2 3
+./MotorConfigCalculator calculatorTest.xml 1 2 3
 if [ $? -ne 2 ] ; then echo test 3 failed; exit -3 ; fi 
 
 
 # All parameters specified, VT21 config
-./ConfigCalculatorCLI calculatorTest.xml 0.24 200 200 0.5 0x0 16
+./MotorConfigCalculator calculatorTest.xml 0.24 200 200 0.5 0x0 16
 if [ $? -ne 0 ] ; then echo test 4 failed; exit -4 ; fi 
 
 diff calculatorTest.xml generatedVT21Config.xml

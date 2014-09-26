@@ -1,10 +1,10 @@
-#include "QtConfigCalculator.h"
+#include "QtMotorConfigCalculator.h"
 #include "DFMC_MD22Constants.h"
 
 #include <QFileDialog>
 #include "MotorDriverCardConfigXML.h"
 
-QtConfigCalculator::QtConfigCalculator(QWidget * parent_)
+QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
   : QWidget(parent_){
   verticalLayout = new QVBoxLayout(this);
   
@@ -33,7 +33,7 @@ QtConfigCalculator::QtConfigCalculator(QWidget * parent_)
   this->resize(620, 480);
 }
 
-void QtConfigCalculator::write(){
+void QtMotorConfigCalculator::write(){
   QString fileName = QFileDialog::getSaveFileName( NULL, "Save config file",
 						   QString(), tr("XML files (*.xml)" ));
   
