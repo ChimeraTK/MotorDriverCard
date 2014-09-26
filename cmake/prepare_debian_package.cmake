@@ -46,7 +46,9 @@ add_custom_target(debian_package ${CMAKE_BINARY_DIR}/make_debian_package.sh
 set(PACKAGE_NAME "mtca4u-motordrivercard${MotorDriverCard_DEBVERSION}")
 #The development package does not have the version in the name
 set(PACKAGE_DEV_NAME "dev-mtca4u-motordrivercard")
-set(PACKAGE_FILES_WILDCARDS "${PACKAGE_NAME}_*.deb ${PACKAGE_DEV_NAME}_*.deb mtca4u-motordrivercard_*.changes")
+#The binaries are in a separate package because they also do not have a version number in the package name
+set(PACKAGE_BIN_NAME "mtca4u-motordrivercard-configcalculator")
+set(PACKAGE_FILES_WILDCARDS "${PACKAGE_NAME}_*.deb ${PACKAGE_DEV_NAME}_*.deb ${PACKAGE_BIN_NAME}_*.deb mtca4u-motordrivercard_*.changes")
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/install_debian_package_at_DESY.sh.in
                install_debian_package_at_DESY.sh @ONLY)
