@@ -17,4 +17,14 @@ Package: mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+# We do not use recommends, which would automatically install the package,
+# but suggests, because of the dependency on the huge Qt package
+Suggests: mtca4u-motordrivercard-configcalculator
 Description: MTCA4U MotorDriverCard provides a C++ API for the DFMC-MD22 motor driver card, based on the MTCA4U tool kit.
+
+Package: mtca4u-motordrivercard-configcalculator
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Enhances:  mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@
+Description: Config calculators (command line and Qt GUI) for the MTCA4U MotorDriverCard.

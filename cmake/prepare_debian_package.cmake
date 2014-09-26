@@ -7,6 +7,8 @@ set(MotorDriverCard_DEBVERSION ${MotorDriverCard_MAJOR_VERSION}-${MotorDriverCar
 #Nothing to change, just copy
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/compat
            ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules
+           ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules
+	   ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercard-configcalculator.install
      DESTINATION debian_from_template)
 
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/source/format
