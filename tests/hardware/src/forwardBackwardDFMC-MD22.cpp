@@ -51,6 +51,8 @@ int main( int argc, char* argv[] )
     return -1;
   }
 
+  static const unsigned int sleepTime=100000; //100 ms
+
   signal(SIGINT, intHandler);
 
   std::pair<std::string, std::string> deviceFileAndMapFileName =
@@ -83,6 +85,7 @@ int main( int argc, char* argv[] )
     motor0->setTargetPosition(0x100000); // the minimal possible position
 
     while(  motorDriverCard->getReferenceSwitchData().getLeft1() != 0x1 ){
+      sleepMicroSeconds(sleepTime);
       std::cout << "\r Position: " << motor0->getActualPosition()<< std::hex << " ,  switches are 0x" 
 		<< motorDriverCard->getReferenceSwitchData().getDATA()
 		<< "        " << std::dec <<std::flush;
@@ -119,6 +122,7 @@ int main( int argc, char* argv[] )
 
       try{
 	while (motor0->getActualPosition() != motor0->getTargetPosition() ){
+	  sleepMicroSeconds(sleepTime);
 	  std::cout << "\r Position: " << motor0->getActualPosition()  << "    "
 		    << " ,    switches are : 0x" << std::hex 
 		    << motorDriverCard->getReferenceSwitchData().getDataWord() << std::dec
@@ -142,6 +146,7 @@ int main( int argc, char* argv[] )
       motor0->setTargetPosition( static_cast<unsigned int>( 0.2 * nStepsMax) );
       try{
 	while (motor0->getActualPosition() != motor0->getTargetPosition() ){
+	  sleepMicroSeconds(sleepTime);
 	  std::cout << "\r Position: " << motor0->getActualPosition() 
 		    << " ,    switches are : 0x" << std::hex 
 		    << motorDriverCard->getReferenceSwitchData().getDataWord() << std::dec
