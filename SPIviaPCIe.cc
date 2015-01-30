@@ -4,6 +4,8 @@
 #include <ctime>
 #include <cerrno>
 
+#include <boost/thread/locks.hpp>
+
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
