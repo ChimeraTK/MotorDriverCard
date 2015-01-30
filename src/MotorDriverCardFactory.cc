@@ -8,6 +8,8 @@
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
 
+#include <boost/thread/locks.hpp>
+
 namespace mtca4u{
 
   MotorDriverCardFactory::MotorDriverCardFactory(){

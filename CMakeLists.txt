@@ -4,7 +4,7 @@ project(MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
 set(${PROJECT_NAME}_MINOR_VERSION 04)
-set(${PROJECT_NAME}_PATCH_VERSION 00)
+set(${PROJECT_NAME}_PATCH_VERSION 01)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
@@ -26,7 +26,9 @@ include_directories(${pugixml_INCLUDE_DIRS})
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
-FIND_PACKAGE(Boost COMPONENTS unit_test_framework)
+#For some reason the system library has to be mentioned explicitly to the linker.
+#This is strange because the thead library has it as a dependency.
+FIND_PACKAGE(Boost COMPONENTS thread system unit_test_framework)
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
   ENABLE_TESTING()
