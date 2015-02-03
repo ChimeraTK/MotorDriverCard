@@ -1,7 +1,7 @@
 Source: mtca4u-motordrivercard
 Priority: extra
 Maintainer: Martin Killenberg <martin.killenberg@desy.de>
-Build-Depends: debhelper (>= 7), cmake (>= 2.8), libboost-dev (>= 1.40), libboost-test-dev (>= 1.40), dev-mtcamappeddevice (>= 0.9), dev-pugixml (>= 1.3)
+Build-Depends: debhelper (>= 7), cmake (>= 2.8), libboost-dev (>= 1.46), libboost-test-dev (>= 1.46), libboost-thread-dev (>= 1.46), dev-mtcamappeddevice (>= 0.9), dev-pugixml (>= 1.3)
 Standards-Version: 3.8.3
 Section: libs
 #Homepage: <insert the upstream URL, if relevant>
@@ -9,7 +9,7 @@ Section: libs
 Package: dev-mtca4u-motordrivercard
 Section: libdevel
 Architecture: any
-Depends: mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@, dev-mtcamappeddevice (>= @MtcaMappedDevice_VERSION@), dev-mtcamappeddevice (<= @MtcaMappedDevice_VERSION@.99-zz), libboost-dev
+Depends: mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@, dev-mtcamappeddevice (>= @MtcaMappedDevice_VERSION@), dev-mtcamappeddevice (<= @MtcaMappedDevice_VERSION@.99-zz), libboost-dev (>= 1.46), libboost-thread-dev (>= 1.46)
 Description: Header and cmake files for MTCA4U MotorDriverCard.
  The files you need to compile against MTCA4U MotorDriverCard.
 
