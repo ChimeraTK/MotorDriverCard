@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!--This file just contains the old, invalid register with the name "accellerationThresholdData" -->
+<!--(typo, acceleration only has one 'l') -->
+<MotorDriverCardConfig>
+	<MotorControlerConfig motorID="0">
+	  <Register name="maximumAccelleration" value="0x15" />
+	</MotorControlerConfig>
+</MotorDriverCardConfig>
