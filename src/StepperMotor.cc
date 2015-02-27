@@ -1,5 +1,5 @@
 #include "StepperMotor.h"
-#include "math.h"
+#include <cmath>
 #include "MotorDriverCardFactory.h"
 #include <MtcaMappedDevice/NotImplementedException.h>
 

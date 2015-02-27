@@ -1,5 +1,5 @@
 #include "LinearStepperMotor.h"
-#include "math.h"
+#include <cmath>
 
 #define DEBUG(x) if (_debugLevel>=x) *_debugStream 
 
