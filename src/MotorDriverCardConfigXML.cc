@@ -71,10 +71,7 @@ void MotorDriverCardConfigXML::setValueIfFound(std::string const & parameterName
 					       std::string const & tagName){
   pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", 
 								    parameterName.c_str());
-  parameterContent = parameterNode.attribute("value").as_int( parameterContent, /*default vale*/
-							      0 ); /* readout mode, 
-								      automatic hex and octal detection,
-								      base 10 as default */
+  parameterContent = parameterNode.attribute("value").as_int( parameterContent /* = default vale*/ );
 }
 
 void MotorDriverCardConfigXML::setValueIfFound(std::string const & parameterName,
@@ -90,10 +87,7 @@ void MotorDriverCardConfigXML::setValueIfFound(std::string const & registerName,
 					       TMC429InputWord & inputWord,
 					       pugi::xml_node const & parentNode){
   pugi::xml_node registerNode = parentNode.find_child_by_attribute("Register","name",registerName.c_str());
-  unsigned int readValue = registerNode.attribute("value").as_int( inputWord.getDATA(), /*default vale*/
-								   0 ); /* readout mode, 
-									   automatic hex and octal detection,
-									   base 10 as default */
+  unsigned int readValue = registerNode.attribute("value").as_int( inputWord.getDATA() /* = default vale*/ );
   inputWord.setDATA(readValue);
 }
 
@@ -101,10 +95,7 @@ void MotorDriverCardConfigXML::setValueIfFound(std::string const & registerName,
 					       TMC260Word & inputWord,
 					       pugi::xml_node const & parentNode){
   pugi::xml_node registerNode = parentNode.find_child_by_attribute("Register","name",registerName.c_str());
-  unsigned int readValue = registerNode.attribute("value").as_int( inputWord.getPayloadData(), /*default vale*/
-								   0 ); /* readout mode, 
-									   automatic hex and octal detection,
-									   base 10 as default */
+  unsigned int readValue = registerNode.attribute("value").as_int( inputWord.getPayloadData() /* = default vale*/ );
   inputWord.setPayloadData(readValue);
 }
 
