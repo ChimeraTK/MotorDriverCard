@@ -16,7 +16,7 @@ Description: Header and cmake files for MTCA4U MotorDriverCard.
 Package: mtca4u-motordrivercard@MotorDriverCard_DEBVERSION@
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpugixml1 (>= 1.4)
 # We do not use recommends, which would automatically install the package,
 # but suggests, because of the dependency on the huge Qt package
 Suggests: mtca4u-motordrivercard-configcalculator
