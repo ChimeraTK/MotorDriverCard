@@ -105,7 +105,7 @@ void SPIviaPCIeTest::testRead(){
   coverDatagram.setDATA(0); 
 
   unsigned int readbackInt;
-  BOOST_CHECK_NO_THROW( readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord()) );
+  BOOST_REQUIRE_NO_THROW( readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord()) );
   TMC429OutputWord readbackWord;
   readbackWord.setDataWord( readbackInt );
   BOOST_CHECK( readbackWord.getDATA() == 0xAAAAAA );
@@ -113,7 +113,7 @@ void SPIviaPCIeTest::testRead(){
   // test the error cases
   _dummyDevice->causeSpiTimeouts(true);
   try{
-    readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord());
+    _readWriteSPIviaPCIe->read( coverDatagram.getDataWord());
     BOOST_ERROR( "SPIviaPCIe::read did not throw as expected." );
     }catch( MotorDriverException & e ){
       if (e.getID() != MotorDriverException::SPI_TIMEOUT){
@@ -125,7 +125,7 @@ void SPIviaPCIeTest::testRead(){
   
   _dummyDevice->causeSpiErrors(true);
   try{
-    readbackInt = _readWriteSPIviaPCIe->read( coverDatagram.getDataWord());
+    _readWriteSPIviaPCIe->read( coverDatagram.getDataWord());
     BOOST_ERROR( "SPIviaPCIe::read did not throw as expected." );
   }catch( MotorDriverException & e ){
     if (e.getID() != MotorDriverException::SPI_ERROR){
