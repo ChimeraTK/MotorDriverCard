@@ -13,16 +13,16 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
 
 #set(CMAKE_CXX_FLAGS "-Wall -g -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
 #skip -Weffc++ for the moment. It gives too many false positives
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -fPIC -Wextra -Wshadow -pedantic -Wuninitialized -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -Wuninitialized -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 FIND_PACKAGE(MtcaMappedDevice 00.09 REQUIRED)
-include_directories(${MtcaMappedDevice_INCLUDE_DIRS})
+include_directories(SYSTEM ${MtcaMappedDevice_INCLUDE_DIRS})
 
 FIND_PACKAGE(pugixml 1.4 REQUIRED)
-include_directories(${pugixml_INCLUDE_DIRS})
+include_directories(SYSTEM ${pugixml_INCLUDE_DIRS})
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
@@ -61,7 +61,7 @@ ENDMACRO( COPY_XML_FILES )
 #Currently we assume that they are all tests contained in one file, so
 #each file gives a new executable. This section has to be adapted if this should change.
 if(TESTING_IS_ENABLED)
-  include_directories(${Boost_INCLUDE_DIR})
+  include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testSources)
   foreach( testSourceFile ${testSources})
