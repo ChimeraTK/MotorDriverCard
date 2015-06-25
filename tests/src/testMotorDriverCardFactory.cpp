@@ -7,6 +7,14 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Constants.h"
 #include "MotorDriverCardDummy.h"
 
+
+#define DUMMY_DEV_PATH "/dev/mtcadummys0"
+#define DUMMY_MOC_MAP "mtcadummy_DFMC_MD22_mock.map"
+#define MAP_FILE_NAME "DFMC_MD22_test.map"
+#define CONFIG_FILE "VT21-MotorDriverCardConfig.xml"
+#define MODULE_NAME ""
+
+
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 
@@ -26,27 +34,30 @@ BOOST_AUTO_TEST_CASE( testCreate ){
   // Prepare the dummy device. It has to have the correct firmware number in the
   // corresponding register.
   devMap<devPCIE> mappedMtcadummy;
-  mappedMtcadummy.openDev("/dev/mtcadummys0", "mtcadummy_DFMC_MD22_mock.map");
+  mappedMtcadummy.openDev(DUMMY_DEV_PATH, DUMMY_MOC_MAP);
   mappedMtcadummy.writeReg(PROJECT_VERSION_ADDRESS_STRING,  &MINIMAL_FIRMWARE_VERSION);
 
   boost::shared_ptr<MotorDriverCard> motorDriverCard_PCIe1 = 
-    MotorDriverCardFactory::instance().createMotorDriverCard("/dev/mtcadummys0", 
-							     "mtcadummy_DFMC_MD22_mock.map",
-							     "VT21-MotorDriverCardConfig.xml");
+    MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH, 
+							     DUMMY_MOC_MAP,
+                                                             MODULE_NAME,
+							     CONFIG_FILE);
 
   boost::shared_ptr<MotorDriverCard> md22_dummy1 = 
-    MotorDriverCardFactory::instance().createMotorDriverCard("DFMC_MD22_test.map", 
-							     "DFMC_MD22_test.map",
-							     "VT21-MotorDriverCardConfig.xml");
+    MotorDriverCardFactory::instance().createMotorDriverCard(MAP_FILE_NAME, 
+							     MAP_FILE_NAME,
+							     MODULE_NAME,
+                                                             CONFIG_FILE);
 
   BOOST_CHECK( motorDriverCard_PCIe1.get() != md22_dummy1.get() );
   // there is one instance here and one in the factory
   BOOST_CHECK( md22_dummy1.use_count() == 2 );
 
   boost::shared_ptr<MotorDriverCard> md22_dummy2 = 
-    MotorDriverCardFactory::instance().createMotorDriverCard("DFMC_MD22_test.map", 
-							     "DFMC_MD22_test.map",
-							     "VT21-MotorDriverCardConfig.xml");
+    MotorDriverCardFactory::instance().createMotorDriverCard(MAP_FILE_NAME, 
+							     MAP_FILE_NAME,
+                                                             MODULE_NAME,
+							     CONFIG_FILE);
  
   BOOST_CHECK( md22_dummy1.get() == md22_dummy2.get() );
   // there are two instances here, and one in the factory
@@ -57,9 +68,10 @@ BOOST_AUTO_TEST_CASE( testCreate ){
   mappedMtcadummy.writeReg(PROJECT_VERSION_ADDRESS_STRING,  &MINIMAL_FIRMWARE_VERSION);
 
   boost::shared_ptr<MotorDriverCard> motorDriverCard_PCIe2 = 
-    MotorDriverCardFactory::instance().createMotorDriverCard("/dev/mtcadummys0", 
-							     "mtcadummy_DFMC_MD22_mock.map",
-							     "VT21-MotorDriverCardConfig.xml");
+    MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH, 
+							     DUMMY_MOC_MAP,
+                                                             MODULE_NAME,
+							     CONFIG_FILE);
   
   BOOST_CHECK( motorDriverCard_PCIe1.get() == motorDriverCard_PCIe2.get() );
   // there are two instances here, and one in the factory
@@ -71,6 +83,7 @@ BOOST_AUTO_TEST_CASE( testCreateDummy ){
     boost::dynamic_pointer_cast<MotorDriverCardDummy>(
       MotorDriverCardFactory::instance().createMotorDriverCard("/dummy/MotorDriverCard", 
 							       "irrelevant",
+                                                               MODULE_NAME,
 							       "alsoIrrelevant"));
       
   BOOST_CHECK(motorDriverCardDummy);

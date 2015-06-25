@@ -11,27 +11,35 @@ using namespace mtca4u::dfmc_md22;
 namespace mtca4u{
 
   SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
-			  std::string const & writeRegisterName, std::string const & syncRegisterName,
+			  std::string const & moduleName, 
+                          std::string const & writeRegisterName, 
+                          std::string const & syncRegisterName,
 			  unsigned int spiWaitingTime)
-    : _writeRegister( mappedDevice->getRegObject( writeRegisterName ) ),
-      _synchronisationRegister(  mappedDevice->getRegObject( syncRegisterName ) ),
+    : _writeRegister( mappedDevice->getRegisterAccessor(writeRegisterName, moduleName) ),
+      _synchronisationRegister(  mappedDevice->getRegisterAccessor(syncRegisterName, moduleName) ),
       // will always return the last written word
-      _readbackRegister(  mappedDevice->getRegObject( writeRegisterName ) ),
+      _readbackRegister(  mappedDevice->getRegisterAccessor(writeRegisterName, moduleName) ),
       _spiWaitingTime(spiWaitingTime),
-      _writeRegisterName( writeRegisterName ),
-      _syncRegisterName( syncRegisterName )
+      _moduleName(moduleName),
+      _writeRegisterName(writeRegisterName),
+      _syncRegisterName(syncRegisterName)
+      
   {}
 
   SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
-			  std::string const & writeRegisterName, std::string const & syncRegisterName,
+			  std::string const & moduleName, 
+                          std::string const & writeRegisterName, 
+                          std::string const & syncRegisterName,
 			  std::string const & readbackRegisterName,
 			  unsigned int spiWaitingTime )
-    : _writeRegister( mappedDevice->getRegObject( writeRegisterName ) ),
-      _synchronisationRegister(  mappedDevice->getRegObject( syncRegisterName ) ),
-      _readbackRegister(  mappedDevice->getRegObject(readbackRegisterName ) ),
+    : _writeRegister( mappedDevice->getRegisterAccessor(writeRegisterName, moduleName) ),
+      _synchronisationRegister(  mappedDevice->getRegisterAccessor(syncRegisterName, moduleName) ),
+      _readbackRegister(  mappedDevice->getRegisterAccessor(readbackRegisterName, moduleName) ),
       _spiWaitingTime(spiWaitingTime),
-      _writeRegisterName( writeRegisterName ),
-      _syncRegisterName( syncRegisterName )
+      _moduleName(moduleName),
+      _writeRegisterName(writeRegisterName),
+      _syncRegisterName(syncRegisterName)
+      
   {}
 
   void SPIviaPCIe::write( int32_t spiCommand ){
@@ -58,8 +66,8 @@ namespace mtca4u{
     //It might be inefficient to always create the error message, even if not needed, but
     //it minimises code duplication.
     std::stringstream errorDetails;
-    errorDetails << "PCIe register " << _writeRegisterName
-		 << ", sync register " << _syncRegisterName  << "= 0x"<< std::hex << syncValue
+    errorDetails << "PCIe register " << _moduleName << "." << _writeRegisterName
+		 << ", sync register " << _moduleName << "." << _syncRegisterName  << "= 0x"<< std::hex << syncValue
 		 << ", spi command 0x" << std::hex << spiCommand << std::dec;
     switch( syncValue ){
     case SPI_SYNC_OK:

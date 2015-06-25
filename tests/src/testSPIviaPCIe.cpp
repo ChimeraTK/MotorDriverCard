@@ -16,11 +16,12 @@ using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
+#define MODULE_NAME ""
 
 class SPIviaPCIeTest{
  public:
   
-  SPIviaPCIeTest(std::string const & mapFileName);
+  SPIviaPCIeTest(std::string const & mapFileName, std::string const & moduleName);
   //  static void testConstructors();
 
   void testRead();
@@ -38,9 +39,9 @@ class SPIviaPCIeTest{
 
 class SPIviaPCIeTestSuite : public test_suite {
 public:
-  SPIviaPCIeTestSuite(std::string const & mapFileName): test_suite("SPIviaPCIe test suite") {
+  SPIviaPCIeTestSuite(std::string const & mapFileName, std::string const & moduleName): test_suite("SPIviaPCIe test suite") {
     // create an instance of the test class
-    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest( new SPIviaPCIeTest(mapFileName) );
+    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest( new SPIviaPCIeTest(mapFileName, moduleName) );
 
     // add the tests
     //   add( BOOST_CLASS_TEST_CASE( &SPIviaPCIeTest::testConstructors, spiViaPCIeTest ) );
@@ -65,10 +66,10 @@ test_suite*
 init_unit_test_suite( int /*argc*/, char** /* use 'char * argv[]' if you need it */ )
 {
   framework::master_test_suite().p_name.value = "SPIviaPCIe test suite";
-  return new SPIviaPCIeTestSuite( MAP_FILE_NAME );
+  return new SPIviaPCIeTestSuite( MAP_FILE_NAME, MODULE_NAME );
 }
 
-SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName){
+SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string const & moduleName){
   _dummyDevice.reset(new DFMC_MD22Dummy);
 
   // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
@@ -82,12 +83,18 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName){
   
   _dummyDevice->setRegistersForTesting();
 
-  _readWriteSPIviaPCIe.reset( new SPIviaPCIe( _mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+  _readWriteSPIviaPCIe.reset( new SPIviaPCIe( _mappedDevice, moduleName, 
+                                              CONTROLER_SPI_WRITE_ADDRESS_STRING,
 					      CONTROLER_SPI_SYNC_ADDRESS_STRING,
 					      CONTROLER_SPI_READBACK_ADDRESS_STRING ) );
-
-  _writeSPIviaPCIe.reset( new SPIviaPCIe( _mappedDevice, MOTOR_REGISTER_PREFIX+"2_"+SPI_WRITE_SUFFIX,
-					  MOTOR_REGISTER_PREFIX+"2_"+SPI_SYNC_SUFFIX) );
+  
+  _writeSPIviaPCIe.reset( new SPIviaPCIe( _mappedDevice, moduleName, 
+                                          MOTOR_REGISTER_PREFIX+"2_"+SPI_WRITE_SUFFIX,
+					  MOTOR_REGISTER_PREFIX+"2_"+SPI_SYNC_SUFFIX ) );
+  
+  
+  
+  
 }
 
 void SPIviaPCIeTest::testRead(){

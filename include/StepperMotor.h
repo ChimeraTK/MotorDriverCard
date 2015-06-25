@@ -73,7 +73,7 @@ namespace mtca4u {
          * @param  pathToDmapFile - path to place where dmap file is located. Default is current directory (./)
          * @return
          */
-        StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
+        StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
         
         /**
          * @brief  Destructor of the class object

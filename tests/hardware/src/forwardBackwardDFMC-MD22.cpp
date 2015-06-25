@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
   if (argc !=4){
     std::cout << "Move to the 'left' (low values) end switch. Afterward move infinetly between 0.2*nStepsMax and nStepsMax."
 	      << std::endl << std::endl;
-    std::cout << "Usage: " << argv[0] << " dmapFile MotorDriverConfig.xml nStepsMax" << std::endl;
+    std::cout << "Usage: " << argv[0] << " dmapFile moduleName MotorDriverConfig.xml nStepsMax" << std::endl;
     return -1;
   }
 
@@ -59,11 +59,11 @@ int main( int argc, char* argv[] )
     dmapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
 
   boost::shared_ptr<mtca4u::MotorDriverCardImpl> motorDriverCard
-    = boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileAndMapFileName.first,  deviceFileAndMapFileName.second, argv[2] ));
+    = boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileAndMapFileName.first,  deviceFileAndMapFileName.second, argv[2], argv[3] ));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the motor
 
-  unsigned int nStepsMax = (strtoul( argv[3] , NULL, 0 ) & 0x7FFFFF);// limit to the maximal possible position
+  unsigned int nStepsMax = (strtoul( argv[4] , NULL, 0 ) & 0x7FFFFF);// limit to the maximal possible position
 
   boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard->getMotorControler(0);
 

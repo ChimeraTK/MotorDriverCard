@@ -22,6 +22,7 @@ static const unsigned int THE_ID = 17;
 static const std::string stepperMotorDeviceName("DFMC-MD22-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string dmapPath(".");
+static const std::string moduleName("");
 
 class TestUnitConveter : public StepperMotorUnitsConverter {
 public:
@@ -100,9 +101,9 @@ LinearStepperMotorTest::LinearStepperMotorTest() {
 
     _testUnitConveter.reset(new TestUnitConveter);
 
-    _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, stepperMotorDeviceConfigFile)->getMotorControler(0));
+    _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
 
-    _stepperMotor.reset(new LinearStepperMotor(stepperMotorDeviceName, 0, stepperMotorDeviceConfigFile, dmapPath));
+    _stepperMotor.reset(new LinearStepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath));
 
 
 

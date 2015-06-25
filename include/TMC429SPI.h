@@ -10,7 +10,8 @@ namespace mtca4u{
   class TMC429SPI{
   public:
     TMC429SPI(  boost::shared_ptr< devMap<devBase> > const & mappedDevice,
-		std::string const & writeRegisterName,
+		std::string const & moduleName,
+                std::string const & writeRegisterName,
 		std::string const & syncRegisterName,
 		std::string const & readbackRegisterName,
 		unsigned int spiWaitingTime = SPIviaPCIe::SPI_DEFAULT_WAITING_TIME );

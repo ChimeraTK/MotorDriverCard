@@ -41,7 +41,9 @@ class MotorDriverCardFactory{
   /** Create a motor driver card from the device and map file name.
    */
   boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
-     std::string deviceFileName, std::string mapFileName,
+     std::string deviceFileName, 
+     std::string mapFileName,
+     std::string mapModuleName,
      std::string motorConfigFileName);
 };
 

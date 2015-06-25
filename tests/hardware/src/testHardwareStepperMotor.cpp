@@ -31,12 +31,14 @@ int main( int argc, char* argv[] ) {
     std::cout << "Test MotorStepper class !!! : Number of params: " <<   argc <<  "\n";
 
     std::string deviceName;
+    std::string moduleName;
     std::string configFileNameName;
     int motorDriverId;
     if (argc == 4 ) {
         deviceName = std::string(argv[1]);
-        configFileNameName = std::string(argv[2]);
-        motorDriverId = boost::lexical_cast<int>(argv[3]);
+        moduleName = std::string(argv[2]);
+        configFileNameName = std::string(argv[3]);
+        motorDriverId = boost::lexical_cast<int>(argv[4]);
     } else {
         deviceName = std::string("DFMC-MD22");
         configFileNameName = std::string("VT21-MotorDriverCardConfig.xml");
@@ -45,7 +47,7 @@ int main( int argc, char* argv[] ) {
     
     std::cout << "Try to open MOTOR CARD with device name: " << deviceName << " with config file: " << configFileNameName << " Motor driver ID is: " << motorDriverId << std::endl;
 
-    mtca4u::LinearStepperMotor motor(deviceName, motorDriverId, configFileNameName);
+    mtca4u::LinearStepperMotor motor(deviceName, moduleName, motorDriverId, configFileNameName);
 
     std::cout << "Change debug stream to the std::cout \n"; 
     motor.setLogLevel(mtca4u::Logger::INFO);

@@ -9,8 +9,8 @@ using namespace mtca4u::tmc429;
 
 
 // just save some typing...
-#define REG_OBJECT_FROM_SUFFIX( SUFFIX )\
-  mappedDevice->getRegObject( createMotorRegisterName( _id, SUFFIX ) )
+#define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
+  mappedDevice->getRegisterAccessor( createMotorRegisterName( _id, SUFFIX ), moduleName )
 
 // Macros which cover more than one line are not good for the code coverage test, as only the 
 // macro call is checked. In this case it is probably ok because we gain a lot of code because
@@ -49,21 +49,23 @@ namespace mtca4u
 
   MotorControlerImpl::MotorControlerImpl( unsigned int ID,
 		  boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+                  std::string const & moduleName,
                   boost::shared_ptr< TMC429SPI > const & controlerSPI,
 		  MotorControlerConfig const & motorControlerConfig ) 
     : _mappedDevice(mappedDevice), _id(ID),
-      _controlerStatus(mappedDevice->getRegObject( CONTROLER_STATUS_BITS_ADDRESS_STRING )),
-      _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX ) ),
-      _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX ) ),
-      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX ) ),
-      _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX ) ),
-      _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX ) ),
-      _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX ) ),
-      _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX ) ),
-      _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX ) ),
-      _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX ) ),
-      _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX ) ),
-      _driverSPI( mappedDevice, createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
+      _controlerStatus(mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING )),
+      _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
+      _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
+      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX, moduleName ) ),
+      _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX, moduleName ) ),
+      _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
+      _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
+      _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
+      _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX, moduleName ) ),
+      _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
+      _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
+      _driverSPI( mappedDevice, moduleName, 
+                  createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
 		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
 		  motorControlerConfig.driverSpiWaitingTime),
       _controlerSPI(controlerSPI),

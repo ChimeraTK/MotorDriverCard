@@ -5,7 +5,7 @@
 
 namespace mtca4u {
 
-    StepperMotor::StepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile) {
+    StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile) {
 
         _motorDriverId = motorDriverId;
         _motorDriverCardDeviceName = motorDriverCardDeviceName;
@@ -14,7 +14,7 @@ namespace mtca4u {
         std::string mapFileName(dmapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
 
         _motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
-                deviceFileName, mapFileName, motorDriverCardConfigFileName);
+                deviceFileName, mapFileName, moduleName, motorDriverCardConfigFileName);
 
         _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
 
