@@ -26,13 +26,15 @@ namespace mtca4u{
   boost::shared_ptr<MotorDriverCard> 
     MotorDriverCardFactory::createMotorDriverCard(std::string deviceFileName,
 						  std::string mapFileName,
+                                                  std::string mapModuleName,
 						  std::string motorConfigFileName){
     boost::lock_guard<boost::mutex> guard(_factoryMutex);
     
     // if the card is not in the map it will be created, otherwise the
     // existing one is delivered
-    boost::shared_ptr<MotorDriverCard> & motorDriverCard = 
-      _motorDriverCards[deviceFileName];
+    
+    //TSK - fix me - now key must be a pair of deviceFileName and mapModuleName, not only deviceFileName
+    boost::shared_ptr<MotorDriverCard> & motorDriverCard =  _motorDriverCards[deviceFileName]; 
 
     // create a new instance of the motor driver card if the shared pointer is
     // empty, which means it has just been added to the map
@@ -57,10 +59,9 @@ namespace mtca4u{
 	boost::shared_ptr< devMap< devBase > > mappedDevice(new devMap<devBase>);
 	mappedDevice->openDev(ioDevice, registerMapping);
 
-	MotorDriverCardConfig cardConfig = 
-	  MotorDriverCardConfigXML::read(motorConfigFileName);
+	MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
-	motorDriverCard.reset(new MotorDriverCardImpl(mappedDevice, cardConfig));
+	motorDriverCard.reset(new MotorDriverCardImpl(mappedDevice, mapModuleName, cardConfig));
       }// else deviceFileName=="/dummy/MotorDriverCard" 
 
     }// if (!motorDriverCard)

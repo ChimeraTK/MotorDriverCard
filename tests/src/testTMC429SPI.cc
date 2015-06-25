@@ -18,11 +18,12 @@ using namespace mtca4u::tmc429;
 #include "testWordFromSpiAddress.h"
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
+#define MODULE_NAME ""
 
 class TMC429SPITest{
  public:
   
-  TMC429SPITest(std::string const & mapFileName);
+  TMC429SPITest(std::string const & mapFileName, std::string const & moduleName);
   //  static void testConstructors();
 
   void testRead();
@@ -38,9 +39,9 @@ class TMC429SPITest{
 
 class TMC429SPITestSuite : public test_suite {
 public:
-  TMC429SPITestSuite(std::string const & mapFileName): test_suite("TMC429SPI test suite") {
+  TMC429SPITestSuite(std::string const & mapFileName, std::string const & moduleName): test_suite("TMC429SPI test suite") {
     // create an instance of the test class
-    boost::shared_ptr<TMC429SPITest> tmc429SpiTest( new TMC429SPITest(mapFileName) );
+    boost::shared_ptr<TMC429SPITest> tmc429SpiTest( new TMC429SPITest(mapFileName, moduleName) );
 
     // in case of dependencies store the test cases before adding them and declare the dependency
     test_case* readTestCase = BOOST_CLASS_TEST_CASE( &TMC429SPITest::testRead, tmc429SpiTest );
@@ -57,10 +58,10 @@ test_suite*
 init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
   framework::master_test_suite().p_name.value = "TMC429SPI test suite";
-  return new TMC429SPITestSuite( MAP_FILE_NAME );
+  return new TMC429SPITestSuite( MAP_FILE_NAME, MODULE_NAME );
 }
 
-TMC429SPITest::TMC429SPITest(std::string const & mapFileName){
+TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName){
   _dummyDevice.reset( new DFMC_MD22Dummy );
 
   // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
@@ -74,7 +75,7 @@ TMC429SPITest::TMC429SPITest(std::string const & mapFileName){
   
   _dummyDevice->setRegistersForTesting();
 
-   _tmc429Spi.reset( new TMC429SPI( _mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+   _tmc429Spi.reset( new TMC429SPI( _mappedDevice, moduleName, CONTROLER_SPI_WRITE_ADDRESS_STRING,
 				    CONTROLER_SPI_SYNC_ADDRESS_STRING,
 				    CONTROLER_SPI_READBACK_ADDRESS_STRING ) );
 }

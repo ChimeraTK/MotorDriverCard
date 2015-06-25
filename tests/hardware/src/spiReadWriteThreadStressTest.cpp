@@ -47,7 +47,7 @@ using namespace mtca4u;
 
 class SpiReadWriteThreadStressTest{
 public:
-  SpiReadWriteThreadStressTest( std::string deviceFileName, std::string mapFileName,
+  SpiReadWriteThreadStressTest( std::string deviceFileName, std::string mapFileName, std::string moduleName,
 				std::string motorConfigFileName );
   void run();
 
@@ -105,6 +105,7 @@ private:
   
   std::string _deviceFileName;
   std::string _mapFileName;
+  std::string _moduleName;
   std::string _motorConfigFileName;
   
   unsigned int _nCycles;
@@ -134,8 +135,9 @@ private:
 
 SpiReadWriteThreadStressTest::SpiReadWriteThreadStressTest( std::string deviceFileName,
 							    std::string mapFileName,
+                                                            std::string moduleName,
 							    std::string motorConfigFileName )
-  : _deviceFileName(deviceFileName), _mapFileName(mapFileName),
+  : _deviceFileName(deviceFileName), _mapFileName(mapFileName), _moduleName(moduleName),
     _motorConfigFileName(motorConfigFileName),
     _nCycles(0),
     _errorsInThisTest(0),
@@ -310,6 +312,7 @@ void SpiReadWriteThreadStressTest::baseLoop(unsigned int motorID,
   boost::shared_ptr<MotorDriverCard> motorDriverCard 
     = MotorDriverCardFactory::instance().createMotorDriverCard( _deviceFileName,
 								_mapFileName,
+                                                                _moduleName,
 								_motorConfigFileName );
   boost::shared_ptr<MotorControlerExpert> motorControler
      = boost::dynamic_pointer_cast<MotorControlerExpert>(motorDriverCard->getMotorControler(motorID));
@@ -424,12 +427,12 @@ void SpiReadWriteThreadStressTest::increaseErrorCount(std::string functionName){
 
 int main(int argc, char* argv []){
   if (argc!=4){
-    std::cout << "Usage: " << argv[0] << " deviceFileName mapFileName" 
+    std::cout << "Usage: " << argv[0] << " deviceFileName mapFileName moduleName" 
 	      << " motorConfigFileName" << std::endl;
     return -1;
   }
   
-  SpiReadWriteThreadStressTest stressTest(argv[1], argv[2], argv[3]);
+  SpiReadWriteThreadStressTest stressTest(argv[1], argv[2], argv[3], argv[4]);
 
   stressTest.run();
 

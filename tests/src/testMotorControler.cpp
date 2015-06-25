@@ -22,6 +22,7 @@ using namespace mtca4u::tmc260;
 using namespace mtca4u;
 
 #define MAP_FILE_NAME "DFMC_MD22_test.map"
+static const std::string moduleName("");
 
 #define DECLARE_GET_SET_TEST( NAME )\
   void testGet ## NAME ();\
@@ -178,6 +179,7 @@ public:
     // survive the constructor. Otherwise the MotorControlers passed to
     // the tests will be invalid.
     _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice,
+                                                     moduleName,
 						     motorDriverCardConfig ) );
     dummyDevice->setRegistersForTesting();
     

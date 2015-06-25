@@ -36,6 +36,7 @@ namespace mtca4u
      */
     MotorControlerImpl( unsigned int ID,
 			boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+                        std::string const & moduleName,
 			boost::shared_ptr< TMC429SPI > const & controlerSPI,
 			MotorControlerConfig const & motorControlerConfig );
 

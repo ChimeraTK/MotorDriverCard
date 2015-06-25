@@ -44,7 +44,7 @@ namespace mtca4u {
          * @param  motorDriverCardConfigFileName - name of configuration file
          * @return
          */
-        LinearStepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
+        LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
         
         /**
          * @brief  Destructor of the class object
