@@ -8,7 +8,7 @@ using namespace boost::unit_test_framework;
 #include <MtcaMappedDevice/devMap.h>
 #include <MtcaMappedDevice/libmap.h>
 
-#include "DFMC_MD22Constants.h"
+
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 #include "testWordFromPCIeAddress.h"
@@ -16,9 +16,10 @@ using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardConfigDefaults.h"
 
-#define MAP_FILE_NAME "DFMC_MD22_test.map"
-#define BROKEN_MAP_FILE_NAME "DFMC_MD22_broken.map"
-#define MODULE_NAME ""
+#include "testConfigConstants.h"
+
+
+#include "DFMC_MD22Constants.h"
 
 #define DECLARE_GET_SET_TEST( NAME )\
   void testGet ## NAME ();\
@@ -67,7 +68,7 @@ private:
 class  MotorDriverCardTestSuite : public test_suite{
  public:
   MotorDriverCardTestSuite() : test_suite(" MotorDriverCard test suite"){
-    boost::shared_ptr<MotorDriverCardTest> motorDriverCardTest( new MotorDriverCardTest(MAP_FILE_NAME, MODULE_NAME) );
+    boost::shared_ptr<MotorDriverCardTest> motorDriverCardTest( new MotorDriverCardTest(MAP_FILE_NAME, MODULE_NAME_0) );
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
     test_case* getControlerVersionTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetControlerChipVersion, motorDriverCardTest );
@@ -97,7 +98,7 @@ MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName, std::s
 
 void MotorDriverCardTest::testConstructor(){
   //boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
-  _dummyDevice.reset( new DFMC_MD22Dummy );
+  _dummyDevice.reset( new DFMC_MD22Dummy(MODULE_NAME_0) );
   _dummyDevice->openDev( _mapFileName );
  
   mapFileParser fileParser;
@@ -250,7 +251,7 @@ void MotorDriverCardTest::testGetReferenceSwitchData(){
 
 void MotorDriverCardTest::testGetStatusWord(){
   mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, _moduleName );
 
   unsigned int expectedContent = testWordFromPCIeAddress( mapElement.reg_address );
 

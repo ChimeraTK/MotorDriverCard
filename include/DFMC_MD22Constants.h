@@ -52,9 +52,9 @@ namespace dfmc_md22{
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.
   /// FIXME: get the 'off by one' consistent
   inline std::string createMotorRegisterName( unsigned int motorID, std::string registerNameSuffix ){
-    return std::string( MOTOR_REGISTER_PREFIX)
-      + boost::lexical_cast<std::string>(motorID + 1) + "_"
-      + registerNameSuffix;
+      return std::string( MOTOR_REGISTER_PREFIX)
+        + boost::lexical_cast<std::string>(motorID + 1) + "_"
+        + registerNameSuffix;
   }
 
   

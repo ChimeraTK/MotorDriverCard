@@ -80,6 +80,8 @@ namespace mtca4u
     boost::shared_ptr<TMC429SPI> _controlerSPI;
 
     mtca4u::devMap< devBase >::RegisterAccessor _controlerStatusRegister;
+    
+    std::string _moduleName;
 
     /// Checks the firmware version and throws an exception if it is not valid (too old or too new)
     void checkFirmwareVersion();

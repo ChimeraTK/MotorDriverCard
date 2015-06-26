@@ -8,12 +8,7 @@ using namespace boost::unit_test_framework;
 #include "MotorDriverCardDummy.h"
 
 
-#define DUMMY_DEV_PATH "/dev/mtcadummys0"
-#define DUMMY_MOC_MAP "mtcadummy_DFMC_MD22_mock.map"
-#define MAP_FILE_NAME "DFMC_MD22_test.map"
-#define CONFIG_FILE "VT21-MotorDriverCardConfig.xml"
-#define MODULE_NAME ""
-
+#include "testConfigConstants.h"
 
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
@@ -35,18 +30,18 @@ BOOST_AUTO_TEST_CASE( testCreate ){
   // corresponding register.
   devMap<devPCIE> mappedMtcadummy;
   mappedMtcadummy.openDev(DUMMY_DEV_PATH, DUMMY_MOC_MAP);
-  mappedMtcadummy.writeReg(PROJECT_VERSION_ADDRESS_STRING,  &MINIMAL_FIRMWARE_VERSION);
+  mappedMtcadummy.writeReg(PROJECT_VERSION_ADDRESS_STRING, MODULE_NAME_0,  &MINIMAL_FIRMWARE_VERSION);
 
   boost::shared_ptr<MotorDriverCard> motorDriverCard_PCIe1 = 
     MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH, 
 							     DUMMY_MOC_MAP,
-                                                             MODULE_NAME,
+                                                             MODULE_NAME_0,
 							     CONFIG_FILE);
 
   boost::shared_ptr<MotorDriverCard> md22_dummy1 = 
     MotorDriverCardFactory::instance().createMotorDriverCard(MAP_FILE_NAME, 
 							     MAP_FILE_NAME,
-							     MODULE_NAME,
+							     MODULE_NAME_0,
                                                              CONFIG_FILE);
 
   BOOST_CHECK( motorDriverCard_PCIe1.get() != md22_dummy1.get() );
@@ -56,7 +51,7 @@ BOOST_AUTO_TEST_CASE( testCreate ){
   boost::shared_ptr<MotorDriverCard> md22_dummy2 = 
     MotorDriverCardFactory::instance().createMotorDriverCard(MAP_FILE_NAME, 
 							     MAP_FILE_NAME,
-                                                             MODULE_NAME,
+                                                             MODULE_NAME_0,
 							     CONFIG_FILE);
  
   BOOST_CHECK( md22_dummy1.get() == md22_dummy2.get() );
@@ -65,12 +60,12 @@ BOOST_AUTO_TEST_CASE( testCreate ){
 
   // change the firmware version to 0. Still 'creation' has to work because the
   // device must not be reopened but the same instance has to be used.
-  mappedMtcadummy.writeReg(PROJECT_VERSION_ADDRESS_STRING,  &MINIMAL_FIRMWARE_VERSION);
+  mappedMtcadummy.writeReg(PROJECT_VERSION_ADDRESS_STRING, MODULE_NAME_0, &MINIMAL_FIRMWARE_VERSION);
 
   boost::shared_ptr<MotorDriverCard> motorDriverCard_PCIe2 = 
     MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH, 
 							     DUMMY_MOC_MAP,
-                                                             MODULE_NAME,
+                                                             MODULE_NAME_0,
 							     CONFIG_FILE);
   
   BOOST_CHECK( motorDriverCard_PCIe1.get() == motorDriverCard_PCIe2.get() );
@@ -83,7 +78,7 @@ BOOST_AUTO_TEST_CASE( testCreateDummy ){
     boost::dynamic_pointer_cast<MotorDriverCardDummy>(
       MotorDriverCardFactory::instance().createMotorDriverCard("/dummy/MotorDriverCard", 
 							       "irrelevant",
-                                                               MODULE_NAME,
+                                                               MODULE_NAME_0,
 							       "alsoIrrelevant"));
       
   BOOST_CHECK(motorDriverCardDummy);

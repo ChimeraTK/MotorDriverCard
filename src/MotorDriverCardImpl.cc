@@ -18,7 +18,8 @@ namespace mtca4u{
                                            std::string const & moduleName,	
 					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice),
-      _controlerStatusRegister(_mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName ))
+      _controlerStatusRegister(_mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
+      _moduleName(moduleName)
   {
     checkFirmwareVersion();
     
@@ -157,7 +158,7 @@ namespace mtca4u{
 
   void  MotorDriverCardImpl::checkFirmwareVersion(){
     int32_t firmwareVersion;
-    _mappedDevice->readReg(  PROJECT_VERSION_ADDRESS_STRING, &firmwareVersion );
+    _mappedDevice->readReg(  PROJECT_VERSION_ADDRESS_STRING, _moduleName, &firmwareVersion );
 
     // only allow firmware versions with the same major number
     uint32_t maxFirmwareVersion =  (MINIMAL_FIRMWARE_VERSION & 0xFF000000) | 0x00FFFFFF;

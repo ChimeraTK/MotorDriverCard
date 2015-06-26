@@ -17,8 +17,7 @@ using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
 #include "testWordFromSpiAddress.h"
 
-#define MAP_FILE_NAME "DFMC_MD22_test.map"
-#define MODULE_NAME ""
+#include "testConfigConstants.h"
 
 class TMC429SPITest{
  public:
@@ -58,11 +57,11 @@ test_suite*
 init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
   framework::master_test_suite().p_name.value = "TMC429SPI test suite";
-  return new TMC429SPITestSuite( MAP_FILE_NAME, MODULE_NAME );
+  return new TMC429SPITestSuite( MAP_FILE_NAME, MODULE_NAME_0 );
 }
 
 TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName){
-  _dummyDevice.reset( new DFMC_MD22Dummy );
+  _dummyDevice.reset( new DFMC_MD22Dummy(moduleName) );
 
   // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
   _mappedDevice.reset(new devMap<devBase>);

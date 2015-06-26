@@ -34,7 +34,7 @@ namespace mtca4u{
     // existing one is delivered
     
     //TSK - fix me - now key must be a pair of deviceFileName and mapModuleName, not only deviceFileName
-    boost::shared_ptr<MotorDriverCard> & motorDriverCard =  _motorDriverCards[deviceFileName]; 
+    boost::shared_ptr<MotorDriverCard> & motorDriverCard =  _motorDriverCards[std::make_pair(deviceFileName, mapModuleName)]; 
 
     // create a new instance of the motor driver card if the shared pointer is
     // empty, which means it has just been added to the map
@@ -47,7 +47,7 @@ namespace mtca4u{
 	boost::shared_ptr< devBase > ioDevice;
 
 	if (deviceFileName == mapFileName){
-	  ioDevice.reset(new DFMC_MD22Dummy());
+	  ioDevice.reset(new DFMC_MD22Dummy(mapModuleName));
 	}else{
 	  ioDevice.reset(new devPCIE);
 	}
