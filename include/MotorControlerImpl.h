@@ -130,7 +130,7 @@ namespace mtca4u
      /// Simplify the syntax to read from a regObject which need call by reference.
      /// Remove this function once the regObject interface has been fixed.
      unsigned int readRegObject( 
-			 mtca4u::devMap<devBase>::regObject const & registerAccessor);
+			 mtca4u::devMap<devBase>::RegisterAccessor const & registerAccessor);
 
      template<class T>
        T readTypedRegister();

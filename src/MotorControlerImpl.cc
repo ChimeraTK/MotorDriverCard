@@ -53,7 +53,7 @@ namespace mtca4u
                   boost::shared_ptr< TMC429SPI > const & controlerSPI,
 		  MotorControlerConfig const & motorControlerConfig ) 
     : _mappedDevice(mappedDevice), _id(ID),
-      _controlerStatus(mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING )),
+      _controlerStatus(mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
       _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX, moduleName ) ),
@@ -105,7 +105,7 @@ namespace mtca4u
     return converter24bits.customToThirtyTwo( readValue );
   }
 
-  unsigned int MotorControlerImpl::readRegObject( devMap<devBase>::regObject const & registerAccessor){
+  unsigned int MotorControlerImpl::readRegObject( devMap<devBase>::RegisterAccessor const & registerAccessor){
     int readValue;
     registerAccessor.readReg( &readValue );
     return static_cast<unsigned int>(readValue);

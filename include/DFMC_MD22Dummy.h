@@ -30,7 +30,7 @@ namespace mtca4u{
    */
   class DFMC_MD22Dummy : public mtca4u::DummyDevice{
   public:
-    DFMC_MD22Dummy();
+    DFMC_MD22Dummy(std::string const & moduleName = std::string());
 
     void openDev(const std::string &mappingFileName,
 		 int perm = O_RDWR, devConfigBase* pConfig = NULL);
@@ -144,6 +144,8 @@ namespace mtca4u{
 
     unsigned int _microsecondsControllerSpiDelay;
     unsigned int _microsecondsDriverSpiDelay;
+    
+    std::string _moduleName;
   };
 }// namespace mtca4u
 

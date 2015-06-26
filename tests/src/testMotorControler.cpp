@@ -21,8 +21,7 @@ using namespace mtca4u::tmc260;
 #include "MotorControlerConfigDefaults.h"
 using namespace mtca4u;
 
-#define MAP_FILE_NAME "DFMC_MD22_test.map"
-static const std::string moduleName("");
+#include "testConfigConstants.h"
 
 #define DECLARE_GET_SET_TEST( NAME )\
   void testGet ## NAME ();\
@@ -165,7 +164,7 @@ public:
   MotorControlerTestSuite(std::string const & mapFileName) 
     : test_suite(" MotorControler test suite"){
 
-    boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy );
+    boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy(MODULE_NAME_0) );
     dummyDevice->openDev( mapFileName );
  
     mapFileParser fileParser;
@@ -179,10 +178,11 @@ public:
     // survive the constructor. Otherwise the MotorControlers passed to
     // the tests will be invalid.
     _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice,
-                                                     moduleName,
-						     motorDriverCardConfig ) );
+                                                     MODULE_NAME_0,
+    						     motorDriverCardConfig ) );
+
     dummyDevice->setRegistersForTesting();
-    
+
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
       boost::shared_ptr<MotorControlerTest> motorControlerTest( 
 	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ,
@@ -277,7 +277,7 @@ unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & reg
   std::string registerName = createMotorRegisterName( _motorControler->getID(),
 						      registerSuffix );
   mapFile::mapElem registerInfo;
-  _registerMapping->getRegisterInfo( registerName, registerInfo );
+  _registerMapping->getRegisterInfo( registerName, registerInfo, MODULE_NAME_0 );
   return testWordFromPCIeAddress( registerInfo.reg_address );
 }
 
@@ -423,7 +423,7 @@ void MotorControlerTest::testSetReferenceSwitchEnabled(){
 
 void MotorControlerTest::testTargetPositionReached(){
   mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, MODULE_NAME_0 );
 
   TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
 
@@ -433,7 +433,7 @@ void MotorControlerTest::testTargetPositionReached(){
 
 void MotorControlerTest::testGetReferenceSwitchBit(){
   mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, MODULE_NAME_0 );
 
   TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
 
