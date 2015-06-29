@@ -79,7 +79,7 @@ namespace mtca4u
 
     boost::shared_ptr<TMC429SPI> _controlerSPI;
 
-    mtca4u::devMap< devBase >::RegisterAccessor _controlerStatusRegister;
+    boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _controlerStatusRegister;
     
     std::string _moduleName;
 

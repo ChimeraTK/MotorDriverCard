@@ -47,20 +47,20 @@ namespace mtca4u{
 
     // Implement the write handshake
     // 1. write 0xff to the synch register
-    _synchronisationRegister.writeReg( &SPI_SYNC_REQUESTED);
+    _synchronisationRegister->writeReg( &SPI_SYNC_REQUESTED);
 
     // 2. write the spi command
-    _writeRegister.writeReg( &spiCommand );
+    _writeRegister->writeReg( &spiCommand );
 
     // 3. wait for the handshake
     int32_t syncValue;
-    _synchronisationRegister.readReg( &syncValue );
+    _synchronisationRegister->readReg( &syncValue );
     
     for (size_t syncCounter=0; 
 	 (syncValue==SPI_SYNC_REQUESTED) && (syncCounter < 10);
 	 ++syncCounter){
       sleepMicroSeconds(_spiWaitingTime);
-      _synchronisationRegister.readReg( & syncValue, sizeof(int));
+      _synchronisationRegister->readReg( & syncValue, sizeof(int));
     }
 
     //It might be inefficient to always create the error message, even if not needed, but
@@ -90,7 +90,7 @@ namespace mtca4u{
     write( spiCommand );
 
     int32_t readbackValue;
-    _readbackRegister.readReg( &readbackValue );
+    _readbackRegister->readReg( &readbackValue );
 
     return readbackValue;
   }

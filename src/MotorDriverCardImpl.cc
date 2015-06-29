@@ -152,7 +152,7 @@ namespace mtca4u{
 
   TMC429StatusWord MotorDriverCardImpl::getStatusWord(){
     int readValue;
-    _controlerStatusRegister.readReg( &readValue );
+    _controlerStatusRegister->readReg( &readValue );
     return TMC429StatusWord( readValue );
   }
 
