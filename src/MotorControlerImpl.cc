@@ -101,13 +101,13 @@ namespace mtca4u
    
   int MotorControlerImpl::getActualPosition(){
     int readValue;
-    _actualPosition.readReg( &readValue );
+    _actualPosition->readReg( &readValue );
     return converter24bits.customToThirtyTwo( readValue );
   }
 
-  unsigned int MotorControlerImpl::readRegObject( devMap<devBase>::RegisterAccessor const & registerAccessor){
+  unsigned int MotorControlerImpl::readRegObject( boost::shared_ptr< devMap<devBase>::RegisterAccessor > const & registerAccessor){
     int readValue;
-    registerAccessor.readReg( &readValue );
+    registerAccessor->readReg( &readValue );
     return static_cast<unsigned int>(readValue);
   }
 
@@ -118,7 +118,7 @@ namespace mtca4u
 
   int MotorControlerImpl::getActualVelocity(){
     int readValue;
-    _actualVelocity.readReg( &readValue );
+    _actualVelocity->readReg( &readValue );
     return converter12bits.customToThirtyTwo( readValue );
   }
 
@@ -157,7 +157,7 @@ namespace mtca4u
  
   void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode){
     int32_t temporaryWriteWord = static_cast<int32_t>(readoutMode);
-    _decoderReadoutMode.writeReg( &temporaryWriteWord );
+    _decoderReadoutMode->writeReg( &temporaryWriteWord );
   }
 
   unsigned int MotorControlerImpl::getDecoderReadoutMode(){
@@ -170,7 +170,7 @@ namespace mtca4u
  
   void MotorControlerImpl::setEnabled(bool enable){
     int32_t enableWord = ( enable ? 1 : 0 );
-    _enabled.writeReg( &enableWord );
+    _enabled->writeReg( &enableWord );
   }
 
   bool MotorControlerImpl::isEnabled(){
@@ -263,7 +263,7 @@ namespace mtca4u
 
   bool MotorControlerImpl::targetPositionReached(){
     int readValue;
-    _controlerStatus.readReg( &readValue );
+    _controlerStatus->readReg( &readValue );
     TMC429StatusWord controlerStatusWord( readValue );
 
     return controlerStatusWord.getTargetPositionReached(_id);
@@ -271,7 +271,7 @@ namespace mtca4u
 
   unsigned int MotorControlerImpl::getReferenceSwitchBit(){
     int readValue;
-    _controlerStatus.readReg( &readValue );
+    _controlerStatus->readReg( &readValue );
     TMC429StatusWord controlerStatusWord( readValue );
 
     return controlerStatusWord.getReferenceSwitchBit(_id);

@@ -67,9 +67,9 @@ namespace mtca4u{
 
   private:
     // No need to keep an instance of the mappedDevice shared pointer. Each accessor has one.
-    mtca4u::devMap<devBase>::RegisterAccessor _writeRegister;
-    mtca4u::devMap<devBase>::RegisterAccessor _synchronisationRegister;
-    mtca4u::devMap<devBase>::RegisterAccessor _readbackRegister;
+    boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > _writeRegister;
+    boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > _synchronisationRegister;
+    boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > _readbackRegister;
 
     static void sleepMicroSeconds(unsigned int microSeconds);
     /** Time in microseconds to wait for the transaction to be finished on the SPI bus
