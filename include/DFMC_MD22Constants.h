@@ -14,11 +14,11 @@ namespace dfmc_md22{
   int32_t const PROJECT_MAGIC_NUMBER = 0x50524F4A;
 
   /// @fixme This has to be WORD_PROJ_VERSION in the project, but how to identify the project?
-  std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM1";
-  std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID1";
-  std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION1";
-  std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET1";
-  std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT1";
+  std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM";
+  std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID";
+  std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION";
+  std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET";
+  std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT";
 
   std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
   std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
@@ -52,9 +52,9 @@ namespace dfmc_md22{
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.
   /// FIXME: get the 'off by one' consistent
   inline std::string createMotorRegisterName( unsigned int motorID, std::string registerNameSuffix ){
-    return std::string( MOTOR_REGISTER_PREFIX)
-      + boost::lexical_cast<std::string>(motorID + 1) + "_"
-      + registerNameSuffix;
+      return std::string( MOTOR_REGISTER_PREFIX)
+        + boost::lexical_cast<std::string>(motorID + 1) + "_"
+        + registerNameSuffix;
   }
 
   

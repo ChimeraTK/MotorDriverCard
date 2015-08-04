@@ -31,7 +31,7 @@ class MotorDriverCardFactory{
   boost::mutex _factoryMutex;
 
   /// Map of all devices which have ever been requested.
-  std::map<std::string, boost::shared_ptr<MotorDriverCard> > _motorDriverCards;
+  std::map< std::pair< std::string, std::string >, boost::shared_ptr<MotorDriverCard> > _motorDriverCards;
 
  public:
   /** Access the single instance of the factory.
@@ -41,7 +41,9 @@ class MotorDriverCardFactory{
   /** Create a motor driver card from the device and map file name.
    */
   boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
-     std::string deviceFileName, std::string mapFileName,
+     std::string deviceFileName, 
+     std::string mapFileName,
+     std::string mapModuleName,
      std::string motorConfigFileName);
 };
 

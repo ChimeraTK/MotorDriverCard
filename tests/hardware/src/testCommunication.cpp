@@ -21,12 +21,12 @@ using namespace mtca4u;
 
 int main( int argc, char* argv[] )
 {
-  if (argc !=2){
+  if (argc !=3){
     std::cout <<  argv[0] << "This is a long term test which performs SPI communication to the controler"
 	      << " and driver chips by writing to the corresponding PCIe regsiters.\n"
 	      << "It performs evaluation by reading back the written values.\n\n"
 	      << "The test runs forever. Terminate it with <Ctrl><c>\n\n"
-	      << "Usage: " << argv[0] << " dmapFile" << std::endl;
+	      << "Usage: " << argv[0] << " dmapFile moduleName" << std::endl;
     return -1;
   }
 
@@ -41,10 +41,12 @@ int main( int argc, char* argv[] )
   boost::shared_ptr< devMap< devBase > > mappedDevice( new devMap<devBase> );
   mappedDevice->openDev( ioDevice, registerMapping );
 
+  std::string moduleName = argv[2];
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard
     = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( 
 		deviceFileAndMapFileName.first,
 		deviceFileAndMapFileName.second,
+                moduleName,
 		""); // default motor config
 
   boost::shared_ptr<mtca4u::MotorControlerExpert> motor0 
