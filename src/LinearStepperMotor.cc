@@ -5,8 +5,8 @@
 
 namespace mtca4u {
 
-    LinearStepperMotor::LinearStepperMotor(std::string motorDriverCardDeviceName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile)
-    : StepperMotor(motorDriverCardDeviceName, motorDriverId, motorDriverCardConfigFileName, pathToDmapFile) {
+    LinearStepperMotor::LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile)
+    : StepperMotor(motorDriverCardDeviceName, moduleName, motorDriverId, motorDriverCardConfigFileName, pathToDmapFile) {
 
         //calibration
         _calibNegativeEndSwitchInUnits = _calibNegativeEndSwitchInSteps = 0;

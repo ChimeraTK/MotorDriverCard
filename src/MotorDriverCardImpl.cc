@@ -15,9 +15,11 @@ using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+                                           std::string const & moduleName,	
 					   MotorDriverCardConfig const & cardConfiguration)
     : _mappedDevice(mappedDevice),
-      _controlerStatusRegister(_mappedDevice->getRegObject( CONTROLER_STATUS_BITS_ADDRESS_STRING ))
+      _controlerStatusRegister(_mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
+      _moduleName(moduleName)
   {
     checkFirmwareVersion();
     
@@ -26,8 +28,10 @@ namespace mtca4u{
     // object is allocated, but the corresponding smart pointer is not initialised yet, which would lead to
     // a memory leak.
     _powerMonitor.reset(new PowerMonitor);
-    _controlerSPI.reset( new TMC429SPI(mappedDevice, CONTROLER_SPI_WRITE_ADDRESS_STRING,
-				       CONTROLER_SPI_SYNC_ADDRESS_STRING,  CONTROLER_SPI_READBACK_ADDRESS_STRING,
+    _controlerSPI.reset( new TMC429SPI(mappedDevice, moduleName,
+                                       CONTROLER_SPI_WRITE_ADDRESS_STRING,
+				       CONTROLER_SPI_SYNC_ADDRESS_STRING,  
+                                       CONTROLER_SPI_READBACK_ADDRESS_STRING,
 				       cardConfiguration.controlerSpiWaitingTime ) );
 
     // initialise common registers
@@ -43,7 +47,7 @@ namespace mtca4u{
     // initialise motors
     _motorControlers.resize( N_MOTORS_MAX );
     for (unsigned int i = 0; i < _motorControlers.size() ; ++i){
-      _motorControlers[i].reset( new MotorControlerImpl( i, mappedDevice, _controlerSPI,
+      _motorControlers[i].reset( new MotorControlerImpl( i, mappedDevice, moduleName, _controlerSPI,
 							 cardConfiguration.motorControlerConfigurations[i]) );
     }
   }
@@ -148,13 +152,13 @@ namespace mtca4u{
 
   TMC429StatusWord MotorDriverCardImpl::getStatusWord(){
     int readValue;
-    _controlerStatusRegister.readReg( &readValue );
+    _controlerStatusRegister->readReg( &readValue );
     return TMC429StatusWord( readValue );
   }
 
   void  MotorDriverCardImpl::checkFirmwareVersion(){
     int32_t firmwareVersion;
-    _mappedDevice->readReg(  PROJECT_VERSION_ADDRESS_STRING, &firmwareVersion );
+    _mappedDevice->readReg(  PROJECT_VERSION_ADDRESS_STRING, _moduleName, &firmwareVersion );
 
     // only allow firmware versions with the same major number
     uint32_t maxFirmwareVersion =  (MINIMAL_FIRMWARE_VERSION & 0xFF000000) | 0x00FFFFFF;

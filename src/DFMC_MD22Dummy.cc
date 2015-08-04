@@ -15,37 +15,43 @@ using namespace mtca4u::dfmc_md22;
 #include "TMC260DummyConstants.h"
 using namespace mtca4u::tmc429;
 
-#define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING )\
-    _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation );\
+#define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING , MOD_NAME )\
+    _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation, MOD_NAME );\
     AddressRange NAME( registerInformation.reg_address, \
                        registerInformation.reg_size, \
 		       registerInformation.reg_bar)
 
+//#define MODULE_NAME_0 "MD220"
+
+
 namespace mtca4u{
 
- DFMC_MD22Dummy::DFMC_MD22Dummy(): DummyDevice(), 
+ DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & moduleName): DummyDevice(), 
 				   _powerIsUp(true), _causeSpiTimeouts(false), 
 				   _causeSpiErrors(false),
 				   _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
-				   _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY){
+				   _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
+                                   _moduleName(moduleName) {
   }
 
   void DFMC_MD22Dummy::openDev(const std::string &mappingFileName, int perm,
 			       devConfigBase* pConfig){
-    DummyDevice::openDev(mappingFileName, perm, pConfig);
+
+      DummyDevice::openDev(mappingFileName, perm, pConfig);
     
     setPCIeRegistersForTesting(); // some of them will be overwriten if a 
     // defined behaviour exists for them
-
+    
     _controlerSpiAddressSpace.resize( tmc429::SIZE_OF_SPI_ADDRESS_SPACE , 0 );
+
     setControlerSpiRegistersForOperation();
 
     mapFile::mapElem registerInformation;
-    DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING );
+    DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING, _moduleName );
     _controlerSpiWriteAddress = registerInformation.reg_address;
     _controlerSpiBar = registerInformation.reg_bar;
-
-    _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation );
+    
+    _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation, _moduleName );
     if ( _controlerSpiBar != registerInformation.reg_bar ){
       throw MotorDriverException("SPI write and readback address must be in the same bar",
 				 MotorDriverException::SPI_ERROR );
@@ -54,7 +60,7 @@ namespace mtca4u{
     setReadOnly(registerInformation.reg_address, registerInformation.reg_size,
 		registerInformation.reg_bar);
 
-    _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation );
+    _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation, _moduleName );
     if ( _controlerSpiBar != registerInformation.reg_bar ){
       throw MotorDriverException("SPI write and sync address must be in the same bar",
 				 MotorDriverException::SPI_ERROR );
@@ -67,25 +73,25 @@ namespace mtca4u{
     _driverSPIs.resize( N_MOTORS_MAX );
     for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
-			    createMotorRegisterName( id, ACTUAL_POSITION_SUFFIX ) );
+			    createMotorRegisterName( id, ACTUAL_POSITION_SUFFIX ), _moduleName );
       setReadOnly( actualPositionAddressRange );
       DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
-			    createMotorRegisterName( id, ACTUAL_VELOCITY_SUFFIX ) );
+			    createMotorRegisterName( id, ACTUAL_VELOCITY_SUFFIX ), _moduleName );
       setReadOnly( actualVelocityAddressRange );
       DEFINE_ADDRESS_RANGE( actualAccelerationAddressRange,
-			    createMotorRegisterName( id, ACTUAL_ACCELETATION_SUFFIX ) );
+			    createMotorRegisterName( id, ACTUAL_ACCELETATION_SUFFIX ), _moduleName );
       setReadOnly( actualAccelerationAddressRange );
       DEFINE_ADDRESS_RANGE( microStepCountAddressRange,
-			    createMotorRegisterName( id, MICRO_STEP_COUNT_SUFFIX ) );
+			    createMotorRegisterName( id, MICRO_STEP_COUNT_SUFFIX ), _moduleName );
       setReadOnly( microStepCountAddressRange );
 
       _driverSPIs[id].addressSpace.resize(tmc260::SIZE_OF_SPI_ADDRESS_SPACE, 0);
       setDriverSpiRegistersForTesting(id);
 
       DEFINE_ADDRESS_RANGE( driverSpiWriteAddressRange,
-			    createMotorRegisterName( id, SPI_WRITE_SUFFIX ) );
+			    createMotorRegisterName( id, SPI_WRITE_SUFFIX ), _moduleName );
       DEFINE_ADDRESS_RANGE( driverSpiSyncAddressRange,
-			    createMotorRegisterName( id, SPI_SYNC_SUFFIX ) );
+			    createMotorRegisterName( id, SPI_SYNC_SUFFIX ), _moduleName );
       if ( driverSpiWriteAddressRange.bar != driverSpiSyncAddressRange.bar ){
 	throw MotorDriverException("SPI write and sync address must be in the same bar",
 				   MotorDriverException::SPI_ERROR );
@@ -132,7 +138,7 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::setConstantPCIeRegister( std::string registerName, int32_t content){
     mapFile::mapElem registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
-    DEFINE_ADDRESS_RANGE( addressRange, registerName);
+    DEFINE_ADDRESS_RANGE( addressRange, registerName, _moduleName);
     size_t addressIndex = addressRange.offset/sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;
     // only set the one word we modified as constant. The address range might be larger
@@ -159,6 +165,7 @@ namespace mtca4u{
     _controlerSpiAddressSpace.at(controlerSpiAddress) = globalParameters.getDATA();
 
     synchroniseFpgaWithControlerSpiRegisters();
+
   }
 
   void DFMC_MD22Dummy::setControlerSpiRegistersForTesting(){
@@ -331,7 +338,7 @@ namespace mtca4u{
     unsigned int controlerSpiAddress = spiAddressFromSmdaIdxJdx( ID, IDX );
     std::string registerName = createMotorRegisterName( ID, suffix );
     mapFile::mapElem registerInformation;
-    _registerMapping->getRegisterInfo (registerName, registerInformation);
+    _registerMapping->getRegisterInfo (registerName, registerInformation, _moduleName);
      writeRegisterWithoutCallback( registerInformation.reg_address,
 				   _controlerSpiAddressSpace[controlerSpiAddress], 
 				   registerInformation.reg_bar );
@@ -344,8 +351,9 @@ namespace mtca4u{
 
   void  DFMC_MD22Dummy::setRegistersForTesting(){
     // FIXME: store the current config to be able to restore it later
-    setPCIeRegistersForTesting();
-    setControlerSpiRegistersForTesting();
+
+  setPCIeRegistersForTesting();
+  setControlerSpiRegistersForTesting();
 
     for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       setDriverSpiRegistersForTesting(id);

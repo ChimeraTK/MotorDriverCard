@@ -8,7 +8,7 @@ using namespace boost::unit_test_framework;
 #include <MtcaMappedDevice/devMap.h>
 #include <MtcaMappedDevice/libmap.h>
 
-#include "DFMC_MD22Constants.h"
+
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 #include "testWordFromPCIeAddress.h"
@@ -16,8 +16,10 @@ using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardConfigDefaults.h"
 
-#define MAP_FILE_NAME "DFMC_MD22_test.map"
-#define BROKEN_MAP_FILE_NAME "DFMC_MD22_broken.map"
+#include "testConfigConstants.h"
+
+
+#include "DFMC_MD22Constants.h"
 
 #define DECLARE_GET_SET_TEST( NAME )\
   void testGet ## NAME ();\
@@ -34,7 +36,7 @@ namespace mtca4u{
 
 class MotorDriverCardTest{
 public:
-  MotorDriverCardTest(std::string const & mapFileName);
+  MotorDriverCardTest(std::string const & mapFileName, std::string const & moduleName);
 
   // the constructor might throw, better test it.
   void testConstructor();
@@ -58,6 +60,7 @@ private:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
   boost::shared_ptr<mapFile> _registerMapping;
   std::string _mapFileName;
+  std::string _moduleName;
   
   unsigned int asciiToInt( std::string text );
 };
@@ -65,7 +68,7 @@ private:
 class  MotorDriverCardTestSuite : public test_suite{
  public:
   MotorDriverCardTestSuite() : test_suite(" MotorDriverCard test suite"){
-    boost::shared_ptr<MotorDriverCardTest> motorDriverCardTest( new MotorDriverCardTest(MAP_FILE_NAME) );
+    boost::shared_ptr<MotorDriverCardTest> motorDriverCardTest( new MotorDriverCardTest(MAP_FILE_NAME, MODULE_NAME_0) );
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
     test_case* getControlerVersionTestCase =  BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testGetControlerChipVersion, motorDriverCardTest );
@@ -89,13 +92,13 @@ class  MotorDriverCardTestSuite : public test_suite{
   }
 };
 
-MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName)
-  : _mapFileName(mapFileName){
+MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName, std::string const & moduleName)
+  : _mapFileName(mapFileName), _moduleName(moduleName) {
 }
 
 void MotorDriverCardTest::testConstructor(){
   //boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
-  _dummyDevice.reset( new DFMC_MD22Dummy );
+  _dummyDevice.reset( new DFMC_MD22Dummy(MODULE_NAME_0) );
   _dummyDevice->openDev( _mapFileName );
  
   mapFileParser fileParser;
@@ -142,7 +145,7 @@ void MotorDriverCardTest::testConstructor(){
 
   // has to throw because the device is not open
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+		       new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
 		     //FIXME: create a DeviceException. Has to work for real and dummy devices
 		     exBase );
 
@@ -150,7 +153,7 @@ void MotorDriverCardTest::testConstructor(){
   // try opening with bad mapping, also has to throw
   mappedDevice->openDev( _dummyDevice, brokenRegisterMapping );
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+		       new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
 		     exLibMap );
   
   mappedDevice->closeDev();
@@ -161,16 +164,16 @@ void MotorDriverCardTest::testConstructor(){
   //try something with a wrong firmware version
   // wrong major (too large by 1):
   _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000 );
-  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
 		     MotorDriverException );
 
   _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION -1 );
-  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ) ),
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
 		     MotorDriverException );
 
   _dummyDevice->resetFirmwareVersion();
   
-  _motorDriverCard.reset(new MotorDriverCardImpl( mappedDevice, motorDriverCardConfig ));
+  _motorDriverCard.reset(new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ));
 
   // test that the configuration with the motorDriverCardConfig actually worked
   testConfiguration(motorDriverCardConfig);
@@ -248,7 +251,7 @@ void MotorDriverCardTest::testGetReferenceSwitchData(){
 
 void MotorDriverCardTest::testGetStatusWord(){
   mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement );
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, _moduleName );
 
   unsigned int expectedContent = testWordFromPCIeAddress( mapElement.reg_address );
 

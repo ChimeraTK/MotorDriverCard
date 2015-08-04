@@ -36,6 +36,7 @@ namespace mtca4u
      */
     MotorControlerImpl( unsigned int ID,
 			boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+                        std::string const & moduleName,
 			boost::shared_ptr< TMC429SPI > const & controlerSPI,
 			MotorControlerConfig const & motorControlerConfig );
 
@@ -110,26 +111,26 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
 
-     mtca4u::devMap< devBase >::regObject _controlerStatus;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _controlerStatus;
 
-     mtca4u::devMap< devBase >::regObject _actualPosition;
-     mtca4u::devMap< devBase >::regObject _actualVelocity;
-     mtca4u::devMap< devBase >::regObject _actualAcceleration;
-     mtca4u::devMap< devBase >::regObject _microStepCount;
-     mtca4u::devMap< devBase >::regObject _stallGuardValue;
-     mtca4u::devMap< devBase >::regObject _coolStepValue;
-     mtca4u::devMap< devBase >::regObject _status;
-     mtca4u::devMap< devBase >::regObject _enabled;
-     mtca4u::devMap< devBase >::regObject _decoderReadoutMode;
-     mtca4u::devMap< devBase >::regObject _decoderPosition;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _actualPosition;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _actualVelocity;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _actualAcceleration;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _microStepCount;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _stallGuardValue;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _coolStepValue;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _status;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _enabled;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _decoderReadoutMode;
+     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _decoderPosition;
      
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
 
-     /// Simplify the syntax to read from a regObject which need call by reference.
-     /// Remove this function once the regObject interface has been fixed.
+     /// Simplify the syntax to read from a RegisterAccessor which need call by reference.
+     /// Remove this function once the RegisterAccessor interface has been fixed.
      unsigned int readRegObject( 
-			 mtca4u::devMap<devBase>::regObject const & registerAccessor);
+			 boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > const & registerAccessor);
 
      template<class T>
        T readTypedRegister();
