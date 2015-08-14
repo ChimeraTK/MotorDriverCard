@@ -162,6 +162,9 @@
         </item>
         <item row="5" column="1">
          <widget class="QSpinBox" name="systemClock">
+          <property name="suffix">
+           <string> MHz</string>
+          </property>
           <property name="minimum">
            <number>1</number>
           </property>
@@ -195,6 +198,9 @@
         </item>
         <item row="0" column="1">
          <widget class="QDoubleSpinBox" name="iMax">
+          <property name="suffix">
+           <string> A</string>
+          </property>
           <property name="minimum">
            <double>0.010000000000000</double>
           </property>
