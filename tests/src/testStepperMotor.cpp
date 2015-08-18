@@ -19,10 +19,10 @@ using namespace mtca4u;
 
 static const unsigned int THE_ID = 17;
 
-static const std::string stepperMotorDeviceName("DFMC-MD22-DUMMY");
+static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string dmapPath(".");
-static const std::string moduleName("MD220");
+static const std::string moduleName("");
 
 class TestUnitConveter : public StepperMotorUnitsConverter {
 public:

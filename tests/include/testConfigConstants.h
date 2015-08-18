@@ -3,7 +3,6 @@
 
 const std::string MODULE_NAME_0("MD22_0");
 const std::string MODULE_NAME_1("MD22_1");
-//#define MODULE_NAME_0 ""
 
 const std::string MAP_FILE_NAME ("DFMC_MD22_test.mapp");
 const std::string BROKEN_MAP_FILE_NAME("DFMC_MD22_broken.mapp");
