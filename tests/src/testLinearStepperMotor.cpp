@@ -7,6 +7,7 @@ using namespace boost::unit_test_framework;
 #include "LinearStepperMotor.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
+#include "testConfigConstants.h"
 
 
 #include <boost/thread.hpp>
@@ -19,7 +20,7 @@ using namespace mtca4u;
 
 static const unsigned int THE_ID = 17;
 
-static const std::string stepperMotorDeviceName("DFMC-MD22-DUMMY");
+static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string dmapPath(".");
 static const std::string moduleName("");
@@ -52,6 +53,9 @@ public:
 
     void testMoveToPosition();
     void threadMoveToPostion(int i);
+    // This test is more of a functional test than a unit
+    // test
+    void testMoveTwoMotors();
 
 private:
     boost::shared_ptr<LinearStepperMotor> _stepperMotor;
@@ -84,6 +88,9 @@ public:
                 stepperMotorTest));
 
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testCalibration,
+                stepperMotorTest));
+
+        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testMoveTwoMotors,
                 stepperMotorTest));
     }
 };
@@ -647,4 +654,9 @@ void LinearStepperMotorTest::threadCalibration(int testCase) {
     }
 
     //_motorControlerDummy->moveTowardsTarget(1, false);
+}
+
+void LinearStepperMotorTest::testMoveTwoMotors() {
+	// Would want this test to be self contained for now
+	//boost::shared_ptr<LinearStepperMotor> Motor1 = new LinearStepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath)
 }
