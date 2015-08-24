@@ -40,6 +40,7 @@ namespace mtca4u {
         /**
          * @brief  Constructor of the class object
          * @param  motorDriverCardDeviceName - name of the device in DMAP file
+         * @param  moduleName - module name in the map(p) file.
          * @param  motorDriverId - each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
          * @param  motorDriverCardConfigFileName - name of configuration file
          * @return
