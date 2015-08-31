@@ -172,7 +172,10 @@ namespace mtca4u {
         int _calibPositiveEndSwitchInSteps;
         float _calibPositiveEndSwitchInUnits;
         
-        bool _stopMotorCalibration;          
+        bool _stopMotorCalibration; 
+
+        bool _negativeEndSwitchEnabled;
+        bool _positiveEndSwitchEnabled;
     };
 
 } //namespace mtca4u
