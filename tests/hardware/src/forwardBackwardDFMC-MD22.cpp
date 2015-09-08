@@ -44,7 +44,7 @@ using namespace mtca4u;
 
 int main( int argc, char* argv[] )
 {
-  if (argc !=4){
+  if (argc !=5){
     std::cout << "Move to the 'left' (low values) end switch. Afterward move infinetly between 0.2*nStepsMax and nStepsMax."
 	      << std::endl << std::endl;
     std::cout << "Usage: " << argv[0] << " dmapFile moduleName MotorDriverConfig.xml nStepsMax" << std::endl;
