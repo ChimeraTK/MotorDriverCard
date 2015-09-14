@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# This script just restarts forwardBackward in an endless loop. If the connections
+# is lost because the MD22 has been hot-plugged, forwardBackward will just quit with an exception.
+# Just retrying is does not harm, the programme will just exit immediately. This is done 
+# with 2 seconds check interval.
+#
+# To quit press <Ctrl><C> twice. Once, to exit forwardBackward, which catches the signal and quits,
+# and a second time during the 2 seconds sleep to quit the outer loop.
+#
+# It would have been nice to have this inside of forwardBackward, but a current design flaw that the
+# instance of the MotorDriverCard is kept and you cannot get a fresh one from the factory prevents doing
+# this in C++.
+while true; do
+      ./forwardBackwardDFMC-MD22 MD22_on_DAMC2.dmap MD220 VT21-fast.xml 1000000
+      echo
+      echo lost connection to the device, trying reconnect...
+      sleep 2
+done

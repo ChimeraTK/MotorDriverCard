@@ -105,7 +105,7 @@ foreach( hardwareTestSourceFile ${hardwareTestSources})
   add_executable(${excutableName} ${hardwareTestSourceFile})
   target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
 endforeach( hardwareTestSourceFile )
- 
+configure_file(tests/hardware/scripts/runForwardBackward ${PROJECT_BINARY_DIR}/runForwardBackward copyonly) 
 
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
