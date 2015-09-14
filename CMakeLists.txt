@@ -18,6 +18,14 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
+#use -DSUPPRESS_AUTO_DOC_BUILD=true to suppress to create the doc with every
+#build. The 'make doc' target will still exist, but make install will fail if you don't run it.
+if(SUPPRESS_AUTO_DOC_BUILD)
+    unset(DOC_DEPENDENCY)
+else(SUPPRESS_AUTO_DOC_BUILD)
+    set(DOC_DEPENDENCY ALL)
+endif(SUPPRESS_AUTO_DOC_BUILD)
+
 # The MIN versions are needed for automatic replacement in the debian control file
 SET(MtcaMappedDevice_MIN_VERSION 00.17)
 FIND_PACKAGE(MtcaMappedDevice ${MtcaMappedDevice_MIN_VERSION} REQUIRED)
@@ -138,7 +146,21 @@ set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${MtcaMappedDevice_LIBRARY_DIRS})
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
+add_subdirectory(ConfigCalculator) 
+
+
+
 # The instructions to create a debian package are loaded from a separate file
 include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-add_subdirectory(ConfigCalculator) 
+  add_custom_target(doc ${DOC_DEPENDENCY}
+    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc DESTINATION . COMPONENT dev)
+else(DOXYGEN_FOUND)
+  message("Doxygen not found, documentation cannot be build.")
+endif(DOXYGEN_FOUND)
