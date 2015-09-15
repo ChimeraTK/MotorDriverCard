@@ -1,0 +1,49 @@
+/**
+\mainpage
+
+FIXME: Put documentation how to use the library
+
+\li StepperMotor and LinearStepperMotor classes as the main user interfave
+\li \ref motor_driver_card_config_docu
+
+\page motor_driver_card_config_docu Why you need a motor driver card config and how create it
+
+The driver and controller chips on the MD22 need to be configured for each motor. The parameters are stored in
+ an XML file. There is one file per MD22 MotorDriverCard, so one config for two motors. The reason is that there
+are common registers for both motors on the controller chip, and sometimes there is information of both motors
+in a single register.
+
+\section gui_parameters Creating an XML config file
+
+You can use the QtMotorConfigCalculator to generate a motor config file. You need some information from the
+ motor's data sheet:
+\li The maximum coil current
+\li The number of full steps per turn
+\li The maximum desired speed in RPMs
+\li Does the motor have end switches?
+
+If the motor does have end switches, you definitely should use them for safety reasons. However, if the motor does
+not have end switches you have to disable them because not connected end switches are detected as 'active' and 
+the motor would not move.
+
+The other parameters usually can stay at their default values. The clock frequency if 32 MHz is hard coded in the 
+firmware and probably will never change.
+
+\image html QtMotorConfigCalculator00.06.01.png
+
+
+\section expert_parameters Expert Section: Manually editing the config XML file
+
+The default parameters are made to work reliably, but operation will probably not be as smooth or efficent
+as possible with the particular motor and use case. If you want to tweak the parameters according to the TMC429
+ and TMC260 data sheets, you can manually edit the entries for the corresponding classes derived 
+from mtca4u::TMC260Word and mtca4u::TMC429InputWord.
+
+\include MotorDriverCardDefaultConfig.xml
+*/
+
+/**
+\example MotorDriverCardDefaultConfig.xml
+The complete MotorDriverCard XML configuration with default parameters
+*/
+
