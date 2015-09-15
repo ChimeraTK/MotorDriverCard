@@ -13,7 +13,7 @@ namespace dfmc_md22{
   int32_t const PROJECT_ID = 0x0;
   int32_t const PROJECT_MAGIC_NUMBER = 0x50524F4A;
 
-  /// @fixme This has to be WORD_PROJ_VERSION in the project, but how to identify the project?
+  /// @todo FIXME This has to be WORD_PROJ_VERSION in the project, but how to identify the project?
   std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM";
   std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID";
   std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION";
