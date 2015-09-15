@@ -148,19 +148,20 @@ include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
 add_subdirectory(ConfigCalculator) 
 
-
-
 # The instructions to create a debian package are loaded from a separate file
 include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
+  # The write_default_config target is defined in the ConfigCalculator subdirectory
+  # the 
   add_custom_target(doc ${DOC_DEPENDENCY}
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    DEPENDS MotorDriverCardDefaultConfig.xml
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc DESTINATION . COMPONENT dev)
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc DESTINATION . )
 else(DOXYGEN_FOUND)
   message("Doxygen not found, documentation cannot be build.")
 endif(DOXYGEN_FOUND)

@@ -19,6 +19,7 @@ add_executable(write_default_config executables/write_default_config.cpp)
 target_link_libraries(write_default_config ${PROJECT_NAME})
 add_custom_target(MotorDriverCardDefaultConfig.xml ALL write_default_config
   DEPENDS write_default_config)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MotorDriverCardDefaultConfig.xml DESTINATION doc)
 
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests/include)
