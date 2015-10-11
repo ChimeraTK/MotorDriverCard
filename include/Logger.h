@@ -9,13 +9,10 @@
 #define	LOGGER_H
 
 #include <iostream>
-
-namespace mtca4u {
-
-  /**
-   * Logger class which provides logging feature with 5 different logging levels.
-   * Example of usage:
-   *  
+/**
+ * Logger class which provides logging feature with 5 different logging levels.
+ * Example of usage:
+ *  
 \code
   
  int main(int argc, char** argv[]) {
@@ -57,7 +54,9 @@ namespace mtca4u {
     return 0;
  }
 \endcode
-  */
+ */
+
+namespace mtca4u {
 
     class Logger {
     public:
@@ -100,8 +99,9 @@ namespace mtca4u {
     public:
         /**
          * Constructor of the class object.
-         * @param  level - logging level for the object. Default value: NO_LOGGING
-         * @param  logStream - reference to debug stream where all log are written into. Default value: std::cout
+         * @param  Logger::LogLevel level - logging level for the object. Default value: NO_LOGGING
+         * @param   std::ostream& debugStream - reference to debug stream where all log are written into. Default value: std::cout
+         * @return
          */
         Logger(Logger::LogLevel level = NO_LOGGING, std::ostream& logStream = std::cout);
 
@@ -112,26 +112,31 @@ namespace mtca4u {
 
         /**
          * Sets the logging level for class object.
-         * @param level - debug level for the object. Default value: NO_LOGGING
+         * @param  Logger::LogLevel level - debug level for the object. Default value: NO_LOGGING
+         * @return
          */
         void setLogLevel(Logger::LogLevel level);
 
 
         /**
          * Gets current logging level of the class object.
+         * @param  
          * @return Logger::LogLevel - current debug level
          */
         Logger::LogLevel getLogLevel() const;
 
         /**
          * Functor which allows to is object of class like standard stream object. Message pass thru 
-         * @param  level - level of the log. If the level is higher then current logging level of object the message will be printed to log stream 
+         * @param  Logger::LogLevel level - level of the log. If the level is higher then current logging level of object the message will be printed to log stream 
+         * @return 
          */
         std::ostream& operator()(Logger::LogLevel level);
 
         /**
          * Functor which allows to print messages regardless of current logging level set in object.
          * It means log message will be ALLWAYS pass to the logging steam
+         * @param 
+         * @return 
          */
         std::ostream& operator()();
 

@@ -10,7 +10,7 @@ using namespace mtca4u::tmc429;
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
-  mappedDevice->getRegisterAccessor( createMotorRegisterName( _id, SUFFIX ), moduleName )
+  device->getRegisterAccessor( createMotorRegisterName( _id, SUFFIX ), moduleName )
 
 // Macros which cover more than one line are not good for the code coverage test, as only the 
 // macro call is checked. In this case it is probably ok because we gain a lot of code because
@@ -48,12 +48,12 @@ namespace mtca4u
 {
 
   MotorControlerImpl::MotorControlerImpl( unsigned int ID,
-		  boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+		  boost::shared_ptr< Device > const & device,
                   std::string const & moduleName,
                   boost::shared_ptr< TMC429SPI > const & controlerSPI,
 		  MotorControlerConfig const & motorControlerConfig ) 
-    : _mappedDevice(mappedDevice), _id(ID),
-      _controlerStatus(mappedDevice->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
+    : _device(device), _id(ID),
+      _controlerStatus(device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
       _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX, moduleName ) ),
@@ -64,7 +64,7 @@ namespace mtca4u
       _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX, moduleName ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
-      _driverSPI( mappedDevice, moduleName, 
+      _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
 		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
 		  motorControlerConfig.driverSpiWaitingTime),
@@ -101,13 +101,13 @@ namespace mtca4u
    
   int MotorControlerImpl::getActualPosition(){
     int readValue;
-    _actualPosition->readReg( &readValue );
+    _actualPosition->readRaw( &readValue );
     return converter24bits.customToThirtyTwo( readValue );
   }
 
-  unsigned int MotorControlerImpl::readRegObject( boost::shared_ptr< devMap<devBase>::RegisterAccessor > const & registerAccessor){
+  unsigned int MotorControlerImpl::readRegObject( boost::shared_ptr< Device::RegisterAccessor > const & registerAccessor){
     int readValue;
-    registerAccessor->readReg( &readValue );
+    registerAccessor->readRaw( &readValue );
     return static_cast<unsigned int>(readValue);
   }
 
@@ -118,7 +118,7 @@ namespace mtca4u
 
   int MotorControlerImpl::getActualVelocity(){
     int readValue;
-    _actualVelocity->readReg( &readValue );
+    _actualVelocity->readRaw( &readValue );
     return converter12bits.customToThirtyTwo( readValue );
   }
 
@@ -157,7 +157,7 @@ namespace mtca4u
  
   void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode){
     int32_t temporaryWriteWord = static_cast<int32_t>(readoutMode);
-    _decoderReadoutMode->writeReg( &temporaryWriteWord );
+    _decoderReadoutMode->writeRaw( &temporaryWriteWord );
   }
 
   unsigned int MotorControlerImpl::getDecoderReadoutMode(){
@@ -170,7 +170,7 @@ namespace mtca4u
  
   void MotorControlerImpl::setEnabled(bool enable){
     int32_t enableWord = ( enable ? 1 : 0 );
-    _enabled->writeReg( &enableWord );
+    _enabled->writeRaw( &enableWord );
   }
 
   bool MotorControlerImpl::isEnabled(){
@@ -263,7 +263,7 @@ namespace mtca4u
 
   bool MotorControlerImpl::targetPositionReached(){
     int readValue;
-    _controlerStatus->readReg( &readValue );
+    _controlerStatus->readRaw( &readValue );
     TMC429StatusWord controlerStatusWord( readValue );
 
     return controlerStatusWord.getTargetPositionReached(_id);
@@ -271,7 +271,7 @@ namespace mtca4u
 
   unsigned int MotorControlerImpl::getReferenceSwitchBit(){
     int readValue;
-    _controlerStatus->readReg( &readValue );
+    _controlerStatus->readRaw( &readValue );
     TMC429StatusWord controlerStatusWord( readValue );
 
     return controlerStatusWord.getReferenceSwitchBit(_id);

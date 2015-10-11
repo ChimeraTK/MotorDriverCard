@@ -8,6 +8,7 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
+#include <mtca4u/DMapFilesParser.h>
 
 
 #include <boost/thread.hpp>
@@ -53,6 +54,9 @@ public:
 
     void testMoveToPosition();
     void threadMoveToPostion(int i);
+    // This test is more of a functional test than a unit
+    // test
+    void testMoveTwoMotors();
 
 private:
     boost::shared_ptr<LinearStepperMotor> _stepperMotor;
@@ -86,6 +90,9 @@ public:
 
         add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testCalibration,
                 stepperMotorTest));
+
+        add(BOOST_CLASS_TEST_CASE(&LinearStepperMotorTest::testMoveTwoMotors,
+                stepperMotorTest));
     }
 };
 
@@ -97,14 +104,17 @@ init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
 
 LinearStepperMotorTest::LinearStepperMotorTest() {
 
-    std::string deviceFileName(dmapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_file);
-    std::string mapFileName(dmapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).map_file_name);
+    //std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_file);
+	std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_name);
+    std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).map_file_name);
 
     _testUnitConveter.reset(new TestUnitConveter);
 
-    _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
+    //_motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
+    MotorDriverCardFactory::instance().setDummyMode();
+    _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
 
-    _stepperMotor.reset(new LinearStepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath));
+    _stepperMotor.reset(new LinearStepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
 
 
 
@@ -648,4 +658,9 @@ void LinearStepperMotorTest::threadCalibration(int testCase) {
     }
 
     //_motorControlerDummy->moveTowardsTarget(1, false);
+}
+
+void LinearStepperMotorTest::testMoveTwoMotors() {
+	// Would want this test to be self contained for now
+	//boost::shared_ptr<LinearStepperMotor> Motor1 = new LinearStepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath)
 }

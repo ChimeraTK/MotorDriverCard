@@ -6,15 +6,14 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorControlerImpl.h"
-#include <MtcaMappedDevice/devMap.h>
-#include <MtcaMappedDevice/libmap.h>
-
 #include "DFMC_MD22Constants.h"
 #include "testWordFromPCIeAddress.h"
 using namespace mtca4u::dfmc_md22;
 #include "TMC429DummyConstants.h"
 #include "TMC260DummyConstants.h"
 #include "testWordFromSpiAddress.h"
+#include <mtca4u/MapFileParser.h>
+
 using namespace mtca4u::tmc429;
 using namespace mtca4u::tmc260;
 
@@ -22,7 +21,8 @@ using namespace mtca4u::tmc260;
 using namespace mtca4u;
 
 #include "testConfigConstants.h"
-
+#include "MotorDriverCardFactory.h"
+#include <memory>
 #define DECLARE_GET_SET_TEST( NAME )\
   void testGet ## NAME ();\
   void testSet ## NAME ()
@@ -84,7 +84,7 @@ namespace mtca4u{
 class MotorControlerTest{
 public:
   MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler, 
-		     boost::shared_ptr<mapFile> & registerMapping,
+		     boost::shared_ptr<RegisterInfoMap> & registerMapping,
 		     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
   // getID() is tested in the MotorDriver card, where 
   // different ID are known. This test is for just one
@@ -134,7 +134,7 @@ public:
 
 private:
   boost::shared_ptr<MotorControlerImpl> _motorControler;
-  boost::shared_ptr<mapFile> _registerMapping;
+  boost::shared_ptr<RegisterInfoMap> _registerMapping;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
   template<class T>
@@ -163,24 +163,26 @@ private:
 public:
   MotorControlerTestSuite(std::string const & mapFileName) 
     : test_suite(" MotorControler test suite"){
+    //boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy(MODULE_NAME_0) );
+  	std::list<std::string>parameters;
+  	parameters.push_back(MODULE_NAME_0);
+  	boost::shared_ptr<DFMC_MD22Dummy> dummyDevice (new DFMC_MD22Dummy(mapFileName, MODULE_NAME_0) );
+    //dummyDevice->open( mapFileName );
+  	//dummyDevice->open();
+    MapFileParser fileParser;
+    boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-    boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy(MODULE_NAME_0) );
-    dummyDevice->openDev( mapFileName );
- 
-    mapFileParser fileParser;
-    boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);
-
-    boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
+    boost::shared_ptr< Device > device(new Device());
     MotorDriverCardConfig  motorDriverCardConfig;
-   
-    mappedDevice->openDev( dummyDevice, registerMapping );
+    device->open(dummyDevice, registerMapping);
+    //device->open( dummyDevice, registerMapping );
     // We need the motor driver card as private variable because it has to
     // survive the constructor. Otherwise the MotorControlers passed to
     // the tests will be invalid.
-    _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice,
+    _motorDriverCard.reset( new MotorDriverCardImpl( device,
                                                      MODULE_NAME_0,
     						     motorDriverCardConfig ) );
-
+    boost::shared_ptr<DFMC_MD22Dummy> d = boost::static_pointer_cast<DFMC_MD22Dummy>(dummyDevice);
     dummyDevice->setRegistersForTesting();
 
     for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
@@ -188,6 +190,7 @@ public:
 	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ,
 				       registerMapping, 
 				       dummyDevice) );
+
       ADD_GET_SET_TEST( ActualPosition );
       ADD_GET_SET_TEST( ActualVelocity );
       ADD_GET_SET_TEST( ActualAcceleration );
@@ -253,7 +256,7 @@ public:
 
 
 MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler,
-				       boost::shared_ptr<mapFile> & registerMapping,
+				       boost::shared_ptr<RegisterInfoMap> & registerMapping,
 				       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
   : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)),
     _registerMapping( registerMapping ), _dummyDevice(dummyDevice){
@@ -276,7 +279,7 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::
 unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
   std::string registerName = createMotorRegisterName( _motorControler->getID(),
 						      registerSuffix );
-  mapFile::mapElem registerInfo;
+  RegisterInfoMap::RegisterInfo registerInfo;
   _registerMapping->getRegisterInfo( registerName, registerInfo, MODULE_NAME_0 );
   return testWordFromPCIeAddress( registerInfo.reg_address );
 }
@@ -422,20 +425,20 @@ void MotorControlerTest::testSetReferenceSwitchEnabled(){
 }
 
 void MotorControlerTest::testTargetPositionReached(){
-  mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, MODULE_NAME_0 );
+  RegisterInfoMap::RegisterInfo RegisterInfoent;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, RegisterInfoent, MODULE_NAME_0 );
 
-  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( RegisterInfoent.reg_address ) );
 
   BOOST_CHECK( expectedControlerStatus.getTargetPositionReached( _motorControler->getID() ) ==
 	       _motorControler->targetPositionReached() );
 }
 
 void MotorControlerTest::testGetReferenceSwitchBit(){
-  mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, MODULE_NAME_0 );
+  RegisterInfoMap::RegisterInfo RegisterInfoent;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, RegisterInfoent, MODULE_NAME_0 );
 
-  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( mapElement.reg_address ) );
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( RegisterInfoent.reg_address ) );
 
   BOOST_CHECK( expectedControlerStatus.getReferenceSwitchBit( _motorControler->getID() ) ==
 	       _motorControler->getReferenceSwitchBit() );
