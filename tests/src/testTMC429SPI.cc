@@ -4,14 +4,15 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
-#include <MtcaMappedDevice/devMap.h>
-//#include <MtcaMappedDevice/libmap.h>
+//#include <mtca4u/Device.h>
+//#include <mtca4u/libmap.h>
 #include "TMC429SPI.h"
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 #include "TMC429Words.h"
 #include "TMC429Constants.h"
 #include "MotorDriverException.h" 
+#include <mtca4u/MapFileParser.h>
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
@@ -30,7 +31,7 @@ class TMC429SPITest{
 
  private:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-  boost::shared_ptr< devMap<devBase> > _mappedDevice;
+  boost::shared_ptr< Device > _mappedDevice;
   std::string _mapFileName;
 
   boost::shared_ptr<TMC429SPI> _tmc429Spi;
@@ -61,16 +62,19 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 }
 
 TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName){
-  _dummyDevice.reset( new DFMC_MD22Dummy(moduleName) );
 
-  // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
-  _mappedDevice.reset(new devMap<devBase>);
-  _dummyDevice->openDev( mapFileName );
+	_dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );//fixme mapFileName should be an alias instead
+	//_dummyDevice.reset( new DFMC_MD22Dummy(moduleName) );
+
+  // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
+  _mappedDevice.reset(new Device());
+  //_dummyDevice->open( mapFileName );
+  //_dummyDevice->open();
  
-  mapFileParser fileParser;
-  boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);
+  MapFileParser fileParser;
+  boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-  _mappedDevice->openDev( _dummyDevice, registerMapping );
+  _mappedDevice->open( _dummyDevice, registerMapping );
   
   _dummyDevice->setRegistersForTesting();
 

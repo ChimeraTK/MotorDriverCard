@@ -1,72 +1,80 @@
 #include "MotorDriverCardFactory.h"
 
-#include <MtcaMappedDevice/devBase.h>
-#include <MtcaMappedDevice/devPCIE.h>
-#include <MtcaMappedDevice/devMap.h>
+//#include <mtca4u/BaseDevice.h>
+//#include <mtca4u/PcieDevice.h>
+//#include <mtca4u/Device.h>
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
+#include <mtca4u/MapFileParser.h>
 
 #include <boost/thread/locks.hpp>
 
 namespace mtca4u{
 
-  MotorDriverCardFactory::MotorDriverCardFactory(){
-    /* empty */
-  }
+MotorDriverCardFactory::MotorDriverCardFactory(){
+	/* empty */
+}
 
-  // the copy constructor is intentionally not implemented
+// the copy constructor is intentionally not implemented
 
-  MotorDriverCardFactory & MotorDriverCardFactory::instance(){
-    static MotorDriverCardFactory motorDriverCardFactory;
-    return motorDriverCardFactory;
-  }
+MotorDriverCardFactory & MotorDriverCardFactory::instance(){
+	static MotorDriverCardFactory motorDriverCardFactory;
+	return motorDriverCardFactory;
+}
 
-  boost::shared_ptr<MotorDriverCard> 
-    MotorDriverCardFactory::createMotorDriverCard(std::string deviceFileName,
-						  std::string mapFileName,
-                                                  std::string mapModuleName,
-						  std::string motorConfigFileName){
-    boost::lock_guard<boost::mutex> guard(_factoryMutex);
-    
-    // if the card is not in the map it will be created, otherwise the
-    // existing one is delivered
-    
-    //TSK - fix me - now key must be a pair of deviceFileName and mapModuleName, not only deviceFileName
-    boost::shared_ptr<MotorDriverCard> & motorDriverCard =  _motorDriverCards[std::make_pair(deviceFileName, mapModuleName)]; 
+boost::shared_ptr<MotorDriverCard>
+MotorDriverCardFactory::createMotorDriverCard(std::string alias,
+		std::string mapModuleName,
+		std::string motorConfigFileName){
+	boost::lock_guard<boost::mutex> guard(_factoryMutex);
+	// if the card is not in the map it will be created, otherwise the
+	// existing one is delivered
+	//TSK - fix me - now key must be a pair of deviceFileName and mapModuleName, not only deviceFileName
+	boost::shared_ptr<MotorDriverCard> & motorDriverCard =  _motorDriverCards[std::make_pair(alias, mapModuleName)];
 
-    // create a new instance of the motor driver card if the shared pointer is
-    // empty, which means it has just been added to the map
-    if (!motorDriverCard){
-      if (deviceFileName=="/dummy/MotorDriverCard"){
-	// just create a MotorDriverCardDummy
-	motorDriverCard.reset(new MotorDriverCardDummy());
-      }else{
-	// create a real MotorDriverCardImpl, with either pcie or dummy io device
-	boost::shared_ptr< devBase > ioDevice;
+	// create a new instance of the motor driver card if the shared pointer is
+	// empty, which means it has just been added to the map
+	if (!motorDriverCard){
+		if (_dummyMode){ //if (deviceFileName=="custom://MotorDriverCardDummy")
+			// just create a MotorDriverCardDummy
+			motorDriverCard.reset(new MotorDriverCardDummy());
+			std::cout<<"----if----"<<std::endl;
+		}else{
+			//mtca4u::DeviceFactory FactoryInstance = mtca4u::DeviceFactory::getInstance();
+			//boost::shared_ptr< Device > device = FactoryInstance.createDevice(alias);
+			boost::shared_ptr<Device> device ( new Device());
+			std::cout<<"----else b4 open----"<<alias<<std::endl;
 
-	if (deviceFileName == mapFileName){
-	  ioDevice.reset(new DFMC_MD22Dummy(mapModuleName));
-	}else{
-	  ioDevice.reset(new devPCIE);
-	}
+			//device->open(alias);
+			std::string mapFileName = "DFMC_MD22_test.mapp"; // fixme just temp.
+			boost::shared_ptr<DFMC_MD22Dummy> dummyDevice;
+			dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, mapModuleName) );
+			MapFileParser fileParser;
+			boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
+			device->open(dummyDevice, registerMapping);
 
-	ioDevice->openDev(deviceFileName);
+			std::cout<<"----else after open----"<<std::endl;
 
-	boost::shared_ptr< mapFile > registerMapping = mapFileParser().parse(mapFileName);
+			MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
-	boost::shared_ptr< devMap< devBase > > mappedDevice(new devMap<devBase>);
-	mappedDevice->openDev(ioDevice, registerMapping);
+			motorDriverCard.reset(new MotorDriverCardImpl(device, mapModuleName, cardConfig));
+		}// else deviceFileName=="/dummy/MotorDriverCard"
 
-	MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
+	}// if (!motorDriverCard)
 
-	motorDriverCard.reset(new MotorDriverCardImpl(mappedDevice, mapModuleName, cardConfig));
-      }// else deviceFileName=="/dummy/MotorDriverCard" 
+	return motorDriverCard;
+}
 
-    }// if (!motorDriverCard)
+bool MotorDriverCardFactory::getDummyMode()
+{
+	return _dummyMode;
+}
 
-    return motorDriverCard;
-  }
+void MotorDriverCardFactory::setDummyMode(bool dummyMode)
+{
+	_dummyMode = dummyMode;
+}
 
 }// namespace mtca4u

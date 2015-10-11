@@ -8,18 +8,12 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
 add_library(${PROJECT_NAME} ${calculator_library_sources} )
 target_link_libraries(${PROJECT_NAME} MotorDriverCard)    
 
-add_executable(MotorConfigCalculator executables/ConfigCalculatorCLI.cpp)
+add_executable(MotorConfigCalculator     executables/ConfigCalculatorCLI.cpp)
 target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})    
 install(TARGETS MotorConfigCalculator
         RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 )
-
-add_executable(write_default_config executables/write_default_config.cpp)
-target_link_libraries(write_default_config ${PROJECT_NAME})
-add_custom_target(MotorDriverCardDefaultConfig.xml ALL write_default_config
-  DEPENDS write_default_config)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MotorDriverCardDefaultConfig.xml DESTINATION doc)
 
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests/include)

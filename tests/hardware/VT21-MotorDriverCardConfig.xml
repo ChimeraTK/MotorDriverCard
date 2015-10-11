@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <MotorDriverCardConfig>
 	<MotorControlerConfig motorID="0">
-	        <!--coolStep off -->
-		<Register name="coolStepControlData" value="0x0" />
+	        <!--coolStep with 1/4 CS minimum current (taken directly from the data sheet)  -->
+		<Register name="coolStepControlData" value="0x8202" />
 		<!-- 16 microsteps per 90 degrees -->
 		<Register name="driverControlData" value="0x4" />
 		<!-- filtered stallGuard with 4/32 current scale -->

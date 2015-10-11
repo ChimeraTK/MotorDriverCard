@@ -4,8 +4,8 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
-#include <MtcaMappedDevice/devMap.h>
-//#include <MtcaMappedDevice/libmap.h>
+#include <mtca4u/Device.h>
+#include <mtca4u/MapFileParser.h>
 #include "SPIviaPCIe.h"
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
@@ -29,7 +29,7 @@ public:
 
 private:
     boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-    boost::shared_ptr< devMap<devBase> > _mappedDevice;
+    boost::shared_ptr< Device > _mappedDevice;
     std::string _mapFileName;
 
     boost::shared_ptr<SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
@@ -71,20 +71,23 @@ init_unit_test_suite(int /*argc*/, char** /* use 'char * argv[]' if you need it 
 
 SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string const & moduleName) {
 
-    _dummyDevice.reset(new DFMC_MD22Dummy(moduleName));
 
-    // we need a mapped device of devBase. Unfortunately this is still really clumsy to produce/open
+	 _dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );
+	//_dummyDevice.reset(new DFMC_MD22Dummy(moduleName));
 
-    _mappedDevice.reset(new devMap<devBase>);
+    // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
 
-    _dummyDevice->openDev(mapFileName);
+    _mappedDevice.reset(new Device());
 
-    mapFileParser fileParser;
-    boost::shared_ptr<mapFile> registerMapping = fileParser.parse(mapFileName);
+    //_dummyDevice->open(mapFileName);
+    //_dummyDevice->open();
 
-    _mappedDevice->openDev(_dummyDevice, registerMapping);
+    MapFileParser fileParser;
+    boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-    _dummyDevice->setRegistersForTesting();
+    _mappedDevice->open(_dummyDevice, registerMapping);
+
+    //_dummyDevice->setRegistersForTesting();
 
 
 

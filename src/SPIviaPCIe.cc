@@ -10,15 +10,15 @@ using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
 
-  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< Device > const & device,
 			  std::string const & moduleName, 
                           std::string const & writeRegisterName, 
                           std::string const & syncRegisterName,
 			  unsigned int spiWaitingTime)
-    : _writeRegister( mappedDevice->getRegisterAccessor(writeRegisterName, moduleName) ),
-      _synchronisationRegister(  mappedDevice->getRegisterAccessor(syncRegisterName, moduleName) ),
+    : _writeRegister( device->getRegisterAccessor(writeRegisterName, moduleName) ),
+      _synchronisationRegister(  device->getRegisterAccessor(syncRegisterName, moduleName) ),
       // will always return the last written word
-      _readbackRegister(  mappedDevice->getRegisterAccessor(writeRegisterName, moduleName) ),
+      _readbackRegister(  device->getRegisterAccessor(writeRegisterName, moduleName) ),
       _spiWaitingTime(spiWaitingTime),
       _moduleName(moduleName),
       _writeRegisterName(writeRegisterName),
@@ -26,15 +26,15 @@ namespace mtca4u{
       
   {}
 
-  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< Device > const & device,
 			  std::string const & moduleName, 
                           std::string const & writeRegisterName, 
                           std::string const & syncRegisterName,
 			  std::string const & readbackRegisterName,
 			  unsigned int spiWaitingTime )
-    : _writeRegister( mappedDevice->getRegisterAccessor(writeRegisterName, moduleName) ),
-      _synchronisationRegister(  mappedDevice->getRegisterAccessor(syncRegisterName, moduleName) ),
-      _readbackRegister(  mappedDevice->getRegisterAccessor(readbackRegisterName, moduleName) ),
+    : _writeRegister( device->getRegisterAccessor(writeRegisterName, moduleName) ),
+      _synchronisationRegister(  device->getRegisterAccessor(syncRegisterName, moduleName) ),
+      _readbackRegister(  device->getRegisterAccessor(readbackRegisterName, moduleName) ),
       _spiWaitingTime(spiWaitingTime),
       _moduleName(moduleName),
       _writeRegisterName(writeRegisterName),
@@ -47,20 +47,20 @@ namespace mtca4u{
 
     // Implement the write handshake
     // 1. write 0xff to the synch register
-    _synchronisationRegister->writeReg( &SPI_SYNC_REQUESTED);
+    _synchronisationRegister->writeRaw( &SPI_SYNC_REQUESTED);
 
     // 2. write the spi command
-    _writeRegister->writeReg( &spiCommand );
+    _writeRegister->writeRaw( &spiCommand );
 
     // 3. wait for the handshake
     int32_t syncValue;
-    _synchronisationRegister->readReg( &syncValue );
+    _synchronisationRegister->readRaw( &syncValue );
     
     for (size_t syncCounter=0; 
 	 (syncValue==SPI_SYNC_REQUESTED) && (syncCounter < 10);
 	 ++syncCounter){
       sleepMicroSeconds(_spiWaitingTime);
-      _synchronisationRegister->readReg( & syncValue, sizeof(int));
+      _synchronisationRegister->readRaw( & syncValue, sizeof(int));
     }
 
     //It might be inefficient to always create the error message, even if not needed, but
@@ -90,7 +90,7 @@ namespace mtca4u{
     write( spiCommand );
 
     int32_t readbackValue;
-    _readbackRegister->readReg( &readbackValue );
+    _readbackRegister->readRaw( &readbackValue );
 
     return readbackValue;
   }

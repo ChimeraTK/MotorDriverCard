@@ -1,20 +1,26 @@
 #include "StepperMotor.h"
 #include <cmath>
 #include "MotorDriverCardFactory.h"
-#include <MtcaMappedDevice/NotImplementedException.h>
+#include <mtca4u/NotImplementedException.h>
 
 namespace mtca4u {
 
-    StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile) {
 
+    	StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) {
         _motorDriverId = motorDriverId;
         _motorDriverCardDeviceName = motorDriverCardDeviceName;
 
-        std::string deviceFileName(dmapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).dev_file);
-        std::string mapFileName(dmapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
+        //std::string deviceFileName(DMapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).dev_file);
+        //std::string mapFileName(DMapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
+
+        /*_motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
+                                deviceFileName, mapFileName, moduleName, motorDriverCardConfigFileName);*/
 
         _motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
-                deviceFileName, mapFileName, moduleName, motorDriverCardConfigFileName);
+        		motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
+
+
+
 
         _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
 

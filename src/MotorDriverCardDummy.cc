@@ -1,7 +1,7 @@
 #include "MotorDriverCardDummy.h"
 
 #include <stdexcept>
-#include <MtcaMappedDevice/NotImplementedException.h>
+#include <mtca4u/NotImplementedException.h>
 
 #include "MotorControlerDummy.h"
 #include "MotorDriverException.h"

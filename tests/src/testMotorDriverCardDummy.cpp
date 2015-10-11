@@ -1,7 +1,7 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include <MtcaMappedDevice/NotImplementedException.h>
+#include <mtca4u/NotImplementedException.h>
 
 #include "MotorDriverCardDummy.h"
 #include "MotorControlerDummy.h"

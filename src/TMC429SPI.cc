@@ -3,13 +3,14 @@
 
 namespace mtca4u{
 
-  TMC429SPI::TMC429SPI(  boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+  //TMC429SPI::TMC429SPI(  boost::shared_ptr< Device<BaseDevice> > const & device,
+  TMC429SPI::TMC429SPI(  boost::shared_ptr< Device > const & device,
 			 std::string const & moduleName,
                          std::string const & writeRegisterName,
 			 std::string const & syncRegisterName,
 			 std::string const & readbackRegisterName,
 			 unsigned int spiWaitingTime)
-    : _spiViaPCIe(mappedDevice, moduleName, writeRegisterName, syncRegisterName, readbackRegisterName, spiWaitingTime)
+    : _spiViaPCIe(device, moduleName, writeRegisterName, syncRegisterName, readbackRegisterName, spiWaitingTime)
   {}
 
   TMC429OutputWord TMC429SPI::read( unsigned int smda, unsigned int idx_jdx ){

@@ -5,13 +5,9 @@
 
 namespace mtca4u {
 
-    LinearStepperMotor::LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile)
-    : StepperMotor(motorDriverCardDeviceName, moduleName, motorDriverId, motorDriverCardConfigFileName, pathToDmapFile) {
+    LinearStepperMotor::LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName)
+    : StepperMotor(motorDriverCardDeviceName, moduleName, motorDriverId, motorDriverCardConfigFileName) {
 
-        //end switches enabled or not
-        _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
-        _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
-    
         //calibration
         _calibNegativeEndSwitchInUnits = _calibNegativeEndSwitchInSteps = 0;
         _calibPositiveEndSwitchInUnits = _calibPositiveEndSwitchInSteps = 0;
@@ -264,21 +260,15 @@ namespace mtca4u {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         //check end switches
-        bool positiveSwitchStatus = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() & _positiveEndSwitchEnabled;
-        bool negativeSwitchStatus = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() & _negativeEndSwitchEnabled;
-   
+        bool positiveSwitchStatus = _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
+        bool negativeSwitchStatus = _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
+
         //check if both end switches are on in the same time - this means error;    
         if (positiveSwitchStatus && negativeSwitchStatus) {
 
             positiveSwitchStatus = _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
             negativeSwitchStatus = _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
 
-            if (positiveSwitchStatus)
-                _logger(Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Positive end-switch on. " << std::endl;
-            
-            if (negativeSwitchStatus)
-                _logger(Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Negative end-switch on. " << std::endl;
-            
             if (positiveSwitchStatus && negativeSwitchStatus) {
                 _motorStatus = LinearStepperMotorStatusTypes::M_ERROR;
                 _logger(Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Both end switches error detected. " << std::endl;

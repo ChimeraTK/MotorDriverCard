@@ -1,5 +1,5 @@
 #include "MotorControlerDummy.h"
-#include <MtcaMappedDevice/NotImplementedException.h>
+#include <mtca4u/NotImplementedException.h>
 
 #include <iostream>
 

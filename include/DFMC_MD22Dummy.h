@@ -1,8 +1,9 @@
 #ifndef MTCA4U_DFMC_MD22_DUMMY_H
 #define MTCA4U_DFMC_MD22_DUMMY_H
 
-#include <MtcaMappedDevice/DummyDevice.h>
+#include <mtca4u/DummyBackend.h>
 #include "TMC429Words.h"
+#include <mtca4u/BackendFactory.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -28,12 +29,10 @@ namespace mtca4u{
    *  \li A read request to the SPI_CTRL register updates the value in the SPI_CTRL_B
    *      register
    */
-  class DFMC_MD22Dummy : public mtca4u::DummyDevice{
+  class DFMC_MD22Dummy : public mtca4u::DummyBackend{
   public:
-    DFMC_MD22Dummy(std::string const & moduleName = std::string());
-
-    void openDev(const std::string &mappingFileName,
-		 int perm = O_RDWR, devConfigBase* pConfig = NULL);
+    DFMC_MD22Dummy(std::string const & mapFileName, std::string const & moduleName);
+    void open();
     
     /** Writes the test pattern to all registers.
      *  controlerSpiAddress*controlerSpiAddress+13 for the controler SPI address space.
@@ -86,6 +85,8 @@ namespace mtca4u{
     /** Set the simulated SPI delay for the TMC260 driver chip in microseconds.
      */
     void setDriverSpiDelay(unsigned int microseconds);
+
+    static boost::shared_ptr<mtca4u::DeviceBackend> createInstance(std::string host, std::string interface, std::list<std::string> parameters);
 
   private:
     // callback functions
@@ -147,6 +148,17 @@ namespace mtca4u{
     
     std::string _moduleName;
   };
+  class DFMC_MD22DummyRegisterer{
+  public:
+  	DFMC_MD22DummyRegisterer(){
+  #ifdef _DEBUG
+  		std::cout<<"DFMC_MD22DummyRegisterer"<<std::endl;
+  #endif
+  		BackendFactory::getInstance().registerBackendType("dfmc_md22dummy","",&DFMC_MD22Dummy::createInstance);
+    }
+  };
+
+
 }// namespace mtca4u
 
 #endif // MTCA4U_DFMC_MD22_DUMMY_H
