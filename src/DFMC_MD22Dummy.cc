@@ -40,8 +40,7 @@ namespace mtca4u{
 
 
   void DFMC_MD22Dummy::open(){
-std::cout<<"open dev"<<std::endl;
-      DummyBackend::open();
+    DummyBackend::open();
     setPCIeRegistersForTesting(); // some of them will be overwriten if a 
     // defined behaviour exists for them
     
@@ -60,8 +59,7 @@ std::cout<<"open dev"<<std::endl;
 				 MotorDriverException::SPI_ERROR );
     }
     _controlerSpiReadbackAddress = registerInformation.reg_address;
-    std::cout<<"registerInformation.reg_size:"<<registerInformation.reg_size<<std::endl;
-    setReadOnly( registerInformation.reg_bar, registerInformation.reg_address, registerInformation.reg_size);
+    setReadOnly( registerInformation.reg_bar, registerInformation.reg_address, registerInformation.reg_elem_nr);
 
     _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation, _moduleName );
     if ( _controlerSpiBar != registerInformation.reg_bar ){
@@ -101,8 +99,8 @@ std::cout<<"open dev"<<std::endl;
       }
 
       _driverSPIs[id].bar = static_cast<unsigned int>(driverSpiWriteAddressRange.bar);
-      _driverSPIs[id].pcieWriteAddress = driverSpiWriteAddressRange.address;
-      _driverSPIs[id].pcieSyncAddress = driverSpiSyncAddressRange.address;
+      _driverSPIs[id].pcieWriteAddress = driverSpiWriteAddressRange.offset;
+      _driverSPIs[id].pcieSyncAddress = driverSpiSyncAddressRange.offset;
       setWriteCallbackFunction( driverSpiWriteAddressRange, 
 				boost::bind( &DFMC_MD22Dummy::handleDriverSpiWrite, this, id) );
     }
@@ -142,15 +140,10 @@ std::cout<<"open dev"<<std::endl;
   void DFMC_MD22Dummy::setConstantPCIeRegister( std::string registerName, int32_t content){
     RegisterInfoMap::RegisterInfo registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
     DEFINE_ADDRESS_RANGE( addressRange, registerName, _moduleName);
-    size_t addressIndex = addressRange.address/sizeof(uint32_t);
+    size_t addressIndex = addressRange.offset/sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;
     // only set the one word we modified as constant. The address range might be larger
-    std::cout<<"setting PCIe readonly_moduleName:"<<_moduleName<<std::endl;
-    std::cout<<"registerName:"<<registerName<<std::endl;
-    std::cout<<"addressRange.bar:"<<unsigned(addressRange.bar)<<std::endl;
-    std::cout<<"addressRange.address:"<<addressRange.address<<std::endl;
-    setReadOnly( addressRange.bar, addressRange.address, 1);
-    std::cout<<"--return"<<std::endl;
+    setReadOnly( addressRange.bar, addressRange.offset, 1);
   }
 
   void DFMC_MD22Dummy::setDriverSpiRegistersForTesting(unsigned int motorID){
@@ -160,8 +153,7 @@ std::cout<<"open dev"<<std::endl;
   }
 
   void DFMC_MD22Dummy::setControlerSpiRegistersForOperation(){
-    std::cout<<"setControlerSpiRegistersForOperation"<<std::endl;
-	  for_each( _controlerSpiAddressSpace.begin(), _controlerSpiAddressSpace.end(), boost::lambda::_1=0 );
+    for_each( _controlerSpiAddressSpace.begin(), _controlerSpiAddressSpace.end(), boost::lambda::_1=0 );
 
     // Information from the data sheet:
     size_t controlerSpiAddress =  spiAddressFromSmdaIdxJdx( SMDA_COMMON, JDX_CHIP_VERSION );
@@ -174,7 +166,6 @@ std::cout<<"open dev"<<std::endl;
     _controlerSpiAddressSpace.at(controlerSpiAddress) = globalParameters.getDATA();
 
     synchroniseFpgaWithControlerSpiRegisters();
-    std::cout<<"setControlerSpiRegistersForOperation return"<<std::endl;
   }
 
   void DFMC_MD22Dummy::setControlerSpiRegistersForTesting(){
@@ -289,9 +280,8 @@ std::cout<<"open dev"<<std::endl;
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
     outputWord.setDATA( _controlerSpiAddressSpace.at(controlerSpiAddress) );
-     writeRegisterWithoutCallback( _controlerSpiReadbackAddress,
-				   outputWord.getDataWord(),
-				   _controlerSpiBar );
+     writeRegisterWithoutCallback(_controlerSpiBar,_controlerSpiReadbackAddress,
+				   outputWord.getDataWord());
   }
 
   void DFMC_MD22Dummy::triggerActionsOnControlerSpiWrite(TMC429InputWord const & inputWord){

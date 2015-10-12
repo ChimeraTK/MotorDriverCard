@@ -40,13 +40,10 @@ MotorDriverCardFactory::createMotorDriverCard(std::string alias,
 		if (_dummyMode){ //if (deviceFileName=="custom://MotorDriverCardDummy")
 			// just create a MotorDriverCardDummy
 			motorDriverCard.reset(new MotorDriverCardDummy());
-			std::cout<<"----if----"<<std::endl;
 		}else{
 			//mtca4u::DeviceFactory FactoryInstance = mtca4u::DeviceFactory::getInstance();
 			//boost::shared_ptr< Device > device = FactoryInstance.createDevice(alias);
 			boost::shared_ptr<Device> device ( new Device());
-			std::cout<<"----else b4 open----"<<alias<<std::endl;
-
 			//device->open(alias);
 			std::string mapFileName = "DFMC_MD22_test.mapp"; // fixme just temp.
 			boost::shared_ptr<DFMC_MD22Dummy> dummyDevice;
@@ -54,9 +51,6 @@ MotorDriverCardFactory::createMotorDriverCard(std::string alias,
 			MapFileParser fileParser;
 			boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 			device->open(dummyDevice, registerMapping);
-
-			std::cout<<"----else after open----"<<std::endl;
-
 			MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
 			motorDriverCard.reset(new MotorDriverCardImpl(device, mapModuleName, cardConfig));

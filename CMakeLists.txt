@@ -134,7 +134,7 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_
 set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${mtca4u-deviceaccess_INCLUDE_DIRS})
 set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
 set(${PROJECT_NAME}_CONFIG_LIBRARIES ${mtca4u-deviceaccess_LIBRARIES})
-set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS $mtca4u-deviceaccess_LIBRARY_DIRS})
+set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${mtca4u-deviceaccess_LIBRARY_DIRS})
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
