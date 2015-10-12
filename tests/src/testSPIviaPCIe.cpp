@@ -120,6 +120,7 @@ void SPIviaPCIeTest::testRead() {
     coverDatagram.setDATA(0);
 
     unsigned int readbackInt;
+    readbackInt = _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
     BOOST_REQUIRE_NO_THROW(readbackInt = _readWriteSPIviaPCIe->read(coverDatagram.getDataWord()));
     // For optimised code the require is not enough. The code might continue if an exception occured 
     // (at least the compiler says so an gives a warning)

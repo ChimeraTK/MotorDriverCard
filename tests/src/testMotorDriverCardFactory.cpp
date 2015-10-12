@@ -41,11 +41,9 @@ BOOST_AUTO_TEST_CASE( testCreate ){
 			//MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH,
 			MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_ALIAS,
 					MODULE_NAME_0,CONFIG_FILE);
-std::cout<<"pass"<<std::endl;
 	boost::shared_ptr<MotorDriverCard> md22_dummy1 =
 			MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS,
 					MODULE_NAME_0, CONFIG_FILE);
-	std::cout<<"pass2"<<std::endl;
 	BOOST_CHECK( motorDriverCard_PCIe1.get() != md22_dummy1.get() );
 	// there is one instance here and one in the factory
 	BOOST_CHECK( md22_dummy1.use_count() == 2 );
