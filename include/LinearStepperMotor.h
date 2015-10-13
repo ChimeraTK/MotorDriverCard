@@ -173,7 +173,6 @@ namespace mtca4u {
         
         bool _stopMotorCalibration;          
     };
-    DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
 
 } //namespace mtca4u
 
