@@ -4,6 +4,7 @@
 #include "MotorDriverException.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardFactory.h"
+#include <mtca4u/DMapFileParser.h>
 #include <unistd.h>
 #include <signal.h>
 #include <ctime>
@@ -44,7 +45,7 @@ using namespace mtca4u;
 
 int main( int argc, char* argv[] )
 {
-  if (argc !=5){
+  if (argc !=4){
     std::cout << "Move to the 'left' (low values) end switch. Afterward move infinetly between 0.2*nStepsMax and nStepsMax."
 	      << std::endl << std::endl;
     std::cout << "Usage: " << argv[0] << " dmapFile moduleName MotorDriverConfig.xml nStepsMax" << std::endl;
@@ -55,17 +56,13 @@ int main( int argc, char* argv[] )
 
   signal(SIGINT, intHandler);
 
-  std::pair<std::string, std::string> deviceFileAndMapFileName =
-    dmapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
-
-  // first turn off the reset of the board so the firmware can get active.
-  devMap<devPCIE> mappedDevice;
-  mappedDevice.openDev(deviceFileAndMapFileName);
-  int32_t ONE = 1;
-  mappedDevice.writeReg("WORD_RESET_N","BOARD0",&ONE);
-
+  std::string deviceName = DMapFileParser().parse( argv[1] )->begin()->dev_name;
+  //std::pair<std::string, std::string> deviceFileAndMapFileName =
+//    DMapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
+  MotorDriverCardFactory::instance().setDummyMode();
   boost::shared_ptr<mtca4u::MotorDriverCardImpl> motorDriverCard
-    = boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileAndMapFileName.first,  deviceFileAndMapFileName.second, argv[2], argv[3] ));
+	= boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceName, argv[2], argv[3] ));
+    //= boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileAndMapFileName.first,  deviceFileAndMapFileName.second, argv[2], argv[3] ));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the motor
 

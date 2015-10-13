@@ -3,7 +3,7 @@
 
 #include "MotorControlerExpert.h"
 
-#include <MtcaMappedDevice/devMap.h>
+#include <mtca4u/Device.h>
 #include <boost/noncopyable.hpp>
 
 #include "MotorControlerConfig.h"
@@ -35,7 +35,7 @@ namespace mtca4u
      *  The config is only used in the constuctor, no reference is kept in the class.
      */
     MotorControlerImpl( unsigned int ID,
-			boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+			boost::shared_ptr< Device > const & device,
                         std::string const & moduleName,
 			boost::shared_ptr< TMC429SPI > const & controlerSPI,
 			MotorControlerConfig const & motorControlerConfig );
@@ -100,7 +100,7 @@ namespace mtca4u
      unsigned int getReferenceSwitchBit();
  
   private:
-     boost::shared_ptr< devMap<devBase> > _mappedDevice;
+     boost::shared_ptr< Device > _device;
 
      unsigned int _id;
 
@@ -111,18 +111,18 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
 
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _controlerStatus;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _controlerStatus;
 
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _actualPosition;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _actualVelocity;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _actualAcceleration;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _microStepCount;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _stallGuardValue;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _coolStepValue;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _status;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _enabled;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _decoderReadoutMode;
-     boost::shared_ptr< mtca4u::devMap< devBase >::RegisterAccessor > _decoderPosition;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _actualPosition;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _actualVelocity;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _actualAcceleration;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _microStepCount;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _stallGuardValue;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _coolStepValue;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _status;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _enabled;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _decoderReadoutMode;
+     boost::shared_ptr< mtca4u::Device::RegisterAccessor > _decoderPosition;
      
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
@@ -130,7 +130,7 @@ namespace mtca4u
      /// Simplify the syntax to read from a RegisterAccessor which need call by reference.
      /// Remove this function once the RegisterAccessor interface has been fixed.
      unsigned int readRegObject( 
-			 boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > const & registerAccessor);
+			 boost::shared_ptr< mtca4u::Device::RegisterAccessor > const & registerAccessor);
 
      template<class T>
        T readTypedRegister();

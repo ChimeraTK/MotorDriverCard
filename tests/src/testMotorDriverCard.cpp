@@ -5,8 +5,8 @@ using namespace boost::unit_test_framework;
 #include "MotorDriverCardImpl.h"
 #include "MotorControlerExpert.h"
 #include "MotorDriverException.h"
-#include <MtcaMappedDevice/devMap.h>
-#include <MtcaMappedDevice/libmap.h>
+#include <mtca4u/MapFileParser.h>
+
 
 
 using namespace mtca4u::dfmc_md22;
@@ -58,7 +58,7 @@ public:
 private:
   boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-  boost::shared_ptr<mapFile> _registerMapping;
+  boost::shared_ptr<RegisterInfoMap> _registerMapping;
   std::string _mapFileName;
   std::string _moduleName;
   
@@ -97,14 +97,12 @@ MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName, std::s
 }
 
 void MotorDriverCardTest::testConstructor(){
-  //boost::shared_ptr<devBase> dummyDevice( new DFMC_MD22Dummy );
-  _dummyDevice.reset( new DFMC_MD22Dummy(MODULE_NAME_0) );
-  _dummyDevice->openDev( _mapFileName );
- 
-  mapFileParser fileParser;
+
+  _dummyDevice.reset( new DFMC_MD22Dummy(_mapFileName, MODULE_NAME_0) );
+   MapFileParser fileParser;
   _registerMapping = fileParser.parse(_mapFileName);
 
-  boost::shared_ptr< devMap<devBase> > mappedDevice(new devMap<devBase>);
+  boost::shared_ptr< Device> device(new Device());
   MotorDriverCardConfig motorDriverCardConfig;
   motorDriverCardConfig.coverDatagram = asciiToInt("DTGR");
   motorDriverCardConfig.coverPositionAndLength.setDATA(asciiToInt( "POSL") );
@@ -142,45 +140,44 @@ void MotorDriverCardTest::testConstructor(){
 
     motorDriverCardConfig.motorControlerConfigurations[motorID] = motorControlerConfig;
   }
-
   // has to throw because the device is not open
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
+		       new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
 		     //FIXME: create a DeviceException. Has to work for real and dummy devices
-		     exBase );
+		     DeviceException );
 
-  boost::shared_ptr<mapFile> brokenRegisterMapping = fileParser.parse(BROKEN_MAP_FILE_NAME);
+  boost::shared_ptr<RegisterInfoMap> brokenRegisterMapping = fileParser.parse(BROKEN_MAP_FILE_NAME);
   // try opening with bad mapping, also has to throw
-  mappedDevice->openDev( _dummyDevice, brokenRegisterMapping );
+  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0"));
+  device->open(dummyDevice, brokenRegisterMapping);
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
-		     exLibMap );
-  
-  mappedDevice->closeDev();
+		       new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
+		     LibMapException );
 
-  _dummyDevice->openDev( _mapFileName );
-  mappedDevice->openDev( _dummyDevice, _registerMapping );
+  device->close();
+  device->open(_dummyDevice, _registerMapping);
 
   //try something with a wrong firmware version
   // wrong major (too large by 1):
+  //boost::shared_ptr<DFMC_MD22Dummy> md22Dummy = dynamic_pointer_cast<DFMC_MD22Dummy> (_dummyDevice);
   _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000 );
-  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
 		     MotorDriverException );
 
   _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION -1 );
-  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ) ),
+  BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
 		     MotorDriverException );
 
   _dummyDevice->resetFirmwareVersion();
   
-  _motorDriverCard.reset(new MotorDriverCardImpl( mappedDevice, _moduleName, motorDriverCardConfig ));
+  _motorDriverCard.reset(new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ));
 
   // test that the configuration with the motorDriverCardConfig actually worked
   testConfiguration(motorDriverCardConfig);
   
   // only after initialising the dummy device with the motorDriverCardConfig in the constructor of the
   // MotorDriverCardImpl we can change the registers for testing
-  _dummyDevice->setRegistersForTesting();  
+  _dummyDevice->setRegistersForTesting();
   
 }
 
@@ -250,10 +247,10 @@ void MotorDriverCardTest::testGetReferenceSwitchData(){
 }
 
 void MotorDriverCardTest::testGetStatusWord(){
-  mapFile::mapElem mapElement;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, mapElement, _moduleName );
+  RegisterInfoMap::RegisterInfo RegisterInfoent;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, RegisterInfoent, _moduleName );
 
-  unsigned int expectedContent = testWordFromPCIeAddress( mapElement.reg_address );
+  unsigned int expectedContent = testWordFromPCIeAddress( RegisterInfoent.reg_address );
 
   BOOST_CHECK( _motorDriverCard->getStatusWord().getDataWord() == expectedContent );
 }

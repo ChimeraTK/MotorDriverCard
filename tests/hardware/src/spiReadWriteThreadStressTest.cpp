@@ -310,8 +310,8 @@ void SpiReadWriteThreadStressTest::baseLoop(unsigned int motorID,
 					    CoreFunctionPointer loopCore){
 
   boost::shared_ptr<MotorDriverCard> motorDriverCard 
-    = MotorDriverCardFactory::instance().createMotorDriverCard( _deviceFileName,
-								_mapFileName,
+    = MotorDriverCardFactory::instance().createMotorDriverCard( //_deviceFileName,
+								_mapFileName, //pass apporpiate alias
                                                                 _moduleName,
 								_motorConfigFileName );
   boost::shared_ptr<MotorControlerExpert> motorControler

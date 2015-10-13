@@ -9,7 +9,7 @@ namespace mtca4u{
    */
   class TMC429SPI{
   public:
-    TMC429SPI(  boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+    TMC429SPI(  boost::shared_ptr< Device > const & device,
 		std::string const & moduleName,
                 std::string const & writeRegisterName,
 		std::string const & syncRegisterName,

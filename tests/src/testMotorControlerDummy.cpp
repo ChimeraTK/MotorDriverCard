@@ -4,7 +4,7 @@
 using namespace boost::unit_test_framework;
 
 #include "MotorControlerDummy.h"
-#include "MtcaMappedDevice/NotImplementedException.h"
+#include "mtca4u/NotImplementedException.h"
 using namespace mtca4u;
 
 // A macro to declare tests for an unimplemented get/set pair.

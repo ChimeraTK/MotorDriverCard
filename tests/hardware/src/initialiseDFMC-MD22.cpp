@@ -2,6 +2,7 @@
 
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverCardImpl.h"
+#include <mtca4u/DMapFileParser.h>
 #include <unistd.h>
 
 using namespace mtca4u;
@@ -24,12 +25,12 @@ int main( int argc, char* argv[] )
     motorConfigFileName=argv[3];
   }
   // else leave the string empty, which will load the devault config
-
-  std::pair<std::string, std::string> deviceFileAndMapFileName = dmapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
+  std::string deviceName = DMapFileParser().parse( argv[1] )->begin()->dev_name;
+  //std::pair<std::string, std::string> deviceFileAndMapFileName = DMapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
 
   (void) mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( 
-		deviceFileAndMapFileName.first,
-		deviceFileAndMapFileName.second,
+  		deviceName,
+		//deviceFileAndMapFileName.second,
                 argv[2],
 		motorConfigFileName);
 }

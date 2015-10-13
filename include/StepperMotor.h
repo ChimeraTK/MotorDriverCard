@@ -67,14 +67,13 @@ namespace mtca4u {
 
         /**
          * @brief  Constructor of the class object
-         * @param  motorDriverCardDeviceName Name of the device in DMAP file
-	 * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
-         * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
-         * @param  motorDriverCardConfigFileName Name of configuration file
-         * @param  pathToDmapFile Path to place where dmap file is located. Default is current directory (./)
+         * @param  motorDriverCardDeviceName - name of the device in DMAP file
+         * @param  motorDriverId - each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
+         * @param  motorDriverCardConfigFileName - name of configuration file
+         * @param  pathToDmapFile - path to place where dmap file is located. Default is current directory (./)
          * @return
          */
-        StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName, std::string pathToDmapFile = std::string("."));
+        StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
         
         /**
          * @brief  Destructor of the class object
@@ -109,22 +108,30 @@ namespace mtca4u {
          void setTargetPosition(float newPosition); // old name: setMotorPosition
 
          /**
-         * Return target motor position in the arbitrary units.
+         * @brief Return target motor position in the arbitrary units.
+         * @param  
          * @return float - target position of motor in arbitrary units.
+         * 
+         * @details 
          */  
          float getTargetPosition() const;
         
          /**
-         * Return real motor position read directly from the hardware and expressed in the arbitrary units.
-         * Calculation between steps and arbitrary units is done internally.\n
+         * @brief Return real motor position read directly from the hardware and expressed in the arbitrary units.
+         * @param  
          * @return float - current, real position of motor in arbitrary units.
-	 */     
+         * 
+         * @details 
+         * Return real motor position read directly from the hardware and expressed in the arbitrary units.\n
+         * Calculation between steps and arbitrary units is done internally.\n
+         */     
         float getCurrentPosition(); //old name: getMotorPosition
 
         /**
          * @brief Set position passed as parameter as current position of the motor
          * @param  newPosition - new position for the motor expressed in arbitrary units
-
+         * @return void
+         * 
          * @details 
          * Set given position as a current position of the motor.\n
          * Position is expressed in arbitrary units and internally recalculated into steps.\n
@@ -136,6 +143,8 @@ namespace mtca4u {
          * @brief Set a pointer to StepperMotorUnitsConverter object.
          * @param stepperMotorUnitsConverter - shared pointer to the converter object.
          * 
+         * @return void
+         * 
          * @details 
          *  Set a pointer to StepperMotorUnitsConverter object. The StepperMotorUnitsConverter is an interface (abstract class) which
          *  provides two methods which are converting steps to arbitrary units and vice-versa. The user need to create its own class which inherits from
@@ -145,6 +154,8 @@ namespace mtca4u {
             
         /**
          * @brief Start the motor 
+         * @param
+         * @return void
          * 
          * @details 
          * Function starts the motor. When 'Autostart' is set to FALSE it allows to move motor.\n
@@ -154,6 +165,8 @@ namespace mtca4u {
         
         /**
          * @brief Stop the motor 
+         * @param
+         * @return void
          * 
          * @details 
          * Function stop the motor in a way that real position from the motor is set as a target position.\n
@@ -164,6 +177,8 @@ namespace mtca4u {
 
         /**
          * @brief Emergency stop the motor by disabling driver.
+         * @param
+         * @return void
          * 
          * @details 
          * Function stops the motor by disabling driver. It means that it is done in the fastest possible way.\n
@@ -173,6 +188,8 @@ namespace mtca4u {
 
         /**
          * @brief Perform calibration of the motor (blocking). 
+         * @param
+         * @return void
          * 
          * @details 
          * TO BE ADDED
@@ -181,6 +198,7 @@ namespace mtca4u {
         
         /**
          * @brief Return current calibration status.
+         * @param
          * @return StepperMotorCalibrationStatus - current calibration status
          * 
          * @details 
@@ -198,6 +216,7 @@ namespace mtca4u {
 
         /**
          * @brief Return object which contains current status and error.
+         * @param
          * @return StepperMotorStatusAndError - object which contains of status and error code
          * 
          * @details 
@@ -225,12 +244,19 @@ namespace mtca4u {
         StepperMotorStatusAndError getStatusAndError();
 
         /**
-         * Set the new speed of the motor - NOT IMPLEMETNED YET 
+         * @brief Set the new speed of the motor - NOT IMPLEMETNED YET 
+         * @param
+         * @return void
+         * 
+         * @details 
+         * TO BE ADDED
          */
         void setMotorSpeed(float newSpeed);
         
         /**
          * @brief Get current speed of motor - NOT IMPLEMETNED YET 
+         * @param
+         * @return void
          * 
          * @details 
          * TO BE ADDED
@@ -239,7 +265,8 @@ namespace mtca4u {
 
         /**
          * @brief Sets of Autostart flag
-         * @param autostart - new value for Autostart flag
+         * @param bool autostart - new value for Autostart flag
+         * @return void
          * 
          * @details 
          * When Autostart flag is set to TRUE motor will automatically start moving to desired position by internally calling 'void start()' method.\n
@@ -250,6 +277,7 @@ namespace mtca4u {
 
         /**
          * @brief Get the Autostart flag.
+         * @param
          * @return bool - Current autostart flag value
          * 
          * @details 
@@ -261,7 +289,8 @@ namespace mtca4u {
         
         /**
          * @brief Enables the motor.
-         * @param enable - New value for the Enabled flag
+         * @param bool enable - New value for the Enabled flag
+         * @return
          * 
          * @details 
          * Motor can be disabled or enabled. To work with the motor user need to enable it. When motor disabled it stops moving immediately. 
@@ -270,6 +299,7 @@ namespace mtca4u {
 
         /**
          * @brief Get the enable status.
+         * @param
          * @return bool - Current Enabled flag value
          * 
          * @details 
@@ -279,7 +309,8 @@ namespace mtca4u {
         
         /**
          * @brief Set soft limit on the maximum position of the motor expressed in arbitrary units
-         * @param maxPos - Greatest position which motor will be able to reach
+         * @param float maxPos - Greatest position which motor will be able to reach
+         * @return void
          * 
          * @details 
          * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
@@ -288,7 +319,8 @@ namespace mtca4u {
         
         /**
          * @brief Set soft limit on the minimum position of the motor expressed in arbitrary units
-         * @param minPos - Smallest position which motor will be able to reach
+         * @param float maxPos - Smallest position which motor will be able to reach
+         * @return void
          * 
          * @details 
          * 
@@ -297,7 +329,8 @@ namespace mtca4u {
                       
         /**
          * @brief Set soft limit enabled or disabled. 
-         * @param enabled - When true soft limits will be checked and validated, in false they will not
+         * @param bool enabled - When true soft limits will be checked and validated, in false they will not
+         * @return
          * 
          * @details 
          * 
@@ -306,6 +339,7 @@ namespace mtca4u {
 
         /**
          * @brief Get current soft limit enabled flag. 
+         * @param 
          * @return bool - When true soft limits will be checked and validated, in false they will not
          * 
          * @details 
@@ -314,6 +348,7 @@ namespace mtca4u {
                
         /**
          * @brief Returns soft limit on the maximum position of the motor expressed in arbitrary units
+         * @param 
          * @return float - Maximum position which motor is able to reach
          * 
          * @details 
@@ -323,6 +358,7 @@ namespace mtca4u {
                 
         /**
          * @brief Returns soft limit on the minimum position of the motor expressed in arbitrary units
+         * @param 
          * @return float - Minimum position which motor is able to reach
          * 
          * @details 
@@ -333,7 +369,7 @@ namespace mtca4u {
         
         /**
          * @brief Recalculate arbitrary units into steps
-         * @param units Arbitrary units in which position is expressed
+         * @param float units -Arbitrary units in which position is expressed
          * @return int - steps value which corresponds to given as parameter value of arbitrary units.
          * 
          * @details 
@@ -343,8 +379,8 @@ namespace mtca4u {
 
         /**
          * @brief Recalculate arbitrary units into steps
-         * @param steps Number of step to be converted
-         * @return float - Calculated units which correspond to the number of steps
+         * @param float units -Arbitrary units in which position is expressed
+         * @return int - steps value which corresponds to given as parameter value of arbitrary units.
          * 
          * @details 
          * 
@@ -353,7 +389,8 @@ namespace mtca4u {
         
         /**
          * @brief Set log level of the motor
-         * @param newLevel - new level of log
+         * @param Logger::LogLevel newLevel - new level of log
+         * @return void
          * 
          * @details 
          * Set the log level for the StepperMotor object.\n
@@ -369,6 +406,7 @@ namespace mtca4u {
 
         /**
          * @brief Get current log level of the motor
+         * @param 
          * @return Logger::LogLevel - current log level
          * 
          * @details 
