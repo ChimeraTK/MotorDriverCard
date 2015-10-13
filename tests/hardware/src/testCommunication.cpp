@@ -3,6 +3,9 @@
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorControlerExpert.h"
+#include <mtca4u/PcieBackend.h>
+#include <mtca4u/MapFileParser.h>
+#include <mtca4u/DMapFileParser.h>
 #include <unistd.h>
 #include <ctime>
 
@@ -29,30 +32,35 @@ int main( int argc, char* argv[] )
 	      << "Usage: " << argv[0] << " dmapFile moduleName" << std::endl;
     return -1;
   }
-
+  std::string deviceName = DMapFileParser().parse( argv[1] )->begin()->dev_name;
   std::pair<std::string, std::string> deviceFileAndMapFileName =
-    dmapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
+    DMapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
 
-  boost::shared_ptr< devPCIE > ioDevice( new devPCIE );
-  ioDevice->openDev( deviceFileAndMapFileName.first );
+  //boost::shared_ptr< PcieDevice > ioDevice( new PcieDevice );
+  //ioDevice->open( deviceFileAndMapFileName.first );
+  //boost::shared_ptr< PcieDevice > ioDevice( new PcieDevice(".",) );
+   //ioDevice->open( deviceFileAndMapFileName.first );
+   //device->open( ioDevice, registerMapping );
 
-  boost::shared_ptr< mapFile > registerMapping =  mapFileParser().parse(deviceFileAndMapFileName.second);
+  boost::shared_ptr< RegisterInfoMap > registerMapping =  MapFileParser().parse(deviceFileAndMapFileName.second);
 
-  boost::shared_ptr< devMap< devBase > > mappedDevice( new devMap<devBase> );
-  mappedDevice->openDev( ioDevice, registerMapping );
+  boost::shared_ptr< Device> device( new Device() );
+  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0"));
+  device->open(dummyDevice, registerMapping);
 
   std::string moduleName = argv[2];
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard
     = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( 
-		deviceFileAndMapFileName.first,
-		deviceFileAndMapFileName.second,
+		//deviceFileAndMapFileName.first,
+		//deviceFileAndMapFileName.second,
+    		deviceName,
                 moduleName,
 		""); // default motor config
 
   boost::shared_ptr<mtca4u::MotorControlerExpert> motor0 
     = boost::dynamic_pointer_cast<mtca4u::MotorControlerExpert>
                                                (motorDriverCard->getMotorControler(0));
-  boost::shared_ptr<mtca4u::MotorControlerExpert> motor1 
+  boost::shared_ptr<mtca4u::MotorControlerExpert> motor1
     = boost::dynamic_pointer_cast<mtca4u::MotorControlerExpert>
                                                (motorDriverCard->getMotorControler(1));
   

@@ -3,7 +3,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include "testConfigConstants.h"
 #include "LinearStepperMotor.h"
-#include "MtcaMappedDevice/DummyDevice.h"
+#include <mtca4u/DummyBackend.h>
 
 using namespace boost::unit_test_framework;
 
@@ -39,8 +39,9 @@ init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
 }
 
 void FunctionalTests::testMotorObjCreation() {
-  mtca4u::StepperMotor Motor1(stepperMotorDeviceName, MODULE_NAME_0, 0,CONFIG_FILE, dmapPath);
-  mtca4u::StepperMotor Motor2(stepperMotorDeviceName, MODULE_NAME_1, 0,CONFIG_FILE, dmapPath);
+
+  mtca4u::StepperMotor Motor1(stepperMotorDeviceName, MODULE_NAME_0, 0,CONFIG_FILE) ;
+  mtca4u::StepperMotor Motor2(stepperMotorDeviceName, MODULE_NAME_1, 0,CONFIG_FILE);
 
   float initialTargetPosition = Motor1.getTargetPosition();
   Motor1.setTargetPosition(200);

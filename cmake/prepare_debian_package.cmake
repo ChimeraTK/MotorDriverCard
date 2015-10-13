@@ -7,6 +7,7 @@ set(MotorDriverCard_DEBVERSION ${MotorDriverCard_MAJOR_VERSION}-${MotorDriverCar
 #Nothing to change, just copy
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/compat
            ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules
+           ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules
 	   ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercard-configcalculator.install
      DESTINATION debian_from_template)
 
@@ -14,8 +15,8 @@ file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/source/format
      DESTINATION debian_from_template/source)
 
 #Adapt the file name
-configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercardDEBVERSION.install.in
-               debian_from_template/mtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.install)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercardDEBVERSION.install
+               debian_from_template/mtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.install COPYONLY)
 
 #Adapt the file name and/or set the version number
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/control.in

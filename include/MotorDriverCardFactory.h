@@ -32,21 +32,25 @@ class MotorDriverCardFactory{
 
   /// Map of all devices which have ever been requested.
   std::map< std::pair< std::string, std::string >, boost::shared_ptr<MotorDriverCard> > _motorDriverCards;
-
+  bool _dummyMode;
  public:
   /** Access the single instance of the factory.
    */
   static MotorDriverCardFactory & instance();
-
+  bool getDummyMode();
+  void setDummyMode(bool dummyMode=true);
   /** Create a motor driver card from the device and map file name.
    */
-  boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
+  /*boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
      std::string deviceFileName, 
      std::string mapFileName,
      std::string mapModuleName,
-     std::string motorConfigFileName);
-};
+     std::string motorConfigFileName);*/
 
+boost::shared_ptr<MotorDriverCard> createMotorDriverCard(std::string alias,
+  						  std::string mapModuleName,
+  						  std::string motorConfigFileName);
+};
 }// namespace mtca4u
 
 #endif// MTCA4U_MOTOR_DRIVER_CARD_FACTORY_H

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.0)
 project(MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
-set(${PROJECT_NAME}_MINOR_VERSION 06)
+set(${PROJECT_NAME}_MINOR_VERSION 05)
 set(${PROJECT_NAME}_PATCH_VERSION 01)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
@@ -18,18 +18,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
-#use -DSUPPRESS_AUTO_DOC_BUILD=true to suppress to create the doc with every
-#build. The 'make doc' target will still exist, but make install will fail if you don't run it.
-if(SUPPRESS_AUTO_DOC_BUILD)
-    unset(DOC_DEPENDENCY)
-else(SUPPRESS_AUTO_DOC_BUILD)
-    set(DOC_DEPENDENCY ALL)
-endif(SUPPRESS_AUTO_DOC_BUILD)
-
 # The MIN versions are needed for automatic replacement in the debian control file
-SET(MtcaMappedDevice_MIN_VERSION 00.17)
-FIND_PACKAGE(MtcaMappedDevice ${MtcaMappedDevice_MIN_VERSION} REQUIRED)
-include_directories(SYSTEM ${MtcaMappedDevice_INCLUDE_DIRS})
+SET(mtca4u-deviceaccess_MIN_VERSION 00.00)
+FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
+include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
 
 SET(pugixml_MIN_VERSION 1.4)
 FIND_PACKAGE(pugixml ${pugixml_MIN_VERSION} REQUIRED)
@@ -39,7 +31,7 @@ FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
 #For some reason the system library has to be mentioned explicitly to the linker.
 #This is strange because the thead library has it as a dependency.
-FIND_PACKAGE(Boost COMPONENTS thread system unit_test_framework)
+FIND_PACKAGE(Boost COMPONENTS thread system unit_test_framework filesystem)
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   set(TESTING_IS_ENABLED "true")
   ENABLE_TESTING()
@@ -53,7 +45,7 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
 MACRO( COPY_MAPPING_FILES )
   foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp
-           mtcadummy_DFMC_MD22_mock.map mtcadummy_DFMC_MD22_mock.mapp MD22_on_DAMC2.dmap)
+           mtcadummy_DFMC_MD22_mock.map mtcadummy_DFMC_MD22_mock.mapp MD22_on_DAMC2.dmap dummies.dmap)
     configure_file( tests/${MAPPING_FILE} ${PROJECT_BINARY_DIR}/${MAPPING_FILE} copyonly)
   endforeach( MAPPING_FILE )
   configure_file( tests/hardware/VT21-MotorDriverCardConfig.xml ${PROJECT_BINARY_DIR}/VT21-MotorDriverCardConfig.xml copyonly)
@@ -104,7 +96,7 @@ endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} ${MtcaMappedDevice_LIBRARIES} ${pugixml_LIBRARIES}  ${Boost_THREAD_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${mtca4u-deviceaccess_LIBRARIES} ${pugixml_LIBRARIES}  ${Boost_THREAD_LIBRARIES})
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
@@ -113,7 +105,7 @@ foreach( hardwareTestSourceFile ${hardwareTestSources})
   add_executable(${excutableName} ${hardwareTestSourceFile})
   target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
 endforeach( hardwareTestSourceFile )
-configure_file(tests/hardware/scripts/runForwardBackward ${PROJECT_BINARY_DIR}/runForwardBackward copyonly) 
+ 
 
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
@@ -139,29 +131,14 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_
 
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
-set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${MtcaMappedDevice_INCLUDE_DIRS})
+set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${mtca4u-deviceaccess_INCLUDE_DIRS})
 set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
-set(${PROJECT_NAME}_CONFIG_LIBRARIES ${MtcaMappedDevice_LIBRARIES})
-set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${MtcaMappedDevice_LIBRARY_DIRS})
+set(${PROJECT_NAME}_CONFIG_LIBRARIES ${mtca4u-deviceaccess_LIBRARIES})
+set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${mtca4u-deviceaccess_LIBRARY_DIRS})
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
-add_subdirectory(ConfigCalculator) 
-
 # The instructions to create a debian package are loaded from a separate file
 include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-  # The write_default_config target is defined in the ConfigCalculator subdirectory
-  # the 
-  add_custom_target(doc ${DOC_DEPENDENCY}
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    DEPENDS MotorDriverCardDefaultConfig.xml
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc DESTINATION . )
-else(DOXYGEN_FOUND)
-  message("Doxygen not found, documentation cannot be build.")
-endif(DOXYGEN_FOUND)
+add_subdirectory(ConfigCalculator) 

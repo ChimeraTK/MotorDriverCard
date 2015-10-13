@@ -1,17 +1,17 @@
 #ifndef OUT_OF_RANGE_EXCEPTION_H
 #define OUT_OF_RANGE_EXCEPTION_H
 
-#include <MtcaMappedDevice/exBase.h>
+#include <mtca4u/Exception.h>
 
 namespace mtca4u{
 
-  class OutOfRangeException: public mtca4u::exBase {
+  class OutOfRangeException: public mtca4u::Exception {
   public:
     
     enum {  TOO_LARGE, TOO_SMALL };
     
     OutOfRangeException(const std::string & message, unsigned int id):
-      exBase(message, id) {}
+      Exception(message, id) {}
     virtual ~OutOfRangeException() throw(){}
   };
 

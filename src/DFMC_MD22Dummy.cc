@@ -1,7 +1,7 @@
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
-#include <MtcaMappedDevice/NotImplementedException.h>
+#include <mtca4u/NotImplementedException.h>
 #include "MotorDriverException.h"
 
 #include <boost/bind.hpp>
@@ -17,28 +17,30 @@ using namespace mtca4u::tmc429;
 
 #define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING , MOD_NAME )\
     _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation, MOD_NAME );\
-    AddressRange NAME( registerInformation.reg_address, \
-                       registerInformation.reg_size, \
-		       registerInformation.reg_bar)
+    AddressRange NAME( registerInformation.reg_bar, \
+                       registerInformation.reg_address, \
+		       registerInformation.reg_size)
 
 //#define MODULE_NAME_0 "MD220"
 
 
 namespace mtca4u{
 
- DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & moduleName): DummyDevice(), 
-				   _powerIsUp(true), _causeSpiTimeouts(false), 
-				   _causeSpiErrors(false),
-				   _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
-				   _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
-                                   _moduleName(moduleName) {
+ DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & mapFileName, std::string const & moduleName)
+ 	 	 	 	 	 : DummyBackend(mapFileName),
+ 				   _powerIsUp(true), _causeSpiTimeouts(false),
+ 				   _causeSpiErrors(false),
+ 				   _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
+ 				   _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
+ 	 	 	 	   _moduleName(moduleName)
+           {
+
+
   }
 
-  void DFMC_MD22Dummy::openDev(const std::string &mappingFileName, int perm,
-			       devConfigBase* pConfig){
 
-      DummyDevice::openDev(mappingFileName, perm, pConfig);
-    
+  void DFMC_MD22Dummy::open(){
+    DummyBackend::open();
     setPCIeRegistersForTesting(); // some of them will be overwriten if a 
     // defined behaviour exists for them
     
@@ -46,7 +48,7 @@ namespace mtca4u{
 
     setControlerSpiRegistersForOperation();
 
-    mapFile::mapElem registerInformation;
+    RegisterInfoMap::RegisterInfo registerInformation;
     DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING, _moduleName );
     _controlerSpiWriteAddress = registerInformation.reg_address;
     _controlerSpiBar = registerInformation.reg_bar;
@@ -57,8 +59,7 @@ namespace mtca4u{
 				 MotorDriverException::SPI_ERROR );
     }
     _controlerSpiReadbackAddress = registerInformation.reg_address;
-    setReadOnly(registerInformation.reg_address, registerInformation.reg_size,
-		registerInformation.reg_bar);
+    setReadOnly( registerInformation.reg_bar, registerInformation.reg_address, registerInformation.reg_elem_nr);
 
     _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation, _moduleName );
     if ( _controlerSpiBar != registerInformation.reg_bar ){
@@ -137,12 +138,12 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::setConstantPCIeRegister( std::string registerName, int32_t content){
-    mapFile::mapElem registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
+    RegisterInfoMap::RegisterInfo registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
     DEFINE_ADDRESS_RANGE( addressRange, registerName, _moduleName);
     size_t addressIndex = addressRange.offset/sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;
     // only set the one word we modified as constant. The address range might be larger
-    setReadOnly( addressRange.offset, addressRange.bar, 1);
+    setReadOnly( addressRange.bar, addressRange.offset, 1);
   }
 
   void DFMC_MD22Dummy::setDriverSpiRegistersForTesting(unsigned int motorID){
@@ -165,7 +166,6 @@ namespace mtca4u{
     _controlerSpiAddressSpace.at(controlerSpiAddress) = globalParameters.getDATA();
 
     synchroniseFpgaWithControlerSpiRegisters();
-
   }
 
   void DFMC_MD22Dummy::setControlerSpiRegistersForTesting(){
@@ -181,23 +181,23 @@ namespace mtca4u{
     if (_causeSpiTimeouts){
       return;
     }
-
+    int32_t value = SPI_SYNC_ERROR;
     //debug functionality: cause errors
     if (_causeSpiErrors){
-      writeReg( _controlerSpiSyncAddress, SPI_SYNC_ERROR, _controlerSpiBar );
+      write(_controlerSpiBar, _controlerSpiSyncAddress, &value,  4);
       return;
     }
 
     int32_t controlerSpiSyncWord;
-    readReg( _controlerSpiSyncAddress, &controlerSpiSyncWord, _controlerSpiBar );
+    read(_controlerSpiBar, _controlerSpiSyncAddress, &controlerSpiSyncWord,  4);
 
     if (controlerSpiSyncWord != SPI_SYNC_REQUESTED){
-      writeReg( _controlerSpiSyncAddress, SPI_SYNC_ERROR, _controlerSpiBar );
+      write(_controlerSpiBar, _controlerSpiSyncAddress, &value,  4);
       return;
     }
 
     int32_t controlerSpiWriteWord;
-    readReg( _controlerSpiWriteAddress, &controlerSpiWriteWord, _controlerSpiBar );
+    read(_controlerSpiBar, _controlerSpiWriteAddress, &controlerSpiWriteWord,  4);
 
     TMC429InputWord inputWord(controlerSpiWriteWord);
     uint32_t controlerSpiAddress = inputWord.getADDRESS();
@@ -215,10 +215,9 @@ namespace mtca4u{
     }
 
     triggerActionsOnControlerSpiWrite(inputWord);
-
+    value = SPI_SYNC_OK;
     // SPI action done, write sync ok to finish the handshake
-    writeReg( _controlerSpiSyncAddress, SPI_SYNC_OK, _controlerSpiBar );
-    
+    write(_controlerSpiBar, _controlerSpiSyncAddress, &value, 4);
   }
 
   void DFMC_MD22Dummy::handleDriverSpiWrite(unsigned int ID){
@@ -281,9 +280,8 @@ namespace mtca4u{
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
     outputWord.setDATA( _controlerSpiAddressSpace.at(controlerSpiAddress) );
-     writeRegisterWithoutCallback( _controlerSpiReadbackAddress,
-				   outputWord.getDataWord(),
-				   _controlerSpiBar );
+     writeRegisterWithoutCallback(_controlerSpiBar,_controlerSpiReadbackAddress,
+				   outputWord.getDataWord());
   }
 
   void DFMC_MD22Dummy::triggerActionsOnControlerSpiWrite(TMC429InputWord const & inputWord){
@@ -337,11 +335,11 @@ namespace mtca4u{
   void DFMC_MD22Dummy::writeControlerSpiRegisterToFpga( unsigned int ID, unsigned int IDX, std::string suffix ){
     unsigned int controlerSpiAddress = spiAddressFromSmdaIdxJdx( ID, IDX );
     std::string registerName = createMotorRegisterName( ID, suffix );
-    mapFile::mapElem registerInformation;
+    RegisterInfoMap::RegisterInfo registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation, _moduleName);
-     writeRegisterWithoutCallback( registerInformation.reg_address,
-				   _controlerSpiAddressSpace[controlerSpiAddress], 
-				   registerInformation.reg_bar );
+     writeRegisterWithoutCallback(  registerInformation.reg_bar , registerInformation.reg_address,
+				   _controlerSpiAddressSpace[controlerSpiAddress]
+				  );
   }
 
   unsigned int DFMC_MD22Dummy::readDriverSpiRegister( unsigned int motorID, unsigned int driverSpiAddress ){
@@ -368,4 +366,19 @@ namespace mtca4u{
     _causeSpiErrors = causeErrors;
   }
 
+  boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(std::string /*host*/, std::string /*interface*/, std::list<std::string> parameters) {
+    #ifdef _DEBUG
+    	std::cout<<"DFMC_MD22Dummy createInstance"<<std::endl;
+    #endif
+    	//fixme create DFMC_MD22DummyException
+    	if (parameters.empty()){
+    	    throw DummyBackendException("No moudle name given in the parameter list.",
+    	        DummyBackendException::INVALID_PARAMETER);
+    	}
+    	if (parameters.size() < 2){
+    	  throw DummyBackendException("No map file given in the parameter list.",
+    	              DummyBackendException::INVALID_PARAMETER);
+    	}
+    	return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(parameters.front(),parameters.back()) );
+  }
 }// namespace mtca4u

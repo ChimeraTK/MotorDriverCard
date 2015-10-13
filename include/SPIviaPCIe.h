@@ -1,11 +1,11 @@
 #ifndef MTCA4U_SPI_VIA_PCIE_H
 #define MTCA4U_SPI_VIA_PCIE_H
 
-#include <MtcaMappedDevice/devMap.h>
 #include <boost/thread/recursive_mutex.hpp>
-
+#include <mtca4u/Device.h>
 namespace mtca4u{
-  /** This class implements synchronous SPI operation over PCIexpress, using an SPI command register
+
+	/** This class implements synchronous SPI operation over PCIexpress, using an SPI command register
    *  and a synchronisation register. Readback is optional.
    * 
    */
@@ -27,14 +27,14 @@ namespace mtca4u{
      *  An internal copy of the shared pointer of the mapped device is held in this class,
      *  so the SPIviaPCIe always stays valid, even if the original shared pointer goes out of scope.
      */
-    SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+    SPIviaPCIe( boost::shared_ptr<Device > const & device,
 		std::string const & moduleName, 
                 std::string const & writeRegisterName, 
                 std::string const & syncRegisterName,
 		unsigned int spiWaitingTime =SPI_DEFAULT_WAITING_TIME );
 
     /// Constructor for write and readback.
-    SPIviaPCIe( boost::shared_ptr< devMap<devBase> > const & mappedDevice,
+    SPIviaPCIe( boost::shared_ptr< Device > const & device,
 		std::string const & moduleName, 
                 std::string const & writeRegisterName, 
                 std::string const & syncRegisterName,
@@ -66,10 +66,10 @@ namespace mtca4u{
     unsigned int getSpiWaitingTime() const;
 
   private:
-    // No need to keep an instance of the mappedDevice shared pointer. Each accessor has one.
-    boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > _writeRegister;
-    boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > _synchronisationRegister;
-    boost::shared_ptr< mtca4u::devMap<devBase>::RegisterAccessor > _readbackRegister;
+    // No need to keep an instance of the  shared pointer. Each accessor has one.
+    boost::shared_ptr< Device::RegisterAccessor > _writeRegister;
+    boost::shared_ptr< Device::RegisterAccessor > _synchronisationRegister;
+    boost::shared_ptr< Device::RegisterAccessor > _readbackRegister;
 
     static void sleepMicroSeconds(unsigned int microSeconds);
     /** Time in microseconds to wait for the transaction to be finished on the SPI bus

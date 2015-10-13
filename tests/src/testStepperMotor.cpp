@@ -7,7 +7,8 @@ using namespace boost::unit_test_framework;
 #include "StepperMotor.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
-#include <MtcaMappedDevice/NotImplementedException.h>
+#include <mtca4u/NotImplementedException.h>
+#include <mtca4u/DMapFilesParser.h>
 
 #include <boost/thread.hpp>
 
@@ -122,15 +123,17 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 
 StepperMotorTest::StepperMotorTest() {
     
-    std::string deviceFileName(dmapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_file);
-    std::string mapFileName(dmapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).map_file_name);
+    std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_name);
+    std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).map_file_name);
 
     _testUnitConveter.reset(new TestUnitConveter);
 
-    _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
+    //_motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName, mapFileName, moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
+    MotorDriverCardFactory::instance().setDummyMode();
+    _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,  moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
     
-    _stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath));
-
+    //_stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath));
+    _stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
     
     
     //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
