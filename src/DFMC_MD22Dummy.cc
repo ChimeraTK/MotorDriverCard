@@ -381,4 +381,7 @@ namespace mtca4u{
     	}
     	return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(parameters.front(),parameters.back()) );
   }
+
+  DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
+
 }// namespace mtca4u
