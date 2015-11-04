@@ -75,7 +75,7 @@ namespace mtca4u{
     
   /** This class represents the driver status of the TMC260 Read Response (data sheet section 6.10).
    *
-   *  @fixme I think they are the general status bits 0:7 only. At least that's what's implemented here.
+   *  @todo FIXME I think they are the general status bits 0:7 only. At least that's what's implemented here.
    */ 
   class DriverStatusData: public MultiVariableWord{
   public:
