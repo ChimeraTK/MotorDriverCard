@@ -5,7 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <pthread.h>
-#include "MotorDriverCardFactory.h"
+
 pthread_t statusReaderThreadTab[5];
 bool threadActive = false;
 bool finishThread = false;
@@ -40,13 +40,13 @@ int main( int argc, char* argv[] ) {
         configFileNameName = std::string(argv[3]);
         motorDriverId = boost::lexical_cast<int>(argv[4]);
     } else {
-        deviceName = std::string("DFMC_MD22");
+        deviceName = std::string("DFMC-MD22");
         configFileNameName = std::string("VT21-MotorDriverCardConfig.xml");
         motorDriverId = 0;
     }
     
     std::cout << "Try to open MOTOR CARD with device name: " << deviceName << " with config file: " << configFileNameName << " Motor driver ID is: " << motorDriverId << std::endl;
-    mtca4u::MotorDriverCardFactory::instance().setDummyMode();
+
     mtca4u::LinearStepperMotor motor(deviceName, moduleName, motorDriverId, configFileNameName);
 
     std::cout << "Change debug stream to the std::cout \n"; 
