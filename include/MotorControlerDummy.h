@@ -71,13 +71,18 @@ namespace mtca4u{
     // dummy specific functions
     /** Moves the actual position towards the target position, as long as 
      *  no end switch is reached.
+     *
      *  @param fraction The fraction of the full way to the target position.
      *   Valid range [0..1]. 1 moves all the way to the target, 0.5 only half the way etc.
+     *  @param blockMotor Block the motor and do not move if true.
+     *  @param bothEndSwitchesAlwaysOn Emulate that no motor is connected (both end switches are active)
+     *  @param zeroPositions FIXME: what exactly does this do?
+     *
      *  @attention The 'actual' position is where the step counter currently is.
-    *  it is not the hardware positon (absolute position). If the motor is disabled
-    *  the motor is stepping and the target position will be reached if the 
-    *  motor is not at an end switch. The motor will not be moving, tough.
-    */
+     *  it is not the hardware positon (absolute position). If the motor is disabled
+     *  the motor is stepping and the target position will be reached if the 
+     *  motor is not at an end switch. The motor will not be moving, tough.
+     */
     void moveTowardsTarget(float fraction, bool blockMotor = false, bool bothEndSwitchesAlwaysOn = false, bool zeroPositions = false);
 
     // FIXME : Which errors can occur?

@@ -11,7 +11,7 @@ namespace mtca4u{
   unsigned int const DRIVER_CONTROL_DEFAULT = 0x0; ///< 256 microsteps
   unsigned int const CHOPPER_CONTROL_DEFAULT = 0x107B5;
   unsigned int const STALL_GUARD_CONTROL_DEFAULT = 0x10000; ///< stall guard with current scale 1/32 of the max possible current
-  unsigned int const COOL_STEP_CONTROL_DEFAULT = 0x8202; ///< cool step with 1/4 current scale minimum current (directly from data sheet example)
+  unsigned int const COOL_STEP_CONTROL_DEFAULT = 0x0; ///< cool step off
   unsigned int const DRIVER_CONFIG_DEFAULT = 0x00040; ///< full-scale sense register voltage is 165 mV. Do not modify for MD22
 
   // registers on the controler chip
