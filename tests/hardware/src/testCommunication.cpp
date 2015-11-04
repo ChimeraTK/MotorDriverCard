@@ -3,9 +3,8 @@
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorControlerExpert.h"
-#include <mtca4u/PcieBackend.h>
-#include <mtca4u/MapFileParser.h>
 #include <mtca4u/DMapFileParser.h>
+#include <mtca4u/BackendFactory.h>
 #include <unistd.h>
 #include <ctime>
 
@@ -27,33 +26,22 @@ int main( int argc, char* argv[] )
   if (argc !=3){
     std::cout <<  argv[0] << "This is a long term test which performs SPI communication to the controler"
 	      << " and driver chips by writing to the corresponding PCIe regsiters.\n"
-	      << "It performs evaluation by reading back the written values.\n\n"
+	      << "It performs evaluation by reading back the written values.\n"
+	      << "The programme uses the first device listed in the given DMap file.\n\n"
 	      << "The test runs forever. Terminate it with <Ctrl><c>\n\n"
 	      << "Usage: " << argv[0] << " dmapFile moduleName" << std::endl;
     return -1;
   }
-  std::string deviceName = DMapFileParser().parse( argv[1] )->begin()->dev_name;
-  std::pair<std::string, std::string> deviceFileAndMapFileName =
-    DMapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
 
-  //boost::shared_ptr< PcieDevice > ioDevice( new PcieDevice );
-  //ioDevice->open( deviceFileAndMapFileName.first );
-  //boost::shared_ptr< PcieDevice > ioDevice( new PcieDevice(".",) );
-   //ioDevice->open( deviceFileAndMapFileName.first );
-   //device->open( ioDevice, registerMapping );
-
-  boost::shared_ptr< RegisterInfoMap > registerMapping =  MapFileParser().parse(deviceFileAndMapFileName.second);
-
-  boost::shared_ptr< Device> device( new Device() );
-  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0"));
-  device->open(dummyDevice, registerMapping);
+  // get the first device alias from the dmap file and tell the factory to use this dmap file
+  std::string dmapFileName = argv[1];
+  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->dev_name;
+  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   std::string moduleName = argv[2];
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard
     = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( 
-		//deviceFileAndMapFileName.first,
-		//deviceFileAndMapFileName.second,
-    		deviceName,
+    		deviceAlias,
                 moduleName,
 		""); // default motor config
 
