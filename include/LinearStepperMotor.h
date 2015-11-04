@@ -9,8 +9,6 @@
 #define	MTCA4U_LINEAR_STEPPER_MOTOR_H
 
 #include "StepperMotor.h"
-#include "DFMC_MD22Dummy.h"
-
 
 namespace mtca4u {
 
@@ -39,10 +37,11 @@ namespace mtca4u {
 
         /**
          * @brief  Constructor of the class object
-         * @param  motorDriverCardDeviceName - name of the device in DMAP file
-         * @param  motorDriverId - each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
-         * @param  motorDriverCardConfigFileName - name of configuration file
-         * @return
+         * @param  motorDriverCardDeviceName Name of the device in DMAP file
+         * @param  moduleName Module name in the map(p) file.
+         * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
+         * @param  motorDriverCardConfigFileName Name of configuration file
+	 * @param  pathToDmapFile Path to the dmap file (default: current directory ".")
          */
         LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
         
@@ -69,8 +68,6 @@ namespace mtca4u {
                 
         /**
          * @brief Stop the motor 
-         * @param
-         * @return void
          * 
          * @details 
          * Function stop the motor in a way that real position from the motor is set as a target position.\n
@@ -82,8 +79,6 @@ namespace mtca4u {
         
         /**
          * @brief Emergency stop the motor by disabling driver.
-         * @param
-         * @return void
          * 
          * @details 
          * Function stops the motor by disabling driver. It means that it is done in the fastest possible way.\n
@@ -108,8 +103,6 @@ namespace mtca4u {
         
         /**
          * @brief Perform calibration of the motor (blocking). 
-         * @param
-         * @return void
          * 
          * @details 
          * Calibration is done in order to find positions of the physical end switches.
@@ -118,8 +111,6 @@ namespace mtca4u {
 
         /**
          * @brief When motor calibrated, function returns positive end switch position expressed in arbitrary units
-         * @param
-         * @return void
          * 
          * @details 
          */
@@ -127,8 +118,6 @@ namespace mtca4u {
 
         /**
          * @brief When motor calibrated, function returns negative end switch position expressed in arbitrary units
-         * @param
-         * @return void
          * 
          * @details 
          */
@@ -137,7 +126,6 @@ namespace mtca4u {
                  
         /**
          * @brief Return object which contains current status and error.
-         * @param
          * @return LinearStepperMotorStatusAndError - object which contains of status and error code
          * 
          * @details 
@@ -171,7 +159,10 @@ namespace mtca4u {
         int _calibPositiveEndSwitchInSteps;
         float _calibPositiveEndSwitchInUnits;
         
-        bool _stopMotorCalibration;          
+        bool _stopMotorCalibration; 
+
+        bool _negativeEndSwitchEnabled;
+        bool _positiveEndSwitchEnabled;
     };
 
 } //namespace mtca4u
