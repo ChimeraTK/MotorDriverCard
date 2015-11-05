@@ -41,7 +41,6 @@ namespace mtca4u {
          * @param  moduleName Module name in the map(p) file.
          * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
          * @param  motorDriverCardConfigFileName Name of configuration file
-	 * @param  pathToDmapFile Path to the dmap file (default: current directory ".")
          */
         LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
         
