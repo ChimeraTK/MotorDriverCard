@@ -71,7 +71,6 @@ namespace mtca4u {
 	 * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
          * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
          * @param  motorDriverCardConfigFileName Name of configuration file
-         * @param  pathToDmapFile Path to place where dmap file is located. Default is current directory (./)
          * @return
          */
         StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
