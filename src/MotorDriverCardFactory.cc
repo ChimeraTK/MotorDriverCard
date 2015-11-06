@@ -2,12 +2,12 @@
 
 //#include <mtca4u/BaseDevice.h>
 //#include <mtca4u/PcieDevice.h>
-//#include <mtca4u/Device.h>
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
 #include <mtca4u/MapFileParser.h>
+#include <mtca4u/Device.h>
 
 #include <boost/thread/locks.hpp>
 
@@ -38,22 +38,14 @@ MotorDriverCardFactory::createMotorDriverCard(std::string alias,
 	// empty, which means it has just been added to the map
 	if (!motorDriverCard){
 		if (_dummyMode){ //if (deviceFileName=="custom://MotorDriverCardDummy")
-			// just create a MotorDriverCardDummy
-			motorDriverCard.reset(new MotorDriverCardDummy());
+		  // just create a MotorDriverCardDummy
+		  motorDriverCard.reset(new MotorDriverCardDummy());
 		}else{
-			//mtca4u::DeviceFactory FactoryInstance = mtca4u::DeviceFactory::getInstance();
-			//boost::shared_ptr< Device > device = FactoryInstance.createDevice(alias);
-			boost::shared_ptr<Device> device ( new Device());
-			//device->open(alias);
-			std::string mapFileName = "DFMC_MD22_test.mapp"; // fixme just temp.
-			boost::shared_ptr<DFMC_MD22Dummy> dummyDevice;
-			dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, mapModuleName) );
-			MapFileParser fileParser;
-			boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
-			device->open(dummyDevice, registerMapping);
-			MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
+		  boost::shared_ptr<Device> device(new Device);
+		  device->open(alias);
+		  MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
-			motorDriverCard.reset(new MotorDriverCardImpl(device, mapModuleName, cardConfig));
+		  motorDriverCard.reset(new MotorDriverCardImpl(device, mapModuleName, cardConfig));
 		}// else deviceFileName=="/dummy/MotorDriverCard"
 
 	}// if (!motorDriverCard)
