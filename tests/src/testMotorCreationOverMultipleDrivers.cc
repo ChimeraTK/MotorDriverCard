@@ -7,7 +7,7 @@
 
 using namespace boost::unit_test_framework;
 
-static const std::string stepperMotorDeviceName("DFMC-MD22-DUMMY");
+static const std::string stepperMotorDeviceName("DFMC_MD22");
 static const std::string dmapPath(".");
 static const std::string mapFilePath(".");
 
