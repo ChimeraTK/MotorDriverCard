@@ -18,19 +18,17 @@ int main( int argc, char* argv[] )
     return -1;
   }
   
-  
-  
   std::string motorConfigFileName;
   if (argc == 4){
     motorConfigFileName=argv[3];
   }
   // else leave the string empty, which will load the devault config
-  std::string deviceName = DMapFileParser().parse( argv[1] )->begin()->dev_name;
-  //std::pair<std::string, std::string> deviceFileAndMapFileName = DMapFileParser().parse( argv[1] )->begin()->getDeviceFileAndMapFileName();
 
-  (void) mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( 
-  		deviceName,
-		//deviceFileAndMapFileName.second,
-                argv[2],
-		motorConfigFileName);
+  std::string dmapFileName = argv[1];
+  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->dev_name;
+  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+
+  (void) mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( deviceAlias,
+									   argv[2],
+									   motorConfigFileName);
 }
