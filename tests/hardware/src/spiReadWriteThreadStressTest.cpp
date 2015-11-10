@@ -7,7 +7,6 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
-
 using namespace mtca4u;
 
 /** The SpiReadWriteThreadStressTest performs cycles of spi communication tests, each
@@ -47,7 +46,7 @@ using namespace mtca4u;
 
 class SpiReadWriteThreadStressTest{
 public:
-  SpiReadWriteThreadStressTest( std::string deviceFileName, std::string mapFileName, std::string moduleName,
+  SpiReadWriteThreadStressTest( std::string deviceAlias, std::string moduleName,
 				std::string motorConfigFileName );
   void run();
 
@@ -103,8 +102,7 @@ private:
   void testAllThreads();
   void printStatus();
   
-  std::string _deviceFileName;
-  std::string _mapFileName;
+  std::string _deviceAlias;
   std::string _moduleName;
   std::string _motorConfigFileName;
   
@@ -133,11 +131,10 @@ private:
   volatile bool _quitCurrentTest;
 };
 
-SpiReadWriteThreadStressTest::SpiReadWriteThreadStressTest( std::string deviceFileName,
-							    std::string mapFileName,
+SpiReadWriteThreadStressTest::SpiReadWriteThreadStressTest( std::string deviceAlias,
                                                             std::string moduleName,
 							    std::string motorConfigFileName )
-  : _deviceFileName(deviceFileName), _mapFileName(mapFileName), _moduleName(moduleName),
+  : _deviceAlias(deviceAlias), _moduleName(moduleName),
     _motorConfigFileName(motorConfigFileName),
     _nCycles(0),
     _errorsInThisTest(0),
@@ -310,8 +307,7 @@ void SpiReadWriteThreadStressTest::baseLoop(unsigned int motorID,
 					    CoreFunctionPointer loopCore){
 
   boost::shared_ptr<MotorDriverCard> motorDriverCard 
-    = MotorDriverCardFactory::instance().createMotorDriverCard( //_deviceFileName,
-								_mapFileName, //pass apporpiate alias
+    = MotorDriverCardFactory::instance().createMotorDriverCard( _deviceAlias,
                                                                 _moduleName,
 								_motorConfigFileName );
   boost::shared_ptr<MotorControlerExpert> motorControler
@@ -426,13 +422,17 @@ void SpiReadWriteThreadStressTest::increaseErrorCount(std::string functionName){
 }
 
 int main(int argc, char* argv []){
-  if (argc!=4){
-    std::cout << "Usage: " << argv[0] << " deviceFileName mapFileName moduleName" 
-	      << " motorConfigFileName" << std::endl;
+  if (argc<=3){
+    std::cout << "Usage: " << argv[0] << " deviceAlias moduleName" 
+	      << " motorConfigFileName [dmapFile]" << std::endl;
     return -1;
   }
+
+  if (argc==5){
+    BackendFactory::getInstance().setDMapFilePath(argv[4]);
+  }
   
-  SpiReadWriteThreadStressTest stressTest(argv[1], argv[2], argv[3], argv[4]);
+  SpiReadWriteThreadStressTest stressTest(argv[1], argv[2], argv[3]);
 
   stressTest.run();
 

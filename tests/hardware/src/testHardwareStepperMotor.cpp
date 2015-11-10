@@ -28,22 +28,42 @@ void* statusReaderThreadBody(void* ptr) {
 
 int main( int argc, char* argv[] ) {
 
-    std::cout << "Test MotorStepper class !!! : Number of params: " <<   argc <<  "\n";
+  if (argc < 2 ){
+    std::cout << "Usage: " << argv[0] << " moduleName [deviceAlias=DFMC-MD22] [motorConfig=VT21-MotorDriverCardConfig.xml] [motorDriverId=0]\n\n" 
+	      << "Parameters:\n"
+	      << "  moduleName  Name of the MD22 module in the firmware map file\n"
+	      << "  deviceAlias Device alias in the map file, optional, default: DFMC-MD22\n"
+	      << "  motorConfig Motor driver config XML file, optional, default: VT21-MotorDriverCardConfig.xml\n"
+	      << "  motorId     Motor ID on the MD22 (0 or 1), default: 0" << std::endl;
+    
+    return -1;
+  }
 
-    std::string deviceName;
-    std::string moduleName;
-    std::string configFileNameName;
-    int motorDriverId;
-    if (argc == 4 ) {
-        deviceName = std::string(argv[1]);
-        moduleName = std::string(argv[2]);
-        configFileNameName = std::string(argv[3]);
-        motorDriverId = boost::lexical_cast<int>(argv[4]);
-    } else {
-        deviceName = std::string("DFMC-MD22");
-        configFileNameName = std::string("VT21-MotorDriverCardConfig.xml");
-        motorDriverId = 0;
-    }
+
+  std::string deviceName;
+  std::string moduleName;
+  std::string configFileNameName;
+  int motorDriverId;
+   
+  moduleName = argv[1];
+
+  if (argc >= 3) {
+    deviceName = argv[2];
+  } else {
+    deviceName = "DFMC-MD22";
+  }
+
+  if (argc >= 4) {
+    configFileNameName = argv[3];
+  } else {
+     configFileNameName = "VT21-MotorDriverCardConfig.xml";
+  }
+
+  if (argc >= 5) {
+    motorDriverId = boost::lexical_cast<int>(argv[4]);
+  } else {
+    motorDriverId = 0;
+  }
     
     std::cout << "Try to open MOTOR CARD with device name: " << deviceName << " with config file: " << configFileNameName << " Motor driver ID is: " << motorDriverId << std::endl;
 
