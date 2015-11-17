@@ -8,8 +8,9 @@ using namespace boost::unit_test_framework;
 #include "MotorDriverCardDummy.h"
 #include <mtca4u/PcieBackend.h>
 
-//#include <mtca4u/BackendFactory.h>
 #include "testConfigConstants.h"
+
+#include <boost/filesystem.hpp>
 
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
