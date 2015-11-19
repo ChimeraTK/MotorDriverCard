@@ -281,7 +281,7 @@ unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & reg
 						      registerSuffix );
   RegisterInfoMap::RegisterInfo registerInfo;
   _registerMapping->getRegisterInfo( registerName, registerInfo, MODULE_NAME_0 );
-  return testWordFromPCIeAddress( registerInfo.reg_address );
+  return testWordFromPCIeAddress( registerInfo.address );
 }
 
 template<class T>
@@ -425,20 +425,20 @@ void MotorControlerTest::testSetReferenceSwitchEnabled(){
 }
 
 void MotorControlerTest::testTargetPositionReached(){
-  RegisterInfoMap::RegisterInfo RegisterInfoent;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, RegisterInfoent, MODULE_NAME_0 );
+  RegisterInfoMap::RegisterInfo registerInfo;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, registerInfo, MODULE_NAME_0 );
 
-  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( RegisterInfoent.reg_address ) );
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( registerInfo.address ) );
 
   BOOST_CHECK( expectedControlerStatus.getTargetPositionReached( _motorControler->getID() ) ==
 	       _motorControler->targetPositionReached() );
 }
 
 void MotorControlerTest::testGetReferenceSwitchBit(){
-  RegisterInfoMap::RegisterInfo RegisterInfoent;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, RegisterInfoent, MODULE_NAME_0 );
+  RegisterInfoMap::RegisterInfo registerInfo;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, registerInfo, MODULE_NAME_0 );
 
-  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( RegisterInfoent.reg_address ) );
+  TMC429StatusWord expectedControlerStatus( testWordFromPCIeAddress( registerInfo.address ) );
 
   BOOST_CHECK( expectedControlerStatus.getReferenceSwitchBit( _motorControler->getID() ) ==
 	       _motorControler->getReferenceSwitchBit() );

@@ -58,7 +58,7 @@ int main( int argc, char* argv[] )
   signal(SIGINT, intHandler);
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->dev_name;
+  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->deviceName;
   BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   // first turn off the reset of the board so the firmware can get active. For this we manually have to 
