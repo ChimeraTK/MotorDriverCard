@@ -17,9 +17,9 @@ using namespace mtca4u::tmc429;
 
 #define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING , MOD_NAME )\
     _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation, MOD_NAME );\
-    AddressRange NAME( registerInformation.reg_bar, \
-                       registerInformation.reg_address, \
-		       registerInformation.reg_size)
+    AddressRange NAME( registerInformation.bar, \
+                       registerInformation.address, \
+		       registerInformation.nBytes)
 
 //#define MODULE_NAME_0 "MD220"
 
@@ -50,23 +50,23 @@ namespace mtca4u{
 
     RegisterInfoMap::RegisterInfo registerInformation;
     DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING, _moduleName );
-    _controlerSpiWriteAddress = registerInformation.reg_address;
-    _controlerSpiBar = registerInformation.reg_bar;
+    _controlerSpiWriteAddress = registerInformation.address;
+    _controlerSpiBar = registerInformation.bar;
     
     _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation, _moduleName );
-    if ( _controlerSpiBar != registerInformation.reg_bar ){
+    if ( _controlerSpiBar != registerInformation.bar ){
       throw MotorDriverException("SPI write and readback address must be in the same bar",
 				 MotorDriverException::SPI_ERROR );
     }
-    _controlerSpiReadbackAddress = registerInformation.reg_address;
-    setReadOnly( registerInformation.reg_bar, registerInformation.reg_address, registerInformation.reg_elem_nr);
+    _controlerSpiReadbackAddress = registerInformation.address;
+    setReadOnly( registerInformation.bar, registerInformation.address, registerInformation.nElements);
 
     _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation, _moduleName );
-    if ( _controlerSpiBar != registerInformation.reg_bar ){
+    if ( _controlerSpiBar != registerInformation.bar ){
       throw MotorDriverException("SPI write and sync address must be in the same bar",
 				 MotorDriverException::SPI_ERROR );
     }
-    _controlerSpiSyncAddress = registerInformation.reg_address;
+    _controlerSpiSyncAddress = registerInformation.address;
     
     setWriteCallbackFunction( controlerSpiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleControlerSpiWrite, this ) );
 
@@ -337,7 +337,7 @@ namespace mtca4u{
     std::string registerName = createMotorRegisterName( ID, suffix );
     RegisterInfoMap::RegisterInfo registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation, _moduleName);
-     writeRegisterWithoutCallback(  registerInformation.reg_bar , registerInformation.reg_address,
+     writeRegisterWithoutCallback(  registerInformation.bar , registerInformation.address,
 				   _controlerSpiAddressSpace[controlerSpiAddress]
 				  );
   }

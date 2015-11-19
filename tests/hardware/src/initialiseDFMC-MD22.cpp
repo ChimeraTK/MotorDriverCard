@@ -22,7 +22,7 @@ int main( int argc, char* argv[] )
   std::string motorConfigFileName=argv[3];
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->dev_name;
+  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->deviceName;
   BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   (void) mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( deviceAlias,

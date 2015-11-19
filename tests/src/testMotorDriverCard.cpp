@@ -247,10 +247,10 @@ void MotorDriverCardTest::testGetReferenceSwitchData(){
 }
 
 void MotorDriverCardTest::testGetStatusWord(){
-  RegisterInfoMap::RegisterInfo RegisterInfoent;
-  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, RegisterInfoent, _moduleName );
+  RegisterInfoMap::RegisterInfo registerInfo;
+  _registerMapping->getRegisterInfo( CONTROLER_STATUS_BITS_ADDRESS_STRING, registerInfo, _moduleName );
 
-  unsigned int expectedContent = testWordFromPCIeAddress( RegisterInfoent.reg_address );
+  unsigned int expectedContent = testWordFromPCIeAddress( registerInfo.address );
 
   BOOST_CHECK( _motorDriverCard->getStatusWord().getDataWord() == expectedContent );
 }

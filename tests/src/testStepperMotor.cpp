@@ -123,8 +123,8 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 
 StepperMotorTest::StepperMotorTest() {
     
-    std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_name);
-    std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).map_file_name);
+    std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
+    std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
 
     _testUnitConveter.reset(new TestUnitConveter);
 
