@@ -27,8 +27,12 @@ else(SUPPRESS_AUTO_DOC_BUILD)
 endif(SUPPRESS_AUTO_DOC_BUILD)
 
 # The MIN versions are needed for automatic replacement in the debian control file
-SET(mtca4u-deviceaccess_MIN_VERSION 00.00)
-FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
+SET(mtca4u-deviceaccess_MIN_VERSION 00.02)
+#FIXME: Comment this line back in after the next minior tag of deviceaccess.
+#Currently CMake needs 00.02.01 (changes in CMake variables), but the debian
+#control files need MIN_VERSION set to the so-version.
+#FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
+FIND_PACKAGE(mtca4u-deviceaccess 00.02.01 REQUIRED)
 include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
 
 SET(pugixml_MIN_VERSION 1.4)
@@ -147,6 +151,11 @@ set(${PROJECT_NAME}_CONFIG_LIBRARIES ${mtca4u-deviceaccess_LIBRARIES})
 set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${mtca4u-deviceaccess_LIBRARY_DIRS})
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
+
+configure_file(cmake/mtca4u-${PROJECT_NAME}-config.in
+  "${PROJECT_BINARY_DIR}/mtca4u-${PROJECT_NAME}-config" @ONLY)		
+install(PROGRAMS "${PROJECT_BINARY_DIR}/mtca4u-${PROJECT_NAME}-config"
+  DESTINATION bin COMPONENT dev)
 
 add_subdirectory(ConfigCalculator) 
 
