@@ -28,8 +28,8 @@ public:
     void testGetSetWaitingTime();
 
 private:
-    boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-    boost::shared_ptr< Device > _mappedDevice;
+    boost::shared_ptr<DFMC_MD22Dummy> _dummyBackend;
+    boost::shared_ptr< Device > _device;
     std::string _mapFileName;
 
     boost::shared_ptr<SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
@@ -69,31 +69,31 @@ init_unit_test_suite(int /*argc*/, char * /*argv*/ []) {
 SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string const & moduleName) {
 
 
-	 _dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );
-	//_dummyDevice.reset(new DFMC_MD22Dummy(moduleName));
+	 _dummyBackend.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );
+	//_dummyBackend.reset(new DFMC_MD22Dummy(moduleName));
 
     // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
 
-    _mappedDevice.reset(new Device());
+    _device.reset(new Device());
 
-    //_dummyDevice->open(mapFileName);
-    //_dummyDevice->open();
+    //_dummyBackend->open(mapFileName);
+    //_dummyBackend->open();
 
     MapFileParser fileParser;
     boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-    _mappedDevice->open(_dummyDevice, registerMapping);
+    _device->open(_dummyBackend, registerMapping);
 
-    //_dummyDevice->setRegistersForTesting();
+    //_dummyBackend->setRegistersForTesting();
 
 
 
-    _readWriteSPIviaPCIe.reset(new SPIviaPCIe(_mappedDevice, moduleName,
+    _readWriteSPIviaPCIe.reset(new SPIviaPCIe(_device, moduleName,
             CONTROLER_SPI_WRITE_ADDRESS_STRING,
             CONTROLER_SPI_SYNC_ADDRESS_STRING,
             CONTROLER_SPI_READBACK_ADDRESS_STRING));
 
-    _writeSPIviaPCIe.reset(new SPIviaPCIe(_mappedDevice, moduleName,
+    _writeSPIviaPCIe.reset(new SPIviaPCIe(_device, moduleName,
             MOTOR_REGISTER_PREFIX + "2_" + SPI_WRITE_SUFFIX,
             MOTOR_REGISTER_PREFIX + "2_" + SPI_SYNC_SUFFIX));
 
@@ -128,7 +128,7 @@ void SPIviaPCIeTest::testRead() {
     BOOST_CHECK(readbackWord.getDATA() == 0xAAAAAA);
 
     // test the error cases
-    _dummyDevice->causeSpiTimeouts(true);
+    _dummyBackend->causeSpiTimeouts(true);
     try {
         _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
         BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
@@ -138,9 +138,9 @@ void SPIviaPCIeTest::testRead() {
                     + e.what());
         }
     }
-    _dummyDevice->causeSpiTimeouts(false);
+    _dummyBackend->causeSpiTimeouts(false);
 
-    _dummyDevice->causeSpiErrors(true);
+    _dummyBackend->causeSpiErrors(true);
     try {
         _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
         BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
@@ -150,24 +150,24 @@ void SPIviaPCIeTest::testRead() {
                     + e.what());
         }
     }
-    _dummyDevice->causeSpiErrors(false);
+    _dummyBackend->causeSpiErrors(false);
 }
 
 void SPIviaPCIeTest::testWrite() {
     // This test is hard coded against the dummy implementation of the TCM260 driver chip
     for (uint32_t motorID = 1; motorID < dfmc_md22::N_MOTORS_MAX; ++motorID) {
         // the readDriverSpiRegister is a debug function of the dummy which bypasses the SPI interface
-        unsigned int registerContent = _dummyDevice->readDriverSpiRegister(motorID,
+        unsigned int registerContent = _dummyBackend->readDriverSpiRegister(motorID,
                 ChopperControlData().getAddress());
 
         ChopperControlData chopperControlData(registerContent + 5);
         BOOST_CHECK_NO_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()));
 
-        BOOST_CHECK(_dummyDevice->readDriverSpiRegister(motorID, ChopperControlData().getAddress()) ==
+        BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, ChopperControlData().getAddress()) ==
                 chopperControlData.getPayloadData());
 
         // test the error cases
-        _dummyDevice->causeSpiTimeouts(true);
+        _dummyBackend->causeSpiTimeouts(true);
         chopperControlData.setPayloadData(chopperControlData.getPayloadData() + 1);
         try {
             _writeSPIviaPCIe->write(chopperControlData.getDataWord());
@@ -178,11 +178,11 @@ void SPIviaPCIeTest::testWrite() {
                         + e.what());
             }
         }
-        BOOST_CHECK(_dummyDevice->readDriverSpiRegister(motorID, ChopperControlData().getAddress()) ==
+        BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, ChopperControlData().getAddress()) ==
                 chopperControlData.getPayloadData() - 1);
-        _dummyDevice->causeSpiTimeouts(false);
+        _dummyBackend->causeSpiTimeouts(false);
 
-        _dummyDevice->causeSpiErrors(true);
+        _dummyBackend->causeSpiErrors(true);
         try {
             _writeSPIviaPCIe->write(chopperControlData.getDataWord());
             BOOST_ERROR("SPIviaPCIe::write did not throw as expected.");
@@ -192,9 +192,9 @@ void SPIviaPCIeTest::testWrite() {
                         + e.what());
             }
         }
-        BOOST_CHECK(_dummyDevice->readDriverSpiRegister(motorID, ChopperControlData().getAddress()) ==
+        BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, ChopperControlData().getAddress()) ==
                 chopperControlData.getPayloadData() - 1);
-        _dummyDevice->causeSpiErrors(false);
+        _dummyBackend->causeSpiErrors(false);
     }
 
 }

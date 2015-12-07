@@ -4,7 +4,7 @@ project(MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
 set(${PROJECT_NAME}_MINOR_VERSION 07)
-set(${PROJECT_NAME}_PATCH_VERSION 00)
+set(${PROJECT_NAME}_PATCH_VERSION 01)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
@@ -27,12 +27,8 @@ else(SUPPRESS_AUTO_DOC_BUILD)
 endif(SUPPRESS_AUTO_DOC_BUILD)
 
 # The MIN versions are needed for automatic replacement in the debian control file
-SET(mtca4u-deviceaccess_MIN_VERSION 00.02)
-#FIXME: Comment this line back in after the next minior tag of deviceaccess.
-#Currently CMake needs 00.02.01 (changes in CMake variables), but the debian
-#control files need MIN_VERSION set to the so-version.
-#FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
-FIND_PACKAGE(mtca4u-deviceaccess 00.02.01 REQUIRED)
+SET(mtca4u-deviceaccess_MIN_VERSION 00.03)
+FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
 include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
 
 SET(pugixml_MIN_VERSION 1.4)
