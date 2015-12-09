@@ -4,12 +4,12 @@
 #include "testConfigConstants.h"
 #include "LinearStepperMotor.h"
 #include <mtca4u/DummyBackend.h>
+#include <mtca4u/BackendFactory.h>
 
 using namespace boost::unit_test_framework;
 
 static const std::string stepperMotorDeviceName("DFMC_MD22");
-static const std::string dmapPath(".");
-static const std::string mapFilePath(".");
+static const std::string dmapFile("./dummies.dmap");
 
 class FunctionalTests
 {
@@ -24,12 +24,12 @@ class FunctionalTests
 
 class FunctionalTestSuite : public test_suite {
 public:
-
-    FunctionalTestSuite() : test_suite("functional test suite") {
-        // create an instance of the test class
-        boost::shared_ptr<FunctionalTests> functionalTests(new FunctionalTests);
-        add(BOOST_CLASS_TEST_CASE(&FunctionalTests::testMotorObjCreation, functionalTests));
-      }
+  FunctionalTestSuite() : test_suite("functional test suite") {
+    mtca4u::BackendFactory::getInstance().setDMapFilePath(dmapFile);
+    // create an instance of the test class
+    boost::shared_ptr<FunctionalTests> functionalTests(new FunctionalTests);
+    add(BOOST_CLASS_TEST_CASE(&FunctionalTests::testMotorObjCreation, functionalTests));
+  }
 };
 
 test_suite*
