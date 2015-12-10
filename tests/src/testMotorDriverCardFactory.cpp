@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE( testCreate ){
 	// Prepare the dummy device. It has to have the correct firmware number in the
 	// corresponding register.
 	//boost::shared_ptr < Device<BaseDevice> > 	mappedMtcadummy = DeviceFactory::getInstance().createDevice(DUMMY_DEV_ALIAS);
-	 std::string testFilePath = boost::filesystem::initial_path().string() + (std::string)TEST_DMAP_FILE_PATH;
+	 std::string testFilePath = TEST_DMAP_FILE_PATH;
 	 BackendFactory::getInstance().setDMapFilePath(testFilePath);
 
 	boost::shared_ptr < Device > 	mappedMtcadummy (new Device());
