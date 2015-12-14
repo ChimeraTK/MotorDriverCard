@@ -27,6 +27,7 @@ else(SUPPRESS_AUTO_DOC_BUILD)
 endif(SUPPRESS_AUTO_DOC_BUILD)
 
 # The MIN versions are needed for automatic replacement in the debian control file
+# It has to be the so-version (MM.mm, not MM.mm.pp)
 SET(mtca4u-deviceaccess_MIN_VERSION 00.03)
 FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
 include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
