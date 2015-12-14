@@ -5,6 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <pthread.h>
+#include <mtca4u/BackendFactory.h>
 
 pthread_t statusReaderThreadTab[5];
 bool threadActive = false;
@@ -28,9 +29,10 @@ void* statusReaderThreadBody(void* ptr) {
 
 int main( int argc, char* argv[] ) {
 
-  if (argc < 2 ){
-    std::cout << "Usage: " << argv[0] << " moduleName [deviceAlias=DFMC-MD22] [motorConfig=VT21-MotorDriverCardConfig.xml] [motorDriverId=0]\n\n" 
+  if (argc < 3 ){
+    std::cout << "Usage: " << argv[0] << " dmapFile moduleName [deviceAlias=DFMC-MD22] [motorConfig=VT21-MotorDriverCardConfig.xml] [motorDriverId=0]\n\n" 
 	      << "Parameters:\n"
+              << "  dmapFile The device map file with alias, sdm and map file"
 	      << "  moduleName  Name of the MD22 module in the firmware map file\n"
 	      << "  deviceAlias Device alias in the map file, optional, default: DFMC-MD22\n"
 	      << "  motorConfig Motor driver config XML file, optional, default: VT21-MotorDriverCardConfig.xml\n"
@@ -40,26 +42,27 @@ int main( int argc, char* argv[] ) {
   }
 
 
-  std::string deviceName;
-  std::string moduleName;
-  std::string configFileNameName;
-  int motorDriverId;
-   
-  moduleName = argv[1];
+  std::string dmapFileName = argv[1];
+  mtca4u::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
-  if (argc >= 3) {
+  std::string moduleName = argv[2];
+   
+  std::string deviceName;
+  if (argc >= 4) {
     deviceName = argv[2];
   } else {
     deviceName = "DFMC-MD22";
   }
 
-  if (argc >= 4) {
+  std::string configFileNameName;
+  if (argc >= 5) {
     configFileNameName = argv[3];
   } else {
      configFileNameName = "VT21-MotorDriverCardConfig.xml";
   }
 
-  if (argc >= 5) {
+  int motorDriverId;
+  if (argc >= 6) {
     motorDriverId = boost::lexical_cast<int>(argv[4]);
   } else {
     motorDriverId = 0;
