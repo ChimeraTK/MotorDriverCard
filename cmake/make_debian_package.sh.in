@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#Check that the MotorDriverCard_BUILDVERSION variable is set, otherwise reject creating a package
+if [ -z "$MotorDriverCard_BUILDVERSION" ]; then
+    echo Environment variable 'MotorDriverCard_BUILDVERSION' not set or empty. You need it to make a debian package!
+    exit 1
+fi
+
 #Create a working directory in order not to merge with the rest in the build directory
 mkdir debian_package
 cd debian_package
@@ -9,14 +15,14 @@ cd debian_package
 # lowecasepackagenname_package.ver.sion
 #As we have to make a tar-file, and tags don't change anyway, we use export
 #instead of checkout.
-svn export https://svnsrv.desy.de/public/mtca4u/MotorDriverCard/tags/@MotorDriverCard_VERSION@ mtca4u-motordrivercard_@MotorDriverCard_VERSION@
+svn export https://svnsrv.desy.de/public/mtca4u/MotorDriverCard/tags/@MotorDriverCard_VERSION@ mtca4u-motordrivercard_@MotorDriverCard_FULL_LIBRARY_VERSION@
 #Debian convention: file has to end on .orig.tar.gz
-tar -czf mtca4u-motordrivercard_@MotorDriverCard_VERSION@.orig.tar.gz  mtca4u-motordrivercard_@MotorDriverCard_VERSION@
+tar -czf mtca4u-motordrivercard_@MotorDriverCard_FULL_LIBRARY_VERSION@.orig.tar.gz  mtca4u-motordrivercard_@MotorDriverCard_FULL_LIBRARY_VERSION@
 
 #Copy the prepared debian packaging config files to the source code 
 #directroy
-cp -r ../debian_from_template  mtca4u-motordrivercard_@MotorDriverCard_VERSION@/debian
-cd mtca4u-motordrivercard_@MotorDriverCard_VERSION@
+cp -r ../debian_from_template  mtca4u-motordrivercard_@MotorDriverCard_FULL_LIBRARY_VERSION@/debian
+cd mtca4u-motordrivercard_@MotorDriverCard_FULL_LIBRARY_VERSION@
 
 #The package versions for doocs / Ubuntu contain the codename of the distribution. Get it from the system.
 CODENAME=`lsb_release -c | sed "{s/Codename:\s*//}"`
@@ -25,7 +31,7 @@ CODENAME=`lsb_release -c | sed "{s/Codename:\s*//}"`
 #because debchange does the right format and the current date, user name and email automatically for us.
 #Use the NAME and EMAIL environment variables to get correct values if needed (usually the email is
 # user@host instead of first.last@institute, for instance killenb@mskpcx18571.desy.de instead of martin.killenberg@desy.de).
-debchange --create --package mtca4u-motordrivercard -v @MotorDriverCard_VERSION@-${CODENAME}1 --distribution ${CODENAME} Debian package for MTCA4U MotorDriverCard @MotorDriverCard_VERSION@
+debchange --create --package mtca4u-motordrivercard -v @MotorDriverCard_FULL_LIBRARY_VERSION@ --distribution ${CODENAME} Debian package for MTCA4U MotorDriverCard @MotorDriverCard_FULL_LIBRARY_VERSION@
 
 #Now everything is prepared and we can actually build the package.
 #If you have a gpg signature you can remove the -us and -uc flags and sign the package.
