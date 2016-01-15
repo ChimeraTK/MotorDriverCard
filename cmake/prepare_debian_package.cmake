@@ -7,15 +7,15 @@ string(REPLACE "." "-" MotorDriverCard_DEBVERSION ${MotorDriverCard_SOVERSION})
 #Nothing to change, just copy
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/compat
            ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules
-	   ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercard-configcalculator.install
+	   ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercard-configcalculator.install
      DESTINATION debian_from_template)
 
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/source/format
      DESTINATION debian_from_template/source)
 
 #Adapt the file name
-configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercardDEBVERSION.install.in
-               debian_from_template/mtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.install)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercardDEBVERSION.install.in
+               debian_from_template/libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.install)
 
 #Adapt the file name and/or set the version number
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/control.in
@@ -24,11 +24,11 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/control.in
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/copyright.in
                debian_from_template/copyright @ONLY)
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercardDEBVERSION.shlib.in
-               debian_from_template/mtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.shlib @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercardDEBVERSION.shlib.in
+               debian_from_template/libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.shlib @ONLY)
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/dev-mtca4u-motordrivercard.install.in
-               debian_from_template/dev-mtca4u-motordrivercard.install @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercard-dev.install.in
+               debian_from_template/libmtca4u-motordrivercard-dev.install @ONLY)
 
 #Copy and configure the shell script which performs the actual 
 #building of the package
@@ -42,12 +42,12 @@ add_custom_target(debian_package ${CMAKE_BINARY_DIR}/make_debian_package.sh
 
 #For convenience: Also create an install script for DESY
 #The shared library package has the version number in the package name
-set(PACKAGE_NAME "mtca4u-motordrivercard${MotorDriverCard_DEBVERSION}")
+set(PACKAGE_NAME "libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}")
 #The development package does not have the version in the name
-set(PACKAGE_DEV_NAME "dev-mtca4u-motordrivercard")
+set(PACKAGE_DEV_NAME "libmtca4u-motordrivercard-dev")
 #The binaries are in a separate package because they also do not have a version number in the package name
-set(PACKAGE_BIN_NAME "mtca4u-motordrivercard-configcalculator")
-set(PACKAGE_FILES_WILDCARDS "${PACKAGE_NAME}_*.deb ${PACKAGE_DEV_NAME}_*.deb ${PACKAGE_BIN_NAME}_*.deb mtca4u-motordrivercard_*.changes")
+set(PACKAGE_BIN_NAME "libmtca4u-motordrivercard-configcalculator")
+set(PACKAGE_FILES_WILDCARDS "${PACKAGE_NAME}_*.deb ${PACKAGE_DEV_NAME}_*.deb ${PACKAGE_BIN_NAME}_*.deb libmtca4u-motordrivercard_*.changes")
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/install_debian_package_at_DESY.sh.in
                install_debian_package_at_DESY.sh @ONLY)
