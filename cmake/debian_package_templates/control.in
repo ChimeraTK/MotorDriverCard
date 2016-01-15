@@ -20,6 +20,8 @@ Section: libs
 Architecture: any
 # Explicitly add the min version of pugixml. It is required for proper functionality when parsing the map files with hex values. The older lib would still link, but give wrong results or runtime errors.
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpugixml1 (>= @pugixml_MIN_VERSION@)
+# Provides field for a virtual package to be installed by libmtca4u-dev
+Provides: libmtca4u-motordrivercard@MotorDriverCard_MAJOR_VERSION@-@MotorDriverCard_MINOR_VERSION@
 # We do not use recommends, which would automatically install the package,
 # but suggests, because of the dependency on the huge Qt package
 Suggests: libmtca4u-motordrivercard-configcalculator
