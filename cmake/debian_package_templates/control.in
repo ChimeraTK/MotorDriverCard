@@ -24,10 +24,10 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libpugixml1 (>= @pugixml_MIN_VERSIO
 Provides: libmtca4u-motordrivercard@MotorDriverCard_MAJOR_VERSION@-@MotorDriverCard_MINOR_VERSION@
 # We do not use recommends, which would automatically install the package,
 # but suggests, because of the dependency on the huge Qt package
-Suggests: libmtca4u-motordrivercard-configcalculator
+Suggests: mtca4u-motordrivercard-configcalculator
 Description: MTCA4U MotorDriverCard provides a C++ API for the DFMC-MD22 motor driver card, based on the MTCA4U tool kit.
 
-Package: libmtca4u-motordrivercard-configcalculator
+Package: mtca4u-motordrivercard-configcalculator
 Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}

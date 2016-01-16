@@ -7,7 +7,7 @@ string(REPLACE "." "-" MotorDriverCard_DEBVERSION ${MotorDriverCard_SOVERSION})
 #Nothing to change, just copy
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/compat
            ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules
-	   ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercard-configcalculator.install
+	   ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/mtca4u-motordrivercard-configcalculator.install
      DESTINATION debian_from_template)
 
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/source/format
@@ -46,7 +46,7 @@ set(PACKAGE_NAME "libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}")
 #The development package does not have the version in the name
 set(PACKAGE_DEV_NAME "libmtca4u-motordrivercard-dev")
 #The binaries are in a separate package because they also do not have a version number in the package name
-set(PACKAGE_BIN_NAME "libmtca4u-motordrivercard-configcalculator")
+set(PACKAGE_BIN_NAME "mtca4u-motordrivercard-configcalculator")
 set(PACKAGE_FILES_WILDCARDS "${PACKAGE_NAME}_*.deb ${PACKAGE_DEV_NAME}_*.deb ${PACKAGE_BIN_NAME}_*.deb libmtca4u-motordrivercard_*.changes")
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/install_debian_package_at_DESY.sh.in
