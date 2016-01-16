@@ -4,6 +4,18 @@
 #The debian version string must not contain ".", so we use "-"
 string(REPLACE "." "-" MotorDriverCard_DEBVERSION ${MotorDriverCard_SOVERSION})
 
+#We also need the so version of deviceaccess. We extract it from the full version
+#What the regex does:
+# () creates a reference 
+# . any character
+# .+ multiple characters, at least one
+# \. a dot, as \ has to be escaped in cmake it's \\.
+# \1 the first reference, \\1 as \ has to be escaped
+# First reference: everything up to the first .
+# Second reference: everything between the first and second .
+string(REGEX REPLACE "(.+)\\.(.+)\\..+" "\\1.\\2" mtca4u-deviceaccess_SOVERSION ${mtca4u-deviceaccess_VERSION})
+message("mtca4u-deviceaccess_SOVERSION ${mtca4u-deviceaccess_SOVERSION}")
+
 #Nothing to change, just copy
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/compat
            ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/rules

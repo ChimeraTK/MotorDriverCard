@@ -9,7 +9,7 @@ Section: libs
 Package: libmtca4u-motordrivercard-dev
 Section: libdevel
 Architecture: any
-Depends: libmtca4u-motordrivercard@MotorDriverCard_DEBVERSION@,  libmtca4u-deviceaccess-dev (>= @mtca4u-deviceaccess_VERSION@),  libmtca4u-deviceaccess-dev (<= @mtca4u-deviceaccess_MIN_VERSION@.99-zz), libboost-dev (>= 1.46), libboost-thread-dev (>= 1.46)
+Depends: libmtca4u-motordrivercard@MotorDriverCard_DEBVERSION@,  libmtca4u-deviceaccess-dev (>= @mtca4u-deviceaccess_VERSION@),  libmtca4u-deviceaccess-dev (<= @mtca4u-deviceaccess_SOVERSION@.99-zz), libboost-dev (>= 1.46), libboost-thread-dev (>= 1.46)
 Conflicts: dev-mtca4u-motordrivercard
 Replaces: dev-mtca4u-motordrivercard
 Description: Header and cmake files for MTCA4U MotorDriverCard.
