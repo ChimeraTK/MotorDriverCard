@@ -10,6 +10,7 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
   
   motorTabWidget = new QTabWidget(this);
   
+  // first add the standard motor config widgets for all motors
   for (size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID){
     motorConfigWidgets.push_back(new MotorConfigWidget(this));
     QString tabLabel("Motor ");
@@ -22,6 +23,23 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
       motorConfigWidgets[motorID]->setMotorEnabled(false);
     }
   }
+  // next: create the expert tab
+  expertTabWidget = new QTabWidget(this);
+
+  // add the card expert widget
+  cardExpertWidget = new ParametersPanel(this);
+  expertTabWidget->addTab(cardExpertWidget,"MD22 Card");
+
+  // add the motor expert widgets
+  for (size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID){
+    motorExpertWidgets.push_back(new ParametersPanel(this));
+    QString tabLabel("Motor ");
+    tabLabel += QString::number(motorID);
+
+    expertTabWidget->addTab(motorExpertWidgets[motorID], tabLabel);
+  }
+  
+  motorTabWidget->addTab(expertTabWidget,"Expert Settings");
   verticalLayout->addWidget(motorTabWidget);
   
   writeButton = new QPushButton("Write XML file",this);

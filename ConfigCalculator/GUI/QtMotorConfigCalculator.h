@@ -5,6 +5,8 @@
 #include <QTabWidget>
 #include <QPushButton>
 
+typedef QWidget ParametersPanel;
+
 /** A widget containing two MotorConfigWidget in a TabWidget,
  *  and a write button which write the config to an XML file\
  */
@@ -22,7 +24,10 @@ class QtMotorConfigCalculator: public QWidget{
    QTabWidget *motorTabWidget;
    QPushButton *writeButton;
 
+   QTabWidget *expertTabWidget;
    std::vector<MotorConfigWidget *> motorConfigWidgets;
+   std::vector<ParametersPanel *> motorExpertWidgets;
+   ParametersPanel * cardExpertWidget;
 
  private slots:
    /** Get the file name via dialogue and perform the writing.
