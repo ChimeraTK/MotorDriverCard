@@ -5,7 +5,7 @@
 #include <QTabWidget>
 #include <QPushButton>
 
-typedef QWidget ParametersPanel;
+#include "ParametersPanel.h"
 
 /** A widget containing two MotorConfigWidget in a TabWidget,
  *  and a write button which write the config to an XML file\
