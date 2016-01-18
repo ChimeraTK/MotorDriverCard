@@ -14,13 +14,13 @@ class ParametersPanel : public QWidget {
 
   public:
     ParametersPanel(QWidget * parent_);
-  protected:
-    std::map< std::string, ParameterWidget *>  parametersMap;
-    QVBoxLayout * verticalLayout;
 
     void addParameter(std::string const & parameterName);
     // concenient way to retrieve the parameter value
     int operator[](std::string const & parameterName);
+  protected:
+    std::map< std::string, ParameterWidget *>  parametersMap;
+    QVBoxLayout * verticalLayout;
 };
 
 #endif // _PARAMETERS_PANEL_

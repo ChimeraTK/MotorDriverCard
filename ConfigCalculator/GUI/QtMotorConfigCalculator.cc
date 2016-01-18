@@ -3,6 +3,7 @@
 
 #include <QFileDialog>
 #include "MotorDriverCardConfigXML.h"
+#include "populateMotorExpertPanel.h"
 
 QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
   : QWidget(parent_){
@@ -32,11 +33,13 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
 
   // add the motor expert widgets
   for (size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID){
-    motorExpertWidgets.push_back(new ParametersPanel(this));
+    ParametersPanel * thisMotorExpertWidget = new ParametersPanel(this);
+    motorExpertWidgets.push_back(thisMotorExpertWidget);
+    populateMotorExpertPanel(thisMotorExpertWidget);
     QString tabLabel("Motor ");
     tabLabel += QString::number(motorID);
 
-    expertTabWidget->addTab(motorExpertWidgets[motorID], tabLabel);
+    expertTabWidget->addTab(thisMotorExpertWidget, tabLabel);
   }
   
   motorTabWidget->addTab(expertTabWidget,"Expert Settings");
