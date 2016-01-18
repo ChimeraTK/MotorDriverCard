@@ -7,7 +7,8 @@ ParameterWidget::ParameterWidget(QWidget * parent_, std::string const & paramete
   label =  new QLabel(parameterName.c_str(), this);
   horizontalLayout->addWidget( label );
 
-  parameterSpinBox = new QSpinBox(this);
+  parameterSpinBox = new HexSpinBox(this);
+  parameterSpinBox->setRange(0x0000000,0xFFFFFFFFL);
   horizontalLayout->addWidget( parameterSpinBox );
 
   defaultValueLabel =  new QLabel("0xDEADBEEF", this);

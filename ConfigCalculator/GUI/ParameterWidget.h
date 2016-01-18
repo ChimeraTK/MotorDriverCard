@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QSpinBox> // replace with hex spin box
+#include "HexSpinBox.h"
 
 #include <string>
 
@@ -18,7 +18,7 @@ class ParameterWidget : public QWidget{
  protected:
   QHBoxLayout *horizontalLayout;
   QLabel * label;
-  QSpinBox * parameterSpinBox;
+  HexSpinBox * parameterSpinBox;
   QLabel * defaultValueLabel;
 };
 
