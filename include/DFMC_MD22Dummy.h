@@ -86,7 +86,8 @@ namespace mtca4u{
      */
     void setDriverSpiDelay(unsigned int microseconds);
 
-    static boost::shared_ptr<mtca4u::DeviceBackend> createInstance(std::string host, std::string interface, std::list<std::string> parameters);
+    static boost::shared_ptr<mtca4u::DeviceBackend> createInstance(std::string host, std::string interface,
+        std::list<std::string> parameters, std::string mapFileName);
 
   private:
     // callback functions

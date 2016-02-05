@@ -146,16 +146,16 @@ void MotorDriverCardTest::testConstructor(){
 		     //FIXME: create a DeviceException. Has to work for real and dummy devices
 		     DeviceException );
 
-  boost::shared_ptr<RegisterInfoMap> brokenRegisterMapping = fileParser.parse(BROKEN_MAP_FILE_NAME);
   // try opening with bad mapping, also has to throw
-  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0"));
-  device->open(dummyDevice, brokenRegisterMapping);
+  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
+  device->open(dummyDevice);
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
 		       new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
 		     LibMapException );
 
   device->close();
-  device->open(_dummyDevice, _registerMapping);
+  dummyDevice = boost::shared_ptr<mtca4u::DeviceBackend> ( new mtca4u::PcieBackend("/dev/mtcadummys0", _mapFileName));
+  device->open(_dummyDevice);
 
   //try something with a wrong firmware version
   // wrong major (too large by 1):
