@@ -366,20 +366,22 @@ namespace mtca4u{
     _causeSpiErrors = causeErrors;
   }
 
-  boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(std::string /*host*/, std::string /*interface*/, std::list<std::string> parameters) {
+  boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(std::string /*host*/, std::string /*interface*/,
+      std::list<std::string> parameters, std::string mapFileName) {
 #ifdef _DEBUG
     std::cout<<"DFMC_MD22Dummy createInstance"<<std::endl;
 #endif
-    //fixme create DFMC_MD22DummyException
+    //fixme create DFMC_MD22DummyException. No, please do not. Use generic exceptions!
     if (parameters.empty()){
-      throw DummyBackendException("No moudle name given in the parameter list.",
-          DummyBackendException::INVALID_PARAMETER);
-    }
-    if (parameters.size() < 2){
       throw DummyBackendException("No map file given in the parameter list.",
           DummyBackendException::INVALID_PARAMETER);
     }
-    return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(parameters.front(),parameters.back()) );
+    if (parameters.size() < 2 && mapFileName == ""){
+      throw DummyBackendException("No module name given in the parameter list.",
+          DummyBackendException::INVALID_PARAMETER);
+    }
+    if(mapFileName == "") mapFileName = parameters.front();      // compatibility only, remove after release of deviceaccess 0.6
+    return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(mapFileName,parameters.back()) );
   }
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
