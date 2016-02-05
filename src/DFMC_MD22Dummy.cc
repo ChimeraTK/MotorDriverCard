@@ -18,22 +18,22 @@ using namespace mtca4u::tmc429;
 #define DEFINE_ADDRESS_RANGE( NAME , ADDRESS_STRING , MOD_NAME )\
     _registerMapping->getRegisterInfo( ADDRESS_STRING, registerInformation, MOD_NAME );\
     AddressRange NAME( registerInformation.bar, \
-                       registerInformation.address, \
-		       registerInformation.nBytes)
+        registerInformation.address, \
+        registerInformation.nBytes)
 
 //#define MODULE_NAME_0 "MD220"
 
 
 namespace mtca4u{
 
- DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & mapFileName, std::string const & moduleName)
- 	 	 	 	 	 : DummyBackend(mapFileName),
- 				   _powerIsUp(true), _causeSpiTimeouts(false),
- 				   _causeSpiErrors(false),
- 				   _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
- 				   _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
- 	 	 	 	   _moduleName(moduleName)
-           {
+  DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & mapFileName, std::string const & moduleName)
+  : DummyBackend(mapFileName),
+    _powerIsUp(true), _causeSpiTimeouts(false),
+    _causeSpiErrors(false),
+    _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
+    _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
+    _moduleName(moduleName)
+  {
 
 
   }
@@ -43,7 +43,7 @@ namespace mtca4u{
     DummyBackend::open();
     setPCIeRegistersForTesting(); // some of them will be overwriten if a 
     // defined behaviour exists for them
-    
+
     _controlerSpiAddressSpace.resize( tmc429::SIZE_OF_SPI_ADDRESS_SPACE , 0 );
 
     setControlerSpiRegistersForOperation();
@@ -52,11 +52,11 @@ namespace mtca4u{
     DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING, _moduleName );
     _controlerSpiWriteAddress = registerInformation.address;
     _controlerSpiBar = registerInformation.bar;
-    
+
     _registerMapping->getRegisterInfo( CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation, _moduleName );
     if ( _controlerSpiBar != registerInformation.bar ){
       throw MotorDriverException("SPI write and readback address must be in the same bar",
-				 MotorDriverException::SPI_ERROR );
+          MotorDriverException::SPI_ERROR );
     }
     _controlerSpiReadbackAddress = registerInformation.address;
     setReadOnly( registerInformation.bar, registerInformation.address, registerInformation.nElements);
@@ -64,57 +64,57 @@ namespace mtca4u{
     _registerMapping->getRegisterInfo( CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation, _moduleName );
     if ( _controlerSpiBar != registerInformation.bar ){
       throw MotorDriverException("SPI write and sync address must be in the same bar",
-				 MotorDriverException::SPI_ERROR );
+          MotorDriverException::SPI_ERROR );
     }
     _controlerSpiSyncAddress = registerInformation.address;
-    
+
     setWriteCallbackFunction( controlerSpiWriteAddressRange, boost::bind( &DFMC_MD22Dummy::handleControlerSpiWrite, this ) );
 
 
     _driverSPIs.resize( N_MOTORS_MAX );
     for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       DEFINE_ADDRESS_RANGE( actualPositionAddressRange,
-			    createMotorRegisterName( id, ACTUAL_POSITION_SUFFIX ), _moduleName );
+          createMotorRegisterName( id, ACTUAL_POSITION_SUFFIX ), _moduleName );
       setReadOnly( actualPositionAddressRange );
       DEFINE_ADDRESS_RANGE( actualVelocityAddressRange,
-			    createMotorRegisterName( id, ACTUAL_VELOCITY_SUFFIX ), _moduleName );
+          createMotorRegisterName( id, ACTUAL_VELOCITY_SUFFIX ), _moduleName );
       setReadOnly( actualVelocityAddressRange );
       DEFINE_ADDRESS_RANGE( actualAccelerationAddressRange,
-			    createMotorRegisterName( id, ACTUAL_ACCELETATION_SUFFIX ), _moduleName );
+          createMotorRegisterName( id, ACTUAL_ACCELETATION_SUFFIX ), _moduleName );
       setReadOnly( actualAccelerationAddressRange );
       DEFINE_ADDRESS_RANGE( microStepCountAddressRange,
-			    createMotorRegisterName( id, MICRO_STEP_COUNT_SUFFIX ), _moduleName );
+          createMotorRegisterName( id, MICRO_STEP_COUNT_SUFFIX ), _moduleName );
       setReadOnly( microStepCountAddressRange );
 
       _driverSPIs[id].addressSpace.resize(tmc260::SIZE_OF_SPI_ADDRESS_SPACE, 0);
       setDriverSpiRegistersForTesting(id);
 
       DEFINE_ADDRESS_RANGE( driverSpiWriteAddressRange,
-			    createMotorRegisterName( id, SPI_WRITE_SUFFIX ), _moduleName );
+          createMotorRegisterName( id, SPI_WRITE_SUFFIX ), _moduleName );
       DEFINE_ADDRESS_RANGE( driverSpiSyncAddressRange,
-			    createMotorRegisterName( id, SPI_SYNC_SUFFIX ), _moduleName );
+          createMotorRegisterName( id, SPI_SYNC_SUFFIX ), _moduleName );
       if ( driverSpiWriteAddressRange.bar != driverSpiSyncAddressRange.bar ){
-	throw MotorDriverException("SPI write and sync address must be in the same bar",
-				   MotorDriverException::SPI_ERROR );
+        throw MotorDriverException("SPI write and sync address must be in the same bar",
+            MotorDriverException::SPI_ERROR );
       }
 
       _driverSPIs[id].bar = static_cast<unsigned int>(driverSpiWriteAddressRange.bar);
       _driverSPIs[id].pcieWriteAddress = driverSpiWriteAddressRange.offset;
       _driverSPIs[id].pcieSyncAddress = driverSpiSyncAddressRange.offset;
       setWriteCallbackFunction( driverSpiWriteAddressRange, 
-				boost::bind( &DFMC_MD22Dummy::handleDriverSpiWrite, this, id) );
+          boost::bind( &DFMC_MD22Dummy::handleDriverSpiWrite, this, id) );
     }
   }
 
   void DFMC_MD22Dummy::setPCIeRegistersForTesting(){
     for (std::map< uint8_t, std::vector<int32_t> >::iterator barIter = _barContents.begin();
-	 barIter != _barContents.end(); ++barIter ){
+        barIter != _barContents.end(); ++barIter ){
       for (unsigned int i = 0; i < barIter->second.size(); ++i){
-	unsigned int address = sizeof(uint32_t)*i;
-	barIter->second[i] = 3*address*address+17;
+        unsigned int address = sizeof(uint32_t)*i;
+        barIter->second[i] = 3*address*address+17;
       }
     }
-    
+
     // now reset the known standard registers to their normal valued
     setStandardRegisters();
   }
@@ -126,7 +126,7 @@ namespace mtca4u{
     resetFirmwareVersion(); // call this special function to avoid code duplication in the firmware calculation
     // date and reserved are left at the debug values
     setConstantPCIeRegister(PROJECT_RESET_ADDRESS_STRING, 0); // project is not in reset. FIXME: react on user setting to 1
-   setConstantPCIeRegister(PROJECT_NEXT_ADDRESS_STRING, 0); // There is no next project
+    setConstantPCIeRegister(PROJECT_NEXT_ADDRESS_STRING, 0); // There is no next project
   }
 
   void DFMC_MD22Dummy::setFirmwareVersion(uint32_t version){
@@ -250,7 +250,7 @@ namespace mtca4u{
     boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsDriverSpiDelay));
 
     _driverSPIs[ID].addressSpace.at(spiAddress) = writtenSpiWord & payloadDataMask;
-    
+
     driverSpiActions(ID, spiAddress, writtenSpiWord & payloadDataMask);
 
     // SPI transfer ready, set the sync register to ok
@@ -259,18 +259,18 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData){
     switch( spiAddress ){
-    case tmc260::ADDRESS_STALL_GUARD_CONFIG:
-	// according to the data sheet the cool step value (read response) is between 1/4 or 1/2 
-	// (depending on the SEMIN bit in the coolStep control register) and 1/1 of the current scaling value.
-	// Just setting it to 1/1 (which seems to be happenening during my tests) should be fine
-	StallGuardControlData stallGuardControlData(payloadData);
-	setConstantPCIeRegister( createMotorRegisterName( ID, COOL_STEP_VALUE_SUFFIX),
-				 stallGuardControlData.getCurrentScale() );
+      case tmc260::ADDRESS_STALL_GUARD_CONFIG:
+        // according to the data sheet the cool step value (read response) is between 1/4 or 1/2
+        // (depending on the SEMIN bit in the coolStep control register) and 1/1 of the current scaling value.
+        // Just setting it to 1/1 (which seems to be happenening during my tests) should be fine
+        StallGuardControlData stallGuardControlData(payloadData);
+        setConstantPCIeRegister( createMotorRegisterName( ID, COOL_STEP_VALUE_SUFFIX),
+            stallGuardControlData.getCurrentScale() );
     }
   }
 
   void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content,
-						 unsigned int controlerSpiAddress){
+      unsigned int controlerSpiAddress){
     if (_powerIsUp){
       _controlerSpiAddressSpace.at(controlerSpiAddress)=content;
     }
@@ -280,17 +280,17 @@ namespace mtca4u{
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
     outputWord.setDATA( _controlerSpiAddressSpace.at(controlerSpiAddress) );
-     writeRegisterWithoutCallback(_controlerSpiBar,_controlerSpiReadbackAddress,
-				   outputWord.getDataWord());
+    writeRegisterWithoutCallback(_controlerSpiBar,_controlerSpiReadbackAddress,
+        outputWord.getDataWord());
   }
 
   void DFMC_MD22Dummy::triggerActionsOnControlerSpiWrite(TMC429InputWord const & inputWord){
     switch(inputWord.getSMDA()){
       case SMDA_COMMON: // common registers are addressed by jdx
-	performJdxActions( inputWord.getIDX_JDX() );
-	break;
+        performJdxActions( inputWord.getIDX_JDX() );
+        break;
       default: // motor specifix registers are addressed by idx
-	performIdxActions( inputWord.getIDX_JDX() );
+        performIdxActions( inputWord.getIDX_JDX() );
     };
 
     synchroniseFpgaWithControlerSpiRegisters();
@@ -299,11 +299,11 @@ namespace mtca4u{
   void DFMC_MD22Dummy::performJdxActions( unsigned int jdx ){
     switch(jdx){
       case( JDX_POWER_DOWN ):
-	_powerIsUp = false;
-	// stop internal cock thread when implemented
-	break;
+	    _powerIsUp = false;
+      // stop internal cock thread when implemented
+      break;
       default:
-	;// do nothing
+        ;// do nothing
     }
   }
 
@@ -317,7 +317,7 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::powerUp(){
     unsigned int powerDownControlerSpiAddress = spiAddressFromSmdaIdxJdx( SMDA_COMMON,
-								 JDX_POWER_DOWN );
+        JDX_POWER_DOWN );
     writeContentToControlerSpiRegister( 0, powerDownControlerSpiAddress );
     _powerIsUp = true;
   }
@@ -337,9 +337,9 @@ namespace mtca4u{
     std::string registerName = createMotorRegisterName( ID, suffix );
     RegisterInfoMap::RegisterInfo registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation, _moduleName);
-     writeRegisterWithoutCallback(  registerInformation.bar , registerInformation.address,
-				   _controlerSpiAddressSpace[controlerSpiAddress]
-				  );
+    writeRegisterWithoutCallback(  registerInformation.bar , registerInformation.address,
+        _controlerSpiAddressSpace[controlerSpiAddress]
+    );
   }
 
   unsigned int DFMC_MD22Dummy::readDriverSpiRegister( unsigned int motorID, unsigned int driverSpiAddress ){
@@ -350,8 +350,8 @@ namespace mtca4u{
   void  DFMC_MD22Dummy::setRegistersForTesting(){
     // FIXME: store the current config to be able to restore it later
 
-  setPCIeRegistersForTesting();
-  setControlerSpiRegistersForTesting();
+    setPCIeRegistersForTesting();
+    setControlerSpiRegistersForTesting();
 
     for (unsigned int id = 0; id < N_MOTORS_MAX ; ++id){
       setDriverSpiRegistersForTesting(id);
@@ -367,19 +367,19 @@ namespace mtca4u{
   }
 
   boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(std::string /*host*/, std::string /*interface*/, std::list<std::string> parameters) {
-    #ifdef _DEBUG
-    	std::cout<<"DFMC_MD22Dummy createInstance"<<std::endl;
-    #endif
-    	//fixme create DFMC_MD22DummyException
-    	if (parameters.empty()){
-    	    throw DummyBackendException("No moudle name given in the parameter list.",
-    	        DummyBackendException::INVALID_PARAMETER);
-    	}
-    	if (parameters.size() < 2){
-    	  throw DummyBackendException("No map file given in the parameter list.",
-    	              DummyBackendException::INVALID_PARAMETER);
-    	}
-    	return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(parameters.front(),parameters.back()) );
+#ifdef _DEBUG
+    std::cout<<"DFMC_MD22Dummy createInstance"<<std::endl;
+#endif
+    //fixme create DFMC_MD22DummyException
+    if (parameters.empty()){
+      throw DummyBackendException("No moudle name given in the parameter list.",
+          DummyBackendException::INVALID_PARAMETER);
+    }
+    if (parameters.size() < 2){
+      throw DummyBackendException("No map file given in the parameter list.",
+          DummyBackendException::INVALID_PARAMETER);
+    }
+    return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(parameters.front(),parameters.back()) );
   }
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
