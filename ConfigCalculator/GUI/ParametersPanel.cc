@@ -19,14 +19,10 @@ ParametersPanel::ParametersPanel(QWidget * parent_) : QWidget(parent_){
   verticalLayout = new QVBoxLayout();
   outerVerticalLayout->addLayout(verticalLayout);
   outerVerticalLayout->addStretch(-1); // -1 = add at the end
-  
-
-  addParameter("dummy");
-  addParameter("jummy ;-)");
 }
 
-void ParametersPanel::addParameter(std::string const & parameterName){
-  parametersMap[parameterName] = new ParameterWidget(this, parameterName);
+void ParametersPanel::addParameter(std::string const & parameterName, std::string additionalText){
+  parametersMap[parameterName] = new ParameterWidget(this, parameterName +" "+ additionalText);
   verticalLayout->addWidget(parametersMap[parameterName]);
 }
 

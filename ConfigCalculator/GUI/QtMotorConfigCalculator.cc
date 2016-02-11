@@ -30,6 +30,15 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
   // add the card expert widget
   cardExpertWidget = new ParametersPanel(this);
   expertTabWidget->addTab(cardExpertWidget,"MD22 Card");
+  cardExpertWidget->addParameter("coverDatagram");
+  cardExpertWidget->addParameter("coverPositionAndLength");
+  cardExpertWidget->addParameter("datagramHighWord");
+  cardExpertWidget->addParameter("datagramLowWord");
+  cardExpertWidget->addParameter("interfaceConfiguration");
+  cardExpertWidget->addParameter("positionCompareInterruptData");
+  cardExpertWidget->addParameter("positionCompareWord");
+  cardExpertWidget->addParameter("stepperMotorGlobalParameters");
+  cardExpertWidget->addParameter("controlerSpiWaitingTime");
 
   // add the motor expert widgets
   for (size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID){

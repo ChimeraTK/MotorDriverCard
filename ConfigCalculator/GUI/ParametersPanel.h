@@ -15,7 +15,7 @@ class ParametersPanel : public QWidget {
   public:
     ParametersPanel(QWidget * parent_);
 
-    void addParameter(std::string const & parameterName);
+    void addParameter(std::string const & parameterName, std::string additionalText = std::string());
     // concenient way to retrieve the parameter value
     int operator[](std::string const & parameterName);
   protected:
