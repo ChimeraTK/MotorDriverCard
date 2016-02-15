@@ -7,14 +7,16 @@
 #include "HexSpinBox.h"
 
 #include <string>
+#include <stdint.h>
 
 /** A widget which contains a label, input field and default field,
  *  plus convenience getter (and setter?).
  */
 class ParameterWidget : public QWidget{
  public:
-  ParameterWidget(QWidget * parent_, std::string const & parameterName);
-  int getValue();
+  ParameterWidget(QWidget * parent_, std::string const & parameterName, uint32_t defaultValue = 0xDEADBEEF);
+  uint32_t getValue();
+  void setValue(uint32_t value);
  protected:
   QHBoxLayout *horizontalLayout;
   QLabel * label;

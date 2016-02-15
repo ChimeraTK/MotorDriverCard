@@ -15,9 +15,10 @@ class ParametersPanel : public QWidget {
   public:
     ParametersPanel(QWidget * parent_);
 
-    void addParameter(std::string const & parameterName, std::string additionalText = std::string());
+    //fixme:remove default for the default
+    void addParameter(std::string const & parameterName, int32_t defaultValue=0xDEADBEEF, std::string additionalText = std::string());
     // concenient way to retrieve the parameter value
-    int operator[](std::string const & parameterName);
+    int32_t operator[](std::string const & parameterName);
   protected:
     std::map< std::string, ParameterWidget *>  parametersMap;
     QVBoxLayout * verticalLayout;

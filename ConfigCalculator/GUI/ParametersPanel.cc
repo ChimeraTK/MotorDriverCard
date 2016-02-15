@@ -21,12 +21,13 @@ ParametersPanel::ParametersPanel(QWidget * parent_) : QWidget(parent_){
   outerVerticalLayout->addStretch(-1); // -1 = add at the end
 }
 
-void ParametersPanel::addParameter(std::string const & parameterName, std::string additionalText){
-  parametersMap[parameterName] = new ParameterWidget(this, parameterName +" "+ additionalText);
+void ParametersPanel::addParameter(std::string const & parameterName, int32_t defaultValue, std::string additionalText){
+  parametersMap[parameterName] = new ParameterWidget(this, parameterName +" "+ additionalText, defaultValue);
+
   verticalLayout->addWidget(parametersMap[parameterName]);
 }
 
-int ParametersPanel::operator[](std::string const & parameterName){
+int32_t ParametersPanel::operator[](std::string const & parameterName){
   std::map< std::string, ParameterWidget *>::const_iterator paramIter = parametersMap.find(parameterName);
   if (paramIter == parametersMap.end()){
     return 0xDEADBEEF;
