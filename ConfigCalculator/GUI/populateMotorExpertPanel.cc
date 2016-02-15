@@ -14,13 +14,13 @@ void populateMotorExpertPanel(ParametersPanel *parametersPanel){
   parametersPanel->addParameter("minimumVelocity");
   parametersPanel->addParameter("positionTolerance");
   parametersPanel->addParameter("proportionalityFactorData", 0, "(*)");
-  parametersPanel->addParameter("referenceConfigAndRampModeData", 0, "(*)");
+  parametersPanel->addParameter("referenceConfigAndRampModeData", 0xDEADB00B, "(*)");
   parametersPanel->addParameter("targetPosition");
   parametersPanel->addParameter("targetVelocity");
   parametersPanel->addParameter("driverSpiWaitingTime");
 
   parametersPanel->addParameter("driverConfigData");
-  parametersPanel->addParameter("driverControlData", 0, "(*)");
+  parametersPanel->addParameter("driverControlData", 0xDEADB00B, "(*)");
   parametersPanel->addParameter("chopperControlData");
   parametersPanel->addParameter("coolStepControlData");
   parametersPanel->addParameter("stallGuardControlData", 0, "(*)");

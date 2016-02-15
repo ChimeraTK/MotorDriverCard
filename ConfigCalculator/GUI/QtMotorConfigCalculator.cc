@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include "MotorDriverCardConfigXML.h"
 #include "populateMotorExpertPanel.h"
+#include "getParameters.h"
 
 QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
   : QWidget(parent_){
@@ -71,12 +72,14 @@ void QtMotorConfigCalculator::write(){
     return;
   }
 
-  mtca4u::MotorDriverCardConfig cardConfig;
+  mtca4u::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
   for (size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID){
     // only write motors which are activated for sparse xml files
     if(  motorConfigWidgets[motorID]->motorIsEnabled() ){
-      cardConfig.motorControlerConfigurations[motorID] = 
-	motorConfigWidgets[motorID]->getConfig();
+//	      cardConfig.motorControlerConfigurations[motorID] =
+//		motorConfigWidgets[motorID]->getConfig();
+	      cardConfig.motorControlerConfigurations[motorID] =
+		getMotorParameters( motorExpertWidgets[motorID] );
     }
   }
   

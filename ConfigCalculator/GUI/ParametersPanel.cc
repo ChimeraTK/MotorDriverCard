@@ -34,3 +34,4 @@ int32_t ParametersPanel::operator[](std::string const & parameterName){
   }
   return paramIter->second->getValue();
 }
+
