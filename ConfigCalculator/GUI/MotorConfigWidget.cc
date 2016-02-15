@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <list>
 #include <string>
+#include "getParameters.h"
 
 #include <QMessageBox>
 
@@ -18,7 +19,8 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 		       4, // controllerMicroStepValue_
 		       4, // driverMicroStepValue_
 		       3, // currentScale_
-		       std::list<std::string>())
+		       std::list<std::string>()),
+    _motorExpertPanel(NULL)
 {
   _motorConfigWidgetForm.setupUi(this);
 
@@ -76,6 +78,7 @@ void MotorConfigWidget::recalculateChipParameters(){
   }
 
   updateChipParameters();
+  updateMotorExpertPanel();
 }
 
 void MotorConfigWidget::updateChipParameters(){
@@ -117,6 +120,29 @@ void MotorConfigWidget::updateChipParameters(){
   _motorConfigWidgetForm.warningsBrowser->setText( warningText );
 }
 
+void MotorConfigWidget::updateMotorExpertPanel(){
+  if (!_motorExpertPanel){
+    return;
+  }
+
+  mtca4u::MotorControlerConfig calculatedConfig = this->getConfig();
+  mtca4u::MotorControlerConfig expertConfig = getMotorParameters(_motorExpertPanel);
+
+  // only set the parameters which have actually been calculated (unfortunately a duplication of the information in the config calculator)
+  // Don't always set the DATA part, but only the bits which have been modified. Leave the rest to the expert.
+  expertConfig.driverControlData.setMicroStepResolution( calculatedConfig.driverControlData.getMicroStepResolution());
+  _motorExpertPanel->setParameter("driverControlData", expertConfig.driverControlData.getDataWord());
+  expertConfig.stallGuardControlData.setCurrentScale( calculatedConfig.stallGuardControlData.getCurrentScale());
+  _motorExpertPanel->setParameter("stallGuardControlData", expertConfig.stallGuardControlData.getDataWord());
+
+  // the other parameters go directly through. We have to replace the whole word
+  _motorExpertPanel->setParameter("referenceConfigAndRampModeData", calculatedConfig.referenceConfigAndRampModeData.getDataWord());
+  _motorExpertPanel->setParameter("proportionalityFactorData", calculatedConfig.proportionalityFactorData.getDataWord());
+  _motorExpertPanel->setParameter("dividersAndMicroStepResolutionData", calculatedConfig.dividersAndMicroStepResolutionData.getDataWord());
+  _motorExpertPanel->setParameter("maximumVelocity", calculatedConfig.maximumVelocity);
+  _motorExpertPanel->setParameter("maximumAcceleration", calculatedConfig.maximumAcceleration);
+}
+
 void MotorConfigWidget::setMotorEnabled(bool motorEnabled){
   _motorConfigWidgetForm.motorEnabledCheckBox->setChecked(motorEnabled);
 }
@@ -135,4 +161,8 @@ ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig(){
       return ConfigCalculator::IGNORE_BOTH;
     }
   }
+}
+
+void MotorConfigWidget::setMotorExpertPanel(ParametersPanel *motorExpertPanel){
+  _motorExpertPanel = motorExpertPanel;
 }

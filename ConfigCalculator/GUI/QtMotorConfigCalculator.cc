@@ -50,8 +50,12 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
     tabLabel += QString::number(motorID);
 
     expertTabWidget->addTab(thisMotorExpertWidget, tabLabel);
+
+    // make the expert widgets known to the motor config widgets
+    motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget);
   }
   
+
   motorTabWidget->addTab(expertTabWidget,"Expert Settings");
   verticalLayout->addWidget(motorTabWidget);
   

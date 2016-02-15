@@ -6,6 +6,7 @@
 
 #include <QWidget>
 #include <QHBoxLayout>
+#include <stdint.h>
 
 class ParameterWidget;
 
@@ -16,9 +17,11 @@ class ParametersPanel : public QWidget {
     ParametersPanel(QWidget * parent_);
 
     //fixme:remove default for the default
-    void addParameter(std::string const & parameterName, int32_t defaultValue=0xDEADBEEF, std::string additionalText = std::string());
-    // concenient way to retrieve the parameter value
-    int32_t operator[](std::string const & parameterName);
+    void addParameter(std::string const & parameterName, uint32_t defaultValue=0xDEADBEEF, std::string additionalText = std::string());
+    // convenient way to retrieve the parameter value
+    uint32_t operator[](std::string const & parameterName);
+    // set a parameter value (actually contained in the spin box)
+    void setParameter(std::string const & parameterName, uint32_t value);
   protected:
     std::map< std::string, ParameterWidget *>  parametersMap;
     QVBoxLayout * verticalLayout;
