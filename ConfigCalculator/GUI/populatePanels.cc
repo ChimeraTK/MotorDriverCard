@@ -1,6 +1,7 @@
-#include "populateMotorExpertPanel.h"
+#include "populatePanels.h"
 #include "ParametersPanel.h"
 #include "MotorControlerConfig.h"
+#include "MotorDriverCardConfig.h"
 
 #define ADD_TMC249_PARAMETER(parameter, extraText) parametersPanel->addParameter(#parameter, defaultConfig.parameter.getDATA(), extraText)
 #define ADD_TMC260_PARAMETER(parameter, extraText) parametersPanel->addParameter(#parameter, defaultConfig.parameter.getPayloadData(), extraText)
@@ -30,4 +31,17 @@ void populateMotorExpertPanel(ParametersPanel *parametersPanel){
   ADD_TMC260_PARAMETER(chopperControlData, "");
   ADD_TMC260_PARAMETER(coolStepControlData, "");
   ADD_TMC260_PARAMETER(stallGuardControlData, "(*)");
+}
+
+void populateDriverCardExpertPanel(ParametersPanel *parametersPanel){
+  mtca4u::MotorDriverCardConfig defaultConfig;
+  ADD_INT_PARAMETER(controlerSpiWaitingTime,"");
+  ADD_INT_PARAMETER(coverDatagram,"");
+  ADD_TMC249_PARAMETER(coverPositionAndLength,"");
+  ADD_INT_PARAMETER(datagramHighWord,"");
+  ADD_INT_PARAMETER(datagramLowWord,"");
+  ADD_TMC249_PARAMETER(interfaceConfiguration,"");
+  ADD_TMC249_PARAMETER(positionCompareInterruptData,"");
+  ADD_INT_PARAMETER(positionCompareWord,"");
+  ADD_TMC249_PARAMETER(stepperMotorGlobalParameters,"");
 }

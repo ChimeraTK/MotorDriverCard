@@ -7,4 +7,7 @@ class ParametersPanel;
 /// a new class)
 void populateMotorExpertPanel(ParametersPanel *parametersPanel);
 
+/// add parameters to the driver card expert panel (helper function instead of defining
+void populateDriverCardExpertPanel(ParametersPanel *parametersPanel);
+
 #endif //_POPULATE_MOTOR_EXPERT_PANEL_H_

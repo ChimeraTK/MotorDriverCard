@@ -133,14 +133,14 @@ void MotorConfigWidget::updateMotorExpertPanel(){
   // only set the parameters which have actually been calculated (unfortunately a duplication of the information in the config calculator)
   // Don't always set the DATA part, but only the bits which have been modified. Leave the rest to the expert.
   expertConfig.driverControlData.setMicroStepResolution( calculatedConfig.driverControlData.getMicroStepResolution());
-  _motorExpertPanel->setParameter("driverControlData", expertConfig.driverControlData.getDataWord());
+  _motorExpertPanel->setParameter("driverControlData", expertConfig.driverControlData.getPayloadData());
   expertConfig.stallGuardControlData.setCurrentScale( calculatedConfig.stallGuardControlData.getCurrentScale());
-  _motorExpertPanel->setParameter("stallGuardControlData", expertConfig.stallGuardControlData.getDataWord());
+  _motorExpertPanel->setParameter("stallGuardControlData", expertConfig.stallGuardControlData.getPayloadData());
 
   // the other parameters go directly through. We have to replace the whole word
-  _motorExpertPanel->setParameter("referenceConfigAndRampModeData", calculatedConfig.referenceConfigAndRampModeData.getDataWord());
-  _motorExpertPanel->setParameter("proportionalityFactorData", calculatedConfig.proportionalityFactorData.getDataWord());
-  _motorExpertPanel->setParameter("dividersAndMicroStepResolutionData", calculatedConfig.dividersAndMicroStepResolutionData.getDataWord());
+  _motorExpertPanel->setParameter("referenceConfigAndRampModeData", calculatedConfig.referenceConfigAndRampModeData.getDATA());
+  _motorExpertPanel->setParameter("proportionalityFactorData", calculatedConfig.proportionalityFactorData.getDATA());
+  _motorExpertPanel->setParameter("dividersAndMicroStepResolutionData", calculatedConfig.dividersAndMicroStepResolutionData.getDATA());
   _motorExpertPanel->setParameter("maximumVelocity", calculatedConfig.maximumVelocity);
   _motorExpertPanel->setParameter("maximumAcceleration", calculatedConfig.maximumAcceleration);
 }
