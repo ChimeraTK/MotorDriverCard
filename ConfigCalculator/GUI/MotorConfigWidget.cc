@@ -165,4 +165,5 @@ ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig(){
 
 void MotorConfigWidget::setMotorExpertPanel(ParametersPanel *motorExpertPanel){
   _motorExpertPanel = motorExpertPanel;
+  recalculateChipParameters(); // which also updates the expert panel
 }
