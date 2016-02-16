@@ -1,27 +1,33 @@
 #include "populateMotorExpertPanel.h"
 #include "ParametersPanel.h"
+#include "MotorControlerConfig.h"
+
+#define ADD_TMC249_PARAMETER(parameter, extraText) parametersPanel->addParameter(#parameter, defaultConfig.parameter.getDATA(), extraText)
+#define ADD_TMC260_PARAMETER(parameter, extraText) parametersPanel->addParameter(#parameter, defaultConfig.parameter.getPayloadData(), extraText)
+#define ADD_INT_PARAMETER(parameter, extraText) parametersPanel->addParameter(#parameter, defaultConfig.parameter, extraText)
 
 void populateMotorExpertPanel(ParametersPanel *parametersPanel){
-  parametersPanel->addParameter("accelerationThresholdData");
-  parametersPanel->addParameter("actualPosition");
-  parametersPanel->addParameter("decoderReadoutMode");
-  parametersPanel->addParameter("dividersAndMicroStepResolutionData", 0, "(*)");
-  parametersPanel->addParameter("enabled");
-  parametersPanel->addParameter("interruptData");
-  parametersPanel->addParameter("maximumAcceleration", 0, "(*)");
-  parametersPanel->addParameter("maximumVelocity", 0, "(*)");
-  parametersPanel->addParameter("microStepCount");
-  parametersPanel->addParameter("minimumVelocity");
-  parametersPanel->addParameter("positionTolerance");
-  parametersPanel->addParameter("proportionalityFactorData", 0, "(*)");
-  parametersPanel->addParameter("referenceConfigAndRampModeData", 0xDEADB00B, "(*)");
-  parametersPanel->addParameter("targetPosition");
-  parametersPanel->addParameter("targetVelocity");
-  parametersPanel->addParameter("driverSpiWaitingTime");
+  mtca4u::MotorControlerConfig defaultConfig;
+  ADD_TMC249_PARAMETER(accelerationThresholdData,"");
+  ADD_INT_PARAMETER(actualPosition,"");
+  ADD_INT_PARAMETER(decoderReadoutMode, "");
+  ADD_TMC249_PARAMETER(dividersAndMicroStepResolutionData, "(*)");
+  ADD_INT_PARAMETER(enabled, "");
+  ADD_TMC249_PARAMETER(interruptData, "");
+  ADD_INT_PARAMETER(maximumAcceleration, "(*)");
+  ADD_INT_PARAMETER(maximumVelocity, "(*)");
+  ADD_INT_PARAMETER(microStepCount,"");
+  ADD_INT_PARAMETER(minimumVelocity,"");
+  ADD_INT_PARAMETER(positionTolerance,"");
+  ADD_TMC249_PARAMETER(proportionalityFactorData, "(*)");
+  ADD_TMC249_PARAMETER(referenceConfigAndRampModeData, "(*)");
+  ADD_INT_PARAMETER(targetPosition,"");
+  ADD_INT_PARAMETER(targetVelocity,"");
+  ADD_INT_PARAMETER(driverSpiWaitingTime,"");
 
-  parametersPanel->addParameter("driverConfigData");
-  parametersPanel->addParameter("driverControlData", 0xDEADB00B, "(*)");
-  parametersPanel->addParameter("chopperControlData");
-  parametersPanel->addParameter("coolStepControlData");
-  parametersPanel->addParameter("stallGuardControlData", 0, "(*)");
+  ADD_TMC260_PARAMETER(driverConfigData, "");
+  ADD_TMC260_PARAMETER(driverControlData, "(*)");
+  ADD_TMC260_PARAMETER(chopperControlData, "");
+  ADD_TMC260_PARAMETER(coolStepControlData, "");
+  ADD_TMC260_PARAMETER(stallGuardControlData, "(*)");
 }

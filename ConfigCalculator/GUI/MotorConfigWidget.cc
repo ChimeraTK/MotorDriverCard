@@ -20,7 +20,7 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 		       4, // driverMicroStepValue_
 		       3, // currentScale_
 		       std::list<std::string>()),
-    _motorExpertPanel(NULL)
+    _motorExpertPanel(NULL), _expertTabWidget(NULL), _tabIndex(0)
 {
   _motorConfigWidgetForm.setupUi(this);
 
@@ -48,6 +48,8 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 
   connect(_motorConfigWidgetForm.negativeSwitchCheckBox, SIGNAL(stateChanged(int)),
 	  this, SLOT(recalculateChipParameters()));
+  connect(_motorConfigWidgetForm.motorEnabledCheckBox, SIGNAL(toggled(bool)),
+	  this, SLOT(setMotorExpertTabEnabled(bool)));
 }
 
 mtca4u::MotorControlerConfig MotorConfigWidget::getConfig(){
@@ -163,7 +165,18 @@ ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig(){
   }
 }
 
-void MotorConfigWidget::setMotorExpertPanel(ParametersPanel *motorExpertPanel){
+void MotorConfigWidget::setMotorExpertPanel(ParametersPanel *motorExpertPanel, QTabWidget *expertTabWidget, int tabIndex){
   _motorExpertPanel = motorExpertPanel;
+  _expertTabWidget = expertTabWidget;
+  _tabIndex = tabIndex;
   recalculateChipParameters(); // which also updates the expert panel
+  setMotorExpertTabEnabled(_motorConfigWidgetForm.motorEnabledCheckBox->isChecked());
 }
+
+void MotorConfigWidget::setMotorExpertTabEnabled(bool enabled){
+  // we have to check the pointer, so we cannot just connect the signal directly to the panel
+  if (_expertTabWidget){
+    _expertTabWidget->setTabEnabled(_tabIndex, enabled);
+  }
+}
+

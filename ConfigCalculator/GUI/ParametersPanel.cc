@@ -19,6 +19,8 @@ ParametersPanel::ParametersPanel(QWidget * parent_) : QWidget(parent_){
   verticalLayout = new QVBoxLayout();
   outerVerticalLayout->addLayout(verticalLayout);
   outerVerticalLayout->addStretch(-1); // -1 = add at the end
+  QLabel * asteriskLabel = new QLabel("Fields marked with (*) are modified by the basic config calculation.",this);
+  outerVerticalLayout->addWidget(asteriskLabel);
 }
 
 void ParametersPanel::addParameter(std::string const & parameterName, uint32_t defaultValue, std::string additionalText){

@@ -36,10 +36,11 @@ class MotorConfigWidget: public QWidget{
 
    /** Assign an expert panel which is updated with the newly calculated parameters
     */
-   void setMotorExpertPanel(ParametersPanel *motorExpertPanel);
+   void setMotorExpertPanel(ParametersPanel *motorExpertPanel, QTabWidget *expertTabWidget, int tabIndex);
 
  private slots:
    void recalculateChipParameters();
+   void setMotorExpertTabEnabled(bool enabled);
    
  private:
    ParametersCalculator::ChipParameters _chipParameters;
@@ -48,7 +49,12 @@ class MotorConfigWidget: public QWidget{
    ConfigCalculator::EndSwitchConfig getEndSwitchConfig();
 
    Ui::MotorConfigWidgetForm _motorConfigWidgetForm;
+
+   // Only needed to update and enable/disable the expert settings
    ParametersPanel *_motorExpertPanel;
+   QTabWidget *_expertTabWidget;
+   int _tabIndex;
+
 };
 
 #endif// MOTOR_CONFIG_WIDGET_H

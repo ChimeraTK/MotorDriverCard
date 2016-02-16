@@ -10,6 +10,7 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
   : QWidget(parent_){
   verticalLayout = new QVBoxLayout(this);
   
+  QTabWidget * mainTabWidget = new QTabWidget(this);
   motorTabWidget = new QTabWidget(this);
   
   // first add the standard motor config widgets for all motors
@@ -52,12 +53,12 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
     expertTabWidget->addTab(thisMotorExpertWidget, tabLabel);
 
     // make the expert widgets known to the motor config widgets
-    motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget);
+    motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget, expertTabWidget, motorID+1);
   }
   
-
-  motorTabWidget->addTab(expertTabWidget,"Expert Settings");
-  verticalLayout->addWidget(motorTabWidget);
+  mainTabWidget->addTab(motorTabWidget,"Basic Configuration");
+  mainTabWidget->addTab(expertTabWidget,"Expert Settings");
+  verticalLayout->addWidget(mainTabWidget);
   
   writeButton = new QPushButton("Write XML file",this);
   verticalLayout->addWidget(writeButton);

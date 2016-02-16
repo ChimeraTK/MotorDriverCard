@@ -14,6 +14,7 @@ HexSpinBox::HexSpinBox(QWidget* parent_)
   QString regex("[0-9A-Fa-f]{1,8}");
   _validator = new QRegExpValidator(QRegExp(regex), this);
   setDecimals(0);
+  setPrefix("0x");
 }
 
 HexSpinBox::~HexSpinBox() { delete _validator; }
