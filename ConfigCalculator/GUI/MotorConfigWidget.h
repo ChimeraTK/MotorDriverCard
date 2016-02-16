@@ -5,6 +5,7 @@
 #include "ConfigCalculator.h"
 #include <QWidget>
 #include "ui_MotorConfigWidget.h"
+#include "ParametersPanel.h"
 
 /** A widget that calculates chip parameters
  *  from physical parameters of the motor and
@@ -33,15 +34,27 @@ class MotorConfigWidget: public QWidget{
     */
    void setMotorEnabled(bool motorEnabled);
 
+   /** Assign an expert panel which is updated with the newly calculated parameters
+    */
+   void setMotorExpertPanel(ParametersPanel *motorExpertPanel, QTabWidget *expertTabWidget, int tabIndex);
+
  private slots:
    void recalculateChipParameters();
+   void setMotorExpertTabEnabled(bool enabled);
    
  private:
    ParametersCalculator::ChipParameters _chipParameters;
    void updateChipParameters();
+   void updateMotorExpertPanel();
    ConfigCalculator::EndSwitchConfig getEndSwitchConfig();
 
    Ui::MotorConfigWidgetForm _motorConfigWidgetForm;
+
+   // Only needed to update and enable/disable the expert settings
+   ParametersPanel *_motorExpertPanel;
+   QTabWidget *_expertTabWidget;
+   int _tabIndex;
+
 };
 
 #endif// MOTOR_CONFIG_WIDGET_H
