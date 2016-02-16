@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <list>
 #include <string>
+#include "getParameters.h"
 
 #include <QMessageBox>
 
@@ -18,7 +19,8 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 		       4, // controllerMicroStepValue_
 		       4, // driverMicroStepValue_
 		       3, // currentScale_
-		       std::list<std::string>())
+		       std::list<std::string>()),
+    _motorExpertPanel(NULL), _expertTabWidget(NULL), _tabIndex(0)
 {
   _motorConfigWidgetForm.setupUi(this);
 
@@ -46,6 +48,8 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 
   connect(_motorConfigWidgetForm.negativeSwitchCheckBox, SIGNAL(stateChanged(int)),
 	  this, SLOT(recalculateChipParameters()));
+  connect(_motorConfigWidgetForm.motorEnabledCheckBox, SIGNAL(toggled(bool)),
+	  this, SLOT(setMotorExpertTabEnabled(bool)));
 }
 
 mtca4u::MotorControlerConfig MotorConfigWidget::getConfig(){
@@ -76,6 +80,7 @@ void MotorConfigWidget::recalculateChipParameters(){
   }
 
   updateChipParameters();
+  updateMotorExpertPanel();
 }
 
 void MotorConfigWidget::updateChipParameters(){
@@ -117,6 +122,29 @@ void MotorConfigWidget::updateChipParameters(){
   _motorConfigWidgetForm.warningsBrowser->setText( warningText );
 }
 
+void MotorConfigWidget::updateMotorExpertPanel(){
+  if (!_motorExpertPanel){
+    return;
+  }
+
+  mtca4u::MotorControlerConfig calculatedConfig = this->getConfig();
+  mtca4u::MotorControlerConfig expertConfig = getMotorParameters(_motorExpertPanel);
+
+  // only set the parameters which have actually been calculated (unfortunately a duplication of the information in the config calculator)
+  // Don't always set the DATA part, but only the bits which have been modified. Leave the rest to the expert.
+  expertConfig.driverControlData.setMicroStepResolution( calculatedConfig.driverControlData.getMicroStepResolution());
+  _motorExpertPanel->setParameter("driverControlData", expertConfig.driverControlData.getPayloadData());
+  expertConfig.stallGuardControlData.setCurrentScale( calculatedConfig.stallGuardControlData.getCurrentScale());
+  _motorExpertPanel->setParameter("stallGuardControlData", expertConfig.stallGuardControlData.getPayloadData());
+
+  // the other parameters go directly through. We have to replace the whole word
+  _motorExpertPanel->setParameter("referenceConfigAndRampModeData", calculatedConfig.referenceConfigAndRampModeData.getDATA());
+  _motorExpertPanel->setParameter("proportionalityFactorData", calculatedConfig.proportionalityFactorData.getDATA());
+  _motorExpertPanel->setParameter("dividersAndMicroStepResolutionData", calculatedConfig.dividersAndMicroStepResolutionData.getDATA());
+  _motorExpertPanel->setParameter("maximumVelocity", calculatedConfig.maximumVelocity);
+  _motorExpertPanel->setParameter("maximumAcceleration", calculatedConfig.maximumAcceleration);
+}
+
 void MotorConfigWidget::setMotorEnabled(bool motorEnabled){
   _motorConfigWidgetForm.motorEnabledCheckBox->setChecked(motorEnabled);
 }
@@ -136,3 +164,19 @@ ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig(){
     }
   }
 }
+
+void MotorConfigWidget::setMotorExpertPanel(ParametersPanel *motorExpertPanel, QTabWidget *expertTabWidget, int tabIndex){
+  _motorExpertPanel = motorExpertPanel;
+  _expertTabWidget = expertTabWidget;
+  _tabIndex = tabIndex;
+  recalculateChipParameters(); // which also updates the expert panel
+  setMotorExpertTabEnabled(_motorConfigWidgetForm.motorEnabledCheckBox->isChecked());
+}
+
+void MotorConfigWidget::setMotorExpertTabEnabled(bool enabled){
+  // we have to check the pointer, so we cannot just connect the signal directly to the panel
+  if (_expertTabWidget){
+    _expertTabWidget->setTabEnabled(_tabIndex, enabled);
+  }
+}
+
