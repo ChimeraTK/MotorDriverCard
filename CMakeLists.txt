@@ -179,7 +179,7 @@ if(DOXYGEN_FOUND)
     DEPENDS MotorDriverCardDefaultConfig.xml
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc/ DESTINATION usr/share/${PROJECT_NAME}${${PROJECT_NAME}_SOVERSION} )
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc/ DESTINATION share/doc/${PROJECT_NAME}-${${PROJECT_NAME}_SOVERSION} )
 else(DOXYGEN_FOUND)
   message("Doxygen not found, documentation cannot be build.")
 endif(DOXYGEN_FOUND)
