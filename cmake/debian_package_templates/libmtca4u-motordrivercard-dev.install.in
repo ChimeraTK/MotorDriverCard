@@ -2,6 +2,6 @@ usr/include/* usr/include/mtca4u
 usr/lib/lib*.so
 #the ./ in front of the CMAKE_ROOT is needed because CMAKE_ROOT is absolute,
 #but the path here has to be relative
-usr/share/cmake-@CMAKE_MAJOR_VERSION@.@CMAKE_MINOR_VERSION@/Modules ./@CMAKE_ROOT@/Modules
+usr/share/cmake-@CMAKE_MAJOR_VERSION@.@CMAKE_MINOR_VERSION@/Modules ./@CMAKE_ROOT@
 usr/share/doc/MotorDriverCard-@MotorDriverCard_SOVERSION@/* usr/share/doc/libmtca4u-motordrivercard@MotorDriverCard_DEBVERSION@
 usr/bin/mtca4u-MotorDriverCard-config
