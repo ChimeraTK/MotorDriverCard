@@ -4,7 +4,7 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
-//#include <mtca4u/Device.h>
+#include <mtca4u/Device.h>
 //#include <mtca4u/libmap.h>
 #include "TMC429SPI.h"
 #include "DFMC_MD22Dummy.h"

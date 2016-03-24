@@ -4,8 +4,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
-//#include <mtca4u/Device.h>
-
 #include "MotorDriverCardExpert.h"
 #include "MotorControler.h"
 #include "MotorDriverCardConfig.h"
@@ -79,7 +77,7 @@ namespace mtca4u
 
     boost::shared_ptr<TMC429SPI> _controlerSPI;
 
-    boost::shared_ptr< mtca4u::Device::RegisterAccessor > _controlerStatusRegister;
+    boost::shared_ptr< mtca4u::RegisterAccessor > _controlerStatusRegister;
     
     std::string _moduleName;
 

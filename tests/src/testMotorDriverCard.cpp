@@ -6,8 +6,7 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerExpert.h"
 #include "MotorDriverException.h"
 #include <mtca4u/MapFileParser.h>
-
-
+#include <mtca4u/Device.h>
 
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"

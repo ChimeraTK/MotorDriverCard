@@ -13,6 +13,7 @@ using namespace mtca4u::dfmc_md22;
 #include "TMC260DummyConstants.h"
 #include "testWordFromSpiAddress.h"
 #include <mtca4u/MapFileParser.h>
+#include <mtca4u/Device.h>
 
 using namespace mtca4u::tmc429;
 using namespace mtca4u::tmc260;
