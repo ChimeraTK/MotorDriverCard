@@ -38,9 +38,10 @@ else(SUPPRESS_AUTO_DOC_BUILD)
 endif(SUPPRESS_AUTO_DOC_BUILD)
 
 # The MIN versions are needed for automatic replacement in the debian control file
-SET(mtca4u-deviceaccess_MIN_VERSION 00.06)
+SET(mtca4u-deviceaccess_MIN_VERSION 00.08.02)
 FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
 include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${mtca4u-deviceaccess_CXX_FLAGS}")
 
 SET(pugixml_MIN_VERSION 1.4)
 FIND_PACKAGE(pugixml ${pugixml_MIN_VERSION} REQUIRED)
@@ -144,7 +145,7 @@ install(TARGETS ${PROJECT_NAME}
 #all include files go into include/PROJECT_NAME
 #The exclusion of ${PROJECT_NAME} prevents the recursive installation of the files just being installed.
 #The original headers are in include/*.h, the installed ones in include/PROJECT_NAME/*.h.
-install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/${PROJECT_NAME}
+install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/${PROJECT_NAME}
           FILES_MATCHING PATTERN "*.h" 
 	  PATTERN ".svn" EXCLUDE
 	  PATTERN "${PROJECT_NAME}" EXCLUDE
@@ -156,6 +157,7 @@ set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${mtca4u-deviceaccess_INCLUDE_DIRS})
 set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
 set(${PROJECT_NAME}_CONFIG_LIBRARIES ${mtca4u-deviceaccess_LIBRARIES})
 set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${mtca4u-deviceaccess_LIBRARY_DIRS})
+set(${PROJECT_NAME}_CONFIG_CXX_FLAGS ${mtca4u-deviceaccess_CXX_FLAGS})
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 

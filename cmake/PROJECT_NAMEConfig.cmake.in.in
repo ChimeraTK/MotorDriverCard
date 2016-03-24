@@ -4,6 +4,7 @@
 # @PROJECT_NAME@_LIBRARIES    : libraries to link against
 # @PROJECT_NAME@_LIBRARY_DIRS : path to the library directory
 # @PROJECT_NAME@_VERSION      : the version of this library
+# @PROJECT_NAME@_CXX_FLAGS    : additional cxx flags you need compile against @PROJECT_NAME@
  
 # There only is one include path, search for it.
 # We use a reference header file to check if we have the right path.
@@ -31,6 +32,7 @@ get_filename_component(@PROJECT_NAME@_LIBRARY_DIR "${@PROJECT_NAME@_LIBRARY}" PA
 set(@PROJECT_NAME@_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIR} @@PROJECT_NAME@_CONFIG_INCLUDE_DIRS@)
 set(@PROJECT_NAME@_LIBRARIES ${@PROJECT_NAME@_LIBRARY}  @@PROJECT_NAME@_CONFIG_LIBRARIES@)
 set(@PROJECT_NAME@_LIBRARY_DIRS ${@PROJECT_NAME@_LIBRARY_DIR} @@PROJECT_NAME@_CONFIG_LIBRARY_DIRS@)
+set(@PROJECT_NAME@_CXX_FLAGS "@@PROJECT_NAME@_CONFIG_CXX_FLAGS@")
 
 set(@PROJECT_NAME@_VERSION @@PROJECT_NAME@_SOVERSION@)
 
