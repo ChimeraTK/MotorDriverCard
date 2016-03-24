@@ -8,7 +8,7 @@
  
 # There only is one include path, search for it.
 # We use a reference header file to check if we have the right path.
-FIND_PATH(@PROJECT_NAME@_INCLUDE_DIR @PROJECT_NAME@/@@PROJECT_NAME@_REFERENCE_HEADER@
+FIND_PATH(@PROJECT_NAME@_INCLUDE_DIR mtca4u/@PROJECT_NAME@/@@PROJECT_NAME@_REFERENCE_HEADER@
           @CMAKE_INSTALL_PREFIX@/include
           /usr/include
 	  NO_DEFAULT_PATH
