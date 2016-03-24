@@ -2,8 +2,14 @@
 #define MTCA4U_SPI_VIA_PCIE_H
 
 #include <boost/thread/recursive_mutex.hpp>
-#include <mtca4u/Device.h>
 namespace mtca4u{
+
+  // Declatations needed in this header.
+  // We intentionally do not include the mtca4u:Device header here
+  // in order not to expose its interface. It is not part of the public API 
+  // of this library.
+  class Device;
+  class RegisterAccessor;
 
 	/** This class implements synchronous SPI operation over PCIexpress, using an SPI command register
    *  and a synchronisation register. Readback is optional.
@@ -67,9 +73,9 @@ namespace mtca4u{
 
   private:
     // No need to keep an instance of the  shared pointer. Each accessor has one.
-    boost::shared_ptr< Device::RegisterAccessor > _writeRegister;
-    boost::shared_ptr< Device::RegisterAccessor > _synchronisationRegister;
-    boost::shared_ptr< Device::RegisterAccessor > _readbackRegister;
+    boost::shared_ptr< RegisterAccessor > _writeRegister;
+    boost::shared_ptr< RegisterAccessor > _synchronisationRegister;
+    boost::shared_ptr< RegisterAccessor > _readbackRegister;
 
     static void sleepMicroSeconds(unsigned int microSeconds);
     /** Time in microseconds to wait for the transaction to be finished on the SPI bus

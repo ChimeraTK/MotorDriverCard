@@ -7,6 +7,9 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
+
+#include <mtca4u/BackendFactory.h>
+
 using namespace mtca4u;
 
 /** The SpiReadWriteThreadStressTest performs cycles of spi communication tests, each

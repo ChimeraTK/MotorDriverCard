@@ -7,6 +7,7 @@ using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardImpl.h"
 
+#include <mtca4u/Device.h>
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
@@ -105,7 +106,7 @@ namespace mtca4u
     return converter24bits.customToThirtyTwo( readValue );
   }
 
-  unsigned int MotorControlerImpl::readRegObject( boost::shared_ptr< Device::RegisterAccessor > const & registerAccessor){
+  unsigned int MotorControlerImpl::readRegObject( boost::shared_ptr< RegisterAccessor > const & registerAccessor){
     int readValue;
     registerAccessor->readRaw( &readValue );
     return static_cast<unsigned int>(readValue);

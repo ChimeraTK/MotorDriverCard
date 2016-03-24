@@ -5,6 +5,7 @@
 #include <cerrno>
 
 #include <boost/thread/locks.hpp>
+#include <mtca4u/Device.h>
 
 using namespace mtca4u::dfmc_md22;
 

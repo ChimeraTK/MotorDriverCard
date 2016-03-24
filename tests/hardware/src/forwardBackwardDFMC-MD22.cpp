@@ -6,6 +6,7 @@
 #include "MotorDriverCardFactory.h"
 #include <mtca4u/DMapFileParser.h>
 #include <mtca4u/BackendFactory.h>
+#include <mtca4u/Device.h>
 #include <unistd.h>
 #include <signal.h>
 #include <ctime>
