@@ -1,5 +1,5 @@
 #include "MotorDriverCardConfigXML.h"
-#include "XMLException.h"
+#include "MotorDriverException.h"
 
 #include <pugixml.hpp>
 
@@ -33,7 +33,7 @@ MotorDriverCardConfig  MotorDriverCardConfigXML::read(std::string fileName){
   if ( !doc.load_file(fileName.c_str()) ){
     std::stringstream message;
     message << "Could not load XML file \"" << fileName << "\"";
-    throw XMLException(message.str());
+    throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
   }
 
   // a config with default values
@@ -215,7 +215,7 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
     if (!doc.save_file( fileName.c_str() )){
       std::stringstream message;
       message << "Could not write XML file \"" << fileName << "\"";
-      throw XMLException(message.str());
+      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
     }
   }
 
@@ -228,7 +228,7 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
       std::stringstream message;
       message << "Found old, invalid " << tagName << " name " << parameterName
 	      << ". Please update your config file!";
-      throw XMLException(message.str());
+      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
     }
   }
 

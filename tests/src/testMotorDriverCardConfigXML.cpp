@@ -1,5 +1,5 @@
 #include "MotorDriverCardConfigXML.h"
-#include "XMLException.h"
+#include "MotorDriverException.h"
 using namespace mtca4u;
 
 #include <boost/test/included/unit_test.hpp>
@@ -147,7 +147,7 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
 
 void MotorDriverCardConfigXMLTest::testInvalidInput(){
   BOOST_CHECK_THROW( MotorDriverCardConfigXML::read("invalid.xml"), 
-		     XMLException );
+		     MotorDriverException );
 }
 
 void MotorDriverCardConfigXMLTest::testReadMinimal(){
@@ -245,7 +245,7 @@ void MotorDriverCardConfigXMLTest::testWrite(){
 void MotorDriverCardConfigXMLTest::testInvalidOutput(){
   BOOST_CHECK_THROW( MotorDriverCardConfigXML::write("/some/not/existing/file.xml",
 						     completeCardConfig),
-		     XMLException );  
+		     MotorDriverException );  
 }
 
 void MotorDriverCardConfigXMLTest::testOldInvalidRegister(std::string const & registerName){
@@ -254,12 +254,12 @@ void MotorDriverCardConfigXMLTest::testOldInvalidRegister(std::string const & re
   //  the exception)
 
   std::string fileName = OLD_INVALID_XML_PREFIX + registerName +  OLD_INVALID_XML_SUFFIX;
-  BOOST_CHECK_THROW( MotorDriverCardConfigXML::read(fileName), XMLException );
+  BOOST_CHECK_THROW( MotorDriverCardConfigXML::read(fileName), MotorDriverException );
 
   try{
     MotorDriverCardConfigXML::read(fileName);
   }
-  catch(XMLException &e){
+  catch(MotorDriverException &e){
     std::string expectedMessage("Found old, invalid Register name ");
     expectedMessage += registerName + ". Please update your config file!";
     BOOST_CHECK( expectedMessage.compare(e.what()) == 0);
