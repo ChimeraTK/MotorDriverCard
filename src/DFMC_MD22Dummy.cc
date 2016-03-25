@@ -1,7 +1,6 @@
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
-#include <mtca4u/NotImplementedException.h>
 #include "MotorDriverException.h"
 
 #include <boost/bind.hpp>

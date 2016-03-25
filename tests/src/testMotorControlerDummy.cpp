@@ -4,15 +4,15 @@
 using namespace boost::unit_test_framework;
 
 #include "MotorControlerDummy.h"
-#include "mtca4u/NotImplementedException.h"
+#include "MotorDriverException.h"
 using namespace mtca4u;
 
 // A macro to declare tests for an unimplemented get/set pair.
-// It is checked that the NotImplementedException is thrown
+// It is checked that the MotorDriverException is thrown
 #define DECLARE_GET_SET_THROW_TEST( NAME )\
   void testGetSet ## NAME (){\
-    BOOST_CHECK_THROW( _motorControlerDummy.get ## NAME (), NotImplementedException );\
-    BOOST_CHECK_THROW( _motorControlerDummy.set ## NAME (0), NotImplementedException );}
+    BOOST_CHECK_THROW( _motorControlerDummy.get ## NAME (), MotorDriverException );\
+    BOOST_CHECK_THROW( _motorControlerDummy.set ## NAME (0), MotorDriverException );}
 
 static const unsigned int THE_ID = 17;
 
@@ -185,13 +185,13 @@ void MotorControlerDummyTest::testGetSetActualVelocity(){
   _motorControlerDummy.moveTowardsTarget(1);
   BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );  
 
-  BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0), NotImplementedException);
+  BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0), MotorDriverException);
 }
 
 void MotorControlerDummyTest::testGetSetActualAcceleration(){
   BOOST_CHECK( _motorControlerDummy.getActualAcceleration() == 0 );
   BOOST_CHECK_THROW(_motorControlerDummy.setActualAcceleration(0),
-		    NotImplementedException);
+		    MotorDriverException);
 }
 
 void MotorControlerDummyTest::testGetSetMicroStepCount(){
@@ -201,7 +201,7 @@ void MotorControlerDummyTest::testGetSetMicroStepCount(){
   _motorControlerDummy.setActualPosition(5000);
   BOOST_CHECK( _motorControlerDummy.getMicroStepCount() == 5000 );
   BOOST_CHECK_THROW(_motorControlerDummy.setMicroStepCount(0),
-		    NotImplementedException);
+		    MotorDriverException);
 }
 
 
@@ -223,7 +223,7 @@ void MotorControlerDummyTest::testGetSetDecoderReadoutMode(){
   BOOST_CHECK(_motorControlerDummy.getDecoderReadoutMode() ==
 	      MotorControler::DecoderReadoutMode::HEIDENHAIN);
   BOOST_CHECK_THROW(_motorControlerDummy.setDecoderReadoutMode(MotorControler::DecoderReadoutMode::INCREMENTAL),
-		    NotImplementedException);
+		    MotorDriverException);
 }
 
 void MotorControlerDummyTest::testGetDecoderPosition(){

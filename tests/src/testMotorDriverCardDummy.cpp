@@ -1,8 +1,6 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include <mtca4u/NotImplementedException.h>
-
 #include "MotorDriverCardDummy.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverException.h"
@@ -50,7 +48,7 @@ void MotorDriverCardDummyTest::testGetMotorControler(){
 }
 
 void MotorDriverCardDummyTest::testGetPowerMonitor(){
-  BOOST_CHECK_THROW( _motorDriverCardDummy.getPowerMonitor(), NotImplementedException);
+  BOOST_CHECK_THROW( _motorDriverCardDummy.getPowerMonitor(), MotorDriverException);
 }
 
 } //namespace mtca4u
