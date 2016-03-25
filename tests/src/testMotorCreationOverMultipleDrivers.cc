@@ -3,8 +3,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include "testConfigConstants.h"
 #include "LinearStepperMotor.h"
-#include <mtca4u/DummyBackend.h>
-#include <mtca4u/BackendFactory.h>
+#include "MotorDriverCardFactory.h"
 
 using namespace boost::unit_test_framework;
 
@@ -25,7 +24,7 @@ class FunctionalTests
 class FunctionalTestSuite : public test_suite {
 public:
   FunctionalTestSuite() : test_suite("functional test suite") {
-    mtca4u::BackendFactory::getInstance().setDMapFilePath(dmapFile);
+    mtca4u::MotorDriverCardFactory::setDeviceaccessDMapFilePath(dmapFile);
     // create an instance of the test class
     boost::shared_ptr<FunctionalTests> functionalTests(new FunctionalTests);
     add(BOOST_CLASS_TEST_CASE(&FunctionalTests::testMotorObjCreation, functionalTests));

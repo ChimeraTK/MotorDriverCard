@@ -39,17 +39,39 @@ class MotorDriverCardFactory{
   static MotorDriverCardFactory & instance();
   bool getDummyMode();
   void setDummyMode(bool dummyMode=true);
-  /** Create a motor driver card from the device and map file name.
+  /** Create a motor driver card from the device alias, the module name in the map file
+   *  (there mighte be more than one MD22 on the carrier), and the file name for the motor config.
    */
-  /*boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
-     std::string deviceFileName, 
-     std::string mapFileName,
-     std::string mapModuleName,
-     std::string motorConfigFileName);*/
+  boost::shared_ptr<MotorDriverCard> createMotorDriverCard(std::string alias,
+                                                           std::string mapModuleName,
+                                                           std::string motorConfigFileName);
 
-boost::shared_ptr<MotorDriverCard> createMotorDriverCard(std::string alias,
-  						  std::string mapModuleName,
-  						  std::string motorConfigFileName);
+  /** Set the application wide dmap file to use.
+   *  \attention This static function is setting the dmap file for ALL devices of the deviceaccess library,
+   *  not only for the MotorDriverCard. The DMapFilePath is a global setting for the
+   *  whole application!
+   *
+   *  This function has been introduced to allow using the motor driver card
+   *  without having to include any header of the underlying deviceaccess library in case 
+   *  the application is not using it elsewhere. If your application has already set the DMap file path
+   *  you will not need this function.
+   *
+   *
+   *  This function is not thread safe.
+   *
+   *  @param dmapFileName The (absolute or relative) path to the DMap file, incl. the 
+   *  file name.
+   */
+  static void setDeviceaccessDMapFilePath(std::string dmapFileName);
+
+  /** Get the dmap file name that is currently set for mtca4u::deviceaccess.
+   *  This is a global setting for the whole application.
+   *
+   *  This function has been introduced to allow using the motor driver card
+   *  without having to include any header of the underlying deviceaccess library
+   *  in case the application is not using it elsewhere.
+   */
+  static std::string getDeviceaccessDMapFilePath();
 };
 }// namespace mtca4u
 
