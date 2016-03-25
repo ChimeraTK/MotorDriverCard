@@ -4,20 +4,17 @@ print_usage(){
     echo "usage: $0 [--cppflags] [--ldflags]" 1>&2
 }
 
+if [ $# -eq 0 ]; then
+    print_usage
+    exit 1
+fi
+
 while [ $# -gt 0 ]; do
     case "$1" in
       --cppflags)
-#the deviceaccess flags are set by cmake at configure time by
-#running exactly the same mtca4u-deviceaccess-config that
-#is used for the config. Like this the correct flags are 
-#permanetly stored with the MotorDriverCard config, even
-#if the path might point to a different mtca4u-deviceaccess-config
-#when this script is executed.
-	OUTPUT="${OUTPUT}@mtca4u-deviceaccess_CPPFLAGS@ "
         OUTPUT="${OUTPUT}-I@CMAKE_INSTALL_PREFIX@/include "
         shift;;
       --ldflags)
-	OUTPUT="${OUTPUT}@mtca4u-deviceaccess_LDFLAGS@ "
         OUTPUT="${OUTPUT}-L@CMAKE_INSTALL_PREFIX@/lib -l@PROJECT_NAME@ "
         OUTPUT="${OUTPUT}-Wl,-rpath=@CMAKE_INSTALL_PREFIX@/lib,--enable-new-dtags "
         shift;;
