@@ -1,7 +1,6 @@
 #include "MotorDriverCardDummy.h"
 
 #include <stdexcept>
-#include <mtca4u/NotImplementedException.h>
 
 #include "MotorControlerDummy.h"
 #include "MotorDriverException.h"
@@ -32,7 +31,7 @@ boost::shared_ptr<MotorControler> MotorDriverCardDummy::getMotorControler(unsign
 }
   
 PowerMonitor & MotorDriverCardDummy::getPowerMonitor(){
-  throw NotImplementedException( "getPowerMonitor() is not implemented inMotorDriverCardDummy" );	
+  throw MotorDriverException( "getPowerMonitor() is not implemented inMotorDriverCardDummy", MotorDriverException::NOT_IMPLEMENTED );	
 }
 
 

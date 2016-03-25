@@ -1,5 +1,5 @@
 #include "MotorControlerDummy.h"
-#include <mtca4u/NotImplementedException.h>
+#include "MotorDriverException.h"
 
 #include <iostream>
 
@@ -91,15 +91,15 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::setActualVelocity(int /*stepsPerFIXME*/) {
-        throw NotImplementedException("MotorControlerDummy::setActualVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setActualVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setActualAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
-        throw NotImplementedException("MotorControlerDummy::setActualAcceleration() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setActualAcceleration() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setMicroStepCount(unsigned int /*microStepCount*/) {
-        throw NotImplementedException("MotorControlerDummy::setMicroStepCount() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setMicroStepCount() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setEnabled(bool enable) {
@@ -107,7 +107,7 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::setDecoderReadoutMode(unsigned int /*decoderReadoutMode*/) {
-        throw NotImplementedException("MotorControlerDummy::setDecoderReadoutMode(): The Decoder readout mode cannot be changed for the dummy motor!");
+        throw MotorDriverException("MotorControlerDummy::setDecoderReadoutMode(): The Decoder readout mode cannot be changed for the dummy motor!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     bool MotorControlerDummy::isEnabled() {
@@ -147,51 +147,51 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::setMinimumVelocity(unsigned int /*stepsPerFIXME*/) {
-        throw NotImplementedException("MotorControlerDummy::setMinimumVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setMinimumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     unsigned int MotorControlerDummy::getMinimumVelocity() {
-        throw NotImplementedException("MotorControlerDummy::getMinimumVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::getMinimumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setMaximumVelocity(unsigned int /*stepsPerFIXME*/) {
-        throw NotImplementedException("MotorControlerDummy::setMaximumVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setMaximumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     unsigned int MotorControlerDummy::getMaximumVelocity() {
-        throw NotImplementedException("MotorControlerDummy::getMaximumVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::getMaximumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setTargetVelocity(int /*stepsPerFIXME*/) {
-        throw NotImplementedException("MotorControlerDummy::setTargetVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setTargetVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     int MotorControlerDummy::getTargetVelocity() {
-        throw NotImplementedException("MotorControlerDummy::getTargetVelocity() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::getTargetVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setMaximumAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
-        throw NotImplementedException("MotorControlerDummy::setMaximumAcceleration() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setMaximumAcceleration() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     unsigned int MotorControlerDummy::getMaximumAcceleration() {
-        throw NotImplementedException("MotorControlerDummy::getMaximumAcceleration() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::getMaximumAcceleration() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setPositionTolerance(unsigned int /*steps*/) {
-        throw NotImplementedException("MotorControlerDummy::setPositionTolerance() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setPositionTolerance() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     unsigned int MotorControlerDummy::getPositionTolerance() {
-        throw NotImplementedException("MotorControlerDummy::getPositionTolerance() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::getPositionTolerance() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     void MotorControlerDummy::setPositionLatched(unsigned int /*steps*/) {
-        throw NotImplementedException("MotorControlerDummy::setPositionLatched() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy::setPositionLatched() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     unsigned int MotorControlerDummy::getPositionLatched() {
-        throw NotImplementedException("MotorControlerDummy:getPositionLatched() is not implemented yet!");
+        throw MotorDriverException("MotorControlerDummy:getPositionLatched() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
     bool MotorControlerDummy::targetPositionReached() {

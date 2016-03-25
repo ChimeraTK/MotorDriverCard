@@ -3,7 +3,6 @@
 #include "MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
-#include <mtca4u/MapFileParser.h>
 #include <mtca4u/Device.h>
 
 #include <boost/thread/locks.hpp>

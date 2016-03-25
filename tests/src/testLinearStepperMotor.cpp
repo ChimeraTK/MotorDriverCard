@@ -15,10 +15,6 @@ using namespace boost::unit_test_framework;
 
 using namespace mtca4u;
 
-// A macro to declare tests for an unimplemented get/set pair.
-// It is checked that the NotImplementedException is thrown
-
-
 static const unsigned int THE_ID = 17;
 
 static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");

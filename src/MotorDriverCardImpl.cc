@@ -4,7 +4,6 @@
 #include <ctime>
 #include <cerrno>
 
-#include <mtca4u/NotImplementedException.h>
 #include "MotorDriverException.h" 
 #include "MotorDriverCardImpl.h"
 #include "MotorControlerImpl.h"
