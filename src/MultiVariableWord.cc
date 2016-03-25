@@ -1,5 +1,5 @@
 #include "MultiVariableWord.h"
-#include "OutOfRangeException.h"
+#include "MotorDriverException.h"
 
 #include <sstream>
 
@@ -38,7 +38,7 @@ void MultiVariableWord::setSubWord(unsigned int subWord,
     std::stringstream message;
     message << "Sub word is too large. Input mask is 0x" << std::hex << inputMask
 	    <<", sub word is 0x" << subWord << "="<< std::dec<< subWord ;
-    throw OutOfRangeException(message.str(), OutOfRangeException::TOO_LARGE);
+    throw MotorDriverException(message.str(), MotorDriverException::OUT_OF_RANGE);
   }
   _dataWord = (_dataWord & ~(inputMask << offset)) | ((subWord & inputMask) << offset);
 }
