@@ -153,11 +153,14 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/${P
 
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
+# Note: Most of them are empty, but have to be set. The library itself does not include
+# mtca4u-deviceaccess in the headers any more, so most of them are not needed at the 
+# moment.
 set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${mtca4u-deviceaccess_INCLUDE_DIRS})
 set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
-set(${PROJECT_NAME}_CONFIG_LIBRARIES ${mtca4u-deviceaccess_LIBRARIES})
-set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS ${mtca4u-deviceaccess_LIBRARY_DIRS})
-set(${PROJECT_NAME}_CONFIG_CXX_FLAGS ${mtca4u-deviceaccess_CXX_FLAGS})
+set(${PROJECT_NAME}_CONFIG_LIBRARIES " ")
+set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS " ")
+set(${PROJECT_NAME}_CONFIG_CXX_FLAGS " ")
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
