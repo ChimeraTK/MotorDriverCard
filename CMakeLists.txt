@@ -156,7 +156,7 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/${P
 # Note: Most of them are empty, but have to be set. The library itself does not include
 # mtca4u-deviceaccess in the headers any more, so most of them are not needed at the 
 # moment.
-set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS ${mtca4u-deviceaccess_INCLUDE_DIRS})
+set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS " ")
 set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
 set(${PROJECT_NAME}_CONFIG_LIBRARIES " ")
 set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS " ")
