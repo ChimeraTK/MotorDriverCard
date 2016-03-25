@@ -1,8 +1,5 @@
 #include "MotorDriverCardFactory.h"
 
-//#include <mtca4u/BaseDevice.h>
-//#include <mtca4u/PcieDevice.h>
-#include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
@@ -61,6 +58,14 @@ bool MotorDriverCardFactory::getDummyMode()
 void MotorDriverCardFactory::setDummyMode(bool dummyMode)
 {
 	_dummyMode = dummyMode;
+}
+
+void MotorDriverCardFactory::setDeviceaccessDMapFilePath(std::string dmapFileName){
+  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+}
+
+std::string MotorDriverCardFactory::getDeviceaccessDMapFilePath(){
+  return BackendFactory::getInstance().getDMapFilePath();
 }
 
 }// namespace mtca4u

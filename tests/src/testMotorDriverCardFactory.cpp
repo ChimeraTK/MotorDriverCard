@@ -25,6 +25,19 @@ BOOST_AUTO_TEST_CASE( testInstance ){
 	BOOST_CHECK( &instance1 == &instance2);
 }
 
+BOOST_AUTO_TEST_CASE( testGetSetDMapFilePath ){
+  // make sure there is something different set than the one we want to test
+  BackendFactory::getInstance().setDMapFilePath("some/initial/file");
+  // check that you can read it through the MotorDriverCardFactory interface
+  BOOST_CHECK( MotorDriverCardFactory::getDeviceaccessDMapFilePath() ==
+	       "some/initial/file" );
+
+  // set using the MotorDriverCardFactory's interface
+  MotorDriverCardFactory::setDeviceaccessDMapFilePath("my/dmapfile");
+  // check that it arrived corrctly in the BackendFactory
+  BOOST_CHECK(BackendFactory::getInstance().getDMapFilePath() == "my/dmapfile");
+}
+
 BOOST_AUTO_TEST_CASE( testCreate ){
 	// test the creation with PcieDevice, mapping file and device file not being the same
 
