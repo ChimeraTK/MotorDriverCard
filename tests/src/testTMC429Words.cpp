@@ -4,7 +4,7 @@ using namespace boost::unit_test_framework;
 
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC429Words.h"
-#include "OutOfRangeException.h"
+#include "MotorDriverException.h"
 using namespace mtca4u;
 using namespace mtca4u::tmc429;
 
@@ -328,12 +328,12 @@ BOOST_AUTO_TEST_CASE( testTMC429StatusWord ){
   BOOST_CHECK( TMC429StatusWord(0x1).getTargetPositionReached(0) );
   BOOST_CHECK( TMC429StatusWord(0x4).getTargetPositionReached(1) );
   BOOST_CHECK( TMC429StatusWord(0x10).getTargetPositionReached(2) );
-  BOOST_CHECK_THROW( TMC429StatusWord().getTargetPositionReached(3) , OutOfRangeException );
+  BOOST_CHECK_THROW( TMC429StatusWord().getTargetPositionReached(3) , MotorDriverException );
 
   BOOST_CHECK( TMC429StatusWord(0x2).getReferenceSwitchBit(0)==0x1 );
   BOOST_CHECK( TMC429StatusWord(0x8).getReferenceSwitchBit(1)==0x1 );
   BOOST_CHECK( TMC429StatusWord(0x20).getReferenceSwitchBit(2)==0x1 );
-  BOOST_CHECK_THROW( TMC429StatusWord().getReferenceSwitchBit(3) , OutOfRangeException );
+  BOOST_CHECK_THROW( TMC429StatusWord().getReferenceSwitchBit(3) , MotorDriverException );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
