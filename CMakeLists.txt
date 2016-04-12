@@ -43,8 +43,10 @@ FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
 include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${mtca4u-deviceaccess_CXX_FLAGS}")
 
+FIND_PACKAGE(PkgConfig REQUIRED)
 SET(pugixml_MIN_VERSION 1.4)
-FIND_PACKAGE(pugixml ${pugixml_MIN_VERSION} REQUIRED)
+#FIND_PACKAGE(pugixml ${pugixml_MIN_VERSION} REQUIRED)
+PKG_CHECK_MODULES(pugixml REQUIRED ${pugixml_VERSION})
 include_directories(SYSTEM ${pugixml_INCLUDE_DIRS})
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
