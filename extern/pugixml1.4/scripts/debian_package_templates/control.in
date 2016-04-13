@@ -1,0 +1,77 @@
+Source: pugixml
+Section: libs
+Priority: optional
+Build-Depends: debhelper (>= 9~),
+ devscripts,
+ cmake,
+Maintainer: Martin Killenberg <martin.killenberg@desy.de>
+Standards-Version: 3.9.5
+Homepage: http://pugixml.org/
+
+Package: libpugixml@pugixml_DEBVERSION@
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+ ${misc:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+#extra fields to get rid of the badly named desy package
+Breaks: pugixml1-3desy-1
+Replaces: pugixml1-3desy-1
+Conflicts: pugixml1-3desy-1
+#end of extra fields
+Description: Light-weight C++ XML processing library
+ pugixml is a lightweight C++ XML processing library with XPath
+ support. It features:
+  * DOM like interface with rich traversal/modification capabilities
+  * Extermely fast non-validating XML parser which constructs the DOM
+    tree from an XML file/buffer.
+  * XPath 1.0 implementation for complex data-driven tree queries
+  * Full Unicode support with Unicode interface variants and automatic
+    encoding conversions.
+ .
+ This library is extremely portable and easy to integrate and use.
+ .
+ Since pugixml has a DOM parser, it can't process XML documents that do
+ not fit in memory; also the parser is a non-validating one, so if you
+ need DTD or XML Schema validation, the library is not for you.
+
+Package: libpugixml-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libpugixml@pugixml_DEBVERSION@ (= ${binary:Version}),
+ ${misc:Depends}
+#extra fields to get rid of the badly named desy package
+Breaks: dev-pugixml
+Replaces: dev-pugixml
+Conflicts: dev-pugixml
+#end of extra fields
+Description: Light-weight C++ XML processing library (development)
+ pugixml is a lightweight C++ XML processing library with XPath
+ support. It features:
+  * DOM like interface with rich traversal/modification capabilities
+  * Extermely fast non-validating XML parser which constructs the DOM
+    tree from an XML file/buffer.
+  * XPath 1.0 implementation for complex data-driven tree queries
+  * Full Unicode support with Unicode interface variants and automatic
+    encoding conversions.
+ .
+ This package provides required development header files which allows
+ integrating pugixml with your application.
+
+Package: pugixml-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: Light-weight C++ XML processing library (documentation)
+ pugixml is a lightweight C++ XML processing library with XPath
+ support. It features:
+  * DOM like interface with rich traversal/modification capabilities
+  * Extermely fast non-validating XML parser which constructs the DOM
+    tree from an XML file/buffer.
+  * XPath 1.0 implementation for complex data-driven tree queries
+  * Full Unicode support with Unicode interface variants and automatic
+    encoding conversions.
+ .
+ This package contains API documentation.

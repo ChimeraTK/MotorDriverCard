@@ -1,0 +1,4 @@
+docs/manual/ usr/share/doc/pugixml-doc
+docs/*.html usr/share/doc/pugixml-doc
+docs/*.css usr/share/doc/pugixml-doc
+docs/images/ usr/share/doc/pugixml-doc
