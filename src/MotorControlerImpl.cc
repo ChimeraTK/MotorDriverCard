@@ -86,7 +86,7 @@ namespace mtca4u
     setDriverControlData( motorControlerConfig.driverControlData );
     setInterruptData( motorControlerConfig.interruptData );
     setMaximumAcceleration( motorControlerConfig.maximumAcceleration );
-    setMaximumVelocity( motorControlerConfig.maximumVelocity );
+    setMaximumVelocity(motorControlerConfig.maximumVelocity);
     setMicroStepCount( motorControlerConfig.microStepCount );
     setMinimumVelocity( motorControlerConfig.minimumVelocity );
     setPositionTolerance( motorControlerConfig.positionTolerance );
@@ -204,15 +204,6 @@ namespace mtca4u
     typedWord.setDATA( readbackWord.getDATA() );
     return typedWord;
   }
-
-  int MotorControlerImpl::getMicroStepsPerFullStep() {
-    //return (_controlerConfig.motorParameters.microstepsPerFullStep);
-  }
-
-  int MotorControlerImpl::getFullStepsPerTurn() {
-    //return (_controlerConfig.motorParameters.fullStepsPerTurn);
-  }
-
 
   double MotorControlerImpl::getMaxSpeedCapability() {
     auto hardLimitForVmax = _controlerConfig.maximumVelocity;

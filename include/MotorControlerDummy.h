@@ -94,10 +94,6 @@ namespace mtca4u{
     virtual double getUserSetCurrentLimit(){};
     virtual double getMaxCurrentLimit(){};
 
-    virtual int getMicroStepsPerFullStep();
-    virtual int getFullStepsPerTurn();
-
-
     static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
     static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
