@@ -95,7 +95,7 @@ namespace mtca4u
      * @brief Sets the maximum current the driver should limit the motor to
      *
      */
-    virtual double setCurrentLimit(double currentLimit);
+    virtual double setUserCurrentLimit(double currentLimit);
 
     virtual double getUserSetCurrentLimit();
 
