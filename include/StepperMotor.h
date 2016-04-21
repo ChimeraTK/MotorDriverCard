@@ -225,15 +225,22 @@ namespace mtca4u {
         /**
          * Set the new speed of the motor - NOT IMPLEMETNED YET 
          */
-        void setMotorSpeed(float newSpeed);
-        
+        double setSpeedLimit(double newSpeedInUstepsPerSec);
+
         /**
          * @brief Get current speed of motor - NOT IMPLEMETNED YET 
          * 
          * @details 
          * TO BE ADDED
          */
-        float getMotorSpeed();
+        double getUserSetSpeedLimit();
+
+        double getMaxSpeedCapability();
+
+        double setCurrentLimit(double currentInAmps);
+        double getUserSetCurrentLimit();
+
+        double getSafeCurrentLimit();
 
         /**
          * @brief Sets of Autostart flag
