@@ -63,9 +63,6 @@ namespace mtca4u
     virtual double getUserSetCurrentLimit()=0;
     virtual double getMaxCurrentLimit()=0;
 
-    virtual int getMicroStepsPerFullStep()=0;
-    virtual int getFullStepsPerTurn()=0;
-
     virtual void setActualAcceleration(unsigned int stepsPerSquareFIXME)=0;
     virtual void setMicroStepCount(unsigned int microStepCount)=0;
     virtual void setEnabled(bool enable=true)=0; ///< Enable or disable the motor driver chip

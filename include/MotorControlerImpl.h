@@ -92,19 +92,6 @@ namespace mtca4u
     virtual double getMaxSpeedCapability();
 
     /*
-     * @brief Returns the microstep per fullstep value the controller has been
-     * configured to operate at.
-     */
-    virtual int getMicroStepsPerFullStep();
-
-    /*
-     * @brief Returns the number of fullsteps that constitute a rotation for the
-     * motor run by this controller.
-     */
-    virtual int getFullStepsPerTurn();
-
-
-    /*
      * @brief Sets the maximum current the driver should limit the motor to
      *
      */
