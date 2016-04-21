@@ -222,24 +222,46 @@ namespace mtca4u {
          * */
         StepperMotorStatusAndError getStatusAndError();
 
-        /**
-         * Set the new speed of the motor - NOT IMPLEMETNED YET 
+        /*
+         * @brief Sets the maximum speed the motor may operate at. The
+         * method may not set the exact desired speed limit, but a value closest to
+         * the desired limit, as determined by the operating parameters.
+         *
+         * @param microStepsPerSecond The desired maximum motor speed during
+         *                            operation; unit is microsteps per
+         *                            second
+         *
+         * @return Returns the motor speed that was actually set. This speed may not
+         * be what the user requested, but a value closest to it as permitted by the
+         * motor controller parameters
          */
-        double setSpeedLimit(double newSpeedInUstepsPerSec);
+        double setUserSpeedLimit(double newSpeedInUstepsPerSec);
 
-        /**
-         * @brief Get current speed of motor - NOT IMPLEMETNED YET 
-         * 
-         * @details 
-         * TO BE ADDED
+        /*
+         * @brief returns the current motor speed limit configured by the user
+         *
          */
         double getUserSetSpeedLimit();
 
+        /*
+         * @brief Returns the maximum speed the motor is capable of achieving. Speed
+         * is expressed in microsteps per second
+         */
         double getMaxSpeedCapability();
 
-        double setCurrentLimit(double currentInAmps);
+        /*
+         *
+         */
+        double setUserCurrentLimit(double currentInAmps);
+
+        /*
+         *
+         */
         double getUserSetCurrentLimit();
 
+        /*
+         *
+         */
         double getSafeCurrentLimit();
 
         /**

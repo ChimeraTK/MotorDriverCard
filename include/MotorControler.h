@@ -59,7 +59,7 @@ namespace mtca4u
     virtual double getUserSpeedLimit()=0;
     virtual double getMaxSpeedCapability()=0;
 
-    virtual double setCurrentLimit(double currentLimit)=0;
+    virtual double setUserCurrentLimit(double currentLimit)=0;
     virtual double getUserSetCurrentLimit()=0;
     virtual double getMaxCurrentLimit()=0;
 

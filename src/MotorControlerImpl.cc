@@ -327,7 +327,7 @@ namespace mtca4u
     return conversionFactor;
   }
 
-  double MotorControlerImpl::setCurrentLimit(double currentLimit) {
+  double MotorControlerImpl::setUserCurrentLimit(double currentLimit) {
     auto currentScale = limitCurrentScale(convertAmpsToCurrentScale(currentLimit));
     setCurrentScale(currentScale);
     return convertCurrentScaletoAmps(currentScale);
