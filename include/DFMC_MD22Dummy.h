@@ -8,7 +8,11 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace mtca4u{
-  
+
+// forward declarations
+class TMC429InputWord;
+class TMC429OutputWord;
+
   /** Dummy for the DFMC_MD22 Motor driver card.
    *
    * Implemented features:
@@ -31,7 +35,32 @@ namespace mtca4u{
    */
   class DFMC_MD22Dummy : public mtca4u::DummyBackend{
   public:
-    DFMC_MD22Dummy(std::string const & mapFileName, std::string const & moduleName);
+    enum class TMC260Register{
+      DRVCTRL = 0,
+      CHOPCONF = 4,
+      SMARTEN,
+      SGCSCONF,
+      DRVCONF
+    };
+
+
+    /*
+     * @brief The class creates an addressspace in RAM for all the registers in
+     * tmc429ControllerModuleName of the input mapFile. The behavior of these
+     * registers when accessed mimic the actual firmware used on the DFMC_MD22
+     * board
+     *
+     * @param mapfileName                : Name of the mapfile for the DFMC_MD22
+     *                                     motor driver card.
+     * @param tmc429ControllerModuleName : Name of a motor controller module in
+     *                                     the above mapfile. A motor controller
+     *                                     module has a set of global registers
+     *                                     and two sets of registers specific
+     *                                     for each motor controlled by this
+     *                                     TMC429 IC
+     *
+     */
+    DFMC_MD22Dummy(std::string const & mapFileName, std::string const & tmc429ControllerModuleName);
     void open();
     
     /** Writes the test pattern to all registers.
@@ -86,8 +115,31 @@ namespace mtca4u{
      */
     void setDriverSpiDelay(unsigned int microseconds);
 
+    /*
+     * @brief read the configurable TMC429 registers.
+     *
+     * @param SPIDatagram: SPI datagram framed per TMC429 datasheet to read the
+     * desired register. This method expects the SPIDatagram to have the RW bit
+     * set to read(1)
+     *
+     * @returns The SPI response datagram per the TMC429 datasheet.
+     */
+    uint32_t readTMC429Register(uint32_t SPIDatagram);
+
+    /*
+     * @brief read out register contents of the TMC260 driver IC for a
+     * motor
+     *
+     * @returns: Returns the content of the desired register as a uint32_t
+     * that can be provided as an input to the corresponding derived version of
+     * mtca4u::TMC260Word
+     */
+    uint32_t readTMC260Register(uint32_t motorID, TMC260Register configuredRegister);
+
+
     static boost::shared_ptr<mtca4u::DeviceBackend> createInstance(std::string host, std::string interface,
         std::list<std::string> parameters, std::string mapFileName);
+
 
   private:
     // callback functions
@@ -130,6 +182,14 @@ namespace mtca4u{
 
     void driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData);
 
+    /*
+     * combine register address and the corresponding payload to a form that can
+     * be input to a mtca4u::TMC260DataWord
+     */
+    //uint32_t frameTMC260DataWord(uint32_t registerAddress, uint32_t payload);
+
+    uint32_t getDatalengthFromMask(uint32_t mask);
+
     /// Helper struct to simulate the spi for one driver
     struct DriverSPI{
       /// each driver has it's own address space vector<uint>
@@ -148,6 +208,10 @@ namespace mtca4u{
     unsigned int _microsecondsDriverSpiDelay;
     
     std::string _moduleName;
+
+
+    bool checkStatusOfRWBit(const TMC429InputWord& inputSPMessage, uint32_t bitStatus);
+    TMC429OutputWord frameTMC429SPIResponse(TMC429InputWord &inputSpi);
   };
   class DFMC_MD22DummyRegisterer{
   public:

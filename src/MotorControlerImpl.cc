@@ -6,8 +6,8 @@ using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
 
 #include "MotorDriverCardImpl.h"
-
 #include <mtca4u/Device.h>
+#include <cmath>
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
@@ -53,7 +53,9 @@ namespace mtca4u
                   std::string const & moduleName,
                   boost::shared_ptr< TMC429SPI > const & controlerSPI,
 		  MotorControlerConfig const & motorControlerConfig ) 
-    : _device(device), _id(ID),
+    : _device(device), _id(ID), _controlerConfig(motorControlerConfig),
+      _currentVmax(motorControlerConfig.maximumVelocity),
+      _usrSetCurrentScale(_controlerConfig.stallGuardControlData.getCurrentScale()),
       _controlerStatus(device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
       _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
       _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
@@ -72,6 +74,8 @@ namespace mtca4u
       _controlerSPI(controlerSPI),
       converter24bits(24), converter12bits(12)
   {
+    _conversionFactor = calculateConversionFactor();
+
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     setActualPosition( motorControlerConfig.actualPosition );
     setChopperControlData( motorControlerConfig.chopperControlData );
@@ -180,11 +184,17 @@ namespace mtca4u
 
   DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
   DEFINE_GET_SET_VALUE( MinimumVelocity, IDX_MINIMUM_VELOCITY )
-  DEFINE_GET_SET_VALUE( MaximumVelocity, IDX_MAXIMUM_VELOCITY )
   DEFINE_SIGNED_GET_SET_VALUE( TargetVelocity, IDX_TARGET_VELOCITY , converter12bits )
   DEFINE_GET_SET_VALUE( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION )
   DEFINE_GET_SET_VALUE( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE )
   DEFINE_GET_SET_VALUE( PositionLatched, IDX_POSITION_LATCHED )
+
+  unsigned int MotorControlerImpl::getMaximumVelocity (){
+      return _controlerSPI->read( _id, IDX_MAXIMUM_VELOCITY ).getDATA();}
+
+    void MotorControlerImpl::setMaximumVelocity (unsigned int value){
+      _currentVmax = value;
+      _controlerSPI->write( _id, IDX_MAXIMUM_VELOCITY, value );}
 
   template<class T>
   T  MotorControlerImpl::readTypedRegister(){
@@ -195,7 +205,34 @@ namespace mtca4u
     return typedWord;
   }
 
-  void MotorControlerImpl::writeTypedControlerRegister(TMC429InputWord inputWord){
+  int MotorControlerImpl::getMicroStepsPerFullStep() {
+    //return (_controlerConfig.motorParameters.microstepsPerFullStep);
+  }
+
+  int MotorControlerImpl::getFullStepsPerTurn() {
+    //return (_controlerConfig.motorParameters.fullStepsPerTurn);
+  }
+
+
+  double MotorControlerImpl::getMaxSpeedCapability() {
+    auto hardLimitForVmax = _controlerConfig.maximumVelocity;
+    return (convertVMaxToUstepsPerSec(hardLimitForVmax));
+  }
+
+  double MotorControlerImpl::setUserSpeedLimit(double microStepsPerSecond) {
+    auto validatedVmax = validateVMaxForHardware(convertUstepsPerSecToVmax(microStepsPerSecond));
+    setMaximumVelocity(validatedVmax);
+    return convertVMaxToUstepsPerSec(validatedVmax);
+  }
+
+  double MotorControlerImpl::getUserSpeedLimit() {
+    // FIXME: Do you read in from the card / use _currentVMax? is parallel
+    // access possible/supported
+    return convertVMaxToUstepsPerSec(_currentVmax);
+  }
+
+  void MotorControlerImpl::writeTypedControlerRegister(
+      TMC429InputWord inputWord) {
     // set/overwrite the id with this motors id
     inputWord.setSMDA( _id );
     _controlerSPI->write( inputWord );
@@ -278,4 +315,83 @@ namespace mtca4u
     return controlerStatusWord.getReferenceSwitchBit(_id);
   }
 
-}// namespace mtca4u
+  double MotorControlerImpl::convertVMaxToUstepsPerSec(double vMax) {
+    // speedInUstepsPerSec = _conversionFactor * Vmax
+    return (_conversionFactor * vMax);
+  }
+
+  double MotorControlerImpl::convertUstepsPerSecToVmax(double speedInUstepsPerSec) {
+    // Vmax = round(speedInUstepsPerSec / _conversionFactor)
+    return speedInUstepsPerSec/_conversionFactor;
+  }
+
+  double MotorControlerImpl::calculateConversionFactor() {
+    // conversionFactor = fclk[Hz] / (2^pulse_div * 2048 *32)
+    double systemClockInMhz = MD_22_DEFAULT_CLOCK_FREQ_MHZ;
+
+    auto systemClkInHz = systemClockInMhz * 1000000;
+    auto pulse_div = static_cast<double>(_controlerConfig.dividersAndMicroStepResolutionData.getPulseDivider());
+
+    auto conversionFactor = systemClkInHz/(exp2(pulse_div) * 2048 * 32);
+    return conversionFactor;
+  }
+
+  double MotorControlerImpl::setCurrentLimit(double currentLimit) {
+    auto currentScale = limitCurrentScale(convertAmpsToCurrentScale(currentLimit));
+    setCurrentScale(currentScale);
+    return convertCurrentScaletoAmps(currentScale);
+  }
+
+  double MotorControlerImpl::getUserSetCurrentLimit() {
+    return convertCurrentScaletoAmps(_usrSetCurrentScale);
+  }
+
+  double MotorControlerImpl::getMaxCurrentLimit() {
+    auto configuredCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
+    return convertCurrentScaletoAmps(configuredCurrentScale);
+  }
+
+  unsigned int MotorControlerImpl::validateVMaxForHardware(
+      double calculatedVmax) {
+    unsigned int maxLimitForVmax = _controlerConfig.maximumVelocity;
+    unsigned int minLimitForVmax = _controlerConfig.minimumVelocity;
+
+    if (calculatedVmax > maxLimitForVmax) { return maxLimitForVmax; }
+    if (calculatedVmax < minLimitForVmax) { return minLimitForVmax; }
+    return static_cast<unsigned int>(
+        std::floor(calculatedVmax)); // floor the VMax value so we stick below
+                                     // the requested speed limit.
+  }
+
+  double MotorControlerImpl::convertCurrentScaletoAmps(
+      unsigned int currentScale) {
+    auto currentInAmps = (static_cast<double>(currentScale + 1) /
+                          iMaxTMC260C_CURRENT_SCALE_VALUES) *
+                         iMaxTMC260C_IN_AMPS;
+    return currentInAmps;
+  }
+
+  double MotorControlerImpl::convertAmpsToCurrentScale(
+      double currentInAmps) {
+    auto currentScale = (currentInAmps / iMaxTMC260C_IN_AMPS *
+                         iMaxTMC260C_CURRENT_SCALE_VALUES) - 1;
+    return currentScale;
+  }
+
+  unsigned int MotorControlerImpl::limitCurrentScale(
+      double calculatedCurrentScale) {
+    auto hardLimitForCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
+    if(calculatedCurrentScale < iMaxTMC260C_MIN_CURRENT_SCALE_VALUE){return iMaxTMC260C_MIN_CURRENT_SCALE_VALUE;}
+    if(calculatedCurrentScale > hardLimitForCurrentScale){return hardLimitForCurrentScale;}
+    return (static_cast<unsigned int>(std::floor(calculatedCurrentScale))); //floor so that we dont exceed the set limt
+  }
+
+  void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
+    auto stallGuardData = _controlerConfig.stallGuardControlData;
+    stallGuardData.setCurrentScale(currentScale);
+
+    setStallGuardControlData(stallGuardData);
+    _usrSetCurrentScale = currentScale;
+  }
+
+  } // namespace mtca4u

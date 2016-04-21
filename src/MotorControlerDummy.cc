@@ -210,6 +210,26 @@ namespace mtca4u {
         return _positiveEndSwitchEnabled && (_absolutePosition >= _positiveEndSwitchPosition);
     }
 
+    int MotorControlerDummy::getMicroStepsPerFullStep() {
+      throw MotorDriverException("MotorControlerDummy::getMicroStepsPerFullStep() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+
+    int MotorControlerDummy::getFullStepsPerTurn() {
+      throw MotorDriverException("MotorControlerDummy::getFullStepsPerTurn() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+
+    double MotorControlerDummy::getMaxSpeedCapability() {
+      throw MotorDriverException("MotorControlerDummy::getMaxSpeedCapability() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+
+    double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {
+      throw MotorDriverException("MotorControlerDummy::setUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+
+    double MotorControlerDummy::getUserSpeedLimit() {
+      throw MotorDriverException("MotorControlerDummy::getUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+
     bool MotorControlerDummy::isNegativeEndSwitchActive() {
         if (_bothEndSwitchesAlwaysOn)
             return true;

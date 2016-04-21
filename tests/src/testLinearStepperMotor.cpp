@@ -15,7 +15,7 @@ using namespace boost::unit_test_framework;
 
 using namespace mtca4u;
 
-static const unsigned int THE_ID = 17;
+//static const unsigned int THE_ID = 17;
 
 static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");

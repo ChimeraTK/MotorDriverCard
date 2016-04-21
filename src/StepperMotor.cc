@@ -233,12 +233,8 @@ namespace mtca4u {
         _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
     }
 
-    void StepperMotor::setMotorSpeed(float /*newSpeed*/) {
-      throw MotorDriverException("Setting and reading the motor speed is currently not supported yet!", MotorDriverException::NOT_IMPLEMENTED);
-    }
-
-    float StepperMotor::getMotorSpeed() {
-      throw MotorDriverException("Setting and reading the motor speed is currently not supported yet!", MotorDriverException::NOT_IMPLEMENTED);
+    double StepperMotor::setSpeedLimit(double newSpeed) {
+      return _motorControler->setUserSpeedLimit(newSpeed);
     }
 
     void StepperMotor::setMaxPositionLimit(float maxPos) {
@@ -288,6 +284,27 @@ namespace mtca4u {
     Logger::LogLevel StepperMotor::getLogLevel() {
         return _logger.getLogLevel();
     }
+
+    double StepperMotor::getMaxSpeedCapability() {
+      return _motorControler->getMaxSpeedCapability();
+    }
+
+    double StepperMotor::setCurrentLimit(double currentInAmps) {
+      _motorControler->setCurrentLimit(currentInAmps);
+    }
+
+    double StepperMotor::getUserSetCurrentLimit() {
+      _motorControler->getUserSetCurrentLimit();
+    }
+
+    double StepperMotor::getSafeCurrentLimit() {
+      _motorControler->getMaxCurrentLimit();
+    }
+
+    double StepperMotor::getUserSetSpeedLimit() {
+      _motorControler->getUserSpeedLimit();
+    }
+
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // END OF GETTERS AND SETTERS
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  

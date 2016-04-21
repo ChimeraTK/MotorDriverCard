@@ -85,7 +85,17 @@ namespace mtca4u{
      */
     void moveTowardsTarget(float fraction, bool blockMotor = false, bool bothEndSwitchesAlwaysOn = false, bool zeroPositions = false);
 
-    // FIXME : Which errors can occur?
+
+    virtual double setUserSpeedLimit(double microStepsPerSecond);
+    virtual double getUserSpeedLimit();
+    virtual double getMaxSpeedCapability();
+
+    virtual double setCurrentLimit(double currentLimit){};
+    virtual double getUserSetCurrentLimit(){};
+    virtual double getMaxCurrentLimit(){};
+
+    virtual int getMicroStepsPerFullStep();
+    virtual int getFullStepsPerTurn();
 
 
     static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test

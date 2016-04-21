@@ -8,18 +8,23 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
+#include "TMC429Constants.h"
+#include "DFMC_MD22Dummy.h"
 #include <mtca4u/DMapFilesParser.h>
+#include <mtca4u/Utilities.h>
 
 #include <boost/thread.hpp>
 
 using namespace mtca4u;
 
-static const unsigned int THE_ID = 17;
+//static const unsigned int THE_ID = 17;
 
 static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string dmapPath(".");
 static const std::string moduleName("");
+static TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md22);
+static StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md2);
 
 class TestUnitConveter : public StepperMotorUnitsConverter {
 public:
@@ -56,6 +61,8 @@ class StepperMotorTest
   void thread(int i);
   
   void testUnitConverter();
+  void testSetSpeedLimit();
+  void testSetCurrent();
  
  private:
   boost::shared_ptr<StepperMotor> _stepperMotor;
@@ -107,6 +114,12 @@ public:
         
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testUnitConverter,
                 stepperMotorTest)); 
+
+        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetSpeedLimit,
+                stepperMotorTest));
+
+        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetCurrent,
+                stepperMotorTest));
       }
 };
 
@@ -418,8 +431,8 @@ void StepperMotorTest::testSetPositionAs() {
 }
 
 void StepperMotorTest::testSetGetSpeed() {
-    BOOST_CHECK_THROW(_stepperMotor->setMotorSpeed(100), mtca4u::MotorDriverException);
-    BOOST_CHECK_THROW(_stepperMotor->getMotorSpeed(), mtca4u::MotorDriverException);
+    BOOST_CHECK_THROW(_stepperMotor->setSpeedLimit(100), mtca4u::MotorDriverException);
+    BOOST_CHECK_THROW(_stepperMotor->getUserSetSpeedLimit(), mtca4u::MotorDriverException);
 }
 
 void StepperMotorTest::testMoveToPosition() {
@@ -587,7 +600,124 @@ void StepperMotorTest::testUnitConverter() {
     BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -105);
 }
 
-    
+void StepperMotorTest::testSetSpeedLimit() {
+  // setup
+  auto dmapFile = mtca4u::getDMapFilePath();
+  mtca4u::setDMapFilePath("./dummies.dmap");
+  auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
+  MotorDriverCardFactory::instance().setDummyMode(false);
+  StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
+
+
+  // Actual test
+  // Expected max speed  capability in this case:[from custom_speed_and_curruent_limits.xml]
+  //   Vmax = 1398 (0x576)
+  //   fclk = 32000000
+  //   pulse_div = 6
+  // expectedMaxSpeedCapability = Vmax * fclk/((2^pulse_div) * 2048 * 32)
+  //
+  auto expectedMaxSpeedLimit =
+      (static_cast<double>(1398) * static_cast<double>(32000000)) /
+      ((exp2(6) * 2048 * 32));
+
+
+  // expected Minimum speed: Vmin * fclk/((2^pulse_div) * 2048 * 32)
+  auto expectedMinimumSpeed =
+      (static_cast<double>(1) * static_cast<double>(32000000)) / // VMin = 1
+      ((exp2(6) * 2048 * 32));
+
+  BOOST_CHECK(motor.getMaxSpeedCapability() == expectedMaxSpeedLimit);
+  // set speed > MaxAllowedSpeed
+  BOOST_CHECK(motor.setSpeedLimit(expectedMaxSpeedLimit) == expectedMaxSpeedLimit);
+  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMaxSpeedLimit);
+  BOOST_CHECK(motor.setSpeedLimit(expectedMaxSpeedLimit + 10) == expectedMaxSpeedLimit);
+  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMaxSpeedLimit);
+
+  // set speed < MinAllowedSpeed
+  BOOST_CHECK(motor.setSpeedLimit(expectedMinimumSpeed) == expectedMinimumSpeed);
+  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMinimumSpeed);
+  BOOST_CHECK(motor.setSpeedLimit(expectedMinimumSpeed - 10) == expectedMinimumSpeed);
+  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMinimumSpeed);
+  BOOST_CHECK(motor.setSpeedLimit(-100) == expectedMinimumSpeed);
+  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMinimumSpeed);
+
+  // set speed in valid range [Vmin, Vmax]
+  // speed = 8000 microsteps per second -> results in Vmax = 1048.576
+  // Vmax 1048.576  floors to 1048 => which gives returned/actual set speed as
+  // 7995.6054... microsteps per second
+  auto expectedSetSpeed =
+      (static_cast<double>(1048) * static_cast<double>(32000000)) /
+      ((exp2(6) * 2048 * 32));
+  BOOST_CHECK(motor.setSpeedLimit(8000) == expectedSetSpeed);
+  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedSetSpeed);
+
+  // Verify that Vmax is 1049 in the internal register
+  auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
+      BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
+  BOOST_ASSERT(md22_instance != NULL);
+  TMC429OutputWord vMaxRegister = readDFMCDummyMotor0VMaxRegister(md22_instance);
+ BOOST_CHECK(vMaxRegister.getDATA() == 1048);
+
+  //teardown
+    MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
+    mtca4u::setDMapFilePath(dmapFile);
+}
+
+void StepperMotorTest::testSetCurrent() {
+  auto dmapFile = mtca4u::getDMapFilePath();
+  mtca4u::setDMapFilePath("./dummies.dmap");
+  auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
+  MotorDriverCardFactory::instance().setDummyMode(false);
+  StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
+
+  // The motor has been configured for a maximum current of .24 Amps, with 1.8A
+  // being the maximum the driver ic can provide. This translates to a current
+  // scale according to the formula:
+  // (.24 * 32)/1.8 - 1 == 3.266
+  // the 32 in the above formula comes from the 32 current scale levels for the
+  // tmc260.
+  // The tmc260 current scale register takes a whole number. So floor(3.266)
+  // goes into the current scale register. Because of this we get an effective
+  // current limit of:
+  // 1.8 * (3 + 1)/32 == .225 A
+
+  auto expectedSafeCurrentLimitValue = 1.8 * (4.0)/32.0;
+  auto safeCurrentLimit = motor.getSafeCurrentLimit();
+  BOOST_CHECK(safeCurrentLimit == expectedSafeCurrentLimitValue);
+
+  // set Current to Beyond the safe limit
+  BOOST_CHECK(motor.setCurrentLimit(safeCurrentLimit + 10) == safeCurrentLimit);
+  BOOST_CHECK(motor.getUserSetCurrentLimit() == safeCurrentLimit);
+  BOOST_CHECK(motor.setCurrentLimit(safeCurrentLimit) == safeCurrentLimit);
+  BOOST_CHECK(motor.getUserSetCurrentLimit() == safeCurrentLimit);
+
+  // set a current below minimum value.
+  // Minimum value of current (when current scale is 0):
+  // 1.8 * (0 + 1)/32 == .05625A
+  auto minimumCurrent = 1.8 * 1.0/32.0;
+  BOOST_CHECK(motor.setCurrentLimit(0) == minimumCurrent);
+  BOOST_CHECK(motor.getUserSetCurrentLimit() == minimumCurrent);
+  BOOST_CHECK(motor.setCurrentLimit(-10) == minimumCurrent);
+  BOOST_CHECK(motor.getUserSetCurrentLimit() == minimumCurrent);
+
+  // Current in a valid range: 0 - .24A
+  // I = .2A
+  // CS = (.20 * 32)/1.8 - 1 = floor(2.556) = 2
+  // For CS 0: Expected current = (1.8 * (2 + 1))/32 = .16875A
+  auto expectedCurrent = (1.8 * (2 + 1))/32.0;
+  BOOST_CHECK(motor.setCurrentLimit(.2) == expectedCurrent);
+  BOOST_CHECK(motor.getUserSetCurrentLimit() == expectedCurrent);
+  // Verify that CS is 2 in the internal register ()
+  auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
+      BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
+  BOOST_ASSERT(md22_instance != NULL);
+  StallGuardControlData stallGuard = readDFMCDummyMotor0CurrentScale(md22_instance);
+  BOOST_CHECK(stallGuard.getCurrentScale() == 2);
+
+  //teardown
+    MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
+    mtca4u::setDMapFilePath(dmapFile);
+}
 
 
 /*
@@ -599,20 +729,22 @@ void MotorControlerDummyTest::testIsSetEnabled(){
   // motor should be disabled now
   BOOST_CHECK(  _motorControlerDummy.isEnabled() == false );
   // just a small test that the motor does not move
-  // move to somewhere way beyond the end swith. The current position should go there.
+  // move to somewhere way beyond the end swith. The current position should go
+there.
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 10000 );
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 0 );
-  
+
   _motorControlerDummy.setTargetPosition(2000000);
   // motor must not be moving
-  BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 ); 
+  BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );
   _motorControlerDummy.moveTowardsTarget(1);
   // real position has not changed, target positon reached
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 10000 );
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == 2000000 );
 
-  // reset the positons and enable the motor. All other tests are done with motor
+  // reset the positons and enable the motor. All other tests are done with
+motor
   // activated.
   _motorControlerDummy.setTargetPosition(0);
   _motorControlerDummy.setActualPosition(0);
@@ -622,7 +754,7 @@ void MotorControlerDummyTest::testIsSetEnabled(){
   _motorControlerDummy.setEnabled(false);
   BOOST_CHECK(  _motorControlerDummy.isEnabled() == false );
   _motorControlerDummy.setEnabled();
-  
+
 }
 
 void MotorControlerDummyTest::testGetSetTargetPosition(){
@@ -633,7 +765,7 @@ void MotorControlerDummyTest::testGetSetTargetPosition(){
   BOOST_CHECK( _motorControlerDummy.targetPositionReached() == false );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 1234);
   // set it back to 0 to simplify further tests
-  _motorControlerDummy.setTargetPosition(0);  
+  _motorControlerDummy.setTargetPosition(0);
   BOOST_CHECK( _motorControlerDummy.targetPositionReached() );
 }
 
@@ -645,7 +777,8 @@ void MotorControlerDummyTest::testGetSetActualPosition(){
 }
 
 void MotorControlerDummyTest::testGetSetActualVelocity(){
-  // we strongly depent on the order of the execution here. actual position is 1000,
+  // we strongly depent on the order of the execution here. actual position is
+1000,
   // while the target position is 0, to we expect a negative velocity
   BOOST_CHECK( _motorControlerDummy.getActualVelocity() == -25 );
 
@@ -654,11 +787,12 @@ void MotorControlerDummyTest::testGetSetActualVelocity(){
 
   _motorControlerDummy.setActualPosition(-1000);
   BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 25 );
- 
+
   // whitebox test: as the decision in getActualVelocity() directly depends on
   // the private isMoving, this is the ideal case to test it.
 
-  // move to the positive end switch. Although the target positon is not reached the
+  // move to the positive end switch. Although the target positon is not reached
+the
   // motor must not move any more
   _motorControlerDummy.setActualPosition(0);
   _motorControlerDummy.setTargetPosition(200000);
@@ -669,25 +803,26 @@ void MotorControlerDummyTest::testGetSetActualVelocity(){
   _motorControlerDummy.setTargetPosition(-200000);
   BOOST_CHECK( _motorControlerDummy.getActualVelocity() == -25 );
   _motorControlerDummy.moveTowardsTarget(1);
-  BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );  
+  BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );
 
-  BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0), MotorDriverException);
+  BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0),
+MotorDriverException);
 }
 
 void MotorControlerDummyTest::testGetSetActualAcceleration(){
   BOOST_CHECK( _motorControlerDummy.getActualAcceleration() == 0 );
   BOOST_CHECK_THROW(_motorControlerDummy.setActualAcceleration(0),
-		    MotorDriverException);
+                    MotorDriverException);
 }
 
 void MotorControlerDummyTest::testGetSetMicroStepCount(){
   // Set the actual position to something positive. The micro step count is
   // positive and identical to the actual count.
-  // Does this make sense? Check the data sheet. 
+  // Does this make sense? Check the data sheet.
   _motorControlerDummy.setActualPosition(5000);
   BOOST_CHECK( _motorControlerDummy.getMicroStepCount() == 5000 );
   BOOST_CHECK_THROW(_motorControlerDummy.setMicroStepCount(0),
-		    MotorDriverException);
+                    MotorDriverException);
 }
 
 
@@ -697,9 +832,9 @@ void MotorControlerDummyTest::testGetStatus(){
 
 void MotorControlerDummyTest::testGetSetDecoderReadoutMode(){
   BOOST_CHECK(_motorControlerDummy.getDecoderReadoutMode() ==
-	      MotorControler::DecoderReadoutMode::HEIDENHAIN);
+              MotorControler::DecoderReadoutMode::HEIDENHAIN);
   BOOST_CHECK_THROW(_motorControlerDummy.setDecoderReadoutMode(MotorControler::DecoderReadoutMode::INCREMENTAL),
-		    MotorDriverException);
+                    MotorDriverException);
 }
 
 void MotorControlerDummyTest::testGetDecoderPosition(){
@@ -708,8 +843,8 @@ void MotorControlerDummyTest::testGetDecoderPosition(){
   // actual position is 5000, move into the absolute positive range
   _motorControlerDummy.setTargetPosition(17000); // 12000 steps
   _motorControlerDummy.moveTowardsTarget(1);
-  
-  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 12000 );  
+
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 12000 );
 }
 
 void MotorControlerDummyTest::testReferenceSwitchData(){
@@ -722,8 +857,9 @@ void MotorControlerDummyTest::testReferenceSwitchData(){
   BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 0 );
 
   // move to the positive end switch and recheck
-  _motorControlerDummy.setTargetPosition( _motorControlerDummy.getActualPosition() 
-					  + 2000000);
+  _motorControlerDummy.setTargetPosition(
+_motorControlerDummy.getActualPosition()
+                                          + 2000000);
   _motorControlerDummy.moveTowardsTarget(1);
   motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
   BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled());
@@ -732,7 +868,8 @@ void MotorControlerDummyTest::testReferenceSwitchData(){
   BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() == false);
   BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 1 );
 
-  // deactivate the positive end switch. Although it is still active in hardware,
+  // deactivate the positive end switch. Although it is still active in
+hardware,
   // this should not be reported
   _motorControlerDummy.setPositiveReferenceSwitchEnabled(false);
   motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
@@ -744,8 +881,9 @@ void MotorControlerDummyTest::testReferenceSwitchData(){
 
   // reenable the switch and to the same for the negative switch
   _motorControlerDummy.setPositiveReferenceSwitchEnabled(true);
-  _motorControlerDummy.setTargetPosition( _motorControlerDummy.getActualPosition() 
-					  - 2000000);
+  _motorControlerDummy.setTargetPosition(
+_motorControlerDummy.getActualPosition()
+                                          - 2000000);
   _motorControlerDummy.moveTowardsTarget(1);
   motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
   BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled());
@@ -754,7 +892,8 @@ void MotorControlerDummyTest::testReferenceSwitchData(){
   BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchActive() );
   BOOST_CHECK(_motorControlerDummy.getReferenceSwitchBit() == 1 );
 
-  // deactivate the positive end switch. Although it is still active in hardware,
+  // deactivate the positive end switch. Although it is still active in
+hardware,
   // this should not be reported
   _motorControlerDummy.setNegativeReferenceSwitchEnabled(false);
   motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
@@ -769,11 +908,12 @@ void MotorControlerDummyTest::testReferenceSwitchData(){
 }
 
 void MotorControlerDummyTest::testMoveTowardsTarget(){
-  // ok, we are at the negative end switch. reset target and actual position to 0
+  // ok, we are at the negative end switch. reset target and actual position to
+0
   // for a clean test environment.
   _motorControlerDummy.setActualPosition(0);
   _motorControlerDummy.setTargetPosition(0);
- 
+
   // move to a target position in the range in multiple steps
   _motorControlerDummy.setTargetPosition(4000);
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
@@ -804,13 +944,15 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
 
   // ok, let's recalibrate and do the stuff backwards
   _motorControlerDummy.setActualPosition(0);
-  _motorControlerDummy.setTargetPosition(-400); // we intentionally do not move all the 
+  _motorControlerDummy.setTargetPosition(-400); // we intentionally do not move
+all the
   // way back to the end switch
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == 0 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4000 );
-  
-  // this moves backwards because the target position is smaller than the actual one
+
+  // this moves backwards because the target position is smaller than the actual
+one
   _motorControlerDummy.moveTowardsTarget(0.25);
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == -100 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
@@ -832,10 +974,10 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == -400 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -400 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 3600 );
-  
+
   // now check that the end switches are handled correctly
   // move to the middle and recalibrate for easier readability
-  
+
   _motorControlerDummy.setTargetPosition(6000);
   _motorControlerDummy.moveTowardsTarget(1);
   _motorControlerDummy.setActualPosition(0);
@@ -857,7 +999,8 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 11000 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 20000 );
   BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );
-  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchData().getPositiveSwitchActive() );
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchData().getPositiveSwitchActive()
+);
 
   // Move back, deactivate the end switch and try again
   // (Don't try this at home. It will break your hardware!)
@@ -866,14 +1009,14 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == 5500 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 5500 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 15500 );
-  
+
   _motorControlerDummy.setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy.setTargetPosition(11000);
   _motorControlerDummy.moveTowardsTarget(1);
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == 11000 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == 11000 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 21000 );
-  
+
   // now the same for the negative end switch
   // set a target position outside the end switches and see what happes
   _motorControlerDummy.setTargetPosition(-11000);
@@ -888,7 +1031,8 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -11000 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 0 );
   BOOST_CHECK( _motorControlerDummy.getActualVelocity() == 0 );
-  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchData().getNegativeSwitchActive() );
+  BOOST_CHECK(_motorControlerDummy.getReferenceSwitchData().getNegativeSwitchActive()
+);
 
   // Move back, deactivate the end switch and try again
   // (Don't try this at home. It will break your hardware!)
@@ -897,23 +1041,31 @@ void MotorControlerDummyTest::testMoveTowardsTarget(){
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == -5500 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -5500 );
   BOOST_CHECK( _motorControlerDummy.getDecoderPosition() == 4500 );
-  
+
   _motorControlerDummy.setNegativeReferenceSwitchEnabled(false);
   _motorControlerDummy.setTargetPosition(-11000);
   _motorControlerDummy.moveTowardsTarget(1);
   BOOST_CHECK( _motorControlerDummy.getActualPosition() == -11000 );
   BOOST_CHECK( _motorControlerDummy.getTargetPosition() == -11000 );
-  // the decoder delivers a huge value because it is unsigned. We broke the hardware
+  // the decoder delivers a huge value because it is unsigned. We broke the
+hardware
   // anyway ;-) Negative positons are not possible.
-  BOOST_CHECK( _motorControlerDummy.getDecoderPosition() 
-	       == static_cast<unsigned int>(-1000) );
+  BOOST_CHECK( _motorControlerDummy.getDecoderPosition()
+               == static_cast<unsigned int>(-1000) );
 }
 */
 
 
+TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md22){
+  TMC429InputWord readVmaxRegister;
+  readVmaxRegister.setSMDA(0);
+  readVmaxRegister.setIDX_JDX(tmc429::IDX_MAXIMUM_VELOCITY);
+  readVmaxRegister.setRW(tmc429::RW_READ);
+  return TMC429OutputWord(
+      dfmc_md22->readTMC429Register(readVmaxRegister.getDataWord()));
+}
 
 
-
-
-
-
+StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md2){
+  return StallGuardControlData(dfmc_md2->readTMC260Register(0, DFMC_MD22Dummy::TMC260Register::SGCSCONF));
+}
