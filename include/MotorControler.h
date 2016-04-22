@@ -55,7 +55,14 @@ namespace mtca4u
     virtual unsigned int getDecoderReadoutMode()=0; ///< Get the decoder readout mode
     virtual unsigned int getDecoderPosition()=0; ///< Get the decoder position (which units?)
     
-    virtual void setActualVelocity(int stepsPerFIXME)=0; //FIXME = read only?
+    virtual double setUserSpeedLimit(double stepsPerFIXME)=0;
+    virtual double getUserSpeedLimit()=0;
+    virtual double getMaxSpeedCapability()=0;
+
+    virtual double setUserCurrentLimit(double currentLimit)=0;
+    virtual double getUserCurrentLimit()=0;
+    virtual double getMaxCurrentLimit()=0;
+
     virtual void setActualAcceleration(unsigned int stepsPerSquareFIXME)=0;
     virtual void setMicroStepCount(unsigned int microStepCount)=0;
     virtual void setEnabled(bool enable=true)=0; ///< Enable or disable the motor driver chip
