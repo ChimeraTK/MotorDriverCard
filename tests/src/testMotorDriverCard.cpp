@@ -217,7 +217,6 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
      BOOST_CHECK( motorControlerConfig.interruptData.getDATA()
 		  == motorControler->getInterruptData().getDATA() );
      BOOST_CHECK( motorControlerConfig.maximumAcceleration == motorControler->getMaximumAcceleration() );
-     std::cout << motorControler->getMaximumVelocity() << std::endl;
      BOOST_CHECK( motorControlerConfig.maximumVelocity == motorControler->getMaximumVelocity() );
      BOOST_CHECK( motorControlerConfig.microStepCount == motorControler->getMicroStepCount() );
      BOOST_CHECK( motorControlerConfig.minimumVelocity == motorControler->getMinimumVelocity() );

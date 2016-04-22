@@ -172,7 +172,7 @@ namespace mtca4u{
 		   << "Current firmware is 0x" << std::hex << firmwareVersion
 		   << ", minumum required version is 0x" << MINIMAL_FIRMWARE_VERSION 
 		   << ", maximum allowed version is 0x" << maxFirmwareVersion << std::dec << ".";
-      std::cerr << errorMessage << std::endl;
+      std::cerr << errorMessage.str() << std::endl;
       throw MotorDriverException( errorMessage.str(), MotorDriverException::WRONG_FIRMWARE_VERSION );
     }
 

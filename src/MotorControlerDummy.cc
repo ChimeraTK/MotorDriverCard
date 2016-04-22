@@ -222,6 +222,17 @@ namespace mtca4u {
       throw MotorDriverException("MotorControlerDummy::getUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
+    double MotorControlerDummy::setUserCurrentLimit(double currentLimit){
+      throw MotorDriverException("MotorControlerDummy::setUserCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    double MotorControlerDummy::getUserCurrentLimit(){
+      throw MotorDriverException("MotorControlerDummy::getUserCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    double MotorControlerDummy::getMaxCurrentLimit(){
+      throw MotorDriverException("MotorControlerDummy::getMaxCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    }
+
+
     bool MotorControlerDummy::isNegativeEndSwitchActive() {
         if (_bothEndSwitchesAlwaysOn)
             return true;

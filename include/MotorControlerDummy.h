@@ -90,9 +90,9 @@ namespace mtca4u{
     virtual double getUserSpeedLimit();
     virtual double getMaxSpeedCapability();
 
-    virtual double setCurrentLimit(double currentLimit){};
-    virtual double getUserSetCurrentLimit(){};
-    virtual double getMaxCurrentLimit(){};
+    virtual double setUserCurrentLimit(double currentLimit);
+    virtual double getUserCurrentLimit();
+    virtual double getMaxCurrentLimit();
 
     static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
     static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test

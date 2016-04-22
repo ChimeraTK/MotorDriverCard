@@ -222,9 +222,9 @@ namespace mtca4u {
          * */
         StepperMotorStatusAndError getStatusAndError();
 
-        /*
+        /**
          * @brief Sets the maximum speed the motor may operate at. The
-         * method may not set the exact desired speed limit, but a value closest to
+         * method may not set the exact desired speed limit, but a value below
          * the desired limit, as determined by the operating parameters.
          *
          * @param microStepsPerSecond The desired maximum motor speed during
@@ -232,35 +232,46 @@ namespace mtca4u {
          *                            second
          *
          * @return Returns the motor speed that was actually set. This speed may not
-         * be what the user requested, but a value closest to it as permitted by the
-         * motor controller parameters
+         * be what the user requested, but a value closest to it (but not
+         * exceeding the provided limit) as permitted by the motor controller
+         * parameters
          */
         double setUserSpeedLimit(double newSpeedInUstepsPerSec);
 
-        /*
+        /**
          * @brief returns the current motor speed limit configured by the user
          *
          */
-        double getUserSetSpeedLimit();
+        double getUserSpeedLimit();
 
-        /*
+        /**
          * @brief Returns the maximum speed the motor is capable of achieving. Speed
          * is expressed in microsteps per second
          */
         double getMaxSpeedCapability();
 
-        /*
+        /**
+         * @brief Sets the current the motor driver ic provies to the motor.
+         * Command may not set the exact value of current requested. In this
+         * case the driver would use a current that will not exceed requested
+         * value
          *
+         * @param currentInAmps Desired driving current in Amps.
+         *
+         * @return Current used to drive the motor. This will be in the range
+         *         [05625A, 1.8A] and will be closest to the user requested
+         *         value (but not exceed it).
          */
         double setUserCurrentLimit(double currentInAmps);
 
-        /*
-         *
+        /**
+         * @brief Returns the current used to drive the motor
          */
-        double getUserSetCurrentLimit();
+        double getUserCurrentLimit();
 
-        /*
-         *
+        /**
+         * @brief Returns the maximum value of current that this motor can be
+         * driven saftely
          */
         double getSafeCurrentLimit();
 

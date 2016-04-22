@@ -280,14 +280,6 @@ namespace mtca4u{
     return (registerDataPayload);
   }
 
-/*
-  uint32_t DFMC_MD22Dummy::frameTMC260DataWord(uint32_t registerAddress,
-                                         uint32_t payload) {
-    auto dataBits = getDatalengthFromMask(tmc260::dataMaskFromSpiAddress(registerAddress));
-    return ((registerAddress << dataBits) | payload);
-  }
-*/
-
   uint32_t DFMC_MD22Dummy::getDatalengthFromMask(uint32_t mask) {
     int dataLength = 0;
     while((mask >>= 1) != 0){

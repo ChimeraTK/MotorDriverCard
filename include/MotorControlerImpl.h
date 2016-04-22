@@ -97,7 +97,7 @@ namespace mtca4u
      */
     virtual double setUserCurrentLimit(double currentLimit);
 
-    virtual double getUserSetCurrentLimit();
+    virtual double getUserCurrentLimit();
 
     virtual double getMaxCurrentLimit();
 

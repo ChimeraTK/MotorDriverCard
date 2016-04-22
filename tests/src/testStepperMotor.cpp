@@ -61,8 +61,8 @@ class StepperMotorTest
   void thread(int i);
   
   void testUnitConverter();
-  void testSetSpeedLimit();
-  void testSetCurrent();
+  void testGetSetSpeedLimit();
+  void testSetGetCurrent();
  
  private:
   boost::shared_ptr<StepperMotor> _stepperMotor;
@@ -105,9 +105,9 @@ public:
 
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetPositionAs,
                 stepperMotorTest));     
-        
+
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetGetSpeed,
-                stepperMotorTest));  
+                stepperMotorTest));
 
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testMoveToPosition,
                 stepperMotorTest));
@@ -115,10 +115,10 @@ public:
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testUnitConverter,
                 stepperMotorTest)); 
 
-        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetSpeedLimit,
+        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testGetSetSpeedLimit,
                 stepperMotorTest));
 
-        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetCurrent,
+        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSetGetCurrent,
                 stepperMotorTest));
       }
 };
@@ -432,7 +432,7 @@ void StepperMotorTest::testSetPositionAs() {
 
 void StepperMotorTest::testSetGetSpeed() {
     BOOST_CHECK_THROW(_stepperMotor->setUserSpeedLimit(100), mtca4u::MotorDriverException);
-    BOOST_CHECK_THROW(_stepperMotor->getUserSetSpeedLimit(), mtca4u::MotorDriverException);
+    BOOST_CHECK_THROW(_stepperMotor->getUserSpeedLimit(), mtca4u::MotorDriverException);
 }
 
 void StepperMotorTest::testMoveToPosition() {
@@ -600,7 +600,7 @@ void StepperMotorTest::testUnitConverter() {
     BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -105);
 }
 
-void StepperMotorTest::testSetSpeedLimit() {
+void StepperMotorTest::testGetSetSpeedLimit() {
   // setup
   auto dmapFile = mtca4u::getDMapFilePath();
   mtca4u::setDMapFilePath("./dummies.dmap");
@@ -613,46 +613,44 @@ void StepperMotorTest::testSetSpeedLimit() {
   //   Vmax = 1398 (0x576)
   //   fclk = 32000000
   //   pulse_div = 6
-  // expectedMaxSpeedCapability = Vmax * fclk/((2^pulse_div) * 2048 * 32)
+  // expectedMaxSpeedLimitInUstepsPerSecond = Vmax * fclk/((2^pulse_div) * 2048 * 32)
   //
-  auto expectedMaxSpeedLimit =
-      (static_cast<double>(1398) * static_cast<double>(32000000)) /
-      ((exp2(6) * 2048 * 32));
+  auto expectedMaxSpeedLimit = (1398.0 * 32000000.0) / (exp2(6) * 2048 * 32);
 
+  // expectedMinimumSpeedLimitInUstepsPerSec = Vmin * fclk/((2^pulse_div) * 2048 * 32)
+  auto expectedMinimumSpeed = (1.0 * 32000000.0) / // VMin = 1 (1.0)
+                              (exp2(6) * 2048 * 32);
 
-  // expected Minimum speed: Vmin * fclk/((2^pulse_div) * 2048 * 32)
-  auto expectedMinimumSpeed =
-      (static_cast<double>(1) * static_cast<double>(32000000)) / // VMin = 1
-      ((exp2(6) * 2048 * 32));
-
+  //verify getMaxSpeedCapability
   BOOST_CHECK(motor.getMaxSpeedCapability() == expectedMaxSpeedLimit);
+
   // set speed > MaxAllowedSpeed
   BOOST_CHECK(motor.setUserSpeedLimit(expectedMaxSpeedLimit) == expectedMaxSpeedLimit);
-  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMaxSpeedLimit);
+  BOOST_CHECK(motor.getUserSpeedLimit() == expectedMaxSpeedLimit);
   BOOST_CHECK(motor.setUserSpeedLimit(expectedMaxSpeedLimit + 10) == expectedMaxSpeedLimit);
-  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMaxSpeedLimit);
+  BOOST_CHECK(motor.getUserSpeedLimit() == expectedMaxSpeedLimit);
 
   // set speed < MinAllowedSpeed
   BOOST_CHECK(motor.setUserSpeedLimit(expectedMinimumSpeed) == expectedMinimumSpeed);
-  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMinimumSpeed);
+  BOOST_CHECK(motor.getUserSpeedLimit() == expectedMinimumSpeed);
   BOOST_CHECK(motor.setUserSpeedLimit(expectedMinimumSpeed - 10) == expectedMinimumSpeed);
-  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMinimumSpeed);
+  BOOST_CHECK(motor.getUserSpeedLimit() == expectedMinimumSpeed);
   BOOST_CHECK(motor.setUserSpeedLimit(-100) == expectedMinimumSpeed);
-  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedMinimumSpeed);
+  BOOST_CHECK(motor.getUserSpeedLimit() == expectedMinimumSpeed);
 
   // set speed in valid range [Vmin, Vmax]
   // speed = 8000 microsteps per second -> results in Vmax = 1048.576
   // Vmax 1048.576  floors to 1048 => which gives returned/actual set speed as
   // 7995.6054... microsteps per second
-  auto expectedSetSpeed =
-      (static_cast<double>(1048) * static_cast<double>(32000000)) /
-      ((exp2(6) * 2048 * 32));
+  auto expectedSetSpeed = (1048.0 * 32000000.0) / (exp2(6) * 2048 * 32);
   BOOST_CHECK(motor.setUserSpeedLimit(8000) == expectedSetSpeed);
-  BOOST_CHECK(motor.getUserSetSpeedLimit() == expectedSetSpeed);
+  BOOST_CHECK(motor.getUserSpeedLimit() == expectedSetSpeed);
 
-  // Verify that Vmax is 1049 in the internal register
+  // Verify that Vmax is 1048 in the internal register (which is the
+  // VMax corresponding to expectedSetSpeed)
   auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
-      BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
+      BackendFactory::getInstance().createBackend(
+          "DFMC_MD22_PERSISTENT_BACKEND"));
   BOOST_ASSERT(md22_instance != NULL);
   TMC429OutputWord vMaxRegister = readDFMCDummyMotor0VMaxRegister(md22_instance);
  BOOST_CHECK(vMaxRegister.getDATA() == 1048);
@@ -662,7 +660,7 @@ void StepperMotorTest::testSetSpeedLimit() {
     mtca4u::setDMapFilePath(dmapFile);
 }
 
-void StepperMotorTest::testSetCurrent() {
+void StepperMotorTest::testSetGetCurrent() {
   auto dmapFile = mtca4u::getDMapFilePath();
   mtca4u::setDMapFilePath("./dummies.dmap");
   auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
@@ -686,26 +684,26 @@ void StepperMotorTest::testSetCurrent() {
 
   // set Current to Beyond the safe limit
   BOOST_CHECK(motor.setUserCurrentLimit(safeCurrentLimit + 10) == safeCurrentLimit);
-  BOOST_CHECK(motor.getUserSetCurrentLimit() == safeCurrentLimit);
+  BOOST_CHECK(motor.getUserCurrentLimit() == safeCurrentLimit);
   BOOST_CHECK(motor.setUserCurrentLimit(safeCurrentLimit) == safeCurrentLimit);
-  BOOST_CHECK(motor.getUserSetCurrentLimit() == safeCurrentLimit);
+  BOOST_CHECK(motor.getUserCurrentLimit() == safeCurrentLimit);
 
   // set a current below minimum value.
   // Minimum value of current (when current scale is 0):
   // 1.8 * (0 + 1)/32 == .05625A
   auto minimumCurrent = 1.8 * 1.0/32.0;
   BOOST_CHECK(motor.setUserCurrentLimit(0) == minimumCurrent);
-  BOOST_CHECK(motor.getUserSetCurrentLimit() == minimumCurrent);
+  BOOST_CHECK(motor.getUserCurrentLimit() == minimumCurrent);
   BOOST_CHECK(motor.setUserCurrentLimit(-10) == minimumCurrent);
-  BOOST_CHECK(motor.getUserSetCurrentLimit() == minimumCurrent);
+  BOOST_CHECK(motor.getUserCurrentLimit() == minimumCurrent);
 
   // Current in a valid range: 0 - .24A
   // I = .2A
   // CS = (.20 * 32)/1.8 - 1 = floor(2.556) = 2
-  // For CS 0: Expected current = (1.8 * (2 + 1))/32 = .16875A
+  // For CS 2: Expected current = (1.8 * (2 + 1))/32 = .16875A
   auto expectedCurrent = (1.8 * (2 + 1))/32.0;
   BOOST_CHECK(motor.setUserCurrentLimit(.2) == expectedCurrent);
-  BOOST_CHECK(motor.getUserSetCurrentLimit() == expectedCurrent);
+  BOOST_CHECK(motor.getUserCurrentLimit() == expectedCurrent);
   // Verify that CS is 2 in the internal register ()
   auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
       BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
@@ -1066,5 +1064,7 @@ TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<DFMC_MD22Dumm
 
 
 StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md2){
-  return StallGuardControlData(dfmc_md2->readTMC260Register(0, DFMC_MD22Dummy::TMC260Register::SGCSCONF));
+  auto motorId = 0;
+  return StallGuardControlData(dfmc_md2->readTMC260Register(
+      motorId, DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
 }
