@@ -49,8 +49,7 @@ MotorDriverCardConfig  MotorDriverCardConfigXML::read(std::string fileName){
   setValueIfFound( "positionCompareInterruptData",  cardConfig.positionCompareInterruptData, cardConfigXML );
   setValueIfFound( "positionCompareWord", cardConfig.positionCompareWord, cardConfigXML );
   setValueIfFound( "stepperMotorGlobalParameters",  cardConfig.stepperMotorGlobalParameters, cardConfigXML );
-  setValueIfFound( "controlerSpiWaitingTime", cardConfig.controlerSpiWaitingTime, cardConfigXML,
-		   "Parameter");
+  setValueIfFound( "controlerSpiWaitingTime", cardConfig.controlerSpiWaitingTime, cardConfigXML, "Parameter");
 
   for(size_t i = 0; i < cardConfig.motorControlerConfigurations.size(); ++i){
     std::stringstream motorIDAsString;

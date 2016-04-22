@@ -42,11 +42,10 @@ namespace mtca4u
      *  object stays valid even if the original shared pointer goes out of scope.
      *  The config is only used in the constuctor, no reference is kept in the class.
      */
-    MotorControlerImpl( unsigned int ID,
-			boost::shared_ptr< Device > const & device,
-                        std::string const & moduleName,
-			boost::shared_ptr< TMC429SPI > const & controlerSPI,
-			MotorControlerConfig const & motorControlerConfig );
+    MotorControlerImpl(unsigned int ID, boost::shared_ptr<Device> const& device,
+                       std::string const& moduleName,
+                       boost::shared_ptr<TMC429SPI> const& controlerSPI,
+                       MotorControlerConfig const& motorControlerConfig);
 
     unsigned int getID();
     int getActualPosition();
@@ -64,6 +63,44 @@ namespace mtca4u
     void setMicroStepCount(unsigned int microStepCount);
     void setEnabled(bool enable=true);
     void setDecoderReadoutMode(unsigned int decoderReadoutMode);
+
+    /*
+     * @brief Sets the desired upper limit for motor speed in ramp mode. The
+     * method may not set the exact desired speed limit, but a value closest to
+     * the desired limit, as determined by the operating parameters.
+     *
+     * @param microStepsPerSecond The desired maximum motor speed during
+     *                            operation; unit is microsteps per
+     *                            second
+     *
+     * @return Returns the motor speed that was actually set. This speed may not
+     * be what the user requested, but a value closest to it as permitted by the
+     * motor controller parameters
+     */
+    virtual double setUserSpeedLimit(double microStepsPerSecond);
+
+    /*
+     * @brief Returns the current upper limit for motor speed. Returned speed is
+     * in microsteps per second
+     */
+    virtual double getUserSpeedLimit();
+
+    /*
+     * @brief Returns the maximum speed the motor is capable of achieving. Speed
+     * is expressed in microsteps per second
+     */
+    virtual double getMaxSpeedCapability();
+
+    /*
+     * @brief Sets the maximum current the driver should limit the motor to
+     *
+     */
+    virtual double setUserCurrentLimit(double currentLimit);
+
+    virtual double getUserCurrentLimit();
+
+    virtual double getMaxCurrentLimit();
+
 
     bool isEnabled();
     
@@ -111,6 +148,20 @@ namespace mtca4u
      boost::shared_ptr< Device > _device;
 
      unsigned int _id;
+     const MotorControlerConfig _controlerConfig;
+
+     /*
+      * @brief:
+      *       _conversionFactor = fclk[Hz] / (2^pulse_div * 2048 *32)
+      *       speedInUstepsPerSec = _conversionFactor * Vmax
+      */
+     double _conversionFactor;
+     unsigned int _currentVmax;
+     unsigned int _usrSetCurrentScale;
+
+     constexpr static double iMaxTMC260C_IN_AMPS = 1.8;
+     constexpr static int iMaxTMC260C_CURRENT_SCALE_VALUES = 32;
+     constexpr static unsigned int iMaxTMC260C_MIN_CURRENT_SCALE_VALUE = 0;
 
      //FIXME: These variables have to be stored uniquely inter process
      DriverControlData _driverControlData;
@@ -135,6 +186,8 @@ namespace mtca4u
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
 
+     static const unsigned int MD_22_DEFAULT_CLOCK_FREQ_MHZ = 32;
+
      /// Simplify the syntax to read from a RegisterAccessor which need call by reference.
      /// Remove this function once the RegisterAccessor interface has been fixed.
      unsigned int readRegObject( 
@@ -150,6 +203,16 @@ namespace mtca4u
 
      SignedIntConverter converter24bits;
      SignedIntConverter converter12bits;
+
+     double convertVMaxToUstepsPerSec(double vMax);
+     double convertUstepsPerSecToVmax(double speedInUstepsPerSec);
+     double calculateConversionFactor();
+     unsigned int validateVMaxForHardware(double calculatedVmax);
+
+     double convertCurrentScaletoAmps(unsigned int currentScale);
+     double convertAmpsToCurrentScale(double currentInAmps);
+     unsigned int limitCurrentScale(double calculatedCurrentScale);
+     void setCurrentScale(unsigned int currentScale);
   };
 
 }// namespace mtca4u

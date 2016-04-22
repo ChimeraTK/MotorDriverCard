@@ -25,13 +25,13 @@ using namespace mtca4u::tmc429;
 
 namespace mtca4u{
 
-  DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & mapFileName, std::string const & moduleName)
+  DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & mapFileName, std::string const & tmc429ControllerModuleName)
   : DummyBackend(mapFileName),
     _powerIsUp(true), _causeSpiTimeouts(false),
     _causeSpiErrors(false),
     _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
     _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
-    _moduleName(moduleName)
+    _moduleName(tmc429ControllerModuleName)
   {
 
 
@@ -256,7 +256,46 @@ namespace mtca4u{
     _barContents[bar].at( syncIndex ) = SPI_SYNC_OK;    
   }
 
-  void DFMC_MD22Dummy::driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData){
+  uint32_t DFMC_MD22Dummy::readTMC429Register(uint32_t SPIDatagram) {
+    TMC429InputWord inputSPIMessage(SPIDatagram);
+    if (checkStatusOfRWBit(inputSPIMessage, tmc429::RW_WRITE)) {
+      throw std::runtime_error("The provided SPI datagram  is asking to write "
+                               "content to a register; this operation is not "
+                               "permitted for this method");
+    }
+
+    auto spiResponse = frameTMC429SPIResponse(inputSPIMessage);
+    return spiResponse.getDataWord();
+  }
+
+  bool DFMC_MD22Dummy::checkStatusOfRWBit(const TMC429InputWord& inputSPMessage ,
+      uint32_t desiredBitStatus) {
+    return (inputSPMessage.getRW() == desiredBitStatus);
+  }
+
+  uint32_t DFMC_MD22Dummy::readTMC260Register(
+      uint32_t motorID, TMC260Register configuredRegister) {
+    auto registerAddress = static_cast<unsigned int>(configuredRegister);
+    auto registerDataPayload = _driverSPIs[motorID].addressSpace.at(registerAddress);
+    return (registerDataPayload);
+  }
+
+  uint32_t DFMC_MD22Dummy::getDatalengthFromMask(uint32_t mask) {
+    int dataLength = 0;
+    while((mask >>= 1) != 0){
+      dataLength++;
+    }
+    return dataLength;
+  }
+
+  TMC429OutputWord DFMC_MD22Dummy::frameTMC429SPIResponse(
+      TMC429InputWord& inputSpi) {
+   return TMC429OutputWord(_controlerSpiAddressSpace.at(inputSpi.getADDRESS()));
+  }
+
+  void DFMC_MD22Dummy::driverSpiActions(unsigned int ID,
+                                        unsigned int spiAddress,
+                                        unsigned int payloadData) {
     switch( spiAddress ){
       case tmc260::ADDRESS_STALL_GUARD_CONFIG:
         // according to the data sheet the cool step value (read response) is between 1/4 or 1/2
@@ -365,24 +404,35 @@ namespace mtca4u{
     _causeSpiErrors = causeErrors;
   }
 
-  boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(std::string /*host*/, std::string /*interface*/,
-      std::list<std::string> parameters, std::string mapFileName) {
-#ifdef _DEBUG
+  boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(
+      std::string /*host*/, std::string instance,
+      std::list<std::string> parameters, std::string ) {
+
+  #ifdef _DEBUG
     std::cout<<"DFMC_MD22Dummy createInstance"<<std::endl;
 #endif
-    //fixme create DFMC_MD22DummyException. No, please do not. Use generic exceptions!
-    if (parameters.empty()){
-      throw DummyBackendException("No map file given in the parameter list.",
-          DummyBackendException::INVALID_PARAMETER);
-    }
-    if (parameters.size() < 2 && mapFileName == ""){
-      throw DummyBackendException("No module name given in the parameter list.",
-          DummyBackendException::INVALID_PARAMETER);
-    }
-    if(mapFileName == "") mapFileName = parameters.front();      // compatibility only, remove after release of deviceaccess 0.6
-    return boost::shared_ptr<DeviceBackend> ( new DFMC_MD22Dummy(mapFileName,parameters.back()) );
+  if (parameters.size() < 1) {
+    throw std::runtime_error("DFMC_MD22Dummy: No mapfile has been specified in the sdm parameter list");
   }
+
+  std::string tmc429ControllerModuleName("");
+  std::string mapFile("");
+  auto it = parameters.begin();
+
+  mapFile = *it;
+  if ((it = std::next(it)) != parameters.end()) { // optional parameter
+    tmc429ControllerModuleName = *it;
+  }
+
+  // when the backend factory is used to create the DFMC_MD22Dummy, mapfile path
+  // in the dmap file is relative to the dmap file location. Converting the
+  // relative mapFile path to an absolute path avoids issues when the dmap file
+  // is not in the working directory of the application.
+  return (returnInstance<DFMC_MD22Dummy>( instance,
+                                          convertPathRelativeToDmapToAbs(mapFile),
+                                          tmc429ControllerModuleName));
+}
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
 
-}// namespace mtca4u
+  } // namespace mtca4u
