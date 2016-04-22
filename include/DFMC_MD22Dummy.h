@@ -36,11 +36,11 @@ class TMC429OutputWord;
   class DFMC_MD22Dummy : public mtca4u::DummyBackend{
   public:
     enum class TMC260Register{
-      DRVCTRL = 0,
-      CHOPCONF = 4,
-      SMARTEN,
-      SGCSCONF,
-      DRVCONF
+      DRIVER_CONTROL_REG = 0, // DRVCTRL
+      CHOPPER_CONTROL_REG = 4, // CHOPCONF
+      COOLSTEP_CONTROL_REG, // SMARTEN
+      STALLGUARD2_CONTROL_REGISTER, // SGCSCONF
+      DRIVER_CONTROL_REGISTER // DRVCONF
     };
 
 
@@ -181,13 +181,6 @@ class TMC429OutputWord;
     void setControlerSpiRegistersForTesting();
 
     void driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData);
-
-    /*
-     * combine register address and the corresponding payload to a form that can
-     * be input to a mtca4u::TMC260DataWord
-     */
-    //uint32_t frameTMC260DataWord(uint32_t registerAddress, uint32_t payload);
-
     uint32_t getDatalengthFromMask(uint32_t mask);
 
     /// Helper struct to simulate the spi for one driver

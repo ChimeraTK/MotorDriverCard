@@ -60,7 +60,7 @@ namespace mtca4u
     virtual double getMaxSpeedCapability()=0;
 
     virtual double setUserCurrentLimit(double currentLimit)=0;
-    virtual double getUserSetCurrentLimit()=0;
+    virtual double getUserCurrentLimit()=0;
     virtual double getMaxCurrentLimit()=0;
 
     virtual void setActualAcceleration(unsigned int stepsPerSquareFIXME)=0;

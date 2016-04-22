@@ -293,15 +293,15 @@ namespace mtca4u {
       _motorControler->setUserCurrentLimit(currentInAmps);
     }
 
-    double StepperMotor::getUserSetCurrentLimit() {
-      _motorControler->getUserSetCurrentLimit();
+    double StepperMotor::getUserCurrentLimit() {
+      _motorControler->getUserCurrentLimit();
     }
 
     double StepperMotor::getSafeCurrentLimit() {
       _motorControler->getMaxCurrentLimit();
     }
 
-    double StepperMotor::getUserSetSpeedLimit() {
+    double StepperMotor::getUserSpeedLimit() {
       _motorControler->getUserSpeedLimit();
     }
 

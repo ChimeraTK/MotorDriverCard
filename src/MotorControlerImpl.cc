@@ -333,7 +333,7 @@ namespace mtca4u
     return convertCurrentScaletoAmps(currentScale);
   }
 
-  double MotorControlerImpl::getUserSetCurrentLimit() {
+  double MotorControlerImpl::getUserCurrentLimit() {
     return convertCurrentScaletoAmps(_usrSetCurrentScale);
   }
 
