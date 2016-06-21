@@ -387,5 +387,8 @@ namespace mtca4u {
 
         return StepperMotorStatusAndError(_motorStatus, _motorError);
     }
-    
-}
+    }
+
+    bool mtca4u::StepperMotor::isStopped() {
+      return (_motorControler->getStatus().getStandstillIndicator());
+    }

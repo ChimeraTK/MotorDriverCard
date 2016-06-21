@@ -157,8 +157,24 @@ namespace mtca4u {
          * Function stop the motor in a way that real position from the motor is set as a target position.\n
          * It also interrupts all blocking functions as 'StepperMotorStatusAndError moveToPosition(float newPosition)'. \n
          * Delays in communication can trigger effect that motor will move a few steps in current movement direction and later will move couple steps back, but this issue can be filtered by motor hysteresis effect.\n
-         */  
+         */
         virtual void stop();
+
+        /**
+         * @brief Returns True if the motor is in motion or False if at
+         * standstill.
+         *
+         * @details
+         * Ther motor status is found by monitoring the Standstill indicator bit
+         * of the TMC260 driver IC. The standstill indicator can track movement
+         * as long as the motor is not stalled. The controller IC still keeps
+         * sending step/dir pulses to the driver IC in this stalled scenario.
+         * As a result, the Standstill indicator bit indicates movement in this
+         * scenario, though the motor is actually stalled and not moving. Once
+         * the controller chip has stopped with the step/dir pulses, the stand
+         * still indicator concludes that the movement is complete.
+         */
+        bool isStopped();
 
         /**
          * @brief Emergency stop the motor by disabling driver.
