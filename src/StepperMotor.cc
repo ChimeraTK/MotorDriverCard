@@ -131,6 +131,15 @@ namespace mtca4u {
     void StepperMotor::start() {
         // allowing it when status is MOTOR_IN_MOVE give a possibility to change target position during motor movement
         _motorControler->setTargetPosition(_targetPositionInSteps);
+
+        // The tmc429 does not apply step/dir pulses to the driver IC
+        // immediately after the previous command. There is a hardware
+        // associated delay before the pulses are issued on the step dir
+        // interface of the driver IC. Wait a suitable time (for compensating
+        // this delay) so that the standstill indicator flag does not
+        // incorrectly return that the motor is not in motion when
+        // StepperMotor::isStopped() is called.
+        usleep(20000); //FIXME: Put in a proper Delay to compensate for the delay (which is likely deterministic)
     }
 
     void StepperMotor::stop() {

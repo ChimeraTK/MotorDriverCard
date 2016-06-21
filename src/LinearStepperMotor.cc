@@ -40,18 +40,14 @@ namespace mtca4u {
       _blockingFunctionActive = true;
 
       this->setTargetPosition(newPosition);
-
       if (!this->getAutostart()) {
           this->start();
       }
 
-      usleep(20000); // Communication Delay
-
-      while (!isStopped()){
+      while (!StepperMotor::isStopped()){
           usleep(10000);
           std::cout << "IN Loop" << std::endl;
       }
-
       _blockingFunctionActive = false;
       return(this->determineMotorStatusAndError());
     }
