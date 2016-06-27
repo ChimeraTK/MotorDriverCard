@@ -172,10 +172,10 @@ namespace mtca4u {
     }
 
     void LinearStepperMotor::emergencyStop() {
-        _motorControler->setEnabled(false);
-        this->stop();
-        if (this->_motorCalibrationStatus == StepperMotorCalibrationStatusType::M_CALIBRATED)
-            this->_motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
+      _motorControler->setEnabled(false);
+      this->stop();
+      this->_motorCalibrationStatus =
+          StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
     }
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
