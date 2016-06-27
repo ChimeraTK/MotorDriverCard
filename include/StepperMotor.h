@@ -174,7 +174,7 @@ namespace mtca4u {
          * the controller chip has stopped with the step/dir pulses, the stand
          * still indicator concludes that the movement is complete.
          */
-        bool isStopped();
+        bool isMoving();
 
         /**
          * @brief Emergency stop the motor by disabling driver.

@@ -39,15 +39,19 @@ namespace mtca4u {
 
       _blockingFunctionActive = true;
 
+      // Ask the hardware to move the motor.
       this->setTargetPosition(newPosition);
       if (!this->getAutostart()) {
           this->start();
       }
 
-      while (!StepperMotor::isStopped()){
+      // Block till the motor has finished moving.
+      while (StepperMotor::isMoving()){
           usleep(10000);
           std::cout << "IN Loop" << std::endl;
       }
+
+      // update and return status and error once at target position.
       _blockingFunctionActive = false;
       return(this->determineMotorStatusAndError());
     }

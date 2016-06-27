@@ -217,7 +217,6 @@ namespace mtca4u {
 
     void StepperMotor::setTargetPosition(float newPosition) {
         this->determineMotorStatusAndError();
-
         if (_motorError == StepperMotorErrorTypes::M_NO_ERROR) {
             float position = truncateMotorPosition(newPosition);
             _targetPositionInUnits = position;
@@ -398,6 +397,6 @@ namespace mtca4u {
     }
     }
 
-    bool mtca4u::StepperMotor::isStopped() {
-      return (_motorControler->getStatus().getStandstillIndicator());
+    bool mtca4u::StepperMotor::isMoving() {
+      return (!(_motorControler->getStatus().getStandstillIndicator()));
     }
