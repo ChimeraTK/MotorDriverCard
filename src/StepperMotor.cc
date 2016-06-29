@@ -41,7 +41,7 @@ namespace mtca4u {
         _blockingFunctionActive = false;
 
         _softwareLimitsEnabled = true;
-        _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN;
+        _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
     }
 
     StepperMotor::~StepperMotor() {

@@ -47,8 +47,7 @@ namespace mtca4u {
 
       // Block till the motor has finished moving.
       while (StepperMotor::isMoving()){
-          usleep(10000);
-          std::cout << "IN Loop" << std::endl;
+          usleep(1000);
       }
 
       // update and return status and error once at target position.
