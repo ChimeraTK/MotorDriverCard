@@ -232,6 +232,16 @@ namespace mtca4u {
       throw MotorDriverException("MotorControlerDummy::getMaxCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
+    void MotorControlerDummy::resetInternalStateToDefaults() {
+      _absolutePosition = 0;
+      _targetPosition = 0;
+      _currentPosition = 0;
+      _positiveEndSwitchEnabled = true;
+      _negativeEndSwitchEnabled = true;
+      _bothEndSwitchesAlwaysOn = false;
+      _blockMotor = false;
+  }
+
 
     bool MotorControlerDummy::isNegativeEndSwitchActive() {
         if (_bothEndSwitchesAlwaysOn)
@@ -306,4 +316,8 @@ namespace mtca4u {
         _currentPosition = targetInThisMove;
     }
 
-}// namespace mtca4u
+    void MotorControlerDummy::simulateBlockedMotor(bool state) {
+      _blockMotor = state;
+    }
+    } // namespace mtca4u
+

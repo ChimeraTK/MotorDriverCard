@@ -94,6 +94,24 @@ namespace mtca4u{
     virtual double getUserCurrentLimit();
     virtual double getMaxCurrentLimit();
 
+    /**
+     * Block the motor and do not move if true. simulateBlockedMotor(true) is an
+     * alternative to calling moveTowardsTarget with the blockMotor flag set to
+     * true.
+     */
+    void simulateBlockedMotor(bool state);
+
+    /**
+     * Performs the same function as moveTowardsTarget called with zeroPositions
+     * = true.
+     * Does the following:
+     * - Current, target and absolute positions reset to zero.
+     * - Both positive and negative end switches are enabled.
+     * - Sets the internal state _bothEndSwitchesAlwaysOn to false.
+     * - blockMotor status set to false.
+     */
+    void resetInternalStateToDefaults();
+
     static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
     static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
