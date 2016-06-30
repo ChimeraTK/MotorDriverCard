@@ -162,7 +162,7 @@ namespace mtca4u {
 
         /**
          * @brief Returns True if the motor is in motion or False if at
-         * standstill.
+         * standstill. This command is reliable as long as the motor is not stalled.
          *
          * @details
          * Ther motor status is found by monitoring the Standstill indicator bit
@@ -170,7 +170,7 @@ namespace mtca4u {
          * as long as the motor is not stalled. The controller IC still keeps
          * sending step/dir pulses to the driver IC in this stalled scenario.
          * As a result, the Standstill indicator bit indicates movement in this
-         * scenario, though the motor is actually stalled and not moving. Once
+         * case, although the motor is actually stalled and not moving. Once
          * the controller chip has stopped with the step/dir pulses, the stand
          * still indicator concludes that the movement is complete.
          */
