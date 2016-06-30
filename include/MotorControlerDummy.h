@@ -102,8 +102,6 @@ namespace mtca4u{
     void simulateBlockedMotor(bool state);
 
     /**
-     * Performs the same function as moveTowardsTarget called with zeroPositions
-     * = true.
      * Does the following:
      * - Current, target and absolute positions reset to zero.
      * - Both positive and negative end switches are enabled.
