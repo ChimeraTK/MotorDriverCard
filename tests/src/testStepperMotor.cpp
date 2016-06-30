@@ -403,7 +403,7 @@ void StepperMotorTest::testDebugLevel() {
 }
 
 void StepperMotorTest::testCalibration() {
-    BOOST_CHECK(_stepperMotor->getCalibrationStatus() == StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN);
+    BOOST_CHECK(_stepperMotor->getCalibrationStatus() == StepperMotorCalibrationStatusType::M_NOT_CALIBRATED);
     _stepperMotor->calibrateMotor();
     BOOST_CHECK(_stepperMotor->getCalibrationStatus() == StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE);
 }
