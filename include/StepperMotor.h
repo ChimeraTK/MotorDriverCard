@@ -161,18 +161,9 @@ namespace mtca4u {
         virtual void stop();
 
         /**
-         * @brief Returns True if the motor is in motion or False if at
-         * standstill. This command is reliable as long as the motor is not stalled.
-         *
-         * @details
-         * Ther motor status is found by monitoring the Standstill indicator bit
-         * of the TMC260 driver IC. The standstill indicator can track movement
-         * as long as the motor is not stalled. The controller IC still keeps
-         * sending step/dir pulses to the driver IC in this stalled scenario.
-         * As a result, the Standstill indicator bit indicates movement in this
-         * case, although the motor is actually stalled and not moving. Once
-         * the controller chip has stopped with the step/dir pulses, the stand
-         * still indicator concludes that the movement is complete.
+         * @brief Returns True if the motor is moving and false if at
+         * standstill. This command is reliable as long as the motor is not
+         * stalled.
          */
         bool isMoving();
 

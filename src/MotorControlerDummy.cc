@@ -25,14 +25,14 @@ namespace mtca4u {
     int MotorControlerDummy::getActualVelocity() {
         // the velocity is only not zero if the motor is actually moving
         // FIXME: or if the motor is stepping?
-        if (isMoving()) {
+        if (isMotorMoving()) {
             return ( _targetPosition < _currentPosition ? -25 : 25);
         } else {
             return 0;
         }
     }
 
-    bool MotorControlerDummy::isMoving() {
+    bool MotorControlerDummy::isMotorMoving() {
         return (_enabled && isStepping());
     }
 
@@ -76,7 +76,7 @@ namespace mtca4u {
 
     DriverStatusData MotorControlerDummy::getStatus() {
         DriverStatusData statusData;
-        statusData.setStandstillIndicator(!isMoving());
+        statusData.setStandstillIndicator(!isMotorMoving());
         return statusData;
     }
 

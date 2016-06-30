@@ -296,7 +296,6 @@ void LinearStepperMotorTest::testMoveToPosition() {
     std::cout << "testMoveToPosition()" << std::endl;
 
     _motorControlerDummy->resetInternalStateToDefaults();
-    _stepperMotor->setAutostart(false);
     _stepperMotor->setEnabled(true);
 
 
@@ -306,6 +305,7 @@ void LinearStepperMotorTest::testMoveToPosition() {
     BOOST_CHECK(statusAndError.status == StepperMotorStatusTypes::M_OK);
     BOOST_CHECK(statusAndError.error == StepperMotorErrorTypes::M_NO_ERROR);
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == 500);
+
 
     //set motor in error state - configuration error end test routine
     _stepperMotor->setMaxPositionLimit(50);
@@ -319,18 +319,16 @@ void LinearStepperMotorTest::testMoveToPosition() {
     BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 500);
     _stepperMotor->setSoftwareLimitsEnabled(false);
 
-
-    statusAndError = _stepperMotor->moveToPosition(500);
-    _motorControlerDummy->moveTowardsTarget(1);
-    _stepperMotor->setMaxPositionLimit(100);
-    _stepperMotor->setMinPositionLimit(50);
+    auto currentPosition = _stepperMotor->getCurrentPosition();
+    _stepperMotor->setMaxPositionLimit(currentPosition - 100);
+    _stepperMotor->setMinPositionLimit(currentPosition - 200);
     _stepperMotor->setSoftwareLimitsEnabled(true);
     boost::thread workerThread1(&LinearStepperMotorTest::threadMoveToPostion, this, 1);
-    statusAndError = _stepperMotor->moveToPosition(600);
+    statusAndError = _stepperMotor->moveToPosition(currentPosition + 100);
     workerThread1.join();
     BOOST_CHECK(statusAndError.status == LinearStepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON);
     BOOST_CHECK(statusAndError.error == StepperMotorErrorTypes::M_NO_ERROR);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 100);
+    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == currentPosition - 100);
     _stepperMotor->setSoftwareLimitsEnabled(false);
 
 
@@ -366,7 +364,7 @@ void LinearStepperMotorTest::testMoveToPosition() {
 
 
     //try to move more in positive - should be timeout
-    int currentPosition = _stepperMotor->getCurrentPosition();
+    currentPosition = _stepperMotor->getCurrentPosition();
     boost::thread workedThread4_1(&LinearStepperMotorTest::threadMoveToPostion, this, 3);
     statusAndError = _stepperMotor->moveToPosition(currentPosition + 100);
     workedThread4_1.join();
@@ -693,7 +691,7 @@ void LinearStepperMotorTest::testIsMoving() {
   _motorControlerDummy->resetInternalStateToDefaults();
   auto negativeEndSwitchPosition = MotorControlerDummy::_negativeEndSwitchPosition;
   BOOST_CHECK(_stepperMotor->isMoving() == false);
-  _stepperMotor->setTargetPosition(negativeEndSwitchPosition);
+  _stepperMotor->setTargetPosition(negativeEndSwitchPosition - 100);
   BOOST_CHECK(_stepperMotor->isMoving() == true);
   _motorControlerDummy->moveTowardsTarget(1); // at negative end switch
   BOOST_CHECK(_stepperMotor->isMoving() == false);

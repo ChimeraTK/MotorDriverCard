@@ -173,6 +173,7 @@ namespace mtca4u {
     void LinearStepperMotor::emergencyStop() {
       _motorControler->setEnabled(false);
       this->stop();
+      // emergency stop causes loss in calibration for all situations
       this->_motorCalibrationStatus =
           StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
     }

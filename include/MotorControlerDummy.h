@@ -110,6 +110,8 @@ namespace mtca4u{
      */
     void resetInternalStateToDefaults();
 
+    virtual bool isMotorMoving();
+
     static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
     static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
@@ -134,11 +136,6 @@ namespace mtca4u{
      *  be activated which was inactive before.
      */
     bool isStepping();
-
-    /** The motor is moving if it is stepping (see isStepping() ) and it is
-     *  enabled.
-     */
-    bool isMoving();
 
     bool isPositiveEndSwitchActive();
     bool isNegativeEndSwitchActive();

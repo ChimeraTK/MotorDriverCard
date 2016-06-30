@@ -120,31 +120,25 @@ namespace mtca4u {
         return _motorCalibrationStatus;
     }
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // END OF BLOCKING FUNCTIONS
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // GENERAL FUNCTIONS
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     void StepperMotor::start() {
-        // allowing it when status is MOTOR_IN_MOVE give a possibility to change target position during motor movement
-        _motorControler->setTargetPosition(_targetPositionInSteps);
-
-        // The tmc429 does not apply step/dir pulses to the driver IC
-        // immediately after the previous command. There is a hardware
-        // associated delay before the pulses are issued on the step dir
-        // interface of the driver IC. Wait a suitable time (for compensating
-        // this delay) so that the standstill indicator flag does not
-        // incorrectly return that the motor is not in motion when
-        // StepperMotor::isStopped() is called.
-        usleep(20000); //FIXME: Put in a proper Delay to compensate for the delay (which is likely deterministic)
+      // allowing it when status is MOTOR_IN_MOVE give a possibility to change
+      // target position during motor movement
+      _motorControler->setTargetPosition(_targetPositionInSteps);
     }
 
     void StepperMotor::stop() {
-        //stopping is done by reading real position and setting it as target one. In reality it can cause that motor will stop and move in reverse direction by couple steps
-        //Amount of steps done in reverse direction depends on motor speed and general delay in motor control path
+        //stopping is done by reading real position and setting it as target
+        //one. In reality it can cause that motor will stop and move in reverse
+        //direction by couple steps Amount of steps done in reverse direction
+        //depends on motor speed and general delay in motor control path.
 
         if (_blockingFunctionActive)
             _stopMotorForBlocking = true;
@@ -398,5 +392,5 @@ namespace mtca4u {
     }
 
     bool mtca4u::StepperMotor::isMoving() {
-      return (!(_motorControler->getStatus().getStandstillIndicator()));
+      return (_motorControler->isMotorMoving());
     }
