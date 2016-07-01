@@ -67,7 +67,7 @@ namespace mtca4u {
         /**
          * @brief  Constructor of the class object
          * @param  motorDriverCardDeviceName Name of the device in DMAP file
-	 * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
+         * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
          * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation  
          * @param  motorDriverCardConfigFileName Name of configuration file
          * @return
@@ -116,7 +116,7 @@ namespace mtca4u {
          * Return real motor position read directly from the hardware and expressed in the arbitrary units.
          * Calculation between steps and arbitrary units is done internally.\n
          * @return float - current, real position of motor in arbitrary units.
-	 */     
+         */     
         float getCurrentPosition(); //old name: getMotorPosition
 
         /**
@@ -157,8 +157,15 @@ namespace mtca4u {
          * Function stop the motor in a way that real position from the motor is set as a target position.\n
          * It also interrupts all blocking functions as 'StepperMotorStatusAndError moveToPosition(float newPosition)'. \n
          * Delays in communication can trigger effect that motor will move a few steps in current movement direction and later will move couple steps back, but this issue can be filtered by motor hysteresis effect.\n
-         */  
+         */
         virtual void stop();
+
+        /**
+         * @brief Returns True if the motor is moving and false if at
+         * standstill. This command is reliable as long as the motor is not
+         * stalled.
+         */
+        bool isMoving();
 
         /**
          * @brief Emergency stop the motor by disabling driver.
@@ -227,9 +234,9 @@ namespace mtca4u {
          * method may not set the exact desired speed limit, but a value below
          * the desired limit, as determined by the operating parameters.
          *
-         * @param microStepsPerSecond The desired maximum motor speed during
-         *                            operation; unit is microsteps per
-         *                            second
+         * @param newSpeedInUstepsPerSec The desired maximum motor speed during
+         *                               operation; unit is microsteps per
+         *                               second
          *
          * @return Returns the motor speed that was actually set. This speed may not
          * be what the user requested, but a value closest to it (but not

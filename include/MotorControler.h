@@ -70,6 +70,8 @@ namespace mtca4u
 
     virtual bool isEnabled()=0; ///< Check whether the motor driver chip is enabled
     
+    virtual bool isMotorMoving()=0; ///< check if the motor is moving.
+
     virtual MotorReferenceSwitchData getReferenceSwitchData()=0; ///< Get information about both reference switches of this Motor
 
     /** Enable or disable the positive reference switch. (true=enabled)*/

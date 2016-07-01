@@ -41,7 +41,7 @@ namespace mtca4u {
         _blockingFunctionActive = false;
 
         _softwareLimitsEnabled = true;
-        _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN;
+        _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
     }
 
     StepperMotor::~StepperMotor() {
@@ -120,22 +120,25 @@ namespace mtca4u {
         return _motorCalibrationStatus;
     }
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // END OF BLOCKING FUNCTIONS
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // GENERAL FUNCTIONS
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     void StepperMotor::start() {
-        // allowing it when status is MOTOR_IN_MOVE give a possibility to change target position during motor movement
-        _motorControler->setTargetPosition(_targetPositionInSteps);
+      // allowing it when status is MOTOR_IN_MOVE give a possibility to change
+      // target position during motor movement
+      _motorControler->setTargetPosition(_targetPositionInSteps);
     }
 
     void StepperMotor::stop() {
-        //stopping is done by reading real position and setting it as target one. In reality it can cause that motor will stop and move in reverse direction by couple steps
-        //Amount of steps done in reverse direction depends on motor speed and general delay in motor control path
+        //stopping is done by reading real position and setting it as target
+        //one. In reality it can cause that motor will stop and move in reverse
+        //direction by couple steps Amount of steps done in reverse direction
+        //depends on motor speed and general delay in motor control path.
 
         if (_blockingFunctionActive)
             _stopMotorForBlocking = true;
@@ -208,7 +211,6 @@ namespace mtca4u {
 
     void StepperMotor::setTargetPosition(float newPosition) {
         this->determineMotorStatusAndError();
-
         if (_motorError == StepperMotorErrorTypes::M_NO_ERROR) {
             float position = truncateMotorPosition(newPosition);
             _targetPositionInUnits = position;
@@ -387,5 +389,8 @@ namespace mtca4u {
 
         return StepperMotorStatusAndError(_motorStatus, _motorError);
     }
-    
-}
+    }
+
+    bool mtca4u::StepperMotor::isMoving() {
+      return (_motorControler->isMotorMoving());
+    }
