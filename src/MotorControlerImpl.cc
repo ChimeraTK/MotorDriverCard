@@ -189,13 +189,6 @@ namespace mtca4u
   DEFINE_GET_SET_VALUE( PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE )
   DEFINE_GET_SET_VALUE( PositionLatched, IDX_POSITION_LATCHED )
 
-  unsigned int MotorControlerImpl::getMaximumVelocity (){
-      return _controlerSPI->read( _id, IDX_MAXIMUM_VELOCITY ).getDATA();}
-
-    void MotorControlerImpl::setMaximumVelocity (unsigned int value){
-      _currentVmax = value;
-      _controlerSPI->write( _id, IDX_MAXIMUM_VELOCITY, value );}
-
   template<class T>
   T  MotorControlerImpl::readTypedRegister(){
     T typedWord;
