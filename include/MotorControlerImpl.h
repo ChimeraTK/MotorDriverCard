@@ -103,7 +103,28 @@ namespace mtca4u
 
 
     bool isEnabled();
-    
+
+    /**
+     * @brief Returns True if the motor is in motion or False if at
+     * standstill. This command is reliable as long as the motor is not stalled.
+     *
+     * @details
+     * Motor status is decided by monitoring the Standstill indicator bit of the
+     * TMC260 driver IC. The standstill indicator bit can reliably track
+     * movement as long as the motor is not stalled. When movement has stalled,
+     * the controller IC still sends STEP pulses to the driver IC. As a result,
+     * for this situation, the Standstill indicator bit indicates movement
+     * though the motor is actually stalled and not moving. Once the controller
+     * chip has stopped with the STEP pulses, the stand still indicator
+     * concludes that the movement is complete.
+     *
+     * This method has a minimum internal delay of COMMUNICATION_DELAY before
+     * returning. This delay compensates for the time it takes for the
+     * standstill indicator bit to be updated after the X_TARGET register on the
+     * controller has been set.
+     */
+    virtual bool isMotorMoving();
+
     MotorReferenceSwitchData getReferenceSwitchData();
 
     void setPositiveReferenceSwitchEnabled(bool enableStatus);
@@ -145,6 +166,9 @@ namespace mtca4u
      unsigned int getReferenceSwitchBit();
  
   private:
+
+     static const unsigned int COMMUNICATION_DELAY= 20000; /// in microseconds
+
      boost::shared_ptr< Device > _device;
 
      unsigned int _id;

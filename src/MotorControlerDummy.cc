@@ -25,14 +25,14 @@ namespace mtca4u {
     int MotorControlerDummy::getActualVelocity() {
         // the velocity is only not zero if the motor is actually moving
         // FIXME: or if the motor is stepping?
-        if (isMoving()) {
+        if (isMotorMoving()) {
             return ( _targetPosition < _currentPosition ? -25 : 25);
         } else {
             return 0;
         }
     }
 
-    bool MotorControlerDummy::isMoving() {
+    bool MotorControlerDummy::isMotorMoving() {
         return (_enabled && isStepping());
     }
 
@@ -76,7 +76,7 @@ namespace mtca4u {
 
     DriverStatusData MotorControlerDummy::getStatus() {
         DriverStatusData statusData;
-        statusData.setStandstillIndicator(!isMoving());
+        statusData.setStandstillIndicator(!isMotorMoving());
         return statusData;
     }
 
@@ -232,6 +232,16 @@ namespace mtca4u {
       throw MotorDriverException("MotorControlerDummy::getMaxCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
+    void MotorControlerDummy::resetInternalStateToDefaults() {
+      _absolutePosition = 0;
+      _targetPosition = 0;
+      _currentPosition = 0;
+      _positiveEndSwitchEnabled = true;
+      _negativeEndSwitchEnabled = true;
+      _bothEndSwitchesAlwaysOn = false;
+      _blockMotor = false;
+  }
+
 
     bool MotorControlerDummy::isNegativeEndSwitchActive() {
         if (_bothEndSwitchesAlwaysOn)
@@ -306,4 +316,8 @@ namespace mtca4u {
         _currentPosition = targetInThisMove;
     }
 
-}// namespace mtca4u
+    void MotorControlerDummy::simulateBlockedMotor(bool state) {
+      _blockMotor = state;
+    }
+    } // namespace mtca4u
+

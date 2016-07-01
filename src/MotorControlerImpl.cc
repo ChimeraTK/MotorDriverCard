@@ -192,7 +192,7 @@ namespace mtca4u
   unsigned int MotorControlerImpl::getMaximumVelocity (){
       return _controlerSPI->read( _id, IDX_MAXIMUM_VELOCITY ).getDATA();}
 
-    void MotorControlerImpl::setMaximumVelocity (unsigned int value){
+  void MotorControlerImpl::setMaximumVelocity (unsigned int value){
       _currentVmax = value;
       _controlerSPI->write( _id, IDX_MAXIMUM_VELOCITY, value );}
 
@@ -375,6 +375,17 @@ namespace mtca4u
     if(calculatedCurrentScale < iMaxTMC260C_MIN_CURRENT_SCALE_VALUE){return iMaxTMC260C_MIN_CURRENT_SCALE_VALUE;}
     if(calculatedCurrentScale > hardLimitForCurrentScale){return hardLimitForCurrentScale;}
     return (static_cast<unsigned int>(std::floor(calculatedCurrentScale))); //floor so that we dont exceed the set limt
+  }
+
+  bool MotorControlerImpl::isMotorMoving() {
+    // There is a delay between setting X_Target and the standstill indicator
+    // bit updating to 0 to indicate this. Reading the standstill indicator bit
+    // before this delay, incorrectly returns standstill indicator value as 1.
+    // To make sure we don't run into this situation, fetch the standstill
+    // indicator only after the time it takes for the indicator bit to update
+    // its value.
+    usleep(COMMUNICATION_DELAY);
+    return (!(getStatus().getStandstillIndicator()));
   }
 
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
