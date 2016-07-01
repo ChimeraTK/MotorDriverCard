@@ -9,7 +9,8 @@ namespace mtca4u {
     : StepperMotor(motorDriverCardDeviceName, moduleName, motorDriverId, motorDriverCardConfigFileName) {
 
         //end switches enabled or not
-        _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
+        _positiveEndSwitchEnabled = 
+		_motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
         _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     
         //calibration
