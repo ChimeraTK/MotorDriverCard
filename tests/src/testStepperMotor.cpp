@@ -436,42 +436,27 @@ void StepperMotorTest::testSetGetSpeed() {
 }
 
 void StepperMotorTest::testMoveToPosition() {
-    _motorControlerDummy->setTargetPosition(0);
-    _motorControlerDummy->setActualPosition(0);
+    _motorControlerDummy->resetInternalStateToDefaults();
 
     _stepperMotor->setAutostart(false);
     _stepperMotor->setEnabled(true);
     
-    // move toward but emulate the not react on command error
-    _motorControlerDummy->moveTowardsTarget(1, true);
-    StepperMotorStatusAndError statusAndError =  _stepperMotor->moveToPosition(5000);
-    BOOST_CHECK( statusAndError.status == StepperMotorStatusTypes::M_ERROR);
-    BOOST_CHECK( statusAndError.error == StepperMotorErrorTypes::M_NO_REACTION_ON_COMMAND);
-    
-    // set position to the wanted one and later try to send motor to the same position
-    _motorControlerDummy->moveTowardsTarget(1,false);
-    statusAndError =  _stepperMotor->moveToPosition(5000);
-    BOOST_CHECK( statusAndError.status == StepperMotorStatusTypes::M_OK);
-    BOOST_CHECK( statusAndError.error == StepperMotorErrorTypes::M_NO_ERROR);
-    BOOST_CHECK( _stepperMotor->getCurrentPosition() == 5000);
-    //std::cout << " Status: " << statusAndError.status << "  Error: " << statusAndError.error << std::endl;
-    
-    
     //set motor in error state - configuration error end test routine
+    auto currentPosition = _stepperMotor->getCurrentPosition();
     _stepperMotor->setMaxPositionLimit(50);
     _stepperMotor->setMinPositionLimit(100);
     _stepperMotor->setSoftwareLimitsEnabled(true);
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_ERROR);
     BOOST_CHECK(_stepperMotor->getStatusAndError().error== StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX);
-    statusAndError =  _stepperMotor->moveToPosition(0);
+    auto statusAndError =  _stepperMotor->moveToPosition(0);
     BOOST_CHECK( statusAndError.status == StepperMotorStatusTypes::M_ERROR);
     BOOST_CHECK( statusAndError.error == StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 5000);
+    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == currentPosition);
     _stepperMotor->setSoftwareLimitsEnabled(false);
     
     
 
-    auto currentPosition = _stepperMotor->getCurrentPosition();
+    currentPosition = _stepperMotor->getCurrentPosition();
     _stepperMotor->setMaxPositionLimit(currentPosition - 100);
     _stepperMotor->setMinPositionLimit(currentPosition - 200);
     _stepperMotor->setSoftwareLimitsEnabled(true);
@@ -538,6 +523,7 @@ void StepperMotorTest::thread(int testCase) {
     // simulate the movement
     _motorControlerDummy->moveTowardsTarget(0.4);
     _stepperMotor->stop();
+    _motorControlerDummy->moveTowardsTarget(1);
   }
 }
 

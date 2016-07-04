@@ -55,64 +55,26 @@ namespace mtca4u {
     StepperMotorStatusAndError StepperMotor::moveToPosition(float newPosition) {
         
         StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
-        
-        if (getCurrentPosition() == newPosition) {
-            return statusAndError;
-        }
-        
         if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
             return statusAndError;
         }
        
         _blockingFunctionActive = true;
+        // Ask the hardware to move the motor.
         this->setTargetPosition(newPosition);
-
         if (!this->getAutostart()) {
             this->start();
         }
 
-        bool continueWaiting = true;
-        unsigned int notInPositionCounter = 0;
-        do {
+        // Block till the motor has finished moving.
+        while (StepperMotor::isMoving()){
+            usleep(1000);
+        }
 
-            statusAndError = this->determineMotorStatusAndError();
-            if (statusAndError.status == StepperMotorStatusTypes::M_ERROR) {                 
-                _blockingFunctionActive = false;
-                return statusAndError;
-            }
-            
-            int currentMotorPosition = _motorControler->getActualPosition();
-            _logger(Logger::FULL_DETAIL) << "StepperMotor::moveToPosition : Motor in move. Current position: " << this->getCurrentPosition() << ". Target position: " << _targetPositionInSteps << ". Current status: " << statusAndError.status << std::endl;
-
-            if (_stopMotorForBlocking == true) {
-                continueWaiting = false;
-                _stopMotorForBlocking = false;
-                _logger(Logger::WARNING) << "StepperMotor::moveToPosition : Motor stopped by user." << std::endl;
-                while (statusAndError.status == StepperMotorStatusTypes::M_IN_MOVE || statusAndError.status == StepperMotorStatusTypes::M_NOT_IN_POSITION) {
-                    _logger(Logger::DETAIL) << "StepperMotor::moveToPosition : Wait to change status from M_IN_MOVE/M_NOT_IN_POSITION to other." << std::endl;
-                    statusAndError = this->determineMotorStatusAndError();
-                }
-            } else if (statusAndError.status == mtca4u::StepperMotorStatusTypes::M_IN_MOVE || statusAndError.status == StepperMotorStatusTypes::M_NOT_IN_POSITION) {
-                continueWaiting = true;
-                if (statusAndError.status == StepperMotorStatusTypes::M_NOT_IN_POSITION) {
-                    notInPositionCounter++;
-                    usleep(1000); //sleep which count the time out. This is sample time of the current status and motor position
-                    if (currentMotorPosition == _motorControler->getActualPosition() && notInPositionCounter >= 1000) {
-                        _logger(Logger::ERROR) << "StepperMotor::moveToPosition(float) : Motor seems not to move after 1 second waiting. Current position. " << getCurrentPosition() << std::endl;
-                        statusAndError.status = StepperMotorStatusTypes::M_ERROR;
-                        statusAndError.error = StepperMotorErrorTypes::M_NO_REACTION_ON_COMMAND;;
-                        continueWaiting = false;
-                    }
-                } else {
-                    notInPositionCounter = 0;
-                }
-            } else {
-                continueWaiting = false;
-            }
-        } while (continueWaiting);
-
+        // update and return status and error once at target position.
         _blockingFunctionActive = false;
-        return statusAndError;
+
+        return(this->determineMotorStatusAndError());
     }
 
     StepperMotorCalibrationStatus StepperMotor::calibrateMotor() {
