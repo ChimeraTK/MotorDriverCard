@@ -215,6 +215,7 @@ namespace mtca4u {
     }
 
     double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {
+      (void) microStepsPerSecond; // To suppress parameter unused warning.
       throw MotorDriverException("MotorControlerDummy::setUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
 
@@ -223,6 +224,7 @@ namespace mtca4u {
     }
 
     double MotorControlerDummy::setUserCurrentLimit(double currentLimit){
+      (void) currentLimit; // To suppress parameter unused warning.
       throw MotorDriverException("MotorControlerDummy::setUserCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
     }
     double MotorControlerDummy::getUserCurrentLimit(){
