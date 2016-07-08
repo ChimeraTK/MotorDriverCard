@@ -35,12 +35,13 @@ class TMC429OutputWord;
    */
   class DFMC_MD22Dummy : public mtca4u::DummyBackend{
   public:
+    // FIXME: How were the offsets determined?
     enum class TMC260Register{
-      DRIVER_CONTROL_REG = 0, // DRVCTRL
-      CHOPPER_CONTROL_REG = 4, // CHOPCONF
-      COOLSTEP_CONTROL_REG, // SMARTEN
+      DRIVER_CONTROL_REGISTER = 0, // DRVCTRL
+      CHOPPER_CONTROL_REGISTER = 4, // CHOPCONF
+      COOLSTEP_CONTROL_REGISTER, // SMARTEN
       STALLGUARD2_CONTROL_REGISTER, // SGCSCONF
-      DRIVER_CONTROL_REGISTER // DRVCONF
+      DRIVER_CONFIG_REGISTER // DRVCONF
     };
 
 
