@@ -8,6 +8,7 @@ using namespace mtca4u::tmc429;
 #include "MotorDriverCardImpl.h"
 #include <mtca4u/Device.h>
 #include <cmath>
+//#include <>
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
@@ -18,36 +19,54 @@ using namespace mtca4u::tmc429;
 // we have to define many variables, AND there is only one line per function without braching,
 // which is covered by the funcion coverage test (not the line coverage test).
 // Otherwise we would need a complete test which checks the macro.
-#define DEFINE_GET_SET_VALUE( NAME, IDX )\
-  unsigned int MotorControlerImpl::get ## NAME (){\
-    return _controlerSPI->read( _id, IDX ).getDATA();}\
-  void MotorControlerImpl::set ## NAME (unsigned int value){\
-    _controlerSPI->write( _id, IDX, value );}
+#define DEFINE_GET_SET_VALUE(NAME, IDX)                                        \
+  unsigned int MotorControlerImpl::get##NAME() {                               \
+    lock_guard guard(_mutex);                                                  \
+    return _controlerSPI->read(_id, IDX).getDATA();                            \
+  }                                                                            \
+  void MotorControlerImpl::set##NAME(unsigned int value) {                     \
+    lock_guard guard(_mutex);                                                  \
+    _controlerSPI->write(_id, IDX, value);                                     \
+  }
 
-#define DEFINE_SIGNED_GET_SET_VALUE( NAME, IDX , CONVERTER )\
-  int MotorControlerImpl::get ## NAME (){\
-    int readValue = static_cast<int>(_controlerSPI->read( _id, IDX ).getDATA());\
-    return CONVERTER.customToThirtyTwo( readValue ); }\
-  void MotorControlerImpl::set ## NAME (int value){\
-  unsigned int writeValue = static_cast<unsigned int>(\
-      CONVERTER.thirtyTwoToCustom( value ) ); \
-      _controlerSPI->write( _id, IDX, writeValue );}
+#define DEFINE_SIGNED_GET_SET_VALUE(NAME, IDX, CONVERTER)                      \
+  int MotorControlerImpl::get##NAME() {                                        \
+    lock_guard guard(_mutex);                                                  \
+    int readValue = static_cast<int>(_controlerSPI->read(_id, IDX).getDATA()); \
+    return CONVERTER.customToThirtyTwo(readValue);                             \
+  }                                                                            \
+  void MotorControlerImpl::set##NAME(int value) {                              \
+    lock_guard guard(_mutex);                                                  \
+    unsigned int writeValue =                                                  \
+        static_cast<unsigned int>(CONVERTER.thirtyTwoToCustom(value));         \
+    _controlerSPI->write(_id, IDX, writeValue);                                \
+  }
 
-#define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER( NAME )\
-  NAME MotorControlerImpl::get ## NAME (){\
-    return readTypedRegister< NAME >();}\
-  void MotorControlerImpl::set ## NAME ( NAME const & inputWord ){\
-    writeTypedControlerRegister( inputWord );}
+#define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(NAME)                          \
+  NAME MotorControlerImpl::get##NAME() {                                       \
+    lock_guard guard(_mutex);                                                  \
+    return readTypedRegister<NAME>();                                          \
+  }                                                                            \
+  void MotorControlerImpl::set##NAME(NAME const& inputWord) {                  \
+    lock_guard guard(_mutex);                                                  \
+    writeTypedControlerRegister(inputWord);                                    \
+  }
 
-#define DEFINE_SET_GET_TYPED_DRIVER_DATA( NAME, LOCAL_DATA_INSTANCE )\
-  NAME const & MotorControlerImpl::get ## NAME () const{\
-    return LOCAL_DATA_INSTANCE;}\
-  void MotorControlerImpl::set ## NAME ( NAME const & driverData){\
-    setTypedDriverData< NAME >( driverData, LOCAL_DATA_INSTANCE );}
+#define DEFINE_SET_GET_TYPED_DRIVER_DATA(NAME, LOCAL_DATA_INSTANCE)            \
+  NAME const& MotorControlerImpl::get##NAME() const {                          \
+    lock_guard guard(_mutex);                                                  \
+    return LOCAL_DATA_INSTANCE;                                                \
+  }                                                                            \
+  void MotorControlerImpl::set##NAME(NAME const& driverData) {                 \
+    lock_guard guard(_mutex);                                                  \
+    setTypedDriverData<NAME>(driverData, LOCAL_DATA_INSTANCE);                 \
+  }
+
+typedef std::lock_guard<std::mutex> lock_guard;
+typedef std::unique_lock<std::mutex> unique_lock;
 
 namespace mtca4u
 {
-
   MotorControlerImpl::MotorControlerImpl( unsigned int ID,
 		  boost::shared_ptr< Device > const & device,
                   std::string const & moduleName,
@@ -101,10 +120,12 @@ namespace mtca4u
   }
 
   unsigned int MotorControlerImpl::getID(){
+    lock_guard guard(_mutex);
     return _id;
   }
    
   int MotorControlerImpl::getActualPosition(){
+    lock_guard guard(_mutex);
     int readValue;
     _actualPosition->readRaw( &readValue );
     return converter24bits.customToThirtyTwo( readValue );
@@ -117,68 +138,83 @@ namespace mtca4u
   }
 
   void MotorControlerImpl::setActualPosition(int position){
+    lock_guard guard(_mutex);
     _controlerSPI->write( _id, IDX_ACTUAL_POSITION,
 			  static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)) );
   }
 
   int MotorControlerImpl::getActualVelocity(){
+    lock_guard guard(_mutex);
     int readValue;
     _actualVelocity->readRaw( &readValue );
     return converter12bits.customToThirtyTwo( readValue );
   }
 
   void MotorControlerImpl::setActualVelocity(int velocity){
+    lock_guard guard(_mutex);
     _controlerSPI->write( _id, IDX_ACTUAL_VELOCITY, 
 			  static_cast<unsigned int>(converter12bits.thirtyTwoToCustom(velocity)) );
   }
 
   unsigned int MotorControlerImpl::getActualAcceleration(){
+    lock_guard guard(_mutex);
     return readRegObject( _actualAcceleration );
   }
 
   void MotorControlerImpl::setActualAcceleration(unsigned int acceleration){
+    lock_guard guard(_mutex);
     _controlerSPI->write( _id, IDX_ACTUAL_ACCELERATION, acceleration );
   }
 
   unsigned int MotorControlerImpl::getMicroStepCount(){
+    lock_guard guard(_mutex);
     return readRegObject( _microStepCount );
   }
 
   void MotorControlerImpl::setMicroStepCount(unsigned int microStepCount){
+    lock_guard guard(_mutex);
     _controlerSPI->write( _id, IDX_MICRO_STEP_COUNT, microStepCount );
   }
 
   unsigned int MotorControlerImpl::getCoolStepValue(){
+    lock_guard guard(_mutex);
     return readRegObject( _coolStepValue );
   }
  
   unsigned int MotorControlerImpl::getStallGuardValue(){
+    lock_guard guard(_mutex);
     return readRegObject( _stallGuardValue );
   }
  
   DriverStatusData MotorControlerImpl::getStatus(){
+    lock_guard guard(_mutex);
     return DriverStatusData( readRegObject( _status ) );
   }
  
   void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode){
+    lock_guard guard(_mutex);
     int32_t temporaryWriteWord = static_cast<int32_t>(readoutMode);
     _decoderReadoutMode->writeRaw( &temporaryWriteWord );
   }
 
   unsigned int MotorControlerImpl::getDecoderReadoutMode(){
+    lock_guard guard(_mutex);
      return readRegObject( _decoderReadoutMode );
   }
 
   unsigned int MotorControlerImpl::getDecoderPosition(){
+    lock_guard guard(_mutex);
      return readRegObject( _decoderPosition );
   }
  
   void MotorControlerImpl::setEnabled(bool enable){
+    lock_guard guard(_mutex);
     int32_t enableWord = ( enable ? 1 : 0 );
     _enabled->writeRaw( &enableWord );
   }
 
   bool MotorControlerImpl::isEnabled(){
+    lock_guard guard(_mutex);
      return readRegObject( _enabled );
   }
 
@@ -190,10 +226,12 @@ namespace mtca4u
   DEFINE_GET_SET_VALUE( PositionLatched, IDX_POSITION_LATCHED )
 
   unsigned int MotorControlerImpl::getMaximumVelocity() {
+    lock_guard guard(_mutex);
     return _controlerSPI->read(_id, IDX_MAXIMUM_VELOCITY).getDATA();
   }
 
   void MotorControlerImpl::setMaximumVelocity(unsigned int value) {
+    lock_guard guard(_mutex);
     _currentVmax = value;
     _controlerSPI->write(_id, IDX_MAXIMUM_VELOCITY, value);
   }
@@ -208,19 +246,21 @@ namespace mtca4u
   }
 
   double MotorControlerImpl::getMaxSpeedCapability() {
+    // Does not really need a mutex; shared state is only from _controlerConfig,
+    // which is const - hence no risk of data changing during parallel access.
     auto hardLimitForVmax = _controlerConfig.maximumVelocity;
     return (convertVMaxToUstepsPerSec(hardLimitForVmax));
   }
 
   double MotorControlerImpl::setUserSpeedLimit(double microStepsPerSecond) {
     auto validatedVmax = validateVMaxForHardware(convertUstepsPerSecToVmax(microStepsPerSecond));
+    // This is the critical path; already protected by mutex internally.
     setMaximumVelocity(validatedVmax);
     return convertVMaxToUstepsPerSec(validatedVmax);
   }
 
   double MotorControlerImpl::getUserSpeedLimit() {
-    // FIXME: Do you read in from the card / use _currentVMax? is parallel
-    // access possible/supported
+    lock_guard guard(_mutex);
     return convertVMaxToUstepsPerSec(_currentVmax);
   }
 
@@ -254,6 +294,8 @@ namespace mtca4u
   }
 
   MotorReferenceSwitchData MotorControlerImpl::getReferenceSwitchData(){
+    unique_lock guard(_mutex);
+
     // the bit pattern for the active flags
     unsigned int bitMask = 0x3 << 2*_id;
     
@@ -263,6 +305,10 @@ namespace mtca4u
     // the enabled flags
     MotorReferenceSwitchData motorReferenceSwitchData(dataWord);
     // note: the following code uses the implicit bool conversion to/from 0/1 to keep the code short.
+
+    guard.unlock(); // this is to prevent double lock of the mutex as
+                    // getReferenceConfigAndRampModeData locks the mutex again
+                    // in its scope
     motorReferenceSwitchData.setNegativeSwitchEnabled( !getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
     motorReferenceSwitchData.setPositiveSwitchEnabled( !getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
 
@@ -270,29 +316,32 @@ namespace mtca4u
   }
 
   void MotorControlerImpl::setNegativeReferenceSwitchEnabled(bool enableStatus){
-    // FIXME: protect the following section by mutex
+
+    // getReferenceConfigAndRampModeData internally obtains a mutex
     ReferenceConfigAndRampModeData referenceConfigAndRampModeData = getReferenceConfigAndRampModeData();
 
     referenceConfigAndRampModeData.setDISABLE_STOP_L(!enableStatus);
 
+    // This locks the mutex internally
     setReferenceConfigAndRampModeData(referenceConfigAndRampModeData);
 
     // FIXME: End of mutex protected section
   }
 
   void MotorControlerImpl::setPositiveReferenceSwitchEnabled(bool enableStatus){
-    // FIXME: protect the following section by mutex
+    // referenceConfigAndRampModeData internally obtains mutex
     ReferenceConfigAndRampModeData referenceConfigAndRampModeData = getReferenceConfigAndRampModeData();
 
     referenceConfigAndRampModeData.setDISABLE_STOP_R(!enableStatus);
 
+    // setReferenceConfigAndRampModeData internally obtains mutex
     setReferenceConfigAndRampModeData(referenceConfigAndRampModeData);
 
-    // FIXME: End of mutex protected section
   }
 
 
   bool MotorControlerImpl::targetPositionReached(){
+    lock_guard guard(_mutex);
     int readValue;
     _controlerStatus->readRaw( &readValue );
     TMC429StatusWord controlerStatusWord( readValue );
@@ -301,6 +350,7 @@ namespace mtca4u
   }
 
   unsigned int MotorControlerImpl::getReferenceSwitchBit(){
+    lock_guard guard(_mutex);
     int readValue;
     _controlerStatus->readRaw( &readValue );
     TMC429StatusWord controlerStatusWord( readValue );
@@ -331,15 +381,21 @@ namespace mtca4u
 
   double MotorControlerImpl::setUserCurrentLimit(double currentLimit) {
     auto currentScale = limitCurrentScale(convertAmpsToCurrentScale(currentLimit));
+    // The mutex is obtained inside setCurrentscale; This is the only critical
+    // component that needs to be protected here
     setCurrentScale(currentScale);
     return convertCurrentScaletoAmps(currentScale);
   }
 
   double MotorControlerImpl::getUserCurrentLimit() {
+    lock_guard guard(_mutex);
     return convertCurrentScaletoAmps(_usrSetCurrentScale);
   }
 
   double MotorControlerImpl::getMaxCurrentLimit() {
+    // Does not really need to be protected with mutex; there is no resource
+    // that can be modified on another thread. _controlerConfig is a const
+    // object.
     auto configuredCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
     return convertCurrentScaletoAmps(configuredCurrentScale);
   }
@@ -387,13 +443,14 @@ namespace mtca4u
     // indicator only after the time it takes for the indicator bit to update
     // its value.
     usleep(COMMUNICATION_DELAY);
+    // not getting a mutex here because getStatus() which is the critical
+    // section internally locks the mutex on its own.
     return (!(getStatus().getStandstillIndicator()));
   }
 
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
     auto stallGuardData = _controlerConfig.stallGuardControlData;
     stallGuardData.setCurrentScale(currentScale);
-
     setStallGuardControlData(stallGuardData);
     _usrSetCurrentScale = currentScale;
   }

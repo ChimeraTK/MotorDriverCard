@@ -47,11 +47,12 @@ namespace mtca4u
      virtual void setStallGuardControlData(StallGuardControlData const &  stallGuardControlData)=0;
      virtual void setDriverConfigData(DriverConfigData const &  driverConfigData)=0;
 
-     virtual DriverControlData const & getDriverControlData() const =0; 
+     virtual DriverControlData const & getDriverControlData() const =0;
      virtual ChopperControlData const & getChopperControlData() const =0;
      virtual CoolStepControlData const & getCoolStepControlData() const =0;
      virtual StallGuardControlData const & getStallGuardControlData() const =0;
      virtual DriverConfigData const & getDriverConfigData() const =0;
+
    };
 
 }// namespace mtca4u
