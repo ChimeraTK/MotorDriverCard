@@ -2,6 +2,7 @@
 using namespace boost::unit_test_framework;
 
 #include <sstream>
+#include <thread>
 
 #include "DFMC_MD22Dummy.h"
 #include "MotorDriverCardImpl.h"
@@ -14,6 +15,7 @@ using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 #include <mtca4u/MapFileParser.h>
 #include <mtca4u/Device.h>
+#include <mtca4u/Utilities.h>
 
 using namespace mtca4u::tmc429;
 using namespace mtca4u::tmc260;
@@ -133,6 +135,8 @@ public:
   void testTargetPositionReached();
   void testGetReferenceSwitchBit();
 
+  void testThreadSaftey();
+
 private:
   boost::shared_ptr<MotorControlerImpl> _motorControler;
   boost::shared_ptr<RegisterInfoMap> _registerMapping;
@@ -155,6 +159,7 @@ private:
 			     unsigned int testPattern);
 
   unsigned int testWordFromPCIeSuffix(std::string const & registerSuffix);
+  void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorControler> controller);
 
 };
 
@@ -197,6 +202,8 @@ public:
       ADD_GET_SET_TEST( ActualAcceleration );
       //      ADD_GET_SET_TEST( AccelerationThreshold );
       ADD_GET_SET_TEST( MicroStepCount );
+
+      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
       
       add( BOOST_TEST_CASE(
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
@@ -275,6 +282,21 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::
   message << "read () " <<  ((*_motorControler).*readFunction)() 
 	  << ", expected " << expectedValue << std::endl;
   BOOST_CHECK_MESSAGE( ((*_motorControler).*readFunction)() == expectedValue , message.str());
+}
+
+void MotorControlerTest::testThreadSaftey() {
+
+  mtca4u::setDMapFilePath("./dummies.dmap");
+  boost::shared_ptr<mtca4u::Device> device(new mtca4u::Device());
+  device->open("DFMC_MD22_FOR_CONTROLLER_TESTS");
+  MotorDriverCardImpl driver(device, "MD22_0", MotorDriverCardConfig());
+  auto controller = driver.getMotorControler(0);
+  //couple of threads that loop access
+  auto apiList = std::bind(&MotorControlerTest::listOfMotorControllerPubilcMethods, this, controller);
+  std::thread t1(apiList);
+  std::thread t2(apiList);
+  t1.join();
+  t2.join();
 }
 
 unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
@@ -443,6 +465,71 @@ void MotorControlerTest::testGetReferenceSwitchBit(){
 
   BOOST_CHECK( expectedControlerStatus.getReferenceSwitchBit( _motorControler->getID() ) ==
 	       _motorControler->getReferenceSwitchBit() );
+}
+
+void MotorControlerTest::listOfMotorControllerPubilcMethods(
+    boost::shared_ptr<MotorControler> controller) {
+
+  auto controllerImpl = boost::dynamic_pointer_cast<MotorControlerImpl>(controller);
+  controllerImpl->getID();
+  controllerImpl->getStatus();
+
+  controllerImpl->getStallGuardValue();
+  controllerImpl->getCoolStepValue();
+  controllerImpl->getDecoderPosition();
+  controllerImpl->targetPositionReached();
+  controllerImpl->getReferenceSwitchBit();
+
+  controllerImpl->setActualVelocity(controllerImpl->getActualVelocity());
+  controllerImpl->setActualAcceleration(controllerImpl->getActualAcceleration());
+  controllerImpl->setMicroStepCount(controllerImpl->getMicroStepCount());
+  controllerImpl->setEnabled();
+  controllerImpl->setDecoderReadoutMode(controllerImpl->getDecoderReadoutMode());
+  controllerImpl->setUserSpeedLimit(controllerImpl->getUserSpeedLimit());
+  controllerImpl->setActualPosition(controllerImpl->getActualPosition());
+
+  controllerImpl->getMaxSpeedCapability();
+  controllerImpl->setUserCurrentLimit(controllerImpl->getUserCurrentLimit());
+  controllerImpl->getMaxCurrentLimit();
+  controllerImpl->isEnabled();
+  controllerImpl->isMotorMoving();
+
+  controllerImpl->setPositiveReferenceSwitchEnabled(
+      controllerImpl->getReferenceSwitchData().getPositiveSwitchEnabled());
+  controllerImpl->setNegativeReferenceSwitchEnabled(
+      controllerImpl->getReferenceSwitchData().getNegativeSwitchEnabled());
+
+  controllerImpl->setTargetPosition(controllerImpl->getTargetPosition());
+  controllerImpl->setMinimumVelocity(controllerImpl->getActualVelocity());
+
+  controllerImpl->setMaximumVelocity(controllerImpl->getMaximumVelocity());
+
+  controllerImpl->setTargetVelocity(controllerImpl->getTargetVelocity());
+
+  controllerImpl->setMaximumAcceleration(controllerImpl->getMaximumAcceleration());
+
+  controllerImpl->setPositionTolerance(controllerImpl->getPositionTolerance());
+
+  controllerImpl->setPositionLatched(controllerImpl->getPositionLatched());
+
+  controllerImpl->setAccelerationThresholdData(
+      controllerImpl->getAccelerationThresholdData());
+  controllerImpl->setProportionalityFactorData(
+      controllerImpl->getProportionalityFactorData());
+
+  controllerImpl->setReferenceConfigAndRampModeData(
+      controllerImpl->getReferenceConfigAndRampModeData());
+
+  controllerImpl->setInterruptData(controllerImpl->getInterruptData());
+
+  controllerImpl->setDividersAndMicroStepResolutionData(
+      controllerImpl->getDividersAndMicroStepResolutionData());
+
+  controllerImpl->setDriverControlData(controllerImpl->getDriverControlData());
+  controllerImpl->setChopperControlData(controllerImpl->getChopperControlData());
+  controllerImpl->setCoolStepControlData(controllerImpl->getCoolStepControlData());
+  controllerImpl->setStallGuardControlData(controllerImpl->getStallGuardControlData());
+  controllerImpl->setDriverConfigData(controllerImpl->getDriverConfigData());
 }
 
 }//namespace mtca4u

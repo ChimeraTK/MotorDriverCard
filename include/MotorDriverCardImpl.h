@@ -99,6 +99,7 @@ namespace mtca4u
     friend class MotorControlerTestSuite;
     // The card test tests the constructor, so also here we have to make it friend
     friend class MotorDriverCardTest;
+    friend class MotorControlerTest;
   };
   
 }// namespace mtca4u

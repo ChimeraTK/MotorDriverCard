@@ -285,58 +285,43 @@ namespace mtca4u
 
   template <class T>
   void MotorControlerImpl::setTypedDriverData(T const & driverData, T & localDataInstance){
-    // FIXME: protect the following section by mutex
     _driverSPI.write( driverData.getDataWord() );
     // Remember the written word for readback.
     localDataInstance  = driverData;
         
-    // FIXME: End of mutex protected section
   }
 
   MotorReferenceSwitchData MotorControlerImpl::getReferenceSwitchData(){
-    unique_lock guard(_mutex);
+    lock_guard guard(_mutex);
 
     // the bit pattern for the active flags
     unsigned int bitMask = 0x3 << 2*_id;
     
     unsigned int commonReferenceSwitchWord = _controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
     unsigned int dataWord = (commonReferenceSwitchWord & bitMask) >> 2*_id;
+    auto configAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
 
-    // the enabled flags
-    MotorReferenceSwitchData motorReferenceSwitchData(dataWord);
     // note: the following code uses the implicit bool conversion to/from 0/1 to keep the code short.
-
-    guard.unlock(); // this is to prevent double lock of the mutex as
-                    // getReferenceConfigAndRampModeData locks the mutex again
-                    // in its scope
-    motorReferenceSwitchData.setNegativeSwitchEnabled( !getReferenceConfigAndRampModeData().getDISABLE_STOP_L() );
-    motorReferenceSwitchData.setPositiveSwitchEnabled( !getReferenceConfigAndRampModeData().getDISABLE_STOP_R() );
+    MotorReferenceSwitchData motorReferenceSwitchData(dataWord);
+    motorReferenceSwitchData.setNegativeSwitchEnabled( !configAndRampModeData.getDISABLE_STOP_L() );
+    motorReferenceSwitchData.setPositiveSwitchEnabled( !configAndRampModeData.getDISABLE_STOP_R() );
 
     return motorReferenceSwitchData;
   }
 
   void MotorControlerImpl::setNegativeReferenceSwitchEnabled(bool enableStatus){
-
-    // getReferenceConfigAndRampModeData internally obtains a mutex
-    ReferenceConfigAndRampModeData referenceConfigAndRampModeData = getReferenceConfigAndRampModeData();
-
+    lock_guard guard(_mutex);
+    auto referenceConfigAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     referenceConfigAndRampModeData.setDISABLE_STOP_L(!enableStatus);
-
-    // This locks the mutex internally
-    setReferenceConfigAndRampModeData(referenceConfigAndRampModeData);
-
-    // FIXME: End of mutex protected section
+    writeTypedControlerRegister(referenceConfigAndRampModeData);
   }
 
   void MotorControlerImpl::setPositiveReferenceSwitchEnabled(bool enableStatus){
-    // referenceConfigAndRampModeData internally obtains mutex
-    ReferenceConfigAndRampModeData referenceConfigAndRampModeData = getReferenceConfigAndRampModeData();
-
+    lock_guard guard(_mutex);
+    auto referenceConfigAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     referenceConfigAndRampModeData.setDISABLE_STOP_R(!enableStatus);
-
     // setReferenceConfigAndRampModeData internally obtains mutex
-    setReferenceConfigAndRampModeData(referenceConfigAndRampModeData);
-
+    writeTypedControlerRegister(referenceConfigAndRampModeData);
   }
 
 

@@ -1,3 +1,4 @@
+DFMC_MD22_FOR_CONTROLLER_TESTS sdm://./dfmc_md22dummy=DFMC_MD22_test.mapp,MD22_0 DFMC_MD22_test.mapp 
 DFMC_MD22 sdm://./dfmc_md22dummy=DFMC_MD22_test.mapp,MD22_0 DFMC_MD22_test.mapp 
 DFMC_MD22_PERSISTENT_BACKEND sdm://./dfmc_md22dummy:instance1=DFMC_MD22_test.mapp,MD22_0 DFMC_MD22_test.mapp 
 PCIE2     sdm://./pci:mtcadummys0; mtcadummy_DFMC_MD22_mock.mapp
