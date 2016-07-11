@@ -3,6 +3,9 @@
 
 #include <iostream>
 
+typedef std::lock_guard<std::mutex> lock_guard;
+typedef std::unique_lock<std::mutex> unique_lock;
+
 namespace mtca4u {
 
     int const MotorControlerDummy::_positiveEndSwitchPosition = 10000;
@@ -15,25 +18,30 @@ namespace mtca4u {
     }
 
     unsigned int MotorControlerDummy::getID() {
-        return _id;
+      lock_guard guard(_motorControllerDummyMutex);
+      return _id;
     }
 
     int MotorControlerDummy::getActualPosition() {
-        return _currentPosition;
+      lock_guard guard(_motorControllerDummyMutex);
+      return _currentPosition;
     }
 
     int MotorControlerDummy::getActualVelocity() {
-        // the velocity is only not zero if the motor is actually moving
-        // FIXME: or if the motor is stepping?
-        if (isMotorMoving()) {
-            return ( _targetPosition < _currentPosition ? -25 : 25);
-        } else {
-            return 0;
-        }
+      lock_guard guard(_motorControllerDummyMutex);
+      // the velocity is only not zero if the motor is actually moving
+      // FIXME: or if the motor is stepping?
+      bool isMotorMoving = (_enabled && isStepping());
+      if (isMotorMoving) {
+        return (_targetPosition < _currentPosition ? -25 : 25);
+      } else {
+        return 0;
+      }
     }
 
     bool MotorControlerDummy::isMotorMoving() {
-        return (_enabled && isStepping());
+      lock_guard guard(_motorControllerDummyMutex);
+      return (_enabled && isStepping());
     }
 
     bool MotorControlerDummy::isStepping() {
@@ -70,24 +78,29 @@ namespace mtca4u {
     }
 
     unsigned int MotorControlerDummy::getMicroStepCount() {
-        // I actually don't know what to return. I use the current position....
-        return _currentPosition;
+      lock_guard guard(_motorControllerDummyMutex);
+      // I actually don't know what to return. I use the current position....
+      return _currentPosition;
     }
 
     DriverStatusData MotorControlerDummy::getStatus() {
-        DriverStatusData statusData;
-        statusData.setStandstillIndicator(!isMotorMoving());
-        return statusData;
+      lock_guard guard(_motorControllerDummyMutex);
+      DriverStatusData statusData;
+      bool isMotorMoving = (_enabled && isStepping());
+      statusData.setStandstillIndicator(!isMotorMoving);
+      return statusData;
     }
 
     unsigned int MotorControlerDummy::getDecoderReadoutMode() {
-        // I think this is absolute postion
-        return DecoderReadoutMode::HEIDENHAIN;
+      lock_guard guard(_motorControllerDummyMutex);
+      // I think this is absolute postion
+      return DecoderReadoutMode::HEIDENHAIN;
     }
 
     unsigned int MotorControlerDummy::getDecoderPosition() {
-        // make the negative end switch "decoder 0"
-        return _absolutePosition - _negativeEndSwitchPosition;
+      lock_guard guard(_motorControllerDummyMutex);
+      // make the negative end switch "decoder 0"
+      return _absolutePosition - _negativeEndSwitchPosition;
     }
 
     void MotorControlerDummy::setActualVelocity(int /*stepsPerFIXME*/) {
@@ -103,7 +116,8 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::setEnabled(bool enable) {
-        _enabled = enable;
+      lock_guard guard(_motorControllerDummyMutex);
+      _enabled = enable;
     }
 
     void MotorControlerDummy::setDecoderReadoutMode(unsigned int /*decoderReadoutMode*/) {
@@ -111,39 +125,46 @@ namespace mtca4u {
     }
 
     bool MotorControlerDummy::isEnabled() {
-        return _enabled;
+      lock_guard guard(_motorControllerDummyMutex);
+      return _enabled;
     }
 
     MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {
-        MotorReferenceSwitchData motorReferenceSwitchData;
-        motorReferenceSwitchData.setPositiveSwitchEnabled(_positiveEndSwitchEnabled);
-        motorReferenceSwitchData.setNegativeSwitchEnabled(_negativeEndSwitchEnabled);
+      lock_guard guard(_motorControllerDummyMutex);
+      MotorReferenceSwitchData motorReferenceSwitchData;
+      motorReferenceSwitchData.setPositiveSwitchEnabled(_positiveEndSwitchEnabled);
+      motorReferenceSwitchData.setNegativeSwitchEnabled(_negativeEndSwitchEnabled);
 
 
-        motorReferenceSwitchData.setPositiveSwitchActive(isPositiveEndSwitchActive());
-        motorReferenceSwitchData.setNegativeSwitchActive(isNegativeEndSwitchActive());
+      motorReferenceSwitchData.setPositiveSwitchActive(isPositiveEndSwitchActive());
+      motorReferenceSwitchData.setNegativeSwitchActive(isNegativeEndSwitchActive());
 
-        return motorReferenceSwitchData;
+      return motorReferenceSwitchData;
     }
 
     void MotorControlerDummy::setPositiveReferenceSwitchEnabled(bool enableStatus) {
-        _positiveEndSwitchEnabled = enableStatus;
+      lock_guard guard(_motorControllerDummyMutex);
+      _positiveEndSwitchEnabled = enableStatus;
     }
 
     void MotorControlerDummy::setNegativeReferenceSwitchEnabled(bool enableStatus) {
-        _negativeEndSwitchEnabled = enableStatus;
+      lock_guard guard(_motorControllerDummyMutex);
+      _negativeEndSwitchEnabled = enableStatus;
     }
 
     void MotorControlerDummy::setActualPosition(int steps) {
-        _currentPosition = steps;
+      lock_guard guard(_motorControllerDummyMutex);
+      _currentPosition = steps;
     }
 
     void MotorControlerDummy::setTargetPosition(int steps) {
-        _targetPosition = steps;
+      lock_guard guard(_motorControllerDummyMutex);
+      _targetPosition = steps;
     }
 
     int MotorControlerDummy::getTargetPosition() {
-        return _targetPosition;
+      lock_guard guard(_motorControllerDummyMutex);
+      return _targetPosition;
     }
 
     void MotorControlerDummy::setMinimumVelocity(unsigned int /*stepsPerFIXME*/) {
@@ -195,12 +216,14 @@ namespace mtca4u {
     }
 
     bool MotorControlerDummy::targetPositionReached() {
-        return (_currentPosition == _targetPosition);
+      lock_guard guard(_motorControllerDummyMutex);
+      return (_currentPosition == _targetPosition);
     }
 
     unsigned int MotorControlerDummy::getReferenceSwitchBit() {
-        return static_cast<unsigned int> (isPositiveEndSwitchActive() ||
-                isNegativeEndSwitchActive());
+      lock_guard guard(_motorControllerDummyMutex);
+      return static_cast<unsigned int>(isPositiveEndSwitchActive() ||
+                                       isNegativeEndSwitchActive());
     }
 
     bool MotorControlerDummy::isPositiveEndSwitchActive() {
@@ -235,6 +258,7 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::resetInternalStateToDefaults() {
+      lock_guard guard(_motorControllerDummyMutex);
       _absolutePosition = 0;
       _targetPosition = 0;
       _currentPosition = 0;
@@ -253,7 +277,7 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::moveTowardsTarget(float fraction, bool block, bool bothEndSwitchesAlwaysOn, bool zeroPositions) {
-       
+      lock_guard guard(_motorControllerDummyMutex);
         if (zeroPositions) {
             _absolutePosition = 0;
             _targetPosition = 0;
@@ -319,6 +343,7 @@ namespace mtca4u {
     }
 
     void MotorControlerDummy::simulateBlockedMotor(bool state) {
+      lock_guard guard(_motorControllerDummyMutex);
       _blockMotor = state;
     }
     } // namespace mtca4u
