@@ -160,6 +160,7 @@ private:
 
   unsigned int testWordFromPCIeSuffix(std::string const & registerSuffix);
   void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorControler> controller);
+  boost::shared_ptr<MotorControler> createMotorController();
 
 };
 
@@ -285,18 +286,23 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::
 }
 
 void MotorControlerTest::testThreadSaftey() {
-
-  mtca4u::setDMapFilePath("./dummies.dmap");
-  boost::shared_ptr<mtca4u::Device> device(new mtca4u::Device());
-  device->open("DFMC_MD22_FOR_CONTROLLER_TESTS");
-  MotorDriverCardImpl driver(device, "MD22_0", MotorDriverCardConfig());
-  auto controller = driver.getMotorControler(0);
-  //couple of threads that loop access
+//FIXME: these tests may not be complex enough
+  auto controller = createMotorController();
   auto apiList = std::bind(&MotorControlerTest::listOfMotorControllerPubilcMethods, this, controller);
   std::thread t1(apiList);
   std::thread t2(apiList);
+  std::thread t3(apiList);
+  std::thread t4(apiList);
+  std::thread t5(apiList);
+  std::thread t6(apiList);
+  std::thread t7(apiList);
   t1.join();
   t2.join();
+  t3.join();
+  t4.join();
+  t5.join();
+  t6.join();
+  t7.join();
 }
 
 unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
@@ -532,7 +538,16 @@ void MotorControlerTest::listOfMotorControllerPubilcMethods(
   controllerImpl->setDriverConfigData(controllerImpl->getDriverConfigData());
 }
 
-}//namespace mtca4u
+inline boost::shared_ptr<MotorControler>
+MotorControlerTest::createMotorController() {
+  mtca4u::setDMapFilePath("./dummies.dmap");
+  boost::shared_ptr<mtca4u::Device> device(new mtca4u::Device());
+  device->open("DFMC_MD22_FOR_CONTROLLER_TESTS");
+  boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));
+  return driver->getMotorControler(0);
+}
+
+} // namespace mtca4u
 
 test_suite*
 init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
