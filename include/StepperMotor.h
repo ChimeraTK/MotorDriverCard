@@ -457,7 +457,7 @@ namespace mtca4u {
         //flag which indicate error in blocking function
         bool _blockingFunctionActive;
         Logger _logger;
-        boost::mutex _mutex;
+        mutable boost::mutex _mutex;
     };
 
 } //namespace mtca4u

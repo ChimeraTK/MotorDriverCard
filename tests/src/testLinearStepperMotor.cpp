@@ -701,18 +701,17 @@ void LinearStepperMotorTest::testIsMoving() {
 
 bool LinearStepperMotorTest::isMoveToNegativeEndSwitchRequested() {
   return _motorControlerDummy->getTargetPosition() <=
-         _stepperMotor->getNegativeEndSwitchPosition();
+         MotorControlerDummy::_negativeEndSwitchPosition;
 }
 
 bool LinearStepperMotorTest::isMoveToPositiveEndSwitchRequested() {
   return _motorControlerDummy->getTargetPosition() >=
-         _stepperMotor->getPositiveEndSwitchPosition();
+         MotorControlerDummy::_positiveEndSwitchPosition;
 }
-
 
 bool LinearStepperMotorTest::isMoveToValidPositionRequested() {
   return (_motorControlerDummy->getTargetPosition() <
-          _stepperMotor->getPositiveEndSwitchPosition()) &&
+          MotorControlerDummy::_positiveEndSwitchPosition) &&
          (_motorControlerDummy->getTargetPosition() >
-          _stepperMotor->getNegativeEndSwitchPosition());
+          MotorControlerDummy::_negativeEndSwitchPosition);
 }

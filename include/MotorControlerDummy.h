@@ -2,6 +2,7 @@
 #define MTCA4U_MOTOR_CONTROLER_DUMMY_H
 
 #include "MotorControler.h"
+#include <mutex>
 
 #define MCD_DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -115,6 +116,7 @@ namespace mtca4u{
     static const int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
     static const int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
+    mutable std::mutex _motorControllerDummyMutex;
     int _absolutePosition; ///< Like the real absolute position of a motor, in steps
 
 

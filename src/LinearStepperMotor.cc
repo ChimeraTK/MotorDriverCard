@@ -164,6 +164,7 @@ namespace mtca4u {
     }
 
     void LinearStepperMotor::stop() {
+        boost::lock_guard<boost::mutex> lock_guard(_mutex);
         if (getCalibrationStatus() == StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS)
             _stopMotorCalibration = true;
 
@@ -188,10 +189,12 @@ namespace mtca4u {
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
     float LinearStepperMotor::getPositiveEndSwitchPosition() const {
+        boost::lock_guard<boost::mutex> lock_guard(_mutex);
         return _calibPositiveEndSwitchInUnits;
     }
 
     float LinearStepperMotor::getNegativeEndSwitchPosition() const {
+        boost::lock_guard<boost::mutex> lock_guard(_mutex);
         return _calibNegativeEndSwitchInUnits;
     }
     
