@@ -11,7 +11,7 @@
 
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
+#include <mutex>
 
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
@@ -457,7 +457,7 @@ namespace mtca4u {
         //flag which indicate error in blocking function
         bool _blockingFunctionActive;
         Logger _logger;
-        mutable boost::mutex _mutex;
+        mutable std::mutex _mutex;
     };
 
 } //namespace mtca4u

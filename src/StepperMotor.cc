@@ -299,7 +299,7 @@ namespace mtca4u {
     StepperMotorStatusAndError StepperMotor::determineMotorStatusAndError() {
 
         //InternalMutex intMutex(this);
-        boost::lock_guard<boost::mutex> guard(_mutex);
+        std::lock_guard<std::mutex> guard(_mutex);
         
         _motorStatus = StepperMotorStatusTypes::M_OK;
         _motorError = StepperMotorErrorTypes::M_NO_ERROR;
