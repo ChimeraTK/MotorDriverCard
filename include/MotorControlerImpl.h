@@ -5,7 +5,6 @@
 
 #include <boost/noncopyable.hpp>
 #include <mutex>
-#include <atomic>
 
 #include "MotorControlerConfig.h"
 #include "SignedIntConverter.h"

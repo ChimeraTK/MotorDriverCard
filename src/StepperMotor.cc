@@ -1,50 +1,56 @@
 #include "StepperMotor.h"
 #include <cmath>
+#include <exception>
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 
 namespace mtca4u {
 
+StepperMotor::StepperMotor(std::string const& motorDriverCardDeviceName,
+                           std::string const& moduleName,
+                           unsigned int motorDriverId,
+                           std::string motorDriverCardConfigFileName)
+    : _isAccessToHardWareSafe(true),
+      _isSetTargetPositionRequested(false),
+      _stopMonitoringThread(false) {
+  _motorDriverId = motorDriverId;
+  _motorDriverCardDeviceName = motorDriverCardDeviceName;
 
-    	StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) {
-        _motorDriverId = motorDriverId;
-        _motorDriverCardDeviceName = motorDriverCardDeviceName;
+  _motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
+      motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
 
-        //std::string deviceFileName(DMapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).dev_file);
-        //std::string mapFileName(DMapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
+  _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
 
-        /*_motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
-                                deviceFileName, mapFileName, moduleName, motorDriverCardConfigFileName);*/
+  // position limits
+  _maxPositionLimit = std::numeric_limits<float>::max();
+  _minPositionLimit = -std::numeric_limits<float>::max();
 
-        _motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
-        		motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
+  // position - don't know so set to 0
+  _currentPostionsInSteps = 0;
+  _currentPostionsInUnits = 0;
 
+  _targetPositionInSteps = 0;
+  _targetPositionInUnits = 0;
 
+  _autostartFlag = false;
 
+  _stopMotorForBlocking = false;
+  _blockingFunctionActive = false;
 
-        _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
+  _softwareLimitsEnabled = true;
+  _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
 
-        //position limits
-        _maxPositionLimit = std::numeric_limits<float>::max();
-        _minPositionLimit = -std::numeric_limits<float>::max();
-
-        // position - don't know so set to 0
-        _currentPostionsInSteps = 0;
-        _currentPostionsInUnits = 0;
-
-        _targetPositionInSteps = 0;
-        _targetPositionInUnits = 0;
-
-        _autostartFlag = false;
-
-        _stopMotorForBlocking = false;
-        _blockingFunctionActive = false;
-
-        _softwareLimitsEnabled = true;
-        _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
-    }
+  _monitoringThread = std::move(
+      std::thread(&StepperMotor::killHoldingCurrentAtEndOfMovement, this));
+}
 
     StepperMotor::~StepperMotor() {
+      stop();
+      std::unique_lock<std::mutex> guard(_conditionVariableMutex);
+      _stopMonitoringThread = true;
+      _conditionVariable.notify_one();
+      guard.unlock();
+      _monitoringThread.join();
     }
 
 
@@ -91,9 +97,8 @@ namespace mtca4u {
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     void StepperMotor::start() {
-      // allowing it when status is MOTOR_IN_MOVE give a possibility to change
-      // target position during motor movement
-      _motorControler->setTargetPosition(_targetPositionInSteps);
+     // must not change position when we are performing the action
+      triggerMove();
     }
 
     void StepperMotor::stop() {
@@ -351,8 +356,68 @@ namespace mtca4u {
 
         return StepperMotorStatusAndError(_motorStatus, _motorError);
     }
+
+    void StepperMotor::killHoldingCurrentAtEndOfMovement() {
+      auto checkUnblockCondition = [&]() {
+        return ((_isSetTargetPositionRequested == true) ||
+                (_stopMonitoringThread == true));
+      };
+
+      while (true) {
+        if (_stopMonitoringThread == true) { // exit thread.
+          break;
+        }
+
+        // Block the thread till an incoming move request or exit request
+        std::unique_lock<std::mutex> guard(_conditionVariableMutex);
+        _conditionVariable.wait(guard, checkUnblockCondition);
+        _isSetTargetPositionRequested = false; // reset indicator flag
+        guard.unlock();
+
+        // We entertain requests for setTarget position when an move is already
+        // in progress; setting the target position when the loop is running
+        // would only end up lengthening/ shortening the poll time
+        while (_motorControler->isMotorMoving() == true) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        _isAccessToHardWareSafe = false;
+
+        guard.lock();
+        // Protect this section. We do not want to let the motor move to a
+        // target position when here; Reason being the code below can kill the
+        // motor before movement is done.
+        if (true) {
+          killHoldingCurrent();
+        }
+        _isAccessToHardWareSafe = true;
+        _conditionVariable.notify_all();
+      }
     }
 
-    bool mtca4u::StepperMotor::isMoving() {
+    bool StepperMotor::isMoving() {
+      if (_isAccessToHardWareSafe == false) {
+        std::unique_lock<std::mutex> guard(_conditionVariableMutex);
+        _conditionVariable.wait(
+            guard, [&]() { return (_isAccessToHardWareSafe == true); });
+      }
       return (_motorControler->isMotorMoving());
     }
+
+    void StepperMotor::killHoldingCurrent() {
+      std::cout << "killing Holding current" << std::endl;
+    }
+
+    void StepperMotor::triggerMove() {
+      if (_isAccessToHardWareSafe == false){
+      std::unique_lock<std::mutex> guard(_conditionVariableMutex);
+        _conditionVariable.wait(
+            guard, [&]() { return (_isAccessToHardWareSafe == true); });
+      }
+      _motorControler->setTargetPosition(_targetPositionInSteps);
+      _isSetTargetPositionRequested = true;
+      _conditionVariable.notify_all();
+    }
+
+
+    } // namespace mtca4u
+
