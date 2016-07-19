@@ -287,6 +287,7 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::
 
 void MotorControlerTest::testThreadSaftey() {
 //FIXME: these tests may not be complex enough
+// These tests are meant to be run with thread sanitizer/ Helgrind
   auto controller = createMotorController();
   auto apiList = std::bind(&MotorControlerTest::listOfMotorControllerPubilcMethods, this, controller);
   std::thread t1(apiList);

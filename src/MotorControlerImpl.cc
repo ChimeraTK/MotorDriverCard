@@ -8,7 +8,6 @@ using namespace mtca4u::tmc429;
 #include "MotorDriverCardImpl.h"
 #include <mtca4u/Device.h>
 #include <cmath>
-//#include <>
 
 // just save some typing...
 #define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
@@ -299,10 +298,10 @@ namespace mtca4u
     
     unsigned int commonReferenceSwitchWord = _controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
     unsigned int dataWord = (commonReferenceSwitchWord & bitMask) >> 2*_id;
-    auto configAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
-
     // note: the following code uses the implicit bool conversion to/from 0/1 to keep the code short.
     MotorReferenceSwitchData motorReferenceSwitchData(dataWord);
+
+    auto configAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     motorReferenceSwitchData.setNegativeSwitchEnabled( !configAndRampModeData.getDISABLE_STOP_L() );
     motorReferenceSwitchData.setPositiveSwitchEnabled( !configAndRampModeData.getDISABLE_STOP_R() );
 
@@ -366,8 +365,8 @@ namespace mtca4u
 
   double MotorControlerImpl::setUserCurrentLimit(double currentLimit) {
     auto currentScale = limitCurrentScale(convertAmpsToCurrentScale(currentLimit));
-    // The mutex is obtained inside setCurrentscale; This is the only critical
-    // component that needs to be protected here
+    // setCurrent scale internally acquires mutex and is protected against
+    // parallel access.
     setCurrentScale(currentScale);
     return convertCurrentScaletoAmps(currentScale);
   }

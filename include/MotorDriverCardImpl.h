@@ -94,12 +94,14 @@ namespace mtca4u
     // The factory needs access to the constructor because it is the only official ways
     // to create a MotorDriverCard
     friend class MotorDriverCardFactory;
-    // The test suite is granted access to the constructor because it needs access
+   
+ // The test suite is granted access to the constructor because it needs access
     // to the dummy device below to set it to testing mode.
     friend class MotorControlerTestSuite;
+    friend class MotorControlerTest;
+
     // The card test tests the constructor, so also here we have to make it friend
     friend class MotorDriverCardTest;
-    friend class MotorControlerTest;
   };
   
 }// namespace mtca4u
