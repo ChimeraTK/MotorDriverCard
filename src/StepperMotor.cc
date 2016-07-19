@@ -40,17 +40,17 @@ StepperMotor::StepperMotor(std::string const& motorDriverCardDeviceName,
   _softwareLimitsEnabled = true;
   _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
 
-  _monitoringThread = std::move(
-      std::thread(&StepperMotor::killHoldingCurrentAtEndOfMovement, this));
+/*  _monitoringThread = std::move(
+      std::thread(&StepperMotor::killHoldingCurrentAtEndOfMovement, this));*/
 }
 
     StepperMotor::~StepperMotor() {
-      stop();
+/*      stop();
       std::unique_lock<std::mutex> guard(_conditionVariableMutex);
       _stopMonitoringThread = true;
       _conditionVariable.notify_one();
       guard.unlock();
-      _monitoringThread.join();
+      _monitoringThread.join()*/;
     }
 
 
@@ -59,28 +59,33 @@ StepperMotor::StepperMotor(std::string const& motorDriverCardDeviceName,
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     StepperMotorStatusAndError StepperMotor::moveToPosition(float newPosition) {
-        
-        StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
-        if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
-            return statusAndError;
-        }
-       
-        _blockingFunctionActive = true;
-        // Ask the hardware to move the motor.
-        this->setTargetPosition(newPosition);
-        if (!this->getAutostart()) {
-            this->start();
-        }
 
-        // Block till the motor has finished moving.
-        while (StepperMotor::isMoving()){
-            usleep(1000);
-        }
+      StepperMotorStatusAndError statusAndError =
+          this->determineMotorStatusAndError();
+      if (statusAndError.status == StepperMotorStatusTypes::M_ERROR ||
+          statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
+        return statusAndError;
+      }
 
-        // update and return status and error once at target position.
-        _blockingFunctionActive = false;
+      _blockingFunctionActive = true;
+      // Ask the hardware to move the motor.
+      this->setTargetPosition(newPosition);
+      triggerMove();
 
-        return(this->determineMotorStatusAndError());
+      while (_motorControler->isMotorMoving() == true) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+      _isAccessToHardWareSafe = false;
+
+      std::unique_lock<std::mutex> guard(_conditionVariableMutex);
+      killHoldingCurrent();
+      _isAccessToHardWareSafe = true;
+      _conditionVariable.notify_all();
+
+      // update and return status and error once at target position.
+      _blockingFunctionActive = false;
+
+      return (this->determineMotorStatusAndError());
     }
 
     StepperMotorCalibrationStatus StepperMotor::calibrateMotor() {
