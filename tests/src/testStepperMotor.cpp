@@ -508,7 +508,7 @@ void StepperMotorTest::thread(int testCase) {
   if (testCase == 1) {
     
     // do not proceed till the parent thread has asked the moter to move
-    if (_stepperMotor->isMoving() != false) {
+    if (_stepperMotor->isMoving() == false) {
       usleep(10000);
     }
     // simulate the movement
@@ -517,7 +517,7 @@ void StepperMotorTest::thread(int testCase) {
 
   if (testCase == 2) {
     // do not proceed till the parent thread has asked the moter to move
-    if (_stepperMotor->isMoving() != false) {
+    if (_stepperMotor->isMoving() == false) {
       usleep(10000);
     }
     // simulate the movement
