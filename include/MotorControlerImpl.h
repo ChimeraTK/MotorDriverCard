@@ -4,6 +4,7 @@
 #include "MotorControlerExpert.h"
 
 #include <boost/noncopyable.hpp>
+#include <mutex>
 
 #include "MotorControlerConfig.h"
 #include "SignedIntConverter.h"
@@ -155,12 +156,12 @@ namespace mtca4u
      void setStallGuardControlData(StallGuardControlData const &  stallGuardControlData);
      void setDriverConfigData(DriverConfigData const &  driverConfigData);
 
-     DriverControlData const & getDriverControlData() const; 
+     DriverControlData const & getDriverControlData() const;
      ChopperControlData const & getChopperControlData() const;
      CoolStepControlData const & getCoolStepControlData() const;
      StallGuardControlData const & getStallGuardControlData() const;
      DriverConfigData const & getDriverConfigData() const;
- 
+
      bool targetPositionReached();
 
      unsigned int getReferenceSwitchBit();
@@ -168,7 +169,9 @@ namespace mtca4u
   private:
 
      static const unsigned int COMMUNICATION_DELAY= 20000; /// in microseconds
-
+     // Reason for mtable keyword:
+     // http://stackoverflow.com/questions/25521570/can-mutex-locking-function-be-marked-as-const
+     mutable std::mutex _mutex;
      boost::shared_ptr< Device > _device;
 
      unsigned int _id;
