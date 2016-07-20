@@ -14,7 +14,7 @@ namespace mtca4u {
     MotorControlerDummy::MotorControlerDummy(unsigned int id)
     : _absolutePosition(0), _targetPosition(0), _currentPosition(0),
     _positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true),
-    _enabled(false), _id(id), _blockMotor(false), _bothEndSwitchesAlwaysOn(false) {
+    _holdingCurrentEnabled(false), _endSwitchPowerEnabled(false), _id(id), _blockMotor(false), _bothEndSwitchesAlwaysOn(false) {
     }
 
     unsigned int MotorControlerDummy::getID() {
@@ -31,8 +31,8 @@ namespace mtca4u {
       lock_guard guard(_motorControllerDummyMutex);
       // the velocity is only not zero if the motor is actually moving
       // FIXME: or if the motor is stepping?
-      bool isMotorMoving = (_enabled && isStepping());
-      if (isMotorMoving) {
+      bool motorMoving = (_holdingCurrentEnabled && isStepping());
+      if (motorMoving) {
         return (_targetPosition < _currentPosition ? -25 : 25);
       } else {
         return 0;
@@ -41,7 +41,7 @@ namespace mtca4u {
 
     bool MotorControlerDummy::isMotorMoving() {
       lock_guard guard(_motorControllerDummyMutex);
-      return (_enabled && isStepping());
+      return (_holdingCurrentEnabled && isStepping());
     }
 
     bool MotorControlerDummy::isStepping() {
@@ -86,8 +86,8 @@ namespace mtca4u {
     DriverStatusData MotorControlerDummy::getStatus() {
       lock_guard guard(_motorControllerDummyMutex);
       DriverStatusData statusData;
-      bool isMotorMoving = (_enabled && isStepping());
-      statusData.setStandstillIndicator(!isMotorMoving);
+      bool motorMoving = (_holdingCurrentEnabled && isStepping());
+      statusData.setStandstillIndicator(!motorMoving);
       return statusData;
     }
 
@@ -117,7 +117,7 @@ namespace mtca4u {
 
     void MotorControlerDummy::setEnabled(bool enable) {
       lock_guard guard(_motorControllerDummyMutex);
-      _enabled = enable;
+      _holdingCurrentEnabled = enable;
     }
 
     void MotorControlerDummy::setDecoderReadoutMode(unsigned int /*decoderReadoutMode*/) {
@@ -126,7 +126,7 @@ namespace mtca4u {
 
     bool MotorControlerDummy::isEnabled() {
       lock_guard guard(_motorControllerDummyMutex);
-      return _enabled;
+      return _holdingCurrentEnabled;
     }
 
     MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {
@@ -268,8 +268,26 @@ namespace mtca4u {
       _blockMotor = false;
   }
 
+  void MotorControlerDummy::enableHoldingCurrent(bool enable) {
+      lock_guard guard(_motorControllerDummyMutex);
+      _holdingCurrentEnabled = enable;
+  }
 
-    bool MotorControlerDummy::isNegativeEndSwitchActive() {
+  bool MotorControlerDummy::isHoldingCurrentEnabled() {
+    lock_guard guard(_motorControllerDummyMutex);
+    return _holdingCurrentEnabled;
+  }
+
+  void MotorControlerDummy::enableEndSwitchPower(bool enable) {
+      lock_guard guard(_motorControllerDummyMutex);
+      _endSwitchPowerEnabled = enable;
+  }
+  bool MotorControlerDummy::isEndSwitchPowerEnabled() {
+    lock_guard guard(_motorControllerDummyMutex);
+    return _endSwitchPowerEnabled;
+  }
+
+  bool MotorControlerDummy::isNegativeEndSwitchActive() {
         if (_bothEndSwitchesAlwaysOn)
             return true;
         
@@ -312,7 +330,7 @@ namespace mtca4u {
         int absoluteTargetInThisMove = _absolutePosition + relativeSteps;
         int targetInThisMove = _currentPosition + relativeSteps;
 
-        if (!_enabled) {
+        if (!_holdingCurrentEnabled) {
             // the motor is stepping to the target position, but the actual positon 
             // does not change. Thus no end switch will be hit.
             _currentPosition = targetInThisMove;

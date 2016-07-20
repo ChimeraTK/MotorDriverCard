@@ -42,7 +42,8 @@ namespace dfmc_md22{
   std::string const COOL_STEP_VALUE_SUFFIX = "CoolStep_VAL";
   std::string const STALL_GUARD_VALUE_SUFFIX = "SGUARD_VAL";
   std::string const STATUS_SUFFIX = "STATUS";
-  std::string const ENABLE_SUFFIX = "ENABLE";
+  std::string const HOLDING_CURRENT_ENABLE_SUFFIX = "ENABLE";
+  std::string const ENDSWITCH_ENABLE_SUFFIX = "VOLTAGE_EN";
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
 

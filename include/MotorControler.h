@@ -65,12 +65,19 @@ namespace mtca4u
 
     virtual void setActualAcceleration(unsigned int stepsPerSquareFIXME)=0;
     virtual void setMicroStepCount(unsigned int microStepCount)=0;
-    virtual void setEnabled(bool enable=true)=0; ///< Enable or disable the motor driver chip
+
+    virtual void setEnabled(bool enable=true)=0; ///< @deprecated Use enableHoldingCurrent instead.
     virtual void setDecoderReadoutMode(unsigned int decoderReadoutMode)=0;
 
-    virtual bool isEnabled()=0; ///< Check whether the motor driver chip is enabled
+    virtual bool isEnabled()=0; ///< @deprecated Use isHoldingCurrentEnabled instead.
     
     virtual bool isMotorMoving()=0; ///< check if the motor is moving.
+
+    virtual void enableHoldingCurrent(bool enable = true) = 0;
+    virtual bool isHoldingCurrentEnabled() = 0;
+
+    virtual void enableEndSwitchPower(bool enable = true) = 0;
+    virtual bool isEndSwitchPowerEnabled() = 0;
 
     virtual MotorReferenceSwitchData getReferenceSwitchData()=0; ///< Get information about both reference switches of this Motor
 
