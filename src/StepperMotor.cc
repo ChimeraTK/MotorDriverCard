@@ -234,11 +234,19 @@ namespace mtca4u {
     }
 
     void StepperMotor::setEnabled(bool enable) {
-        _motorControler->setEnabled(enable);
+      boost::lock_guard<boost::mutex> guard(_mutex);
+      _motorControler->enableHoldingCurrent(enable);
+      _motorControler->enableEndSwitchPower(enable);
     }
 
     bool StepperMotor::getEnabled() const {
-        return _motorControler->isEnabled();
+      boost::lock_guard<boost::mutex> guard(_mutex);
+      // card is disabled and safe to plug out only when both holding current
+      // and endswitch power is killed
+      // for the old firmware version isHoldingCurrentEnabled always returns
+      // false (End switch power is not applicable in this scenario).
+      return (_motorControler->isEndSwitchPowerEnabled() ||
+              _motorControler->isHoldingCurrentEnabled());
     }
 
     void StepperMotor::setLogLevel(Logger::LogLevel newLevel) {

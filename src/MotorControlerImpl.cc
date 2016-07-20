@@ -82,7 +82,7 @@ namespace mtca4u
       _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
       _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
       _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
-      _enabled( REG_OBJECT_FROM_SUFFIX( ENABLE_SUFFIX, moduleName ) ),
+      _enabled( REG_OBJECT_FROM_SUFFIX( HOLDING_CURRENT_ENABLE_SUFFIX, moduleName ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
       _driverSPI( device, moduleName,
@@ -116,6 +116,18 @@ namespace mtca4u
 
     // enabling the motor is the last step after setting all registers
     setEnabled( motorControlerConfig.enabled );
+
+    try {
+      // this must throw on mapfile not having this register
+      _endSwithPowerIndicator =
+          REG_OBJECT_FROM_SUFFIX(ENDSWITCH_ENABLE_SUFFIX, moduleName);
+    }
+    catch (std::exception& a) {
+      // ignore exception when creating the accessor with the consequence that
+      // _endSwithPowerIndicator becomes a nullptr. This happens when the
+      // library is used with old firmware that does not have the
+      // WORD_M1_VOLTAGE_EN register in the mapfile.
+    }
   }
 
   unsigned int MotorControlerImpl::getID(){
@@ -205,16 +217,15 @@ namespace mtca4u
     lock_guard guard(_mutex);
      return readRegObject( _decoderPosition );
   }
- 
-  void MotorControlerImpl::setEnabled(bool enable){
-    lock_guard guard(_mutex);
-    int32_t enableWord = ( enable ? 1 : 0 );
-    _enabled->writeRaw( &enableWord );
+
+  void MotorControlerImpl::setEnabled(bool enable) {
+    // The mutex is locked in enableHoldingCurrent
+    enableHoldingCurrent(enable);
   }
 
-  bool MotorControlerImpl::isEnabled(){
-    lock_guard guard(_mutex);
-     return readRegObject( _enabled );
+  bool MotorControlerImpl::isEnabled() {
+    // Mutex is locked in isHoldingCurrentEnabled
+    return isHoldingCurrentEnabled();
   }
 
   DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
@@ -432,9 +443,41 @@ namespace mtca4u
     return (!(getStatus().getStandstillIndicator()));
   }
 
+  void MotorControlerImpl::enableHoldingCurrent(bool enable) {
+    lock_guard guard(_mutex);
+    int32_t enableWord = (enable ? 1 : 0);
+    _enabled->writeRaw(&enableWord);
+  }
+
+  bool MotorControlerImpl::isHoldingCurrentEnabled() {
+    lock_guard guard(_mutex);
+    return readRegObject(_enabled);
+  }
+
+  void MotorControlerImpl::enableEndSwitchPower(bool enable) {
+    lock_guard guard(_mutex);
+    if (_endSwithPowerIndicator == nullptr) {
+      return; // Meaning we are on an old firmware that does not support this
+              // register. Do nothing
+    }
+    int32_t endSwithEnableWord = (enable ? 3 : 0);
+    _endSwithPowerIndicator->writeRaw(&endSwithEnableWord);
+  }
+
+  bool MotorControlerImpl::isEndSwitchPowerEnabled() {
+    lock_guard guard(_mutex);
+    if (_endSwithPowerIndicator == nullptr) {
+      return false; // taking a convenient default to make logic easier in
+      // StepperMotor getEnabled . With the old firmware status of the end
+      // switches is a don't care condition anyway
+    }
+    return readRegObject(_endSwithPowerIndicator);
+  }
+
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
     auto stallGuardData = _controlerConfig.stallGuardControlData;
     stallGuardData.setCurrentScale(currentScale);
+    // mutex is acquired in setStallGuardControlData
     setStallGuardControlData(stallGuardData);
     _usrSetCurrentScale = currentScale;
   }

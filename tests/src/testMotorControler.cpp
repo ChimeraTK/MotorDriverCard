@@ -136,6 +136,7 @@ public:
   void testGetReferenceSwitchBit();
 
   void testThreadSaftey();
+  void testEnableEndSwitchPower();
 
 private:
   boost::shared_ptr<MotorControlerImpl> _motorControler;
@@ -160,7 +161,7 @@ private:
 
   unsigned int testWordFromPCIeSuffix(std::string const & registerSuffix);
   void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorControler> controller);
-  boost::shared_ptr<MotorControler> createMotorController();
+  boost::shared_ptr<MotorControler> createMotorController(const std::string deviceName);
 
 };
 
@@ -204,7 +205,6 @@ public:
       //      ADD_GET_SET_TEST( AccelerationThreshold );
       ADD_GET_SET_TEST( MicroStepCount );
 
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
       
       add( BOOST_TEST_CASE(
 	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
@@ -259,6 +259,9 @@ public:
       add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetReferenceSwitchBit,
 				  motorControlerTest ) );
 
+      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
+      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testEnableEndSwitchPower, motorControlerTest));
+
    }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
@@ -288,7 +291,7 @@ void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::
 void MotorControlerTest::testThreadSaftey() {
 //FIXME: these tests may not be complex enough
 // These tests are meant to be run with thread sanitizer/ Helgrind
-  auto controller = createMotorController();
+  auto controller = createMotorController("CONTROLLER_TESTS_OLD_MAPFILE");
   auto apiList = std::bind(&MotorControlerTest::listOfMotorControllerPubilcMethods, this, controller);
   std::thread t1(apiList);
   std::thread t2(apiList);
@@ -304,6 +307,27 @@ void MotorControlerTest::testThreadSaftey() {
   t5.join();
   t6.join();
   t7.join();
+}
+
+
+void MotorControlerTest::testEnableEndSwitchPower() {
+  // Test with the old firmware mapfile which is lacking this register:
+  // (MD22.0.WORD_M1_VOLTAGE_EN)
+  auto controller_new = createMotorController("CONTROLLER_TESTS_NEW_MAPFILE");
+  controller_new->enableEndSwitchPower(true);
+  BOOST_CHECK(controller_new->isEndSwitchPowerEnabled() == true);
+  controller_new->enableEndSwitchPower(false);
+  BOOST_CHECK(controller_new->isEndSwitchPowerEnabled() == false);
+
+  // Test with the newer firmware mapfile that has the WORD_M1_VOLTAGE_EN
+  // register
+  auto controller_old = createMotorController("CONTROLLER_TESTS_OLD_MAPFILE");
+  controller_old->enableEndSwitchPower(false);
+  BOOST_CHECK(controller_old->isEndSwitchPowerEnabled() == false);
+  controller_old->enableEndSwitchPower(true);
+  // Endswitch power is not applicable for the old board design and we default
+  // to false regardless when working with old firmware
+  BOOST_CHECK(controller_old->isEndSwitchPowerEnabled() == false);
 }
 
 unsigned int  MotorControlerTest::testWordFromPCIeSuffix(std::string const & registerSuffix){
@@ -539,11 +563,12 @@ void MotorControlerTest::listOfMotorControllerPubilcMethods(
   controllerImpl->setDriverConfigData(controllerImpl->getDriverConfigData());
 }
 
-inline boost::shared_ptr<MotorControler>
-MotorControlerTest::createMotorController() {
+
+boost::shared_ptr<MotorControler>
+MotorControlerTest::createMotorController(const std::string deviceName) {
   mtca4u::setDMapFilePath("./dummies.dmap");
   boost::shared_ptr<mtca4u::Device> device(new mtca4u::Device());
-  device->open("DFMC_MD22_FOR_CONTROLLER_TESTS");
+  device->open(deviceName);
   boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));
   return driver->getMotorControler(0);
 }

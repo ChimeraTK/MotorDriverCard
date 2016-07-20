@@ -105,6 +105,13 @@ namespace mtca4u
 
     bool isEnabled();
 
+    virtual void enableHoldingCurrent(bool enable = true);
+    virtual bool isHoldingCurrentEnabled();
+
+    virtual void enableEndSwitchPower(bool enable = true);
+    virtual bool isEndSwitchPowerEnabled();
+
+
     /**
      * @brief Returns True if the motor is in motion or False if at
      * standstill. This command is reliable as long as the motor is not stalled.
@@ -209,6 +216,7 @@ namespace mtca4u
      boost::shared_ptr< mtca4u::RegisterAccessor > _enabled;
      boost::shared_ptr< mtca4u::RegisterAccessor > _decoderReadoutMode;
      boost::shared_ptr< mtca4u::RegisterAccessor > _decoderPosition;
+     boost::shared_ptr< mtca4u::RegisterAccessor > _endSwithPowerIndicator;
      
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
