@@ -268,7 +268,7 @@ namespace mtca4u {
       _blockMotor = false;
   }
 
-  void MotorControlerDummy::enableMotorCurrent(bool enable) {
+  void MotorControlerDummy::setMotorCurrentEnabled(bool enable) {
       lock_guard guard(_motorControllerDummyMutex);
       _motorCurrentEnabled = enable;
   }

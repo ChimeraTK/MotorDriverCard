@@ -95,7 +95,7 @@ namespace mtca4u{
     virtual double getUserCurrentLimit();
     virtual double getMaxCurrentLimit();
 
-    virtual void enableMotorCurrent(bool enable = true);
+    virtual void setMotorCurrentEnabled(bool enable = true);
     virtual bool isMotorCurrentEnabled();
 
     virtual void enableEndSwitchPower(bool enable = true);

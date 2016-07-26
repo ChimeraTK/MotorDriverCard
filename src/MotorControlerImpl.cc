@@ -219,8 +219,8 @@ namespace mtca4u
   }
 
   void MotorControlerImpl::setEnabled(bool enable) {
-    // The mutex is locked in enableMotorCurrent
-    enableMotorCurrent(enable);
+    // The mutex is locked in setMotorCurrentEnabled
+    setMotorCurrentEnabled(enable);
   }
 
   bool MotorControlerImpl::isEnabled() {
@@ -443,7 +443,7 @@ namespace mtca4u
     return (!(getStatus().getStandstillIndicator()));
   }
 
-  void MotorControlerImpl::enableMotorCurrent(bool enable) {
+  void MotorControlerImpl::setMotorCurrentEnabled(bool enable) {
     lock_guard guard(_mutex);
     int32_t enableWord = (enable ? 1 : 0);
     _enabled->writeRaw(&enableWord);
