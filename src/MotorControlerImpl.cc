@@ -10,7 +10,7 @@ using namespace mtca4u::tmc429;
 #include <cmath>
 
 // just save some typing...
-#define REG_OBJECT_FROM_SUFFIX( SUFFIX, moduleName )\
+#define ACCESSOR_FROM_SUFFIX( SUFFIX, moduleName )\
   device->getRegisterAccessor( createMotorRegisterName( _id, SUFFIX ), moduleName )
 
 // Macros which cover more than one line are not good for the code coverage test, as only the 
@@ -75,16 +75,16 @@ namespace mtca4u
       _currentVmax(motorControlerConfig.maximumVelocity),
       _usrSetCurrentScale(_controlerConfig.stallGuardControlData.getCurrentScale()),
       _controlerStatus(device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
-      _actualPosition( REG_OBJECT_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
-      _actualVelocity( REG_OBJECT_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
-      _actualAcceleration( REG_OBJECT_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX, moduleName ) ),
-      _microStepCount( REG_OBJECT_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX, moduleName ) ),
-      _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
-      _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
-      _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
-      _motorCurrentEnabled( REG_OBJECT_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
-      _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
-      _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
+      _actualPosition( ACCESSOR_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
+      _actualVelocity( ACCESSOR_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
+      _actualAcceleration( ACCESSOR_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX, moduleName ) ),
+      _microStepCount( ACCESSOR_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX, moduleName ) ),
+      _stallGuardValue( ACCESSOR_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
+      _coolStepValue( ACCESSOR_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
+      _status( ACCESSOR_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
+      _motorCurrentEnabled( ACCESSOR_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
+      _decoderReadoutMode( ACCESSOR_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
+      _decoderPosition( ACCESSOR_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
 		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
@@ -120,7 +120,7 @@ namespace mtca4u
     try {
       // this must throw on mapfile not having this register
       _endSwithPowerIndicator =
-          REG_OBJECT_FROM_SUFFIX(ENDSWITCH_ENABLE_SUFFIX, moduleName);
+          ACCESSOR_FROM_SUFFIX(ENDSWITCH_ENABLE_SUFFIX, moduleName);
     }
     catch (std::exception& a) {
       // ignore exception when creating the accessor with the consequence that
