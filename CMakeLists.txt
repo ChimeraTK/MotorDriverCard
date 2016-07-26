@@ -105,10 +105,12 @@ if(TESTING_IS_ENABLED)
 
   #The make coverage command is only available in debug mode
   IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    configure_file(cmake/Makefile.coverage.in
-      ${PROJECT_BINARY_DIR}/Makefile.coverage @ONLY)
+    #exclude the 'extern' directory, which contains pugixml which we don't want in the coverage report
+    set(EXCLUDE_FROM_COVERAGE "extern")
+    configure_file(cmake/make_coverage.sh.in
+      ${PROJECT_BINARY_DIR}/make_coverage.sh @ONLY)
     add_custom_target(coverage
-      make -f Makefile.coverage
+      ./make_coverage.sh
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
       COMMENT "Generating test coverage documentation" VERBATIM
       )
