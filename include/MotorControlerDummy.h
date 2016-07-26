@@ -98,7 +98,7 @@ namespace mtca4u{
     virtual void setMotorCurrentEnabled(bool enable = true);
     virtual bool isMotorCurrentEnabled();
 
-    virtual void enableEndSwitchPower(bool enable = true);
+    virtual void setEndSwitchPowerEnabled(bool enable = true);
     virtual bool isEndSwitchPowerEnabled();
 
 

@@ -278,7 +278,7 @@ namespace mtca4u {
     return _motorCurrentEnabled;
   }
 
-  void MotorControlerDummy::enableEndSwitchPower(bool enable) {
+  void MotorControlerDummy::setEndSwitchPowerEnabled(bool enable) {
       lock_guard guard(_motorControllerDummyMutex);
       _endSwitchPowerEnabled = enable;
   }

@@ -76,7 +76,7 @@ namespace mtca4u
     virtual void setMotorCurrentEnabled(bool enable = true) = 0;
     virtual bool isMotorCurrentEnabled() = 0;
 
-    virtual void enableEndSwitchPower(bool enable = true) = 0;
+    virtual void setEndSwitchPowerEnabled(bool enable = true) = 0;
     virtual bool isEndSwitchPowerEnabled() = 0;
 
     virtual MotorReferenceSwitchData getReferenceSwitchData()=0; ///< Get information about both reference switches of this Motor

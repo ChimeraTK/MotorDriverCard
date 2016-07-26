@@ -236,7 +236,7 @@ namespace mtca4u {
     void StepperMotor::setEnabled(bool enable) {
       boost::lock_guard<boost::mutex> guard(_mutex);
       _motorControler->setMotorCurrentEnabled(enable);
-      _motorControler->enableEndSwitchPower(enable);
+      _motorControler->setEndSwitchPowerEnabled(enable);
     }
 
     bool StepperMotor::getEnabled() const {

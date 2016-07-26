@@ -454,7 +454,7 @@ namespace mtca4u
     return readRegObject(_enabled);
   }
 
-  void MotorControlerImpl::enableEndSwitchPower(bool enable) {
+  void MotorControlerImpl::setEndSwitchPowerEnabled(bool enable) {
     lock_guard guard(_mutex);
     if (_endSwithPowerIndicator == nullptr) {
       return; // Meaning we are on an old firmware that does not support this

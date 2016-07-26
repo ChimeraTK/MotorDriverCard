@@ -136,7 +136,7 @@ public:
   void testGetReferenceSwitchBit();
 
   void testThreadSaftey();
-  void testEnableEndSwitchPower();
+  void testSetEndSwitchPowerEnabled();
 
 private:
   boost::shared_ptr<MotorControlerImpl> _motorControler;
@@ -260,7 +260,7 @@ public:
 				  motorControlerTest ) );
 
       add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testEnableEndSwitchPower, motorControlerTest));
+      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetEndSwitchPowerEnabled, motorControlerTest));
 
    }// for i < N_MOTORS_MAX
   }// constructor
@@ -310,21 +310,21 @@ void MotorControlerTest::testThreadSaftey() {
 }
 
 
-void MotorControlerTest::testEnableEndSwitchPower() {
+void MotorControlerTest::testSetEndSwitchPowerEnabled() {
   // Test with the old firmware mapfile which is lacking this register:
   // (MD22.0.WORD_M1_VOLTAGE_EN)
   auto controller_new = createMotorController("CONTROLLER_TESTS_NEW_MAPFILE");
-  controller_new->enableEndSwitchPower(true);
+  controller_new->setEndSwitchPowerEnabled(true);
   BOOST_CHECK(controller_new->isEndSwitchPowerEnabled() == true);
-  controller_new->enableEndSwitchPower(false);
+  controller_new->setEndSwitchPowerEnabled(false);
   BOOST_CHECK(controller_new->isEndSwitchPowerEnabled() == false);
 
   // Test with the newer firmware mapfile that has the WORD_M1_VOLTAGE_EN
   // register
   auto controller_old = createMotorController("CONTROLLER_TESTS_OLD_MAPFILE");
-  controller_old->enableEndSwitchPower(false);
+  controller_old->setEndSwitchPowerEnabled(false);
   BOOST_CHECK(controller_old->isEndSwitchPowerEnabled() == false);
-  controller_old->enableEndSwitchPower(true);
+  controller_old->setEndSwitchPowerEnabled(true);
   // Endswitch power is not applicable for the old board design and we default
   // to false regardless when working with old firmware
   BOOST_CHECK(controller_old->isEndSwitchPowerEnabled() == false);
