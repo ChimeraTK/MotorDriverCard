@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.0)
 
-project(MotorDriverCard)
+project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
 set(${PROJECT_NAME}_MINOR_VERSION 11)
@@ -156,18 +156,15 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/${P
 # Note: Most of them are empty, but have to be set. The library itself does not include
 # mtca4u-deviceaccess in the headers any more, so most of them are not needed at the 
 # moment.
-set(${PROJECT_NAME}_CONFIG_INCLUDE_DIRS " ")
-set(${PROJECT_NAME}_REFERENCE_HEADER "MotorDriverCard.h")
-set(${PROJECT_NAME}_CONFIG_LIBRARIES " ")
-set(${PROJECT_NAME}_CONFIG_LIBRARY_DIRS " ")
-set(${PROJECT_NAME}_CONFIG_CXX_FLAGS " ")
+set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+set(${PROJECT_NAME}_LIBRARIES "${PROJECT_NAME}")
+set(${PROJECT_NAME}_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
+set(${PROJECT_NAME}_CXX_FLAGS "") #nothing special, not even C++11 in the interface (?)
+set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags")
+#no matlab bindings foreseen yet
+#set(${PROJECT_NAME}_MEXFLAGS "-I${CMAKE_INSTALL_PREFIX}/include -L${CMAKE_INSTALL_PREFIX}/lib -l${PROJECT_NAME}")
 
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
-
-configure_file(cmake/mtca4u-${PROJECT_NAME}-config.in
-  "${PROJECT_BINARY_DIR}/mtca4u-${PROJECT_NAME}-config" @ONLY)		
-install(PROGRAMS "${PROJECT_BINARY_DIR}/mtca4u-${PROJECT_NAME}-config"
-  DESTINATION bin COMPONENT dev)
 
 add_subdirectory(ConfigCalculator) 
 

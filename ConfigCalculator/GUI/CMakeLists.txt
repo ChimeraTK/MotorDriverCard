@@ -28,7 +28,7 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES}
   ${${PROJECT_NAME}_FORMS_HEADERS} 
   ${${PROJECT_NAME}_RESOURCES_RCC})
 # Link the required Qt libraries componentwise
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} MotorDriverCard ConfigCalculator 
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} mtca4u-MotorDriverCard ConfigCalculator 
                       ${QT_QTGUI_LIBRARY} ${QT_QTCORE_LIBRARY}  )
 
 install(TARGETS ${PROJECT_NAME}

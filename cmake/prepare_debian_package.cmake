@@ -2,7 +2,7 @@
 #Basically this is setting the correct version number in most of the files
 
 #The debian version string must not contain ".", so we use "-"
-string(REPLACE "." "-" MotorDriverCard_DEBVERSION ${MotorDriverCard_SOVERSION})
+string(REPLACE "." "-" ${PROJECT_NAME}_DEBVERSION ${${PROJECT_NAME}_SOVERSION})
 
 #We also need the so version of deviceaccess. We extract it from the full version
 #What the regex does:
@@ -27,7 +27,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/source/format
 
 #Adapt the file name
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercardDEBVERSION.install.in
-               debian_from_template/libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.install)
+               debian_from_template/libmtca4u-motordrivercard${${PROJECT_NAME}_DEBVERSION}.install)
 
 #Adapt the file name and/or set the version number
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/control.in
@@ -37,7 +37,7 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/copyright.in
                debian_from_template/copyright @ONLY)
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercardDEBVERSION.shlib.in
-               debian_from_template/libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}.shlib @ONLY)
+               debian_from_template/libmtca4u-motordrivercard${${PROJECT_NAME}_DEBVERSION}.shlib @ONLY)
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/debian_package_templates/libmtca4u-motordrivercard-dev.install.in
                debian_from_template/libmtca4u-motordrivercard-dev.install @ONLY)
@@ -50,11 +50,11 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/make_debian_package.sh.in
 #A custom target so you can just run make debian_package
 #(You could instead run make_debian_package.sh yourself, hm...)
 add_custom_target(debian_package ${CMAKE_BINARY_DIR}/make_debian_package.sh
-                  COMMENT Building debian package for tag ${MotorDriverCard_VERSION})
+                  COMMENT Building debian package for tag ${${PROJECT_NAME}_VERSION})
 
 #For convenience: Also create an install script for DESY
 #The shared library package has the version number in the package name
-set(PACKAGE_NAME "libmtca4u-motordrivercard${MotorDriverCard_DEBVERSION}")
+set(PACKAGE_NAME "libmtca4u-motordrivercard${${PROJECT_NAME}_DEBVERSION}")
 #The development package does not have the version in the name
 set(PACKAGE_DEV_NAME "libmtca4u-motordrivercard-dev")
 #The binaries are in a separate package because they also do not have a version number in the package name
