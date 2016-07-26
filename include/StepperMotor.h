@@ -234,16 +234,15 @@ namespace mtca4u {
          * method may not set the exact desired speed limit, but a value below
          * the desired limit, as determined by the operating parameters.
          *
-         * @param newSpeedInUstepsPerSec The desired maximum motor speed during
-         *                               operation; unit is microsteps per
-         *                               second
+         * @param microStepsPerSec The desired maximum motor speed during
+         *                         operation; unit is microsteps per second
          *
          * @return Returns the motor speed that was actually set. This speed may not
          * be what the user requested, but a value closest to it (but not
          * exceeding the provided limit) as permitted by the motor controller
          * parameters
          */
-        double setUserSpeedLimit(double newSpeedInUstepsPerSec);
+        double setUserSpeedLimit(double microStepsPerSec);
 
         /**
          * @brief returns the current motor speed limit configured by the user
