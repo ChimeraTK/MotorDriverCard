@@ -95,8 +95,8 @@ namespace mtca4u{
     virtual double getUserCurrentLimit();
     virtual double getMaxCurrentLimit();
 
-    virtual void enableHoldingCurrent(bool enable = true);
-    virtual bool isHoldingCurrentEnabled();
+    virtual void enableMotorCurrent(bool enable = true);
+    virtual bool isMotorCurrentEnabled();
 
     virtual void enableEndSwitchPower(bool enable = true);
     virtual bool isEndSwitchPowerEnabled();
@@ -132,8 +132,8 @@ namespace mtca4u{
 
     bool _positiveEndSwitchEnabled;///< Flag whether the positive end switch is being used
     bool _negativeEndSwitchEnabled;///< Flag whether the negative end switch is being used
-    bool _holdingCurrentEnabled;///< Flag indicating if holding current is available.
-    bool _endSwitchPowerEnabled;///< Flag indicating the end switches are powered up.
+    bool _motorCurrentEnabled;///< Flag indicating if motor current (driver chip) is enabled
+    bool _endSwitchPowerEnabled;///< Flag indicating if the end switches are powered up
     ///< not change if this flag is false.
 
     unsigned int _id;

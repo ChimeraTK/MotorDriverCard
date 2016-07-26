@@ -105,8 +105,8 @@ namespace mtca4u
 
     bool isEnabled();
 
-    virtual void enableHoldingCurrent(bool enable = true);
-    virtual bool isHoldingCurrentEnabled();
+    virtual void enableMotorCurrent(bool enable = true);
+    virtual bool isMotorCurrentEnabled();
 
     virtual void enableEndSwitchPower(bool enable = true);
     virtual bool isEndSwitchPowerEnabled();

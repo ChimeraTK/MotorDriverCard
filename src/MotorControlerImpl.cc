@@ -82,7 +82,7 @@ namespace mtca4u
       _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
       _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
       _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
-      _enabled( REG_OBJECT_FROM_SUFFIX( HOLDING_CURRENT_ENABLE_SUFFIX, moduleName ) ),
+      _enabled( REG_OBJECT_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
       _driverSPI( device, moduleName,
@@ -219,13 +219,13 @@ namespace mtca4u
   }
 
   void MotorControlerImpl::setEnabled(bool enable) {
-    // The mutex is locked in enableHoldingCurrent
-    enableHoldingCurrent(enable);
+    // The mutex is locked in enableMotorCurrent
+    enableMotorCurrent(enable);
   }
 
   bool MotorControlerImpl::isEnabled() {
-    // Mutex is locked in isHoldingCurrentEnabled
-    return isHoldingCurrentEnabled();
+    // Mutex is locked in isMotorCurrentEnabled
+    return isMotorCurrentEnabled();
   }
 
   DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
@@ -443,13 +443,13 @@ namespace mtca4u
     return (!(getStatus().getStandstillIndicator()));
   }
 
-  void MotorControlerImpl::enableHoldingCurrent(bool enable) {
+  void MotorControlerImpl::enableMotorCurrent(bool enable) {
     lock_guard guard(_mutex);
     int32_t enableWord = (enable ? 1 : 0);
     _enabled->writeRaw(&enableWord);
   }
 
-  bool MotorControlerImpl::isHoldingCurrentEnabled() {
+  bool MotorControlerImpl::isMotorCurrentEnabled() {
     lock_guard guard(_mutex);
     return readRegObject(_enabled);
   }
