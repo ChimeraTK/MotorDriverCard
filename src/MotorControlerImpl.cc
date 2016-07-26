@@ -82,7 +82,7 @@ namespace mtca4u
       _stallGuardValue( REG_OBJECT_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
       _coolStepValue( REG_OBJECT_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
       _status( REG_OBJECT_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
-      _enabled( REG_OBJECT_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
+      _motorCurrentEnabled( REG_OBJECT_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
       _decoderReadoutMode( REG_OBJECT_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
       _decoderPosition( REG_OBJECT_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
       _driverSPI( device, moduleName,
@@ -142,7 +142,7 @@ namespace mtca4u
     return converter24bits.customToThirtyTwo( readValue );
   }
 
-  unsigned int MotorControlerImpl::readRegObject( boost::shared_ptr< RegisterAccessor > const & registerAccessor){
+  unsigned int MotorControlerImpl::readRegisterAccessor( boost::shared_ptr< RegisterAccessor > const & registerAccessor){
     int readValue;
     registerAccessor->readRaw( &readValue );
     return static_cast<unsigned int>(readValue);
@@ -169,7 +169,7 @@ namespace mtca4u
 
   unsigned int MotorControlerImpl::getActualAcceleration(){
     lock_guard guard(_mutex);
-    return readRegObject( _actualAcceleration );
+    return readRegisterAccessor( _actualAcceleration );
   }
 
   void MotorControlerImpl::setActualAcceleration(unsigned int acceleration){
@@ -179,7 +179,7 @@ namespace mtca4u
 
   unsigned int MotorControlerImpl::getMicroStepCount(){
     lock_guard guard(_mutex);
-    return readRegObject( _microStepCount );
+    return readRegisterAccessor( _microStepCount );
   }
 
   void MotorControlerImpl::setMicroStepCount(unsigned int microStepCount){
@@ -189,17 +189,17 @@ namespace mtca4u
 
   unsigned int MotorControlerImpl::getCoolStepValue(){
     lock_guard guard(_mutex);
-    return readRegObject( _coolStepValue );
+    return readRegisterAccessor( _coolStepValue );
   }
  
   unsigned int MotorControlerImpl::getStallGuardValue(){
     lock_guard guard(_mutex);
-    return readRegObject( _stallGuardValue );
+    return readRegisterAccessor( _stallGuardValue );
   }
  
   DriverStatusData MotorControlerImpl::getStatus(){
     lock_guard guard(_mutex);
-    return DriverStatusData( readRegObject( _status ) );
+    return DriverStatusData( readRegisterAccessor( _status ) );
   }
  
   void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode){
@@ -210,12 +210,12 @@ namespace mtca4u
 
   unsigned int MotorControlerImpl::getDecoderReadoutMode(){
     lock_guard guard(_mutex);
-     return readRegObject( _decoderReadoutMode );
+     return readRegisterAccessor( _decoderReadoutMode );
   }
 
   unsigned int MotorControlerImpl::getDecoderPosition(){
     lock_guard guard(_mutex);
-     return readRegObject( _decoderPosition );
+     return readRegisterAccessor( _decoderPosition );
   }
 
   void MotorControlerImpl::setEnabled(bool enable) {
@@ -446,12 +446,12 @@ namespace mtca4u
   void MotorControlerImpl::setMotorCurrentEnabled(bool enable) {
     lock_guard guard(_mutex);
     int32_t enableWord = (enable ? 1 : 0);
-    _enabled->writeRaw(&enableWord);
+    _motorCurrentEnabled->writeRaw(&enableWord);
   }
 
   bool MotorControlerImpl::isMotorCurrentEnabled() {
     lock_guard guard(_mutex);
-    return readRegObject(_enabled);
+    return readRegisterAccessor(_motorCurrentEnabled);
   }
 
   void MotorControlerImpl::setEndSwitchPowerEnabled(bool enable) {
@@ -471,7 +471,7 @@ namespace mtca4u
       // StepperMotor getEnabled . With the old firmware status of the end
       // switches is a don't care condition anyway
     }
-    return readRegObject(_endSwithPowerIndicator);
+    return readRegisterAccessor(_endSwithPowerIndicator);
   }
 
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {

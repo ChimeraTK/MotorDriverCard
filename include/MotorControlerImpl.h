@@ -213,7 +213,7 @@ namespace mtca4u
      boost::shared_ptr< mtca4u::RegisterAccessor > _stallGuardValue;
      boost::shared_ptr< mtca4u::RegisterAccessor > _coolStepValue;
      boost::shared_ptr< mtca4u::RegisterAccessor > _status;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _enabled;
+     boost::shared_ptr< mtca4u::RegisterAccessor > _motorCurrentEnabled;
      boost::shared_ptr< mtca4u::RegisterAccessor > _decoderReadoutMode;
      boost::shared_ptr< mtca4u::RegisterAccessor > _decoderPosition;
      boost::shared_ptr< mtca4u::RegisterAccessor > _endSwithPowerIndicator;
@@ -225,7 +225,7 @@ namespace mtca4u
 
      /// Simplify the syntax to read from a RegisterAccessor which need call by reference.
      /// Remove this function once the RegisterAccessor interface has been fixed.
-     unsigned int readRegObject( 
+     unsigned int readRegisterAccessor( 
 			 boost::shared_ptr< mtca4u::RegisterAccessor > const & registerAccessor);
 
      template<class T>
