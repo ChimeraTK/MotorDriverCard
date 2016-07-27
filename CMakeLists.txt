@@ -148,12 +148,13 @@ install(TARGETS ${PROJECT_NAME}
   )
 
 #all include files go into include/PROJECT_NAME
-#The exclusion of ${PROJECT_NAME} prevents the recursive installation of the files just being installed.
+#The exclusion of ${PROJECT_NAME} and MotorDriverCard prevents the recursive installation of the files just being installed.
 #The original headers are in include/*.h, the installed ones in include/PROJECT_NAME/*.h.
-install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/${PROJECT_NAME}
+install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard
           FILES_MATCHING PATTERN "*.h" 
 	  PATTERN ".svn" EXCLUDE
 	  PATTERN "${PROJECT_NAME}" EXCLUDE
+	  PATTERN "MotorDriverCard" EXCLUDE
 	  )
 
 #create the config files by filling the correct variables into the template (*.cmake.in)
