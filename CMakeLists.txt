@@ -163,7 +163,7 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/Mot
 # mtca4u-deviceaccess in the headers any more, so most of them are not needed at the 
 # moment.
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(${PROJECT_NAME}_LIBRARIES "${PROJECT_NAME}")
+set(${PROJECT_NAME}_LIBRARIES "")
 set(${PROJECT_NAME}_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
 set(${PROJECT_NAME}_CXX_FLAGS "") #nothing special, not even C++11 in the interface (?)
 set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags")
