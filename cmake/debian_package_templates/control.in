@@ -9,18 +9,18 @@ Section: libs
 Package: libmtca4u-motordrivercard-dev
 Section: libdevel
 Architecture: any
-Depends: libmtca4u-motordrivercard@MotorDriverCard_DEBVERSION@,  libmtca4u-deviceaccess-dev (>= @mtca4u-deviceaccess_SOVERSION@),  libmtca4u-deviceaccess-dev (<= @mtca4u-deviceaccess_SOVERSION@.99-zz), libboost@Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@-dev, libboost-thread@Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@-dev
+Depends: libmtca4u-motordrivercard@mtca4u-MotorDriverCard_DEBVERSION@,  libmtca4u-deviceaccess-dev (>= @mtca4u-deviceaccess_SOVERSION@),  libmtca4u-deviceaccess-dev (<= @mtca4u-deviceaccess_SOVERSION@.99-zz), libboost@Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@-dev, libboost-thread@Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@-dev
 Conflicts: dev-mtca4u-motordrivercard
 Replaces: dev-mtca4u-motordrivercard
 Description: Header and cmake files for MTCA4U MotorDriverCard.
  The files you need to compile against MTCA4U MotorDriverCard.
 
-Package: libmtca4u-motordrivercard@MotorDriverCard_DEBVERSION@
+Package: libmtca4u-motordrivercard@mtca4u-MotorDriverCard_DEBVERSION@
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 # Provides field for a virtual package to be installed by libmtca4u-dev
-Provides: libmtca4u-motordrivercard@MotorDriverCard_MAJOR_VERSION@-@MotorDriverCard_MINOR_VERSION@
+Provides: libmtca4u-motordrivercard@mtca4u-MotorDriverCard_MAJOR_VERSION@-@mtca4u-MotorDriverCard_MINOR_VERSION@
 # We do not use recommends, which would automatically install the package,
 # but suggests, because of the dependency on the huge Qt package
 Suggests: mtca4u-motordrivercard-configcalculator
@@ -30,5 +30,5 @@ Package: mtca4u-motordrivercard-configcalculator
 Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Enhances:  libmtca4u-motordrivercard@MotorDriverCard_DEBVERSION@
+Enhances:  libmtca4u-motordrivercard@mtca4u-MotorDriverCard_DEBVERSION@
 Description: Config calculators (command line and Qt GUI) for the MTCA4U MotorDriverCard.

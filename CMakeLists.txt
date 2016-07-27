@@ -12,7 +12,10 @@ set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
 #We add a build version to the version number to be able to install
 #the same software version of the library linked against different versions
 #of deviceacces (or other dependencies)
-set(${PROJECT_NAME}_BUILDVERSION $ENV{${PROJECT_NAME}_BUILDVERSION})
+#Note: The environment variable must not contain hyphens, so we just use MotorDriverCard
+#We store it in a variable because we need it later
+set(${PROJECT_NAME}_BUILDVERSION_ENVIRONMENT_VARIABLE_NAME "MotorDriverCard_BUILDVERSION")
+set(${PROJECT_NAME}_BUILDVERSION $ENV{${${PROJECT_NAME}_BUILDVERSION_ENVIRONMENT_VARIABLE_NAME}})
 if( ${PROJECT_NAME}_BUILDVERSION )
   set(${PROJECT_NAME}_SOVERSION "${${PROJECT_NAME}_SOVERSION}${${PROJECT_NAME}_BUILDVERSION}")
 endif( ${PROJECT_NAME}_BUILDVERSION )
