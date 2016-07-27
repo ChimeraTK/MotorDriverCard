@@ -3,6 +3,12 @@
 #
 # Shell script for generating a code coverage report.
 #
+# Parameter to be set inside the CMake project:
+# EXCLUDE_FROM_COVERAGE (optional) Space separated list of directories in you source code which are excluded from the
+#                                  coverage report.
+#
+# CMAKE_SOURCE_DIR and PROJECT_BINARY_DIR are always automatically there.
+#
 #######################################################################################################################
 
 #######################################################################################################################
