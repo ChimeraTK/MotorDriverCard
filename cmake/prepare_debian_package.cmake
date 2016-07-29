@@ -48,9 +48,9 @@ set(PACKAGE_FULL_LIBRARY_VERSION "${${PROJECT_NAME}_FULL_LIBRARY_VERSION}")
 set(PACKAGE_GIT_URI "https://github.com/ChimeraTK/MotorDriverCard.git")
 set(PACKAGE_TAG_VERSION ${${PROJECT_NAME}_VERSION})
 set(PACKAGE_MESSAGE " Debian package for MTCA4U MotorDriverCard ${${PROJECT_NAME}_FULL_LIBRARY_VERSION}")
-set(PACKAGE_NAME "${PACKAGE_BASSE_NAME}${${PROJECT_NAME}_DEBVERSION}")
+set(PACKAGE_NAME "${PACKAGE_BASE_NAME}${${PROJECT_NAME}_DEBVERSION}")
 #The development package does not have the version in the name
-set(PACKAGE_DEV_NAME "libmtca4u-motordrivercard-dev")
+set(PACKAGE_DEV_NAME "${PACKAGE_BASE_NAME}-dev")
 #The binaries are in a separate package because they also do not have a version number in the package name
 set(PACKAGE_BIN_NAME "mtca4u-motordrivercard-configcalculator")
 set(PACKAGE_FILES_WILDCARDS "${PACKAGE_NAME}_*.deb ${PACKAGE_DEV_NAME}_*.deb ${PACKAGE_BIN_NAME}_*.deb libmtca4u-motordrivercard_*.changes")
