@@ -25,7 +25,6 @@ namespace mtca4u{
     int32_t thirtyTwoToCustom(int32_t const & thirtyTwoBitInt);
 
   private: 
-    unsigned int _nBits; ///< the number of bits of the signed int
     int32_t _bitMask; ///< The mask which bits are present in the signed int
     int32_t _negativeBit; ///< The most significant bit in the custom int as a mask.
 
