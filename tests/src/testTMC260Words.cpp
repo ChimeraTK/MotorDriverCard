@@ -9,7 +9,11 @@ using namespace mtca4u::tmc260;
 
 BOOST_AUTO_TEST_SUITE( TMC260WordsTestSuite )
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testDriverControlData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createOutputMaskUsingSetterGetter<DriverControlData> ( &DriverControlData::setInterpolation,
 								      &DriverControlData::getInterpolation )
                == 0x00200 );
@@ -21,7 +25,11 @@ BOOST_AUTO_TEST_CASE( testDriverControlData ){
 	       == 0x0000F );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testChopperControlData ){
+#pragma GCC diagnostic pop
+    
   // as the output "mask" also contains the content of the address field, these tests automatically
   // check that the address is set correctly (bits 17:19)
   BOOST_CHECK( createOutputMaskUsingSetterGetter<ChopperControlData> ( &ChopperControlData::setBlankingTime,
@@ -47,13 +55,21 @@ BOOST_AUTO_TEST_CASE( testChopperControlData ){
 	       == 0x8000F );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testCoolStepControlData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createOutputMaskUsingSetterGetter<CoolStepControlData> ( &CoolStepControlData::setPayloadData,
 									&CoolStepControlData::getPayloadData )
                == 0xBFFFF );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testStallGuardControlData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createOutputMaskUsingSetterGetter<StallGuardControlData> ( &StallGuardControlData::setPayloadData,
 									  &StallGuardControlData::getPayloadData )
                == 0xDFFFF );
@@ -68,13 +84,21 @@ BOOST_AUTO_TEST_CASE( testStallGuardControlData ){
                == 0xC001F );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testDriverConfigData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createOutputMaskUsingSetterGetter<DriverConfigData> ( &DriverConfigData::setPayloadData,
 								     &DriverConfigData::getPayloadData )
                == 0xFFFFF );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testDriverStatusData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createOutputMaskUsingSetterGetter<DriverStatusData> ( &DriverStatusData::setStallGuardStatus,
 								     &DriverStatusData::getStallGuardStatus )
                == 0x01 );

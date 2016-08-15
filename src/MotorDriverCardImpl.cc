@@ -15,10 +15,13 @@ using namespace mtca4u::tmc429;
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
-  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< Device > const & device,
+  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< mtca4u::Device > const & device,
                                            std::string const & moduleName,	
 					   MotorDriverCardConfig const & cardConfiguration)
-    : _device(device),
+    : _motorControlers(), // done later in the constructor body
+      _device(device),
+      _powerMonitor(), // done later in the constructor body
+      _controlerSPI(), // done later in the constructor body
       _controlerStatusRegister(_device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
       _moduleName(moduleName)
   {

@@ -15,6 +15,8 @@ class ParametersPanel : public QWidget {
 
   public:
     ParametersPanel(QWidget * parent_);
+    ParametersPanel(ParametersPanel const &) = delete;
+    ParametersPanel & operator=(ParametersPanel const &) = delete;
 
     //fixme:remove default for the default
     void addParameter(std::string const & parameterName, uint32_t defaultValue=0xDEADBEEF, std::string additionalText = std::string());

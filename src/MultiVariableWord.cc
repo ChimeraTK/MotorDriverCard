@@ -9,6 +9,9 @@ MultiVariableWord::MultiVariableWord(unsigned int dataWord)
   : _dataWord(dataWord)
 {}
 
+MultiVariableWord::~MultiVariableWord()
+{}
+
 unsigned int MultiVariableWord::getDataWord() const{
   return _dataWord;
 }

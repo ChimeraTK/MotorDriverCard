@@ -12,11 +12,10 @@ namespace mtca4u{
       positionCompareInterruptData(0),
       positionCompareWord(0),
       stepperMotorGlobalParameters(STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT),
-      controlerSpiWaitingTime(CONTROLER_SPI_WAITING_TIME_DEFAULT)
-  {
-    // initialises the motor controler configs with their default constructors
-    motorControlerConfigurations.resize( dfmc_md22::N_MOTORS_MAX );
-  }
+      controlerSpiWaitingTime(CONTROLER_SPI_WAITING_TIME_DEFAULT),
+      motorControlerConfigurations(dfmc_md22::N_MOTORS_MAX)// initialises the motor controler configs
+                                                           // with their default constructors
+  {}
 
   bool MotorDriverCardConfig::operator==(MotorDriverCardConfig const& right) const{
     if (coverDatagram != right.coverDatagram ){return false;}

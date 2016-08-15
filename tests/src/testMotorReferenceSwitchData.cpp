@@ -8,7 +8,11 @@ using namespace mtca4u;
 
 BOOST_AUTO_TEST_SUITE( MotorReferenceSwitchDataTestSuite )
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testBitValues ){
+#pragma GCC diagnostic pop
+
   BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData> (
 		     &MotorReferenceSwitchData::setPositiveSwitchActive,
 		     &MotorReferenceSwitchData::getPositiveSwitchActive )
@@ -35,7 +39,10 @@ BOOST_AUTO_TEST_CASE( testBitValues ){
 	      == 0x00030000 );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testBoolOperator ){
+#pragma GCC diagnostic pop
 
   MotorReferenceSwitchData motorReferenceSwitchData;
   BOOST_CHECK( !motorReferenceSwitchData );

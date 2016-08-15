@@ -71,9 +71,15 @@ namespace mtca4u
                   std::string const & moduleName,
                   boost::shared_ptr< TMC429SPI > const & controlerSPI,
 		  MotorControlerConfig const & motorControlerConfig ) 
-    : _device(device), _id(ID), _controlerConfig(motorControlerConfig),
+    : _mutex(), _device(device), _id(ID), _controlerConfig(motorControlerConfig),
+      _conversionFactor( calculateConversionFactor(motorControlerConfig) ),
       _currentVmax(motorControlerConfig.maximumVelocity),
       _usrSetCurrentScale(_controlerConfig.stallGuardControlData.getCurrentScale()),
+      _driverControlData(), //set later in the constructor body
+      _chopperControlData(), //set later in the constructor body
+      _coolStepControlData(), //set later in the constructor body
+      _stallGuardControlData(), //set later in the constructor body
+      _driverConfigData(), //set later in the constructor body
       _controlerStatus(device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
       _actualPosition( ACCESSOR_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
       _actualVelocity( ACCESSOR_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
@@ -85,6 +91,7 @@ namespace mtca4u
       _motorCurrentEnabled( ACCESSOR_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
       _decoderReadoutMode( ACCESSOR_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
       _decoderPosition( ACCESSOR_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
+      _endSwithPowerIndicator(), //set later in the constructor body, might throws which is to be caught
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
 		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
@@ -92,8 +99,6 @@ namespace mtca4u
       _controlerSPI(controlerSPI),
       converter24bits(24), converter12bits(12)
   {
-    _conversionFactor = calculateConversionFactor();
-
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     setActualPosition( motorControlerConfig.actualPosition );
     setChopperControlData( motorControlerConfig.chopperControlData );
@@ -363,12 +368,12 @@ namespace mtca4u
     return speedInUstepsPerSec/_conversionFactor;
   }
 
-  double MotorControlerImpl::calculateConversionFactor() {
+  double MotorControlerImpl::calculateConversionFactor(MotorControlerConfig const & motorControlerConfig) {
     // conversionFactor = fclk[Hz] / (2^pulse_div * 2048 *32)
     double systemClockInMhz = MD_22_DEFAULT_CLOCK_FREQ_MHZ;
 
     auto systemClkInHz = systemClockInMhz * 1000000;
-    auto pulse_div = static_cast<double>(_controlerConfig.dividersAndMicroStepResolutionData.getPulseDivider());
+    auto pulse_div = static_cast<double>(motorControlerConfig.dividersAndMicroStepResolutionData.getPulseDivider());
 
     auto conversionFactor = systemClkInHz/(exp2(pulse_div) * 2048 * 32);
     return conversionFactor;

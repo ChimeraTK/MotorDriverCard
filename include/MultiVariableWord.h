@@ -93,6 +93,10 @@ class MultiVariableWord{
    */
   MultiVariableWord(unsigned int dataWord = 0);
 
+  /** The desructor of a base class should be virtual
+   */
+  virtual ~MultiVariableWord();
+
   /** Get the encoded 32 bit data word. */
   unsigned int getDataWord() const;
 

@@ -140,9 +140,11 @@ SpiReadWriteThreadStressTest::SpiReadWriteThreadStressTest( std::string deviceAl
   : _deviceAlias(deviceAlias), _moduleName(moduleName),
     _motorConfigFileName(motorConfigFileName),
     _nCycles(0),
+    _errorCountingMutex(),
     _errorsInThisTest(0),
     _errorsInThisCycle(0),
     _errorsTotal(0),
+    _currentTestName(),
     _quitCurrentTest(false){
 }
 

@@ -20,6 +20,7 @@ MotorConfigWidget::MotorConfigWidget( QWidget * parent_ )
 		       4, // driverMicroStepValue_
 		       3, // currentScale_
 		       std::list<std::string>()),
+    _motorConfigWidgetForm(),
     _motorExpertPanel(NULL), _expertTabWidget(NULL), _tabIndex(0)
 {
   _motorConfigWidgetForm.setupUi(this);

@@ -16,6 +16,8 @@ namespace mtca4u
     virtual boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID);
     
     virtual PowerMonitor & getPowerMonitor();
+    virtual ~MotorDriverCardDummy();
+
   private:
     // The constructor does not need to know anything. There is noting to configure
     // in the dummy, and it does not access any hardware (or hardware dummy).

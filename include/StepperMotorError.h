@@ -27,6 +27,7 @@ namespace mtca4u {
         static const StepperMotorError M_COMMUNICATION_LOST;
         static const StepperMotorError M_NO_REACTION_ON_COMMAND;
         static const StepperMotorError M_HARDWARE_NOT_CONNECTED;
+	virtual ~StepperMotorErrorTypes(){}
     };
 
 

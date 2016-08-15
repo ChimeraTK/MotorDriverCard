@@ -18,7 +18,10 @@ bool checkOperatorForDefaultConstructedObject(mtca4u::StepperMotorStatus& status
 
 BOOST_AUTO_TEST_SUITE( StepperMotorStatusTestSuite )
         
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( StepperMotorStatusTestCase ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -114,7 +117,10 @@ bool checkOperatorForDefaultConstructedObject(mtca4u::LinearStepperMotorStatus& 
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( LinearStepperMotorStatusTestCase ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     

@@ -18,6 +18,8 @@ class QtMotorConfigCalculator: public QWidget{
    *  parent widget.
    */
    QtMotorConfigCalculator(QWidget * parent_ = NULL);
+   QtMotorConfigCalculator(QtMotorConfigCalculator const &)=delete;
+   QtMotorConfigCalculator & operator=(QtMotorConfigCalculator const &)=delete;
 
  private:
    QVBoxLayout *verticalLayout;

@@ -61,7 +61,9 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
   return new TMC429SPITestSuite( MAP_FILE_NAME, MODULE_NAME_0 );
 }
 
-TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName){
+TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName)
+  : _dummyDevice(), _mappedDevice(), _mapFileName(), _tmc429Spi()
+{
 
 	_dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );//fixme mapFileName should be an alias instead
 	//_dummyDevice.reset( new DFMC_MD22Dummy(moduleName) );

@@ -39,7 +39,11 @@ BOOST_AUTO_TEST_SUITE( CalculateParametersTestSuite )
 
 // The parameters as used for the VT21 are used to check the calculated
 // values as a random sample
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testVT21Parameters ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::ChipParameters chipParameters
     = ParametersCalculator::calculateParameters( vt21Parameters );
 
@@ -54,7 +58,11 @@ BOOST_AUTO_TEST_CASE( testVT21Parameters ){
   BOOST_CHECK( chipParameters.currentScale == 3);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testMirosteps ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters physicalParameters = 
     vt21Parameters;
 
@@ -76,7 +84,11 @@ BOOST_AUTO_TEST_CASE( testMirosteps ){
  
 }
     
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testClocks ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters physicalParameters = 
     vt21Parameters;
 
@@ -91,7 +103,11 @@ BOOST_AUTO_TEST_CASE( testClocks ){
     
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testCurrents ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters physicalParameters = 
     vt21Parameters;
   
@@ -145,7 +161,11 @@ BOOST_AUTO_TEST_CASE( testCurrents ){
 }
 
 // the other input parameters must be positive
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testPositive ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters physicalParameters = 
     vt21Parameters;
 
@@ -174,7 +194,11 @@ BOOST_AUTO_TEST_CASE( testPositive ){
 		     std::invalid_argument );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testPluseDivVMaxRanges ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters 
     maxPulseDivParameters( 32, // max system clock
 			   1, // min microsteps
@@ -252,7 +276,11 @@ BOOST_AUTO_TEST_CASE( testPluseDivVMaxRanges ){
   BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( tooSlowParameters ), std::out_of_range );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testRampDivAMaxRanges ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters 
     maxRampDivParameters = vt21Parameters;
   maxRampDivParameters.timeToVMax = 10; // very slow acceleration
@@ -330,7 +358,11 @@ BOOST_AUTO_TEST_CASE( testRampDivAMaxRanges ){
   BOOST_CHECK_THROW( ParametersCalculator::calculateParameters( tooSlowParameters ), std::out_of_range );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testPDiv ){
+#pragma GCC diagnostic pop
+    
   ParametersCalculator::PhysicalParameters 
     physicalParameters = vt21Parameters;
 

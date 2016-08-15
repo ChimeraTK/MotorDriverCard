@@ -19,6 +19,8 @@ class MotorConfigWidget: public QWidget{
    *  the parent of the widget.
    */
    MotorConfigWidget(QWidget * parent_ = NULL);
+   MotorConfigWidget(MotorConfigWidget const &) = delete;
+   MotorConfigWidget & operator=(MotorConfigWidget const &) = delete;
  
    /** Get access to the config calculated from the chip parameters.
     */

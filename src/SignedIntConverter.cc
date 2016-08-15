@@ -4,7 +4,7 @@ namespace mtca4u{
   
   /// Fixme: is this safe in case someone puts nBits > 31?
   SignedIntConverter::SignedIntConverter( unsigned int nBits )
-    : _nBits(nBits) , _bitMask( (1<<nBits) -1 ), _negativeBit( 1 << (nBits-1) )
+    : _bitMask( (1<<nBits) -1 ), _negativeBit( 1 << (nBits-1) )
   {}
 
   int32_t SignedIntConverter::customToThirtyTwo(int32_t const & customInt){

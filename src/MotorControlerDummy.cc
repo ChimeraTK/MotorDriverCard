@@ -12,9 +12,11 @@ namespace mtca4u {
     int const MotorControlerDummy::_negativeEndSwitchPosition = -10000;
 
     MotorControlerDummy::MotorControlerDummy(unsigned int id)
-    : _absolutePosition(0), _targetPosition(0), _currentPosition(0),
-    _positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true),
-    _motorCurrentEnabled(false), _endSwitchPowerEnabled(false), _id(id), _blockMotor(false), _bothEndSwitchesAlwaysOn(false) {
+      : _motorControllerDummyMutex(),
+	_absolutePosition(0), _targetPosition(0), _currentPosition(0),
+	_positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true),
+	_motorCurrentEnabled(false), _endSwitchPowerEnabled(false), _id(id), _blockMotor(false), 
+	_bothEndSwitchesAlwaysOn(false) {
     }
 
     unsigned int MotorControlerDummy::getID() {

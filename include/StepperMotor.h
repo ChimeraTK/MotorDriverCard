@@ -35,6 +35,7 @@ namespace mtca4u {
         public:
             virtual float stepsToUnits(int steps) = 0;
             virtual int unitsToSteps(float units) = 0;
+	    virtual ~StepperMotorUnitsConverter(){}
     };
 
     /**
@@ -46,12 +47,9 @@ namespace mtca4u {
         StepperMotorStatus status;
         StepperMotorError error;
         
-        StepperMotorStatusAndError(StepperMotorStatus statusParam, StepperMotorError errorParam) {
-            status = statusParam;
-            error = errorParam;
-        }
-        
-        StepperMotorStatusAndError() {
+         StepperMotorStatusAndError(StepperMotorStatus statusParam = StepperMotorStatus(),
+				    StepperMotorError errorParam  = StepperMotorError()) :
+ 	    status(statusParam), error(errorParam){
         }
     };
     
@@ -77,7 +75,7 @@ namespace mtca4u {
         /**
          * @brief  Destructor of the class object
          */
-        ~StepperMotor();
+        virtual ~StepperMotor();
         
         /**
          * @brief Sending motor to new position (blocking).

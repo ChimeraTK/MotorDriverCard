@@ -18,7 +18,10 @@ bool checkOperatorForDefaultConstructedObject(mtca4u::StepperMotorCalibrationSta
 
 BOOST_AUTO_TEST_SUITE( StepperMotorCalibrationStastusTestSuite )
         
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( StepperMotorCalibrationStastusTestCase ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
