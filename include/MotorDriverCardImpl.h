@@ -2,7 +2,6 @@
 #define MTCA4U_MOTOR_DRIVER_CARD_IMPL_H
 
 #include <boost/shared_ptr.hpp>
-#include <boost/noncopyable.hpp>
 
 #include "MotorDriverCardExpert.h"
 #include "MotorControler.h"
@@ -19,7 +18,7 @@ namespace mtca4u
    * MotorDriverCardFactory. This ensures that only one instance per device is created,
    * which allows thread safe access to the motors.
    */
-  class MotorDriverCardImpl: public MotorDriverCardExpert, public boost::noncopyable{
+  class MotorDriverCardImpl: public MotorDriverCardExpert{
   public:
 
     boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID);    
@@ -90,6 +89,11 @@ namespace mtca4u
     MotorDriverCardImpl(boost::shared_ptr< mtca4u::Device > const & device,
                         std::string const & moduleName,			
                         MotorDriverCardConfig const & cardConfiguration);
+
+    /// The class is non-copyable
+    MotorDriverCardImpl(MotorDriverCardImpl const &)=delete;
+    /// The class is non-assignable
+    MotorDriverCardImpl & operator=(MotorDriverCardImpl const &)=delete;
 
     // The factory needs access to the constructor because it is the only official ways
     // to create a MotorDriverCard

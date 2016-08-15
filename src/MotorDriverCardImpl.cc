@@ -15,7 +15,7 @@ using namespace mtca4u::tmc429;
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
-  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< Device > const & device,
+  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< mtca4u::Device > const & device,
                                            std::string const & moduleName,	
 					   MotorDriverCardConfig const & cardConfiguration)
     : _motorControlers(), // done later in the constructor body

@@ -3,7 +3,6 @@
 
 #include "MotorControlerExpert.h"
 
-#include <boost/noncopyable.hpp>
 #include <mutex>
 
 #include "MotorControlerConfig.h"
@@ -36,7 +35,7 @@ namespace mtca4u
 {
   class MotorDriverCardImpl;
 
-  class MotorControlerImpl: public MotorControlerExpert, public boost::noncopyable{
+  class MotorControlerImpl: public MotorControlerExpert{
 
   public:
     /** The constructor gets references shared pointers which it copies internally, so the
@@ -47,6 +46,11 @@ namespace mtca4u
                        std::string const& moduleName,
                        boost::shared_ptr<TMC429SPI> const& controlerSPI,
                        MotorControlerConfig const& motorControlerConfig);
+
+    /// The class is non-copyable
+    MotorControlerImpl(MotorControlerImpl const &)=delete;
+    /// The class is non-assignable
+    MotorControlerImpl & operator=(MotorControlerImpl const &)=delete;
 
     unsigned int getID();
     int getActualPosition();
