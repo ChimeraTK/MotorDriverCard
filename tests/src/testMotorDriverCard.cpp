@@ -92,7 +92,7 @@ class  MotorDriverCardTestSuite : public test_suite{
 };
 
 MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName, std::string const & moduleName)
-  : _mapFileName(mapFileName), _moduleName(moduleName) {
+  : _motorDriverCard(), _dummyDevice(), _registerMapping(), _mapFileName(mapFileName), _moduleName(moduleName) {
 }
 
 void MotorDriverCardTest::testConstructor(){

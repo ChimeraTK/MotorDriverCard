@@ -23,8 +23,8 @@ namespace mtca4u{
       _spiWaitingTime(spiWaitingTime),
       _moduleName(moduleName),
       _writeRegisterName(writeRegisterName),
-      _syncRegisterName(syncRegisterName)
-      
+      _syncRegisterName(syncRegisterName),
+      _spiMutex()
   {}
 
   SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< Device > const & device,

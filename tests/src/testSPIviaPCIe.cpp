@@ -66,7 +66,9 @@ init_unit_test_suite(int /*argc*/, char * /*argv*/ []) {
     return new SPIviaPCIeTestSuite(MAP_FILE_NAME, MODULE_NAME_0);
 }
 
-SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string const & moduleName) {
+SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string const & moduleName) 
+  : _dummyBackend(), _device(), _mapFileName(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe()
+{
 
 
 	 _dummyBackend.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );

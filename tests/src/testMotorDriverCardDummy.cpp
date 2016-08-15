@@ -13,6 +13,8 @@ class MotorDriverCardDummyTest
   void testGetMotorControler();
   void testGetPowerMonitor();
 
+  MotorDriverCardDummyTest() :  _motorDriverCardDummy(){}
+
  private:
   MotorDriverCardDummy _motorDriverCardDummy;
 };

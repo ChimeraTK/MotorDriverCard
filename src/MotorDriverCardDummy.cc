@@ -17,6 +17,9 @@ MotorDriverCardDummy::MotorDriverCardDummy()
   }
 }
 
+MotorDriverCardDummy::~MotorDriverCardDummy(){
+}
+
 boost::shared_ptr<MotorControler> MotorDriverCardDummy::getMotorControler(unsigned int motorControlerID){
   try{
     return _motorControlers.at(motorControlerID);

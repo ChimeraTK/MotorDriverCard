@@ -170,7 +170,7 @@ private:
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
 public:
   MotorControlerTestSuite(std::string const & mapFileName) 
-    : test_suite(" MotorControler test suite"){
+    : test_suite(" MotorControler test suite"),  _motorDriverCard(){
     //boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy(MODULE_NAME_0) );
   	std::list<std::string>parameters;
   	parameters.push_back(MODULE_NAME_0);

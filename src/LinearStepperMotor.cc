@@ -5,17 +5,16 @@
 
 namespace mtca4u {
 
-    LinearStepperMotor::LinearStepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName)
-    : StepperMotor(motorDriverCardDeviceName, moduleName, motorDriverId, motorDriverCardConfigFileName) {
-
-        //end switches enabled or not
-        _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
-        _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
-    
-        //calibration
-        _calibNegativeEndSwitchInUnits = _calibNegativeEndSwitchInSteps = 0;
-        _calibPositiveEndSwitchInUnits = _calibPositiveEndSwitchInSteps = 0;
-        _stopMotorCalibration = false;
+    LinearStepperMotor::LinearStepperMotor(std::string const & motorDriverCardDeviceName,
+					   std::string const & moduleName,
+					   unsigned int motorDriverId, 
+					   std::string motorDriverCardConfigFileName)
+      : StepperMotor(motorDriverCardDeviceName, moduleName, motorDriverId, motorDriverCardConfigFileName),
+	_calibNegativeEndSwitchInSteps(0), _calibNegativeEndSwitchInUnits(0),
+	_calibPositiveEndSwitchInSteps(0), _calibPositiveEndSwitchInUnits(0),
+	_stopMotorCalibration(false),
+        _negativeEndSwitchEnabled( _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled() ),
+	_positiveEndSwitchEnabled( _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled() ){
     }
 
     LinearStepperMotor::~LinearStepperMotor() {

@@ -1,7 +1,7 @@
 #include "ParameterWidget.h"
 
 ParameterWidget::ParameterWidget(QWidget * parent_, std::string const & parameterName, uint32_t defaultValue)
-  : QWidget(parent_){
+  : QWidget(parent_), horizontalLayout(NULL), label(NULL), parameterSpinBox(NULL), defaultValueLabel(NULL){
   horizontalLayout = new QHBoxLayout(this);
 
   label =  new QLabel(parameterName.c_str(), this);

@@ -105,6 +105,8 @@ namespace mtca4u
       *  This function the extracts the correct bit from the controler status word
       *  and stores it as the least significant bit. */
      virtual unsigned int getReferenceSwitchBit()=0;
+
+     virtual ~MotorControler(){}
    };
 
 }// namespace mtca4u

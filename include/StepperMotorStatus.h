@@ -29,6 +29,8 @@ namespace mtca4u {
         static const StepperMotorStatus M_SOFT_POSITIVE_END_SWITCHED_ON;
         static const StepperMotorStatus M_SOFT_NEGATIVE_END_SWITCHED_ON;
         static const StepperMotorStatus M_ERROR;
+
+	virtual ~StepperMotorStatusTypes(){}
     };
     
 

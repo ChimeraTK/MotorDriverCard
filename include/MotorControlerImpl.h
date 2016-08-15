@@ -241,7 +241,7 @@ namespace mtca4u
 
      double convertVMaxToUstepsPerSec(double vMax);
      double convertUstepsPerSecToVmax(double speedInUstepsPerSec);
-     double calculateConversionFactor();
+     static double calculateConversionFactor(MotorControlerConfig const & motorControlerConfig);
      unsigned int validateVMaxForHardware(double calculatedVmax);
 
      double convertCurrentScaletoAmps(unsigned int currentScale);

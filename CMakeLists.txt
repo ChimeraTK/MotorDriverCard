@@ -32,9 +32,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 #use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
 
-#set(CMAKE_CXX_FLAGS "-Wall -g -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
-#skip -Weffc++ for the moment. It gives too many false positives
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -Wuninitialized")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -Wuninitialized -Weffc++")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
@@ -56,6 +54,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${mtca4u-deviceaccess_CXX_FLAGS}")
 #pugixml now comes with the MotorDriverCard source code
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src)
 aux_source_directory(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src pugixml_sources)
+#turn off effc++ for the pugixml library. It's not our code.
+set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -Wno-effc++)
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 

@@ -9,7 +9,8 @@
 
 namespace mtca4u{
 
-MotorDriverCardFactory::MotorDriverCardFactory(){
+MotorDriverCardFactory::MotorDriverCardFactory()
+  : _factoryMutex(), _motorDriverCards(), _dummyMode(false){
 	/* empty */
 }
 

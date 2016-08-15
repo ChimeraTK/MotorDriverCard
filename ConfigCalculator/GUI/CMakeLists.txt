@@ -3,7 +3,8 @@ project(QtMotorConfigCalculator)
 FIND_PACKAGE(Qt4 REQUIRED)
 
 # current binary dir for the generated headers from the ui and the moc
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+# Treat them as system directories because they contain generated code which cannot directly be controlled by us.
+include_directories(SYSTEM ${CMAKE_CURRENT_BINARY_DIR})
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}  ${PROJECT_NAME}_SOURCES)
 
 SET(${PROJECT_NAME}_QOBJECT_HEADERS MotorConfigWidget.h QtMotorConfigCalculator.h HexSpinBox.h)
@@ -20,8 +21,8 @@ QT4_ADD_RESOURCES(${PROJECT_NAME}_RESOURCES_RCC ${${PROJECT_NAME}_RESOURCES})
 # Do not use INCLUDE(${QT_USE_FILE}). What this does is run
 # /usr/share/cmake-2.8/Modules/UseQt4.cmake which sets the variables for you
 # (including QT_LIBRARIES)
-INCLUDE_DIRECTORIES(SYSTEM ${QT_INCLUDES})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
+INCLUDE_DIRECTORIES(SYSTEM ${QT_INCLUDES})
 
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES} 
   ${${PROJECT_NAME}_HEADERS_MOC}

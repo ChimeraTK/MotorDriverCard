@@ -6,42 +6,29 @@
 namespace mtca4u {
 
 
-    	StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName) {
-        _motorDriverId = motorDriverId;
-        _motorDriverCardDeviceName = motorDriverCardDeviceName;
-
-        //std::string deviceFileName(DMapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).dev_file);
-        //std::string mapFileName(DMapFilesParser(pathToDmapFile).getdMapFileElem(_motorDriverCardDeviceName).map_file_name);
-
-        /*_motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
-                                deviceFileName, mapFileName, moduleName, motorDriverCardConfigFileName);*/
-
-        _motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
-        		motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
-
-
-
-
-        _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
-
-        //position limits
-        _maxPositionLimit = std::numeric_limits<float>::max();
-        _minPositionLimit = -std::numeric_limits<float>::max();
-
-        // position - don't know so set to 0
-        _currentPostionsInSteps = 0;
-        _currentPostionsInUnits = 0;
-
-        _targetPositionInSteps = 0;
-        _targetPositionInUnits = 0;
-
-        _autostartFlag = false;
-
-        _stopMotorForBlocking = false;
-        _blockingFunctionActive = false;
-
-        _softwareLimitsEnabled = true;
-        _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_NOT_CALIBRATED;
+  StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName,
+			     unsigned int motorDriverId, std::string motorDriverCardConfigFileName) 
+    : _motorDriverCardDeviceName(motorDriverCardDeviceName),
+      _motorDriverId(motorDriverId),
+      _motorDriverCard( MotorDriverCardFactory::instance().createMotorDriverCard(
+			    motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+      _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+      _currentPostionsInSteps(0),// position - don't know so set to 0
+      _currentPostionsInUnits(0),
+      _targetPositionInSteps(0),
+      _targetPositionInUnits(0),
+      _maxPositionLimit(std::numeric_limits<float>::max()),
+      _minPositionLimit(-std::numeric_limits<float>::max()),
+      _stepperMotorUnitsConverter(),
+      _autostartFlag(false),
+      _stopMotorForBlocking(false),
+      _softwareLimitsEnabled(true),
+      _motorError(),
+      _motorCalibrationStatus(StepperMotorCalibrationStatusType::M_NOT_CALIBRATED),
+      _motorStatus(),
+      _blockingFunctionActive(false),
+      _logger(),
+      _mutex(){
     }
 
     StepperMotor::~StepperMotor() {

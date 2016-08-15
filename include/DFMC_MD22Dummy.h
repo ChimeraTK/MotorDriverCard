@@ -186,10 +186,11 @@ class TMC429OutputWord;
     /// Helper struct to simulate the spi for one driver
     struct DriverSPI{
       /// each driver has it's own address space vector<uint>
-       std::vector<unsigned int> addressSpace;
+      std::vector<unsigned int> addressSpace;
       unsigned int bar;
       unsigned int pcieWriteAddress;
       unsigned int pcieSyncAddress;
+      DriverSPI();
     };
 
     std::vector< DriverSPI > _driverSPIs;

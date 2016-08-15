@@ -88,7 +88,10 @@ init_unit_test_suite( int argc, char* argv[] )
   return new MotorDriverCardConfigXMLTestSuite;
 }
 
-MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest(){
+MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest()
+  : defaultCardConfig(), completeCardConfig(), firstHalfCardConfig(), secondHalfCardConfig(),
+    defaultControlerConfig(), plusOneControlerConfig()
+{
   ASSIGN_PLUS_ONE_CONTROLER( accelerationThresholdData );
   plusOneControlerConfig.actualPosition = -(plusOneControlerConfig.actualPosition+1);
   ASSIGN_PLUS_ONE_CONTROLER( chopperControlData );

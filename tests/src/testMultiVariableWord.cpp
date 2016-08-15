@@ -220,7 +220,9 @@ void MultiVariableWordTest<T>::testEqualsOperator() {
 }
 
 template <class T>
-MultiVariableWordTest<T>::MultiVariableWordTest() {
+MultiVariableWordTest<T>::MultiVariableWordTest() 
+  : _testWord(), patterns()
+{
 }
 
 template <class T>

@@ -35,6 +35,7 @@ namespace mtca4u{
   class TMC429InputWord: public MultiVariableWord {
     public:
       TMC429InputWord(unsigned int dataWord = 0): MultiVariableWord(dataWord){}
+      virtual ~TMC429InputWord(){}
       ADD_VARIABLE(RRS, 31, 31 );
       ADD_VARIABLE(SMDA, 29, 30 );
       ADD_VARIABLE(IDX_JDX, 25, 28 );
@@ -50,6 +51,7 @@ namespace mtca4u{
   class TMC429OutputWord: public MultiVariableWord {
     public:
       TMC429OutputWord(unsigned int dataWord = 0): MultiVariableWord(dataWord){}
+      virtual ~TMC429OutputWord(){}
       ADD_VARIABLE(STATUS_BITS, 24 ,31);
     
       ADD_VARIABLE(INT, 31, 31 );

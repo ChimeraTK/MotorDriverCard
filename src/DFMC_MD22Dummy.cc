@@ -27,16 +27,26 @@ namespace mtca4u{
 
   DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const & mapFileName, std::string const & tmc429ControllerModuleName)
   : DummyBackend(mapFileName),
-    _powerIsUp(true), _causeSpiTimeouts(false),
+    _controlerSpiAddressSpace( tmc429::SIZE_OF_SPI_ADDRESS_SPACE , 0),
+    _controlerSpiWriteAddress(0),
+    _controlerSpiBar(0),
+    _controlerSpiReadbackAddress(0),
+    _controlerSpiSyncAddress(0),
+    _powerIsUp(true),
+    _driverSPIs(0),
+    _causeSpiTimeouts(false),
     _causeSpiErrors(false),
     _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
     _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY),
-    _moduleName(tmc429ControllerModuleName)
-  {
-
-
+    _moduleName(tmc429ControllerModuleName){
   }
 
+  DFMC_MD22Dummy::DriverSPI::DriverSPI() :
+    addressSpace(0),
+    bar(0),
+    pcieWriteAddress(0),
+    pcieSyncAddress(0){
+  }
 
   void DFMC_MD22Dummy::open(){
     DummyBackend::open();

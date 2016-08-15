@@ -19,7 +19,8 @@ namespace mtca4u {
         GeneralStatus(const GeneralStatus &status);     
         //assigment operator
         GeneralStatus& operator= (const GeneralStatus& other);
-    
+	virtual ~GeneralStatus();     
+   
         bool operator==(GeneralStatus const& right) const;
 
         bool operator!=(GeneralStatus const& right) const;

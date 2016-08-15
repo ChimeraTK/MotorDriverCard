@@ -21,12 +21,10 @@ namespace mtca4u {
         LinearStepperMotorStatus status;
         LinearStepperMotorError error;
 
-        LinearStepperMotorStatusAndError(StepperMotorStatus statusParam, StepperMotorError errorParam) {
-            status = static_cast<LinearStepperMotorStatus>(statusParam);
-            error = static_cast<LinearStepperMotorError>(errorParam);
-        }
-
-        LinearStepperMotorStatusAndError() {
+        LinearStepperMotorStatusAndError(StepperMotorStatus statusParam = StepperMotorStatus(),
+					 StepperMotorError errorParam = StepperMotorError()) 
+	  : status(statusParam),
+	    error(errorParam){
         }
     };
 

@@ -15,6 +15,10 @@
 class ParameterWidget : public QWidget{
  public:
   ParameterWidget(QWidget * parent_, std::string const & parameterName, uint32_t defaultValue = 0xDEADBEEF);
+  ParameterWidget(ParameterWidget const &)=delete;
+  ParameterWidget & operator=(ParameterWidget const &)=delete;
+  
+
   uint32_t getValue();
   void setValue(uint32_t value);
  protected:

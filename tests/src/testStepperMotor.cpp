@@ -130,7 +130,9 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
   return new StepperMotorTestSuite;
 }
 
-StepperMotorTest::StepperMotorTest() {
+StepperMotorTest::StepperMotorTest() 
+  : _stepperMotor(), _motorControlerDummy(), _testUnitConveter()
+{
     
     std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
     std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);

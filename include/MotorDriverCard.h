@@ -23,6 +23,8 @@ namespace mtca4u
     
     /// Get a reference to the power monitor.
     virtual PowerMonitor & getPowerMonitor() = 0;
+
+    virtual ~MotorDriverCard(){}
   };
   
 }// namespace mtca4u

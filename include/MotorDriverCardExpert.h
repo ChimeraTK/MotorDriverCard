@@ -42,7 +42,8 @@ namespace mtca4u
     virtual ReferenceSwitchData getReferenceSwitchData() = 0;
 
     virtual unsigned int getControlerChipVersion() = 0;
- 
+
+    virtual ~MotorDriverCardExpert(){}
   };
   
 }// namespace mtca4u

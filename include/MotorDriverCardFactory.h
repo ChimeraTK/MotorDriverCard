@@ -25,7 +25,7 @@ class MotorDriverCardFactory{
   /** The constructor is private because this class is a singleton.
    */
   MotorDriverCardFactory();
-  MotorDriverCardFactory(MotorDriverCardFactory const &);
+  MotorDriverCardFactory(MotorDriverCardFactory const &) = delete;
   
   /// Mutex to allow access from multiple threads.
   boost::mutex _factoryMutex;

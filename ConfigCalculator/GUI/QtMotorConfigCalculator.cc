@@ -7,7 +7,9 @@
 #include "getParameters.h"
 
 QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
-  : QWidget(parent_){
+  : QWidget(parent_), verticalLayout(NULL), motorTabWidget(NULL), writeButton(NULL),
+    expertTabWidget(NULL), motorConfigWidgets(), motorExpertWidgets(), cardExpertWidget(NULL)
+{
   verticalLayout = new QVBoxLayout(this);
   
   QTabWidget * mainTabWidget = new QTabWidget(this);

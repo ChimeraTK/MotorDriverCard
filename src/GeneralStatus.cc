@@ -16,6 +16,9 @@ namespace mtca4u {
     GeneralStatus::GeneralStatus(const GeneralStatus &status) : _id(status._id) {
     }
 
+    GeneralStatus::~GeneralStatus(){
+    }
+
     GeneralStatus& GeneralStatus::operator=(const GeneralStatus& other) {
         //boost::lock_guard<boost::mutex> lock_guard(mutex);
         if (this != &other) {

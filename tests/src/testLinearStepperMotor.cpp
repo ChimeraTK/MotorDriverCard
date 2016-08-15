@@ -99,7 +99,8 @@ init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
     return new LinearStepperMotorTestSuite;
 }
 
-LinearStepperMotorTest::LinearStepperMotorTest() {
+LinearStepperMotorTest::LinearStepperMotorTest()
+  : _stepperMotor(), _motorControlerDummy(), _testUnitConveter() {
 
     //std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_file);
 	std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
