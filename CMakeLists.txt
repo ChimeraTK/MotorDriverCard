@@ -4,7 +4,7 @@ project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
 set(${PROJECT_NAME}_MINOR_VERSION 11)
-set(${PROJECT_NAME}_PATCH_VERSION 07)
+set(${PROJECT_NAME}_PATCH_VERSION 08)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
@@ -23,6 +23,13 @@ message("${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_SOVERSION}")
 #We need the build name to be part of the libraries full version name
 set(${PROJECT_NAME}_FULL_LIBRARY_VERSION ${${PROJECT_NAME}_SOVERSION}.${${PROJECT_NAME}_PATCH_VERSION})
  
+# Set the build type to Release if none is specified
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 #use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
 
 #set(CMAKE_CXX_FLAGS "-Wall -g -fPIC -Wextra -Wshadow -Weffc++ -ansi -pedantic -Wuninitialized")
