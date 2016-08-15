@@ -39,8 +39,8 @@ namespace mtca4u{
       _spiWaitingTime(spiWaitingTime),
       _moduleName(moduleName),
       _writeRegisterName(writeRegisterName),
-      _syncRegisterName(syncRegisterName)
-      
+      _syncRegisterName(syncRegisterName),
+      _spiMutex()
   {}
 
   void SPIviaPCIe::write( int32_t spiCommand ){
