@@ -9,7 +9,11 @@ using namespace boost::unit_test_framework;
 
 BOOST_AUTO_TEST_SUITE( CalculateConfigTestSuite )
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testCalculateConfig ){
+#pragma GCC diagnostic pop
+    
   // Very simple test: check that all values end up in the right 
   // bit patterns.
   // Just use numbers counting up from 1
@@ -48,7 +52,11 @@ BOOST_AUTO_TEST_CASE( testCalculateConfig ){
   BOOST_CHECK(controllerConfig.maximumAcceleration == 3);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testeEndSwitchConfig ){
+#pragma GCC diagnostic pop
+    
   // Test that an exception is thrown if you write something invalid to
   // the end switch config enum via static_cast
   // Just use the same parameters as above

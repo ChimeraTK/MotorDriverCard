@@ -17,7 +17,10 @@ using namespace mtca4u::dfmc_md22;
 
 BOOST_AUTO_TEST_SUITE( MotorDriverCardFactoryTestSuite )
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testInstance ){
+#pragma GCC diagnostic pop
 	// check that the singleton pattern works
 	MotorDriverCardFactory const & instance1 = MotorDriverCardFactory::instance();
 	MotorDriverCardFactory const & instance2 = MotorDriverCardFactory::instance();
@@ -25,7 +28,10 @@ BOOST_AUTO_TEST_CASE( testInstance ){
 	BOOST_CHECK( &instance1 == &instance2);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testGetSetDMapFilePath ){
+#pragma GCC diagnostic pop
   // make sure there is something different set than the one we want to test
   BackendFactory::getInstance().setDMapFilePath("some/initial/file");
   // check that you can read it through the MotorDriverCardFactory interface
@@ -38,7 +44,10 @@ BOOST_AUTO_TEST_CASE( testGetSetDMapFilePath ){
   BOOST_CHECK(BackendFactory::getInstance().getDMapFilePath() == "my/dmapfile");
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testCreate ){
+#pragma GCC diagnostic pop
 	// test the creation with PcieDevice, mapping file and device file not being the same
 
 	// Prepare the dummy device. It has to have the correct firmware number in the
@@ -82,7 +91,10 @@ BOOST_AUTO_TEST_CASE( testCreate ){
 	BOOST_CHECK( motorDriverCard_PCIe1.use_count() == 3 );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testCreateDummy ){
+#pragma GCC diagnostic pop
 	MotorDriverCardFactory::instance().setDummyMode(true);
 	boost::shared_ptr<MotorDriverCardDummy> motorDriverCardDummy =
 			boost::dynamic_pointer_cast<MotorDriverCardDummy>(

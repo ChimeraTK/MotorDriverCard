@@ -16,7 +16,11 @@ unsigned int createDataWordFromIdxJdx( unsigned int idxJdx ){
 
 BOOST_AUTO_TEST_SUITE( TMC429WordsTestSuite )
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testTMC429InputWord ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429InputWord> ( &TMC429InputWord::setRRS,
 								   &TMC429InputWord::getRRS )
 	      == 0x80000000 );
@@ -37,7 +41,11 @@ BOOST_AUTO_TEST_CASE( testTMC429InputWord ){
 	      == 0x00FFFFFF );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testTMC429OutputWord ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429OutputWord> ( &TMC429OutputWord::setSTATUS_BITS,
 								    &TMC429OutputWord::getSTATUS_BITS )
 	      == 0xFF000000 );
@@ -79,7 +87,11 @@ BOOST_AUTO_TEST_CASE( testTMC429OutputWord ){
 	      == 0x00FFFFFF );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testReferenceSwitchData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<ReferenceSwitchData> ( &ReferenceSwitchData::setRight1,
 								       &ReferenceSwitchData::getRight1 )
 	      == 0x7C000001 );
@@ -100,7 +112,11 @@ BOOST_AUTO_TEST_CASE( testReferenceSwitchData ){
 	      == 0x7C000020 );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testCoverPositionAndLength ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<CoverPositionAndLength> ( &CoverPositionAndLength::setCoverLength,
 									  &CoverPositionAndLength::getCoverLength )   == 0x6400001F );  
   BOOST_CHECK(createOutputMaskUsingSetterGetter<CoverPositionAndLength> ( &CoverPositionAndLength::setCoverPosition,
@@ -109,7 +125,11 @@ BOOST_AUTO_TEST_CASE( testCoverPositionAndLength ){
 									  &CoverPositionAndLength::getCoverWaiting )  == 0x64800000 );  
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testStepperMotorGlobalParameters ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setLastStepperMotorDriver,
 									      &StepperMotorGlobalParameters::getLastStepperMotorDriver) == 0x7E000003);  
   BOOST_CHECK(createOutputMaskUsingSetterGetter<StepperMotorGlobalParameters>(&StepperMotorGlobalParameters::setPolarities,
@@ -136,7 +156,11 @@ BOOST_AUTO_TEST_CASE( testStepperMotorGlobalParameters ){
 									      &StepperMotorGlobalParameters::getMot1r)                  == 0x7E200000);  
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testInterfaceConfiguration ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<InterfaceConfiguration>(&InterfaceConfiguration::setInv_ref,
 									&InterfaceConfiguration::getInv_ref)  == 0x68000001);  
   BOOST_CHECK(createOutputMaskUsingSetterGetter<InterfaceConfiguration>(&InterfaceConfiguration::setSdo_int,
@@ -157,14 +181,22 @@ BOOST_AUTO_TEST_CASE( testInterfaceConfiguration ){
 									&InterfaceConfiguration::getEn_refr)  == 0x68000100);  
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testPositionCompareInterruptData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<PositionCompareInterruptData>(&PositionCompareInterruptData::setInterruptFlag,
 									      &PositionCompareInterruptData::getInterruptFlag)  == 0x6C000001);  
   BOOST_CHECK(createOutputMaskUsingSetterGetter<PositionCompareInterruptData>(&PositionCompareInterruptData::setInterruptMask,
 									      &PositionCompareInterruptData::getInterruptMask)  == 0x6C000100);  
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testAccelerationThresholdData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<AccelerationThresholdData>(&AccelerationThresholdData::setAccelerationThreshold,
 									   &AccelerationThresholdData::getAccelerationThreshold)        == 0x100007FF);
   BOOST_CHECK(createOutputMaskUsingSetterGetter<AccelerationThresholdData>(&AccelerationThresholdData::setCurrentScalingAtRest,
@@ -175,14 +207,22 @@ BOOST_AUTO_TEST_CASE( testAccelerationThresholdData ){
 									   &AccelerationThresholdData::getCurrentScalingAboveThreshold) == 0x10700000);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testProportionalityFactorData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<ProportionalityFactorData>(&ProportionalityFactorData::setDivisionParameter,
 									   &ProportionalityFactorData::getDivisionParameter)       == 0x1200000F);
   BOOST_CHECK(createOutputMaskUsingSetterGetter<ProportionalityFactorData>(&ProportionalityFactorData::setMultiplicationParameter,
 									   &ProportionalityFactorData::getMultiplicationParameter) == 0x12007F00);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testReferenceConfigAndRampModeData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<ReferenceConfigAndRampModeData>(
 		     &ReferenceConfigAndRampModeData::setRampMode,
 		     &ReferenceConfigAndRampModeData::getRampMode)        == 0x14000003);
@@ -206,7 +246,11 @@ BOOST_AUTO_TEST_CASE( testReferenceConfigAndRampModeData ){
 		     &ReferenceConfigAndRampModeData::getLatchedPosition) == 0x14010000);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testInterruptData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<InterruptData>(&InterruptData::setInterruptFlags,
 							       &InterruptData::getInterruptFlags)      == 0x160000FF);
   BOOST_CHECK(createOutputMaskUsingSetterGetter<InterruptData>(&InterruptData::setINT_POS_END,
@@ -246,7 +290,11 @@ BOOST_AUTO_TEST_CASE( testInterruptData ){
 							       &InterruptData::getMASK_STOP_RIGHT_HIGH) == 0x16008000);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testDividersAndMicroStepResolutionData ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<DividersAndMicroStepResolutionData>(&DividersAndMicroStepResolutionData::setMicroStepResolution,
 										    &DividersAndMicroStepResolutionData::getMicroStepResolution)
 	      == 0x18000007);
@@ -262,7 +310,11 @@ BOOST_AUTO_TEST_CASE( testDividersAndMicroStepResolutionData ){
  * For those classes which set IDX / JDX in their constructor these constants are automatically testest with the tests above.
  * For the other constants do the tests here.
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testRemainingJDX ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createDataWordFromIdxJdx( JDX_DATAGRAM_LOW_WORD ) == 0x00000000 );
   BOOST_CHECK( createDataWordFromIdxJdx( JDX_DATAGRAM_HIGH_WORD ) == 0x02000000 );
   BOOST_CHECK( createDataWordFromIdxJdx( JDX_COVER_DATAGRAM ) == 0x06000000 );
@@ -271,7 +323,11 @@ BOOST_AUTO_TEST_CASE( testRemainingJDX ){
   BOOST_CHECK( createDataWordFromIdxJdx( JDX_CHIP_VERSION ) == 0x12000000 );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testRemainingIDX ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_TARGET_POSITION ) == 0x00000000 );
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_ACTUAL_POSITION ) == 0x02000000 );
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_MINIMUM_VELOCITY ) == 0x04000000 );
@@ -285,7 +341,11 @@ BOOST_AUTO_TEST_CASE( testRemainingIDX ){
   BOOST_CHECK( createDataWordFromIdxJdx( IDX_MICRO_STEP_COUNT ) == 0x1E000000 );
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testTMC429StatusWord ){
+#pragma GCC diagnostic pop
+    
   BOOST_CHECK(createOutputMaskUsingSetterGetter<TMC429StatusWord> ( &TMC429StatusWord::setInterrupt,
 								   &TMC429StatusWord::getInterrupt )
 	      == 0x80 );

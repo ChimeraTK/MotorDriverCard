@@ -9,7 +9,10 @@ using namespace boost::unit_test_framework;
 
 BOOST_AUTO_TEST_SUITE( LoggerTestSuite )
         
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testFullDetailLevelOfLogger ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -54,7 +57,10 @@ BOOST_AUTO_TEST_CASE( testFullDetailLevelOfLogger ) {
     
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testDetailLevelOfLogger ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -99,7 +105,10 @@ BOOST_AUTO_TEST_CASE( testDetailLevelOfLogger ) {
     
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testInfoLevelOfLogger ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -144,7 +153,10 @@ BOOST_AUTO_TEST_CASE( testInfoLevelOfLogger ) {
     
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testWarningLevelOfLogger ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -189,7 +201,10 @@ BOOST_AUTO_TEST_CASE( testWarningLevelOfLogger ) {
     
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testErrorLevelOfLogger ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -234,7 +249,10 @@ BOOST_AUTO_TEST_CASE( testErrorLevelOfLogger ) {
     
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testNoLoggingLevelOfLogger ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -280,7 +298,10 @@ BOOST_AUTO_TEST_CASE( testNoLoggingLevelOfLogger ) {
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_AUTO_TEST_CASE( testOperators ) {
+#pragma GCC diagnostic pop
     
     std::stringstream testStream; // any kind of object which is std::ostream
     
@@ -335,109 +356,3 @@ BOOST_AUTO_TEST_CASE( testOperators ) {
 
 
 BOOST_AUTO_TEST_SUITE_END()
-
-
-
-
-
-
-//int main(int /*argc*/, char** /*argv[]*/) {
-/*
-
-#include "Logger.h"
-#include "LoggerMacros.h"
-
-int main(int argc, char* argv[]) {
-    using namespace mtca4u;
-    
-    std::cout << "Test Logger class !!! " << std::endl;
-
-    std::cout << "START OF GENERALLOGER TEST !!!!" << std::endl;
-    Logger logger;
-    logger.setLogLevel(Logger::FULL_DETAIL);
-    std::cout << logger << std::endl;
-    logger() <<" EMPTY FUNCTOR message" << std::endl;
-    logger(Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl;
-    logger(Logger::ERROR) << " ERROR message" << std::endl;
-    logger(Logger::WARNING) << " WARNING message" << std::endl;
-    logger(Logger::INFO) << " INFO message" << std::endl;
-    logger(Logger::DETAIL) << " DETAIL message" << std::endl;
-    logger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;
-    logger.setLogLevel(Logger::DETAIL);
-    std::cout << logger << std::endl;
-    logger() << " EMPTY FUNCTOR message" << std::endl;
-    logger(Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl;
-    logger(Logger::ERROR) << " ERROR message" << std::endl;
-    logger(Logger::WARNING) << " WARNING message" << std::endl;
-    logger(Logger::INFO) << " INFO message" << std::endl;
-    logger(Logger::DETAIL) << " DETAIL message" << std::endl;
-    logger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;
-    logger.setLogLevel(Logger::INFO);
-    std::cout << logger << std::endl;
-    logger() << " EMPTY FUNCTOR message" << std::endl;
-    logger(Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl;
-    logger(Logger::ERROR) << " ERROR message" << std::endl;
-    logger(Logger::WARNING) << " WARNING message" << std::endl;
-    logger(Logger::INFO) << " INFO message" << std::endl;
-    logger(Logger::DETAIL) << " DETAIL message" << std::endl;
-    logger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;
-    logger.setLogLevel(Logger::WARNING);
-    std::cout << logger << std::endl;
-    logger() << " EMPTY FUNCTOR message" << std::endl;
-    logger(Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl;
-    logger(Logger::ERROR) << " ERROR message" << std::endl;
-    logger(Logger::WARNING) << " WARNING message" << std::endl;
-    logger(Logger::INFO) << " INFO message" << std::endl;
-    logger(Logger::DETAIL) << " DETAIL message" << std::endl;
-    logger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;
-    logger.setLogLevel(Logger::ERROR);
-    std::cout << logger << std::endl;
-    logger() << " EMPTY FUNCTOR message" << std::endl;
-    logger(Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl;
-    logger(Logger::ERROR) << " ERROR message" << std::endl;
-    logger(Logger::WARNING) << " WARNING message" << std::endl;
-    logger(Logger::INFO) << " INFO message" << std::endl;
-    logger(Logger::DETAIL) << " DETAIL message" << std::endl;
-    logger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;
-    logger.setLogLevel(Logger::NO_LOGGING);
-    std::cout << logger << std::endl;
-    logger() << " EMPTY FUNCTOR message" << std::endl;
-    logger(Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl;
-    logger(Logger::ERROR) << " ERROR message" << std::endl;
-    logger(Logger::WARNING) << " WARNING message" << std::endl;
-    logger(Logger::INFO) << " INFO message" << std::endl;
-    logger(Logger::DETAIL) << " DETAIL message" << std::endl;
-    logger(Logger::FULL_DETAIL) << " FULL_DETAIL message" << std::endl;
-    
-    STD_LOGGER_SET_LOG_LEVEL(Logger::FULL_DETAIL);
-    ERR_LOGGER_SET_LOG_LEVEL(Logger::FULL_DETAIL);
-    STD_LOGGER_FL(Logger::ERROR) << " ERROR message with file and line to std::out" << std::endl;
-    ERR_LOGGER_FL(Logger::ERROR) << " ERROR message with file and line to std::cerr" << std::endl;
-    STD_LOGGER_FLD(Logger::ERROR) << " ERROR message with file, line and date to std::out" << std::endl;
-    ERR_LOGGER_FLD(Logger::ERROR) << " ERROR message with file, line and date to std::cerr" << std::endl;
-    STD_LOGGER_D(Logger::ERROR) << " ERROR message with date to std::out" << std::endl;
-    ERR_LOGGER_D(Logger::ERROR) << " ERROR message with date to std::cerr" << std::endl;
-
-    STD_LOGGER_FL(Logger::ERROR) << " ERROR message with file and line to std::out" << std::endl;
-    ERR_LOGGER_FL(Logger::ERROR) << " ERROR message with file and line to std::cerr" << std::endl;
-    STD_LOGGER_FLD(Logger::ERROR) << " ERROR message with file, line and date to std::out" << std::endl;
-    ERR_LOGGER_FLD(Logger::ERROR) << " ERROR message with file, line and date to std::cerr" << std::endl;
-    STD_LOGGER_D(Logger::ERROR) << " ERROR message with date to std::out" << std::endl;
-    ERR_LOGGER_D(Logger::ERROR) << " ERROR message with date to std::cerr" << std::endl;
-    
-    
-    ERR_LOGGER_DF(Logger::ERROR) << " ERROR message with date and function to std::cerr" << std::endl;
-    STD_LOGGER_DF(Logger::ERROR) << " ERROR message with date and function to std::std" << std::endl;
-    
-    std::cout << "END OF GENERALLOGER TEST !!!!" << std::endl;
-    std::cout << "End of Test Logger class !!! \n";
-    
-    
-    
-    
-    
-    
-    
-    return 0;
-}
-*/
