@@ -7,7 +7,7 @@
 	<MotorControlerConfig motorID="1">
 		<Register name="accelerationThresholdData" value="0x1" />
 		<Register name="actualPosition" value="-1" />
-		<Register name="chopperControlData" value="0x107B6" />
+		<Register name="chopperControlData" value="0x1F4" />
 		<Register name="coolStepControlData" value="0x1" />
 		<Register name="decoderReadoutMode" value="0x2" />
 		<Register name="dividersAndMicroStepResolutionData" value="0x3705" />
