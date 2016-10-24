@@ -180,6 +180,12 @@ namespace mtca4u {
         return _currentPostionsInUnits;
     }
 
+    int StepperMotor::getCurrentPositionInSteps(){
+      _currentPostionsInSteps = _motorControler->getActualPosition();
+      _currentPostionsInUnits = this->recalculateStepsToUnits(_currentPostionsInSteps);
+      return _currentPostionsInSteps;
+    }
+
     void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) {
         _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
     }

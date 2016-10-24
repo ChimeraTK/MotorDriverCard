@@ -61,6 +61,7 @@ class StepperMotorTest
   void thread(int i);
   
   void testUnitConverter();
+  void testGetPositionInUnitAndInSteps();
   void testGetSetSpeedLimit();
   void testSetGetCurrent();
  
@@ -114,6 +115,9 @@ public:
         
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testUnitConverter,
                 stepperMotorTest)); 
+
+        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testGetPositionInUnitAndInSteps,
+                                  stepperMotorTest));
 
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testGetSetSpeedLimit,
                 stepperMotorTest));
@@ -530,7 +534,6 @@ void StepperMotorTest::thread(int testCase) {
 }
 
 void StepperMotorTest::testUnitConverter() {
-
     
     _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
     
@@ -557,6 +560,30 @@ void StepperMotorTest::testUnitConverter() {
     BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -100);
     BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 105);
     BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -105);
+}
+
+void StepperMotorTest::testGetPositionInUnitAndInSteps() {
+  _testUnitConveter.reset(new TestUnitConveter);
+  _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
+
+  _motorControlerDummy->resetInternalStateToDefaults();
+
+  _stepperMotor->setAutostart(false);
+  _stepperMotor->setEnabled(true);
+
+  _stepperMotor->setTargetPosition(765);
+  _stepperMotor->start();
+  _motorControlerDummy->moveTowardsTarget(1);
+
+  BOOST_CHECK(_stepperMotor->getCurrentPosition() == 765);
+  BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 7650);
+
+  _stepperMotor->setTargetPosition(-500);
+  _stepperMotor->start();
+  _motorControlerDummy->moveTowardsTarget(1);
+
+  BOOST_CHECK(_stepperMotor->getCurrentPosition() == -500);
+  BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == -5000);
 }
 
 void StepperMotorTest::testGetSetSpeedLimit() {

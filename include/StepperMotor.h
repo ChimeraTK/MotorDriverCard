@@ -118,6 +118,13 @@ namespace mtca4u {
         float getCurrentPosition(); //old name: getMotorPosition
 
         /**
+         * Return real motor position read directly from the hardware and expressed in steps.
+         * No calculation is involved.
+         * @return int - current, real position in number of steps. The number of steps can be either negative or positive,
+         * depending on the position with respect to the zero.
+         */
+        int getCurrentPositionInSteps();
+        /**
          * @brief Set position passed as parameter as current position of the motor
          * @param  newPosition - new position for the motor expressed in arbitrary units
 
