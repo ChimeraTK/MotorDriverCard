@@ -37,6 +37,23 @@ namespace mtca4u {
             virtual int unitsToSteps(float units) = 0;
 	    virtual ~StepperMotorUnitsConverter(){}
     };
+    /**
+     * @class StepperMotorUnitsConveterTrivia
+     * @details Trivial implementation of StepperMotorUnitsConverter. 1:1 conversion between units and steps
+     *          Used as default conversion if nothing else is specified
+     */
+    class StepperMotorUnitsConverterTrivia : public StepperMotorUnitsConverter{
+    public:
+      StepperMotorUnitsConverterTrivia(){
+
+      };
+      virtual float stepsToUnits(int steps){
+        return static_cast<float> (steps);
+      };
+      virtual int unitsToSteps(float units){
+        return static_cast<int> (units);
+      }
+    };
 
     /**
      * @class StepperMotorStatusAndError
@@ -80,14 +97,23 @@ namespace mtca4u {
         /**
          * @brief Sending motor to new position (blocking).
          * @param  newPosition - new position for the motor 
-         * @return StepperMotorStatusAndError - status of the motor after movement routine finish  
+         * @return StepperMotorStatusAndError - status of the motor after movement routine finish
          * 
          * @details 
          * This method sends motor to new position. It is blocking blocking method. It will finish when motor movement will end with success or error. 
          * Function can be interrupted by using 'void stopMotor()' method.\n
          * Function returns StepperMotorStatusAndError object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          */
-        StepperMotorStatusAndError moveToPosition(float newPosition);     
+        StepperMotorStatusAndError moveToPosition(float newPosition);
+
+        /**
+         * @brief Sending motor to new position (blocking)
+         * @param newPositionInSteps - new position in steps for the motor
+         * @return StepperMotorStatusAndError - status of the motor after movement routine finish
+         * @details see method moveToPosition(float)
+         */
+
+        StepperMotorStatusAndError moveToPositionInSteps(int newPositionInSteps);
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -105,10 +131,27 @@ namespace mtca4u {
          void setTargetPosition(float newPosition); // old name: setMotorPosition
 
          /**
+          * @brief Set new position for the motor in steps (no blocking)
+          * @param newPositionInSteps - new position for the motor in steps
+          * @return void
+          *
+          * @details see method setTargetPosition(float)
+          */
+
+         void setTargetPositionInSteps(int newPositionInSteps);
+
+         /**
          * Return target motor position in the arbitrary units.
          * @return float - target position of motor in arbitrary units.
          */  
-         float getTargetPosition() const;
+         float getTargetPosition();
+
+         /**
+          * Return target motor position in steps
+          * @return int - target position of motor in steps
+          */
+
+         int getTargetPositionInSteps();
         
          /**
          * Return real motor position read directly from the hardware and expressed in the arbitrary units.
@@ -136,6 +179,15 @@ namespace mtca4u {
         virtual void setCurrentPositionAs(float newPosition); // old name: setCurrentMotorPositionAs
 
         /**
+         * @brief Set position passed as parameter as current position of the motor
+         * @param newPositionSteps  - new position for the motor expressed in steps
+         *
+         * @details see function setCurrentPositionAs(float newPosition)
+         */
+
+        virtual void setCurrentPositionInStepsAs(int newPositionSteps);
+
+        /**
          * @brief Set a pointer to StepperMotorUnitsConverter object.
          * @param stepperMotorUnitsConverter - shared pointer to the converter object.
          * 
@@ -144,6 +196,7 @@ namespace mtca4u {
          *  provides two methods which are converting steps to arbitrary units and vice-versa. The user need to create its own class which inherits from
          *  StepperMotorUnitsConverter and implements the: 'float stepsToUnits(int steps)' and 'int unitsToSteps(float units)' methods.
          */ 
+
         void setStepperMotorUnitsConverter(boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
             
         /**
@@ -216,7 +269,7 @@ namespace mtca4u {
          * Status and error create pair which describes current state of the object.
          * Every time it is called it checks status of the motor. 
          * 
-         * Currently following status are forseen:\n
+         * Currently following status are foreseen:\n
          * 1) StepperMotorStatusTypes::M_OK - motor is OK and ready for new commands.\n
          * 2) StepperMotorStatusTypes::M_DISABLED - motor is disabled. No action can be done. to change this use 'void setEnabled(bool enable)' method.\n
          * 3) StepperMotorStatusTypes::M_IN_MOVE -motor in in move.\n
@@ -225,7 +278,7 @@ namespace mtca4u {
          * 6) StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON - target position in smaller than value set by 'void setMinPositionLimit(float maxPos)' method.\n
          * 7) StepperMotorStatusTypes::M_ERROR - motor is in error state. For details about error check 'StepperMotorError getError()' method.\n
          * 
-         * Currently following errors are forseen:\n
+         * Currently following errors are foreseen:\n
          * 1) StepperMotorErrorTypes::M_NO_ERROR - motor is OK and ready for new commands.\n
          * 2) StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX - error in configuration of software position limits\n
          * 3) StepperMotorErrorTypes::M_COMMUNICATION_LOST - errors and problems with communication with firmware\n
@@ -334,15 +387,27 @@ namespace mtca4u {
          * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
          */
         void setMaxPositionLimit(float maxPos);
+
+         /**
+          * @brief Set soft limit on the maximum position of the motor expressed in steps
+          * @param maxPosInSteps - Greatest position which motor will be able to reach
+          */
+        void setMaxPositionLimitInSteps(int maxPosInSteps);
         
         /**
          * @brief Set soft limit on the minimum position of the motor expressed in arbitrary units
          * @param minPos - Smallest position which motor will be able to reach
          * 
          * @details 
-         * 
+         * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
          */
         void setMinPositionLimit(float minPos);
+
+        /**
+         * @brief Set soft limit on the minimum position of the motor expressed in steps
+         * @param minPosInSteps - Smallest position which motor will be able to reach
+         */
+        void setMinPositionLimitInSteps(int minPosInSteps);
                       
         /**
          * @brief Set soft limit enabled or disabled. 
@@ -369,6 +434,12 @@ namespace mtca4u {
          * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
          */ 
         float getMaxPositionLimit();
+
+        /**
+         * @brief Returns soft limit on the maximum position of the motor expressed in steps
+         * @return float - Maximum position which motor is able to reach
+         */
+        int getMaxPositionLimitInSteps();
                 
         /**
          * @brief Returns soft limit on the minimum position of the motor expressed in arbitrary units
@@ -379,6 +450,11 @@ namespace mtca4u {
          */
         float getMinPositionLimit(); 
         
+        /**
+         * @brief Returns soft limit on the minimum position of the motor expressed in steps
+         * @return float - Minimum position which motor is able to reach
+         */
+        int getMinPositionLimitInSteps();
         
         /**
          * @brief Recalculate arbitrary units into steps
@@ -427,7 +503,7 @@ namespace mtca4u {
     protected: // methods
 
         StepperMotorStatusAndError determineMotorStatusAndError();
-        float truncateMotorPosition(float newPosition);
+        int truncateMotorPosition(int newPositionInSteps);
     
     protected: // fields
         std::string _motorDriverCardDeviceName;
@@ -438,16 +514,18 @@ namespace mtca4u {
 	boost::shared_ptr<MotorControler> _motorControler;
 
         // current position
-        int _currentPostionsInSteps;
-        float _currentPostionsInUnits;
+        //int _currentPostionsInSteps;
+        //float _currentPostionsInUnits;
         // current target
+	boost::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
         int _targetPositionInSteps;
-        float _targetPositionInUnits;
+        //float _targetPositionInUnits;
         //position limits
-        float _maxPositionLimit;
-        float _minPositionLimit;
+        //float _maxPositionLimit;
+        int   _maxPositionLimitInSteps;
+        //float _minPositionLimit;
+        int   _minPositionLimitInSteps;
         //pointer to the units converter class
-        boost::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
         //Autostart
         bool _autostartFlag;
         //Stop motor flag for blocking functions
