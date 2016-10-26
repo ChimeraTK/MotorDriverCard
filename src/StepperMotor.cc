@@ -2,6 +2,7 @@
 #include <cmath>
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
+#include "StepperMotorException.h"
 
 namespace mtca4u {
 
@@ -66,10 +67,10 @@ namespace mtca4u {
         return(this->determineMotorStatusAndError());
     }
 
-//    void StepperMotor::moveToPosition(float newPosition){
-//      int positionInSteps = this->recalculateUnitsToSteps(newPosition);
-//      return (this->moveToPositionInSteps(positionInSteps));
-//    }
+    StepperMotorStatusAndError StepperMotor::moveToPosition(float newPosition){
+      int positionInSteps = this->recalculateUnitsToSteps(newPosition);
+      return (this->moveToPositionInSteps(positionInSteps));
+    }
 
     StepperMotorCalibrationStatus StepperMotor::calibrateMotor() {
         _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE;
@@ -196,6 +197,9 @@ namespace mtca4u {
     }
 
     void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) {
+      if (!stepperMotorUnitsConverter){
+        throw StepperMotorException(std::string("empty shared pointer for the unit converter"), StepperMotorException::NOT_VALID_CONVERTER);
+      }
         _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
     }
 

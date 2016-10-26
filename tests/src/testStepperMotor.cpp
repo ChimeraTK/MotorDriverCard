@@ -8,6 +8,7 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
+#include "StepperMotorException.h"
 #include "TMC429Constants.h"
 #include "DFMC_MD22Dummy.h"
 #include <mtca4u/DMapFilesParser.h>
@@ -534,37 +535,39 @@ void StepperMotorTest::thread(int testCase) {
 }
 
 void StepperMotorTest::testUnitConverter() {
-    
-    _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
-    
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 100);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -100);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10.5) == 105);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10.5) == -105);
-    
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(100) == 10);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -10);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 10.5);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -10.5);
-    
-    
-    _testUnitConveter.reset();
-    _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
-    
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 10);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -10);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10.5) == 10);
-    BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10.5) == -10);
-    
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(100) == 100);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -100);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 105);
-    BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -105);
+
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter));
+
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 100);
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -100);
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10.5) == 105);
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10.5) == -105);
+
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(100) == 10);
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -10);
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 10.5);
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -10.5);
+
+  _testUnitConveter.reset();
+  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter), StepperMotorException);
+
+  boost::shared_ptr<StepperMotorUnitsConverter> triviaTestUnitConveter(new StepperMotorUnitsConverterTrivia());
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(triviaTestUnitConveter));
+
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 10);
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -10);
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10.5) == 10);
+  BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10.5) == -10);
+
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(100) == 100);
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-100) == -100);
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(105) == 105);
+  BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -105);
 }
 
 void StepperMotorTest::testGetPositionInUnitAndInSteps() {
   _testUnitConveter.reset(new TestUnitConveter);
-  _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter));
 
   _motorControlerDummy->resetInternalStateToDefaults();
 
