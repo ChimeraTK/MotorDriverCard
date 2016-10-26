@@ -198,6 +198,12 @@ namespace mtca4u {
          */ 
 
         void setStepperMotorUnitsConverter(boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+
+        /**
+         * @brief set the unit converter to default one, with a 1:1 conversion factor.
+         */
+
+        void setStepperMotorUnitsConverterToDefault();
             
         /**
          * @brief Start the motor 

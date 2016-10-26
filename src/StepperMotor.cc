@@ -203,6 +203,10 @@ namespace mtca4u {
         _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
     }
 
+    void StepperMotor::setStepperMotorUnitsConverterToDefault(){
+      _stepperMotorUnitsConverter.reset(new StepperMotorUnitsConverterTrivia);
+    }
+
     double StepperMotor::setUserSpeedLimit(double newSpeed) {
       return _motorControler->setUserSpeedLimit(newSpeed);
     }

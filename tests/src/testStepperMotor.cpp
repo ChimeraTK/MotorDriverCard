@@ -81,6 +81,9 @@ public:
         // create an instance of the test class
         boost::shared_ptr<StepperMotorTest> stepperMotorTest(new StepperMotorTest);
 
+        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testUnitConverter,
+                stepperMotorTest));
+
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testSoftLimits,
                 stepperMotorTest));
 
@@ -113,9 +116,6 @@ public:
 
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testMoveToPosition,
                 stepperMotorTest));
-        
-        add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testUnitConverter,
-                stepperMotorTest)); 
 
         add(BOOST_CLASS_TEST_CASE(&StepperMotorTest::testGetPositionInUnitAndInSteps,
                                   stepperMotorTest));
@@ -551,8 +551,7 @@ void StepperMotorTest::testUnitConverter() {
   _testUnitConveter.reset();
   BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter), StepperMotorException);
 
-  boost::shared_ptr<StepperMotorUnitsConverter> triviaTestUnitConveter(new StepperMotorUnitsConverterTrivia());
-  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(triviaTestUnitConveter));
+  _stepperMotor->setStepperMotorUnitsConverterToDefault();
 
   BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(10) == 10);
   BOOST_CHECK(_stepperMotor->recalculateUnitsToSteps(-10) == -10);
