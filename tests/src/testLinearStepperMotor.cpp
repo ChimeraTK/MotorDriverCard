@@ -125,8 +125,34 @@ void LinearStepperMotorTest::testSoftLimits() {
     std::cout << "testSoftLimits()" << std::endl;
 
     _stepperMotor->setEnabled(true);
+    _testUnitConveter.reset(new TestUnitConveter());
+    _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
 
     _stepperMotor->setSoftwareLimitsEnabled(true);
+    BOOST_CHECK( _stepperMotor->getSoftwareLimitsEnabled() == true);
+
+    _stepperMotor->setSoftwareLimitsEnabled(false);
+    BOOST_CHECK( _stepperMotor->getSoftwareLimitsEnabled() == false);
+
+    _stepperMotor->setMaxPositionLimitInSteps(150);
+    _stepperMotor->setMinPositionLimitInSteps(50);
+
+    BOOST_CHECK( _stepperMotor->getMaxPositionLimit() == 15);
+    BOOST_CHECK( _stepperMotor->getMinPositionLimit() == 5);
+
+    BOOST_CHECK( _stepperMotor->getMaxPositionLimitInSteps() == 150);
+    BOOST_CHECK( _stepperMotor->getMinPositionLimitInSteps() == 50);
+
+    _stepperMotor->setMaxPositionLimit(150);
+    _stepperMotor->setMinPositionLimit(50);
+
+    BOOST_CHECK( _stepperMotor->getMaxPositionLimit() == 150);
+    BOOST_CHECK( _stepperMotor->getMinPositionLimit() == 50);
+
+    BOOST_CHECK( _stepperMotor->getMaxPositionLimitInSteps() == 1500);
+    BOOST_CHECK( _stepperMotor->getMinPositionLimitInSteps() == 500);
+/*
+    _stepperMotor->setSoftwareLimitsEnabled(true); FIXME repeated tests from StepperMotor?
     BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == true);
 
     _stepperMotor->setSoftwareLimitsEnabled(false);
@@ -204,7 +230,7 @@ void LinearStepperMotorTest::testSoftLimits() {
     BOOST_CHECK((_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON) == true);
 
     _stepperMotor->setSoftwareLimitsEnabled(false);
-    _stepperMotor->setEnabled(false);
+    _stepperMotor->setEnabled(false);*/
 }
 
 void LinearStepperMotorTest::testStop() {
@@ -221,19 +247,20 @@ void LinearStepperMotorTest::testStop() {
     _stepperMotor->setTargetPosition(-500);
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_NOT_IN_POSITION);
     _stepperMotor->start();
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == (-500));
+    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == (-500*10));
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_IN_MOVE);
     _motorControlerDummy->moveTowardsTarget(0.5);
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_IN_MOVE);
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == (-500 * 0.5));
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == (-500 * 0.5 * 10));
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getActualPosition());
 
     _motorControlerDummy->moveTowardsTarget(0.5);
     _stepperMotor->stop();
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_OK);
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == (-500 * 0.75));
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getTargetPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getActualPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getTargetPosition());
 
 }
 
@@ -248,7 +275,7 @@ void LinearStepperMotorTest::testEmergencyStop() {
     _stepperMotor->setAutostart(false);
 
     //test start function
-    _stepperMotor->setTargetPosition(500);
+    _stepperMotor->setTargetPositionInSteps(500);
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_NOT_IN_POSITION);
     _stepperMotor->start();
     BOOST_CHECK(_motorControlerDummy->getTargetPosition() == (500));
@@ -256,15 +283,15 @@ void LinearStepperMotorTest::testEmergencyStop() {
     _motorControlerDummy->moveTowardsTarget(0.5);
 
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_IN_MOVE);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == (500 * 0.5));
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPosition() == (50 * 0.5));
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getActualPosition());
 
     _motorControlerDummy->moveTowardsTarget(0.5);
     _stepperMotor->emergencyStop();
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_DISABLED);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == (500 * 0.75));
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getTargetPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPosition() == (50 * 0.75));
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getActualPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getTargetPosition());
     BOOST_CHECK(_motorControlerDummy->getTargetPosition() == _motorControlerDummy->getActualPosition());
 
 }
@@ -280,16 +307,16 @@ void LinearStepperMotorTest::testSetPositionAs() {
     _stepperMotor->setEnabled(true);
     _stepperMotor->setCurrentPositionAs(500);
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == 500);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getTargetPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getActualPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getTargetPosition());
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_OK);
 
 
     _stepperMotor->setEnabled(false);
     _stepperMotor->setCurrentPositionAs(-200);
     BOOST_CHECK(_stepperMotor->getCurrentPosition() == -200);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getActualPosition());
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == _motorControlerDummy->getTargetPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getActualPosition());
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getTargetPosition());
     BOOST_CHECK(_stepperMotor->getStatusAndError().status == StepperMotorStatusTypes::M_DISABLED);
 }
 
@@ -317,7 +344,7 @@ void LinearStepperMotorTest::testMoveToPosition() {
     statusAndError = _stepperMotor->moveToPosition(0);
     BOOST_CHECK(statusAndError.status == StepperMotorStatusTypes::M_ERROR);
     BOOST_CHECK(statusAndError.error == StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 500);
+    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == 5000);
     _stepperMotor->setSoftwareLimitsEnabled(false);
 
     auto currentPosition = _stepperMotor->getCurrentPosition();
@@ -329,17 +356,17 @@ void LinearStepperMotorTest::testMoveToPosition() {
     workerThread1.join();
     BOOST_CHECK(statusAndError.status == LinearStepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON);
     BOOST_CHECK(statusAndError.error == StepperMotorErrorTypes::M_NO_ERROR);
-    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == currentPosition - 100);
+    BOOST_CHECK(_motorControlerDummy->getTargetPosition() == (currentPosition - 100)*10);
     _stepperMotor->setSoftwareLimitsEnabled(false);
 
 
     //test stop blocking function
     boost::thread workedThread2(&LinearStepperMotorTest::threadMoveToPostion, this, 2);
-    float targetPosition = _motorControlerDummy->getActualPosition() + 300;
-    statusAndError = _stepperMotor->moveToPosition(targetPosition);
+    int targetPosition = _motorControlerDummy->getActualPosition() + 300;
+    statusAndError = _stepperMotor->moveToPositionInSteps(targetPosition);
     BOOST_CHECK(statusAndError.status == StepperMotorStatusTypes::M_OK);
     BOOST_CHECK(statusAndError.error == StepperMotorErrorTypes::M_NO_ERROR);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() != targetPosition);
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() != targetPosition);
     //std::cout << "Status main 2 " << statusAndError.status  << " Error main " << statusAndError.error << " POS: "<<_motorControlerDummy->getActualPosition()  << std::endl;
     workedThread2.join();
 
@@ -348,10 +375,10 @@ void LinearStepperMotorTest::testMoveToPosition() {
     _stepperMotor->setAutostart(true);
     targetPosition = _motorControlerDummy->getActualPosition() + 300;
     boost::thread workedThread3_2(&LinearStepperMotorTest::threadMoveToPostion, this, 1);
-    statusAndError = _stepperMotor->moveToPosition(targetPosition);
+    statusAndError = _stepperMotor->moveToPositionInSteps(targetPosition);
     BOOST_CHECK(statusAndError.status == StepperMotorStatusTypes::M_OK);
     BOOST_CHECK(statusAndError.error == StepperMotorErrorTypes::M_NO_ERROR);
-    BOOST_CHECK(_stepperMotor->getCurrentPosition() == targetPosition);
+    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == targetPosition);
     _stepperMotor->setAutostart(false);
     workedThread3_2.join();
 
@@ -491,6 +518,11 @@ void LinearStepperMotorTest::testCalibration() {
     BOOST_CHECK(calibrationStatus == StepperMotorCalibrationStatusType::M_CALIBRATED);
     _stepperMotor->setCurrentPositionAs(0);
     BOOST_CHECK((_stepperMotor->getNegativeEndSwitchPosition() * -1) == _stepperMotor->getPositiveEndSwitchPosition());
+    BOOST_CHECK((_stepperMotor->getNegativeEndSwitchPositionInSteps() == -10000));
+    BOOST_CHECK((_stepperMotor->getPositiveEndSwitchPositionInSteps() == 10000));
+    _stepperMotor->setCurrentPositionInStepsAs(500);
+    BOOST_CHECK(_stepperMotor->getNegativeEndSwitchPositionInSteps() == -10000 + 500);
+    BOOST_CHECK(_stepperMotor->getPositiveEndSwitchPositionInSteps() ==  10000 + 500);
 
     //test how emergency stop changes the status of object
     _stepperMotor->emergencyStop();

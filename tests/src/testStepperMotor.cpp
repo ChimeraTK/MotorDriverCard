@@ -160,7 +160,7 @@ StepperMotorTest::StepperMotorTest()
 
 void StepperMotorTest::testSoftLimits(){
     _stepperMotor->setEnabled(true);
-    _testUnitConveter.reset(new TestUnitConveter);
+    _testUnitConveter.reset(new TestUnitConveter());
     _stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter);
 
     _stepperMotor->setSoftwareLimitsEnabled(true);
@@ -187,7 +187,7 @@ void StepperMotorTest::testSoftLimits(){
     BOOST_CHECK( _stepperMotor->getMaxPositionLimitInSteps() == 1500);
     BOOST_CHECK( _stepperMotor->getMinPositionLimitInSteps() == 500);
     /*
-    _stepperMotor->setSoftwareLimitsEnabled(true);
+    _stepperMotor->setSoftwareLimitsEnabled(true);// out dated tests. to remove in the future
     
     _stepperMotor->setTargetPosition(200);
     BOOST_CHECK( _stepperMotor->getTargetPosition() == 150 );
@@ -246,7 +246,7 @@ void StepperMotorTest::testSoftLimits(){
     BOOST_CHECK( _stepperMotor->getTargetPosition() == 100 );
     BOOST_CHECK( _stepperMotor->getTargetPositionInSteps() == 1000 );
     
-    _stepperMotor->setSoftwareLimitsEnabled(false); //FIXME, just a repetition?
+    _stepperMotor->setSoftwareLimitsEnabled(false);
     
     _stepperMotor->setTargetPosition(200);
     BOOST_CHECK( _stepperMotor->getTargetPosition() == 200 );

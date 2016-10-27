@@ -49,20 +49,28 @@ namespace mtca4u {
 
         /**
          * @brief Sending motor to new position (blocking).
-         * @param  newPosition - new position for the motor 
-         * @return LinearStepperMotorStatusAndError - status of the motor after movement routine finish  
-         * 
-         * @details 
-         * This method sends motor to new position. It is blocking blocking method. It will finish when motor movement will end with success or error. 
+         * @param  newPosition - new position for the motor
+         * @return LinearStepperMotorStatusAndError - status of the motor after movement routine finish
+         *
+         * @details
+         * This method sends motor to new position. It is blocking blocking method. It will finish when motor movement will end with success or error.
          * Function can be interrupted by using 'void stopMotor()' method.\n
-         * Function automatically detects end switches conditions.\n 
+         * Function automatically detects end switches conditions.\n
          * It allows to perform movement in case NEGATIVE END SWITCH is active but target position in grater than current one.\n
          * It allows to perform movement in case POSITIVE END SWITCH is active but target position in smaller than current one.\n
          * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be LinearStepperMotorStatusTypes::M_OK in case of success.
-         * 
+         *
          */
         LinearStepperMotorStatusAndError moveToPosition(float newPosition);
-                
+
+        /**
+         * @brief Sending motor to new position (blocking).
+         * @param  newPositionInSteps - new position in Steps for the motor
+         * @return LinearStepperMotorStatusAndError - status of the motor after movement routine finish
+         * @details see function moveToPosition(float newPosition)
+         */
+        LinearStepperMotorStatusAndError moveToPositionInSteps(int newPositionInSteps);
+
         /**
          * @brief Stop the motor 
          * 
@@ -97,6 +105,13 @@ namespace mtca4u {
          */
         virtual void setCurrentPositionAs(float newPosition);
         
+        /**
+         * @brief Set position in steps passed as parameter as current position of the motor
+         * @param newPositionSteps - new position for the motor expressed in steps
+         * @return void
+         * @ details see method setCurrentPositionAs(float newPosition)
+         */
+        virtual void setCurrentPositionInStepsAs(int newPositionSteps);
         
         /**
          * @brief Perform calibration of the motor (blocking). 
@@ -111,15 +126,24 @@ namespace mtca4u {
          * 
          * @details 
          */
-        float getPositiveEndSwitchPosition() const;
+        float getPositiveEndSwitchPosition();
+
+        /**
+         * @brief When motor calibrated, function returns positive end switch position expressed in steps
+         */
+        int  getPositiveEndSwitchPositionInSteps();
 
         /**
          * @brief When motor calibrated, function returns negative end switch position expressed in arbitrary units
          * 
          * @details 
          */
-        float getNegativeEndSwitchPosition() const;
+        float getNegativeEndSwitchPosition();
         
+        /**
+         * @brief When motor calibrated, function returns negative end switch position expressed in steps
+         */
+        int getNegativeEndSwitchPositionInSteps();
                  
         /**
          * @brief Return object which contains current status and error.
@@ -151,10 +175,10 @@ namespace mtca4u {
         //calibration
         //position of end switches expressed in steps and units
         int _calibNegativeEndSwitchInSteps;
-        float _calibNegativeEndSwitchInUnits;
+        //float _calibNegativeEndSwitchInUnits;
         
         int _calibPositiveEndSwitchInSteps;
-        float _calibPositiveEndSwitchInUnits;
+        //float _calibPositiveEndSwitchInUnits;
         
         bool _stopMotorCalibration; 
 
