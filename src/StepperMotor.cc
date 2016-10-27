@@ -88,6 +88,7 @@ namespace mtca4u {
     void StepperMotor::start() {
       // allowing it when status is MOTOR_IN_MOVE give a possibility to change
       // target position during motor movement
+      _targetPositionInSteps = truncateMotorPosition(_targetPositionInSteps);
       _motorControler->setTargetPosition(_targetPositionInSteps);
     }
 
@@ -157,12 +158,15 @@ namespace mtca4u {
     }
 
     void StepperMotor::setCurrentPositionInStepsAs(int newPositionSteps){
-      _targetPositionInSteps = truncateMotorPosition(newPositionSteps);
+      _targetPositionInSteps = newPositionSteps;
+      int delta = getCurrentPositionInSteps() - newPositionSteps;
       bool enable = _motorControler->isEnabled();
       _motorControler->setEnabled(false);
-      _motorControler->setActualPosition(_targetPositionInSteps);
-      _motorControler->setTargetPosition(_targetPositionInSteps);
+      _motorControler->setActualPosition(newPositionSteps);
+      _motorControler->setTargetPosition(newPositionSteps);
       _motorControler->setEnabled(enable);
+      _maxPositionLimitInSteps -= delta;
+      _minPositionLimitInSteps -= delta;
     }
 
     void StepperMotor::setTargetPosition(float newPosition) {
@@ -170,10 +174,9 @@ namespace mtca4u {
     }
 
     void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
-      int position = truncateMotorPosition(newPositionInSteps);
+      _targetPositionInSteps = newPositionInSteps;
       this->determineMotorStatusAndError();
       if (_motorError == StepperMotorErrorTypes::M_NO_ERROR) {
-        _targetPositionInSteps = position;
         if (_autostartFlag) {
           this->start();
         }
@@ -358,19 +361,7 @@ namespace mtca4u {
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // STATUS CHECK
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-
-        if (_softwareLimitsEnabled) {
-            if (_targetPositionInSteps >= _maxPositionLimitInSteps) {
-                _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
-                return StepperMotorStatusAndError(_motorStatus, _motorError);
-            }
-
-            if (_targetPositionInSteps <= _minPositionLimitInSteps) {
-                _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
-                return StepperMotorStatusAndError(_motorStatus, _motorError);
-            }
-        }
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         if (_motorControler->getStatus().getStandstillIndicator() == 0) {
             _motorStatus = StepperMotorStatusTypes::M_IN_MOVE;
@@ -381,6 +372,18 @@ namespace mtca4u {
         if (_targetPositionInSteps != _motorControler->getActualPosition()) {
             _motorStatus = StepperMotorStatusTypes::M_NOT_IN_POSITION;
             return StepperMotorStatusAndError(_motorStatus, _motorError);
+        }
+
+        if (_softwareLimitsEnabled) {
+          if (_targetPositionInSteps >= _maxPositionLimitInSteps) {
+            _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
+            return StepperMotorStatusAndError(_motorStatus, _motorError);
+          }
+
+          if (_targetPositionInSteps <= _minPositionLimitInSteps) {
+            _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
+            return StepperMotorStatusAndError(_motorStatus, _motorError);
+          }
         }
 
         return StepperMotorStatusAndError(_motorStatus, _motorError);
