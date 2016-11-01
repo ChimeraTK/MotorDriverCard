@@ -1,5 +1,6 @@
 #include "StepperMotor.h"
 #include <cmath>
+#include <chrono>
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
@@ -24,14 +25,28 @@ namespace mtca4u {
       //_minPositionLimit(-std::numeric_limits<float>::max()),
       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
       _autostartFlag(false),
-      _stopMotorForBlocking(false),
+      //_stopMotorForBlocking(false),
       _softwareLimitsEnabled(true),
       _motorError(),
       _motorCalibrationStatus(StepperMotorCalibrationStatusType::M_NOT_CALIBRATED),
       _motorStatus(),
-      _blockingFunctionActive(false),
+      _currentOperationalState(SYSTEM_IDLE),
+      //_blockingFunctionActive(false),
       _logger(),
-      _mutex(){
+      _mutex(),
+      _operationalStateMutex(),
+      _isActionComplete(false),
+      _startUserAction("START_USER_ACTION"),
+      _startUserActionBlocking("START_USER_ACTION_BLOCKING"),
+      _startUserActionAutoStart("START_USER_ACTION_AUTOSTART"),
+      _startCalibration("START_CALIBRATION"),
+      _stopUserAction("STOP_USER_ACTION"),
+      _noEvent("NO_EVENT"),
+      _currentEvent(_noEvent),
+      _runStateMachine(true),
+      _transitionTableThread()
+      {
+    _transitionTableThread = std::thread(&StepperMotor::transitionTable, this);
     }
 
     StepperMotor::~StepperMotor() {
@@ -43,28 +58,17 @@ namespace mtca4u {
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     StepperMotorStatusAndError StepperMotor::moveToPositionInSteps(int newPositionInSteps) {
-        
-        StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
-        if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
-            return statusAndError;
-        }
-       
-        _blockingFunctionActive = true;
-        // Ask the hardware to move the motor.
-        this->setTargetPositionInSteps(newPositionInSteps);
-        if (!this->getAutostart()) {
-            this->start();
-        }
 
-        // Block till the motor has finished moving.
-        while (StepperMotor::isMoving()){
-            usleep(1000);
-        }
+      StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
+      if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
+        return statusAndError;
+      }
 
-        // update and return status and error once at target position.
-        _blockingFunctionActive = false;
+      if (setUserActionBlockingEvent(newPositionInSteps)){
+        while (!isSystemIdle()){}
+      }
 
-        return(this->determineMotorStatusAndError());
+      return(this->determineMotorStatusAndError());
     }
 
     StepperMotorStatusAndError StepperMotor::moveToPosition(float newPosition){
@@ -86,27 +90,26 @@ namespace mtca4u {
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     void StepperMotor::start() {
-      // allowing it when status is MOTOR_IN_MOVE give a possibility to change
-      // target position during motor movement
-      _targetPositionInSteps = truncateMotorPosition(_targetPositionInSteps);
-      _motorControler->setTargetPosition(_targetPositionInSteps);
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _currentEvent = _startUserAction;
+      }
+    }
+
+    void StepperMotor::startCalibration() {
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _currentEvent = _startCalibration;
+      }
     }
 
     void StepperMotor::stop() {
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
         //stopping is done by reading real position and setting it as target
         //one. In reality it can cause that motor will stop and move in reverse
         //direction by couple steps Amount of steps done in reverse direction
         //depends on motor speed and general delay in motor control path.
-
-        if (_blockingFunctionActive)
-            _stopMotorForBlocking = true;
-        else
-            _stopMotorForBlocking = false;
-
-        int currentPosition = _motorControler->getActualPosition();
-        _motorControler->setTargetPosition(currentPosition);
-        _targetPositionInSteps = currentPosition;
-        //_targetPositionInUnits = recalculateStepsToUnits(currentPosition);
+      _currentEvent = _stopUserAction;
 
     }
 
@@ -118,17 +121,10 @@ namespace mtca4u {
     }
 
     int StepperMotor::recalculateUnitsToSteps(float units) {
-//        if (!_stepperMotorUnitsConverter)
-//            return static_cast<int> (units);
-
-        return _stepperMotorUnitsConverter.get()->unitsToSteps(units);
+      return _stepperMotorUnitsConverter.get()->unitsToSteps(units);
     }
 
     float StepperMotor::recalculateStepsToUnits(int steps) {
-
-//        if (!_stepperMotorUnitsConverter)
-//            return static_cast<float> (steps);
-
         return _stepperMotorUnitsConverter.get()->stepsToUnits(steps);
     }
 
@@ -140,6 +136,15 @@ namespace mtca4u {
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // GETTERS AND SETTERS
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+    bool StepperMotor::motorReady(){
+      StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
+      if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
+        return false;
+      }else{
+        return true;
+      }
+    }
 
     StepperMotorCalibrationStatus StepperMotor::getCalibrationStatus() {
         return _motorCalibrationStatus;
@@ -158,15 +163,18 @@ namespace mtca4u {
     }
 
     void StepperMotor::setCurrentPositionInStepsAs(int newPositionSteps){
-      _targetPositionInSteps = newPositionSteps;
-      int delta = getCurrentPositionInSteps() - newPositionSteps;
-      bool enable = _motorControler->isEnabled();
-      _motorControler->setEnabled(false);
-      _motorControler->setActualPosition(newPositionSteps);
-      _motorControler->setTargetPosition(newPositionSteps);
-      _motorControler->setEnabled(enable);
-      _maxPositionLimitInSteps -= delta;
-      _minPositionLimitInSteps -= delta;
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _targetPositionInSteps = newPositionSteps;
+        int delta = getCurrentPositionInSteps() - newPositionSteps;
+        bool enable = _motorControler->isEnabled();
+        _motorControler->setEnabled(false);
+        _motorControler->setActualPosition(newPositionSteps);
+        _motorControler->setTargetPosition(newPositionSteps);
+        _motorControler->setEnabled(enable);
+        _maxPositionLimitInSteps -= delta;
+        _minPositionLimitInSteps -= delta;
+      }
     }
 
     void StepperMotor::setTargetPosition(float newPosition) {
@@ -174,14 +182,15 @@ namespace mtca4u {
     }
 
     void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
-      _targetPositionInSteps = newPositionInSteps;
-      this->determineMotorStatusAndError();
-      if (_motorError == StepperMotorErrorTypes::M_NO_ERROR) {
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _targetPositionInSteps = newPositionInSteps;
         if (_autostartFlag) {
-          this->start();
+          _currentEvent = _startUserActionAutoStart;
         }
       }
     }
+
 
     float StepperMotor::getTargetPosition(){
         return this->recalculateStepsToUnits(_targetPositionInSteps);
@@ -250,6 +259,15 @@ namespace mtca4u {
         return determineMotorStatusAndError();
     }
     
+    bool StepperMotor::isSystemIdle(){
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        return true;
+      }else{
+        return false;
+      }
+    }
+
     bool StepperMotor::getAutostart() {
         return _autostartFlag;
     }
@@ -335,61 +353,189 @@ namespace mtca4u {
 
     StepperMotorStatusAndError StepperMotor::determineMotorStatusAndError() {
 
-        //InternalMutex intMutex(this);
-        boost::lock_guard<boost::mutex> guard(_mutex);
-        
-        _motorStatus = StepperMotorStatusTypes::M_OK;
-        _motorError = StepperMotorErrorTypes::M_NO_ERROR;
+      //InternalMutex intMutex(this);
+      boost::lock_guard<boost::mutex> guard(_mutex);
 
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // ERROR CONDITION CHECK - it should be done first.
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      _motorStatus = StepperMotorStatusTypes::M_OK;
+      _motorError = StepperMotorErrorTypes::M_NO_ERROR;
+
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // ERROR CONDITION CHECK - it should be done first.
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-        if (_softwareLimitsEnabled && (_maxPositionLimitInSteps <= _minPositionLimitInSteps)) {
-            _motorStatus = StepperMotorStatusTypes::M_ERROR;
-            _motorError = StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
-
-            return StepperMotorStatusAndError(_motorStatus, _motorError);
-        }
-
-        //first check if disabled
-        if (!_motorControler->isEnabled()) {
-            _motorStatus = StepperMotorStatusTypes::M_DISABLED;
-            return StepperMotorStatusAndError(_motorStatus, _motorError);
-        }
-
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // STATUS CHECK
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        if (_motorControler->getStatus().getStandstillIndicator() == 0) {
-            _motorStatus = StepperMotorStatusTypes::M_IN_MOVE;
-            return StepperMotorStatusAndError(_motorStatus, _motorError);
-        }
-         
-
-        if (_targetPositionInSteps != _motorControler->getActualPosition()) {
-            _motorStatus = StepperMotorStatusTypes::M_NOT_IN_POSITION;
-            return StepperMotorStatusAndError(_motorStatus, _motorError);
-        }
-
-        if (_softwareLimitsEnabled) {
-          if (_targetPositionInSteps >= _maxPositionLimitInSteps) {
-            _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
-            return StepperMotorStatusAndError(_motorStatus, _motorError);
-          }
-
-          if (_targetPositionInSteps <= _minPositionLimitInSteps) {
-            _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
-            return StepperMotorStatusAndError(_motorStatus, _motorError);
-          }
-        }
+      if (_softwareLimitsEnabled && (_maxPositionLimitInSteps <= _minPositionLimitInSteps)) {
+        _motorStatus = StepperMotorStatusTypes::M_ERROR;
+        _motorError = StepperMotorErrorTypes::M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
 
         return StepperMotorStatusAndError(_motorStatus, _motorError);
-    }
+      }
+
+      //first check if disabled
+      if (!_motorControler->isEnabled()) {
+        _motorStatus = StepperMotorStatusTypes::M_DISABLED;
+        return StepperMotorStatusAndError(_motorStatus, _motorError);
+      }
+
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      // STATUS CHECK
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      if (_motorControler->getStatus().getStandstillIndicator() == 0) {
+        _motorStatus = StepperMotorStatusTypes::M_IN_MOVE;
+        return StepperMotorStatusAndError(_motorStatus, _motorError);
+      }
+
+
+      if (_targetPositionInSteps != _motorControler->getActualPosition()) {
+        _motorStatus = StepperMotorStatusTypes::M_NOT_IN_POSITION;
+        return StepperMotorStatusAndError(_motorStatus, _motorError);
+      }
+
+      if (_softwareLimitsEnabled) {
+        if (_targetPositionInSteps >= _maxPositionLimitInSteps) {
+          _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
+          return StepperMotorStatusAndError(_motorStatus, _motorError);
+        }
+
+        if (_targetPositionInSteps <= _minPositionLimitInSteps) {
+          _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
+          return StepperMotorStatusAndError(_motorStatus, _motorError);
+        }
+      }
+
+      return StepperMotorStatusAndError(_motorStatus, _motorError);
     }
 
-    bool mtca4u::StepperMotor::isMoving() {
-      return (_motorControler->isMotorMoving());
+    void StepperMotor::checkTargetPositionAndStartMotor(){
+      _targetPositionInSteps = truncateMotorPosition(_targetPositionInSteps);
+      _motorControler->setTargetPosition(_targetPositionInSteps);
     }
+
+    bool StepperMotor::setUserActionBlockingEvent(int newPositionInSteps){
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _targetPositionInSteps = newPositionInSteps;
+        _currentEvent = _startUserActionBlocking;
+        return true;
+      }
+      return false;
+    }
+
+    void StepperMotor::transitionTable(){
+      while (_runStateMachine){
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        switch(_currentOperationalState){
+          ///////*****SYSTEM_IDLE transitions
+          case SYSTEM_IDLE:{
+            if (_currentEvent == _noEvent){
+              break;
+            }else if (_currentEvent == _stopUserAction){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              break;
+            }else if (_currentEvent == _startUserAction){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentOperationalState = USER_ACTION;
+              startUserAction();
+              break;
+            }else if (_currentEvent == _startUserActionBlocking){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentOperationalState = USER_ACTION_BLOCKING;
+              startUserAction();
+            }else if (_currentEvent == _startUserActionAutoStart){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentOperationalState = USER_ACTION_AUTOSTART;
+              startUserAction();
+            }else if (_currentEvent == _startCalibration){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentOperationalState = CALIBRATION;
+              _isActionComplete = false;
+              std::async(std::launch::async, &StepperMotor::startCalibrationThread, this);
+              break;
+            }else{
+              break;
+            }
+          }
+          ///////*****USER_ACTION transitions
+          case USER_ACTION:{
+            if (_currentEvent == _stopUserAction){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              int currentPosition = _motorControler->getActualPosition();
+              _motorControler->setTargetPosition(currentPosition);
+              _targetPositionInSteps = currentPosition;
+              break;
+            }else if (!isMoving()){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              _currentOperationalState = SYSTEM_IDLE;
+              break;
+            }
+            break;
+          }
+          ///////*****USER_ACTION_BLOCKING transitions
+          case USER_ACTION_BLOCKING:{
+            if (_currentEvent == _stopUserAction){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              int currentPosition = _motorControler->getActualPosition();
+              _motorControler->setTargetPosition(currentPosition);
+              _targetPositionInSteps = currentPosition;
+              break;
+            }else if (!isMoving()){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              _currentOperationalState = SYSTEM_IDLE;
+              break;
+            }
+            break;
+          }
+          ///////*****USER_ACTION_BLOCKING transitions
+          case USER_ACTION_AUTOSTART:{
+            if (_currentEvent == _stopUserAction){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              int currentPosition = _motorControler->getActualPosition();
+              _motorControler->setTargetPosition(currentPosition);
+              _targetPositionInSteps = currentPosition;
+              break;
+            }else if (!isMoving()){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              _currentOperationalState = SYSTEM_IDLE;
+              break;
+            }
+            break;
+          }
+          ///////*****CALIBRATION transitions:
+          case CALIBRATION:{
+            if (_isActionComplete){
+              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+              _currentEvent = _noEvent;
+              _currentOperationalState = SYSTEM_IDLE;
+              break;
+            }else{
+              break;
+            }
+            break;
+          }
+        }//Switch
+      }//while
+    }
+
+    void StepperMotor::startUserAction(){
+      if (motorReady()){
+        this->checkTargetPositionAndStartMotor();
+      }
+    }
+
+    void StepperMotor::startCalibrationThread(){
+      calibrateMotor();
+      _isActionComplete = true;
+    }
+}
+
+bool mtca4u::StepperMotor::isMoving() {
+  return (_motorControler->isMotorMoving());
+}

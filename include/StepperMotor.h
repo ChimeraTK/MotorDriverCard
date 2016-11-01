@@ -10,7 +10,9 @@
 #define	MTCA4U_STEPPER_MOTOR_H
 
 #include <string>
+#include <future>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread/future.hpp>
 #include <boost/thread.hpp>
 
 //MD22 library includes
@@ -70,6 +72,17 @@ namespace mtca4u {
         }
     };
     
+    /**
+     * @details possible state for the system
+     */
+    enum OperationalState{SYSTEM_IDLE,
+        USER_ACTION,
+        USER_ACTION_BLOCKING,
+        USER_ACTION_AUTOSTART,
+        CALIBRATION
+    };
+
+    typedef std::string Event;
     
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // StepperMotor class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -249,11 +262,16 @@ namespace mtca4u {
         virtual StepperMotorCalibrationStatus calibrateMotor();
         
         /**
+         * @brief Start the calibration of the motor (non-blocking)
+         */
+        virtual void startCalibration();
+
+        /**
          * @brief Return current calibration status.
          * @return StepperMotorCalibrationStatus - current calibration status
          * 
          * @details 
-         * Return current calibration status as StepperMotorCalibrationStatus object.\n
+         * Return current calibration status as StepperMotorCalibrati88onStatus object.\n
          * Currently following status are forseen:\n
          * 1) StepperMotorCalibrationStatusType::M_CALIBRATION_UNKNOWN - calibration status in unknown. This is default value after object creation.\n
          * 2) StepperMotorCalibrationStatusType::M_CALIBRATED - motor calibrated.\n
@@ -292,6 +310,12 @@ namespace mtca4u {
          * 5) StepperMotorErrorTypes::M_HARDWARE_NOT_CONNECTED - hardware is not connected.\n
          * */
         StepperMotorStatusAndError getStatusAndError();
+
+        /**
+         * @brief check if the motor is in idle
+         * @return bool - true is motor is in idle
+         */
+        bool isSystemIdle();
 
         /**
          * @brief Sets the maximum speed the motor may operate at. The
@@ -510,6 +534,13 @@ namespace mtca4u {
 
         StepperMotorStatusAndError determineMotorStatusAndError();
         int truncateMotorPosition(int newPositionInSteps);
+        void checkTargetPositionAndStartMotor();
+        //void startAndWaitForMotor();
+        bool setUserActionBlockingEvent(int newPositionInSteps);
+        void transitionTable();
+        void startUserAction();
+        void startCalibrationThread();
+        bool motorReady();
     
     protected: // fields
         std::string _motorDriverCardDeviceName;
@@ -535,17 +566,29 @@ namespace mtca4u {
         //Autostart
         bool _autostartFlag;
         //Stop motor flag for blocking functions
-        bool _stopMotorForBlocking;
+        //bool _stopMotorForBlocking;
         //soft limits enabled flag
         bool _softwareLimitsEnabled;
         //status and error
         StepperMotorError  _motorError;
         StepperMotorCalibrationStatus _motorCalibrationStatus;
         StepperMotorStatus _motorStatus;
+        volatile OperationalState   _currentOperationalState;
         //flag which indicate error in blocking function
-        bool _blockingFunctionActive;
+        //bool _blockingFunctionActive;
         Logger _logger;
         mutable boost::mutex _mutex;
+        std::mutex _operationalStateMutex;
+        std::atomic<bool> _isActionComplete;
+        Event _startUserAction;
+        Event _startUserActionBlocking;
+        Event _startUserActionAutoStart;
+        Event _startCalibration;
+        Event _stopUserAction;
+        Event _noEvent;
+        Event _currentEvent;
+        std::atomic<bool> _runStateMachine;
+        std::thread _transitionTableThread;
     };
 
 } //namespace mtca4u

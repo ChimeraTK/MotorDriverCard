@@ -33,9 +33,10 @@ namespace mtca4u {
       if (statusAndError.status == StepperMotorStatusTypes::M_ERROR ||
           statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
         return statusAndError;
+        //return;
       }
 
-      _blockingFunctionActive = true;
+      //_blockingFunctionActive = true;
 
       // Ask the hardware to move the motor.
       this->setTargetPositionInSteps(newPositionInSteps);
@@ -49,8 +50,9 @@ namespace mtca4u {
       }
 
       // update and return status and error once at target position.
-      _blockingFunctionActive = false;
+      //_blockingFunctionActive = false;
       return(this->determineMotorStatusAndError());
+      //return;
     }
 
     LinearStepperMotorStatusAndError LinearStepperMotor::moveToPosition(float newPosition){
@@ -64,6 +66,7 @@ namespace mtca4u {
         if (_motorCalibrationStatus == StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS) {
             _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Calibration already in progress. Returning. " << std::endl;
             return _motorCalibrationStatus;
+            //return;
         }
 
         LinearStepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
@@ -71,6 +74,7 @@ namespace mtca4u {
         if (statusAndError.status == LinearStepperMotorStatusTypes::M_ERROR || statusAndError.status == LinearStepperMotorStatusTypes::M_DISABLED) {
             _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED;
             return _motorCalibrationStatus;
+//            return;
         }
 
         bool originalSoftwareLimitEnabled = _softwareLimitsEnabled;
@@ -82,6 +86,7 @@ namespace mtca4u {
             _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : End switches not available. Calibration not possible. " << std::endl;
             _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE;
             return _motorCalibrationStatus;
+//            return;
         }
 
         //enable the motor
@@ -93,6 +98,7 @@ namespace mtca4u {
         if (_motorCalibrationStatus != StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS) {
             _softwareLimitsEnabled = originalSoftwareLimitEnabled;
             return _motorCalibrationStatus;
+//            return;
         }
         _calibNegativeEndSwitchInSteps = _motorControler->getActualPosition();
         //_calibNegativeEndSwitchInUnits = recalculateStepsToUnits(_calibNegativeEndSwitchInSteps);
@@ -105,6 +111,7 @@ namespace mtca4u {
         if (_motorCalibrationStatus != StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS) {
             _softwareLimitsEnabled = originalSoftwareLimitEnabled;
             return _motorCalibrationStatus;
+//            return;
         }
 
         _calibPositiveEndSwitchInSteps = _motorControler->getActualPosition();
@@ -131,6 +138,7 @@ namespace mtca4u {
 
         _softwareLimitsEnabled = originalSoftwareLimitEnabled;
         return _motorCalibrationStatus;
+//        return;
     }
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
