@@ -33,10 +33,8 @@ if(TESTING_IS_ENABLED)
   endforeach( testSourceFile )
   
   # add a test for the CLI executable
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/generatedVT21Config.xml
-    ${PROJECT_BINARY_DIR}/generatedVT21Config.xml copyonly)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/testMotorConfigCalculator.sh
-    ${PROJECT_BINARY_DIR}/testMotorConfigCalculator.sh copyonly)
+  FILE(COPY tests/generatedVT21Config.xml tests/testMotorConfigCalculator.sh
+       DESTINATION ${PROJECT_BINARY_DIR})
   add_test(testMotorConfigCalculator
     ${PROJECT_BINARY_DIR}/testMotorConfigCalculator.sh)
 
