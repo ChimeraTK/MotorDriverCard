@@ -4,7 +4,7 @@ project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 00)
 set(${PROJECT_NAME}_MINOR_VERSION 12)
-set(${PROJECT_NAME}_PATCH_VERSION 03)
+set(${PROJECT_NAME}_PATCH_VERSION 04)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
@@ -30,6 +30,8 @@ if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
       "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
+
+include(${CMAKE_SOURCE_DIR}/cmake/enable_cxx11_support.cmake)
 
 #use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
 
@@ -77,10 +79,10 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 MACRO( COPY_MAPPING_FILES )
   foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp
            mtcadummy_DFMC_MD22_mock.map mtcadummy_DFMC_MD22_mock.mapp MD22_on_DAMC2.dmap dummies.dmap newer_firmware_mapfile.map)
-    configure_file( tests/${MAPPING_FILE} ${PROJECT_BINARY_DIR}/${MAPPING_FILE} copyonly)
-  endforeach( MAPPING_FILE )
+    FILE(COPY tests/${MAPPING_FILE} DESTINATION ${PROJECT_BINARY_DIR})
+  endforeach()
   foreach( HW_CONFIG_FILE VT21-MotorDriverCardConfig.xml md22_damc2_r1066.mapp )
-    configure_file( tests/hardware/${HW_CONFIG_FILE} ${PROJECT_BINARY_DIR}/${HW_CONFIG_FILE} copyonly)
+    FILE(COPY tests/hardware/${HW_CONFIG_FILE} DESTINATION ${PROJECT_BINARY_DIR})
   endforeach( HW_CONFIG_FILE )
 ENDMACRO( COPY_MAPPING_FILES )
 
@@ -89,7 +91,7 @@ MACRO( COPY_XML_FILES )
                     MotorDriverCardConfig_first_half_test.xml MotorDriverCardConfig_second_half_test.xml
 		    MotorDriverCardConfig_second_half_full_test.xml custom_speed_and_curruent_limits.xml
 		    MotorDriverCardConfig_invalid_maximumAccelleration.xml)
-    configure_file( tests/${XML_FILE} ${PROJECT_BINARY_DIR}/${XML_FILE} copyonly)
+    FILE(COPY tests/${XML_FILE} DESTINATION ${PROJECT_BINARY_DIR})
   endforeach( XML_FILE )
 ENDMACRO( COPY_XML_FILES )
 
@@ -112,7 +114,7 @@ if(TESTING_IS_ENABLED)
 
   COPY_MAPPING_FILES()
   COPY_XML_FILES()
-  configure_file(tests/compareXmlOutput.sh ${PROJECT_BINARY_DIR}/compareXmlOutput.sh copyonly)
+  FILE(COPY tests/compareXmlOutput.sh DESTINATION ${PROJECT_BINARY_DIR})
 
   #The make coverage command is only available in debug mode
   IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -140,7 +142,7 @@ foreach( hardwareTestSourceFile ${hardwareTestSources})
   add_executable(${excutableName} ${hardwareTestSourceFile})
   target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
 endforeach( hardwareTestSourceFile )
-configure_file(tests/hardware/scripts/runForwardBackward ${PROJECT_BINARY_DIR}/runForwardBackward copyonly) 
+FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
@@ -173,8 +175,8 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/Mot
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(${PROJECT_NAME}_LIBRARIES "")
 set(${PROJECT_NAME}_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
-set(${PROJECT_NAME}_CXX_FLAGS "") #nothing special, not even C++11 in the interface (?)
-set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags")
+#set(${PROJECT_NAME}_CXX_FLAGS "") #have already been set by enable_cxx11_support
+set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags ${mtca4u-deviceaccess_LINKER_FLAGS}")
 #no matlab bindings foreseen yet
 #set(${PROJECT_NAME}_MEXFLAGS "-I${CMAKE_INSTALL_PREFIX}/include -L${CMAKE_INSTALL_PREFIX}/lib -l${PROJECT_NAME}")
 
