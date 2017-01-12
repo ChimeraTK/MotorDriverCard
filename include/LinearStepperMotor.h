@@ -61,7 +61,7 @@ namespace mtca4u {
          * Function returns StepperMotorStatus object which is status of the motor after movement routine finished. Should be LinearStepperMotorStatusTypes::M_OK in case of success.
          *
          */
-        LinearStepperMotorStatusAndError moveToPosition(float newPosition);
+        //bool moveToPosition(float newPosition);
 
         /**
          * @brief Sending motor to new position (blocking).
@@ -69,7 +69,7 @@ namespace mtca4u {
          * @return LinearStepperMotorStatusAndError - status of the motor after movement routine finish
          * @details see function moveToPosition(float newPosition)
          */
-        LinearStepperMotorStatusAndError moveToPositionInSteps(int newPositionInSteps);
+        //bool moveToPositionInSteps(int newPositionInSteps);
 
         /**
          * @brief Stop the motor 
@@ -79,7 +79,7 @@ namespace mtca4u {
          * It also interrupts all blocking functions as 'LinearStepperMotorStatusAndError moveToPosition(float newPosition)' or 'StepperMotorCalibrationStatus calibrateMotor()'.\n
          * Delays in communication can trigger effect that motor will move a few steps in current movement direction and later will move couple steps back, but this issue can be filtered by motor hysteresis effect.\n
          */ 
-        virtual void stop();
+        //virtual void stop();
         
         
         /**
@@ -103,7 +103,7 @@ namespace mtca4u {
          * Can be used in example to zeroed current position.\n
          * When motor is calibrated it also will recalculate physical end switches positions to make then still valid.
          */
-        virtual void setCurrentPositionAs(float newPosition);
+        virtual bool setCurrentPositionAs(float newPosition);
         
         /**
          * @brief Set position in steps passed as parameter as current position of the motor
@@ -111,7 +111,7 @@ namespace mtca4u {
          * @return void
          * @ details see method setCurrentPositionAs(float newPosition)
          */
-        virtual void setCurrentPositionInStepsAs(int newPositionSteps);
+        virtual bool setCurrentPositionInStepsAs(int newPositionSteps);
         
         /**
          * @brief Perform calibration of the motor (blocking). 
@@ -179,8 +179,6 @@ namespace mtca4u {
         
         int _calibPositiveEndSwitchInSteps;
         //float _calibPositiveEndSwitchInUnits;
-        
-        bool _stopMotorCalibration; 
 
         bool _negativeEndSwitchEnabled;
         bool _positiveEndSwitchEnabled;

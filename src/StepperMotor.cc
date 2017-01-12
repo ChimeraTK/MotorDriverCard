@@ -33,7 +33,7 @@ namespace mtca4u {
       _currentOperationalState(SYSTEM_IDLE),
       //_blockingFunctionActive(false),
       _logger(),
-      _mutex(),
+   //   _mutex(),
       _operationalStateMutex(),
       _isActionComplete(false),
       _startUserAction("START_USER_ACTION"),
@@ -44,7 +44,8 @@ namespace mtca4u {
       _noEvent("NO_EVENT"),
       _currentEvent(_noEvent),
       _runStateMachine(true),
-      _transitionTableThread()
+      _transitionTableThread(),
+      _stopMotorCalibration(false)
       {
     _transitionTableThread = std::thread(&StepperMotor::transitionTable, this);
     }
@@ -57,21 +58,24 @@ namespace mtca4u {
     // BLOCKING FUNCTIONS
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    StepperMotorStatusAndError StepperMotor::moveToPositionInSteps(int newPositionInSteps) {
+    bool StepperMotor::moveToPositionInSteps(int newPositionInSteps) {
 
-      StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
-      if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
-        return statusAndError;
-      }
+      //      StepperMotorStatusAndError statusAndError = this->determineMotorStatusAndError();
+      //      if (statusAndError.status == StepperMotorStatusTypes::M_ERROR || statusAndError.status == StepperMotorStatusTypes::M_DISABLED) {
+      //        return statusAndError;
+      //      }
 
       if (setUserActionBlockingEvent(newPositionInSteps)){
         while (!isSystemIdle()){}
+        return true;
+      }else{
+        return false;
       }
 
-      return(this->determineMotorStatusAndError());
+      //return(this->determineMotorStatusAndError());
     }
 
-    StepperMotorStatusAndError StepperMotor::moveToPosition(float newPosition){
+    bool StepperMotor::moveToPosition(float newPosition){
       int positionInSteps = this->recalculateUnitsToSteps(newPosition);
       return (this->moveToPositionInSteps(positionInSteps));
     }
@@ -89,18 +93,22 @@ namespace mtca4u {
     // GENERAL FUNCTIONS
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    void StepperMotor::start() {
+    bool StepperMotor::start() {
       std::lock_guard<std::mutex> lock(_operationalStateMutex);
       if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
         _currentEvent = _startUserAction;
+        return true;
       }
+      return false;
     }
 
-    void StepperMotor::startCalibration() {
+    bool StepperMotor::startCalibration() {
       std::lock_guard<std::mutex> lock(_operationalStateMutex);
       if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
         _currentEvent = _startCalibration;
+        return true;
       }
+      return false;
     }
 
     void StepperMotor::stop() {
@@ -150,19 +158,24 @@ namespace mtca4u {
         return _motorCalibrationStatus;
     }
 
-    void StepperMotor::setSoftwareLimitsEnabled(bool newVal) {
+    bool StepperMotor::setSoftwareLimitsEnabled(bool newVal) {
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
         _softwareLimitsEnabled = newVal;
+        return true;
+      }
+      return false;
     }
 
     bool StepperMotor::getSoftwareLimitsEnabled() const {
         return _softwareLimitsEnabled;
     }
 
-    void StepperMotor::setCurrentPositionAs(float newPosition) {
-      setCurrentPositionInStepsAs(recalculateUnitsToSteps(newPosition));
+    bool StepperMotor::setCurrentPositionAs(float newPosition) {
+      return setCurrentPositionInStepsAs(recalculateUnitsToSteps(newPosition));
     }
 
-    void StepperMotor::setCurrentPositionInStepsAs(int newPositionSteps){
+    bool StepperMotor::setCurrentPositionInStepsAs(int newPositionSteps){
       std::lock_guard<std::mutex> lock(_operationalStateMutex);
       if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
         _targetPositionInSteps = newPositionSteps;
@@ -174,21 +187,25 @@ namespace mtca4u {
         _motorControler->setEnabled(enable);
         _maxPositionLimitInSteps -= delta;
         _minPositionLimitInSteps -= delta;
+        return true;
       }
+      return false;
     }
 
-    void StepperMotor::setTargetPosition(float newPosition) {
+    bool StepperMotor::setTargetPosition(float newPosition) {
       setTargetPositionInSteps(this->recalculateUnitsToSteps(newPosition));
     }
 
-    void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
+    bool StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
       std::lock_guard<std::mutex> lock(_operationalStateMutex);
       if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
         _targetPositionInSteps = newPositionInSteps;
         if (_autostartFlag) {
           _currentEvent = _startUserActionAutoStart;
         }
+        return true;
       }
+      return false;
     }
 
 
@@ -223,20 +240,30 @@ namespace mtca4u {
       return _motorControler->setUserSpeedLimit(newSpeed);
     }
 
-    void StepperMotor::setMaxPositionLimit(float maxPos) {
-        setMaxPositionLimitInSteps(recalculateUnitsToSteps(maxPos));
+    bool StepperMotor::setMaxPositionLimit(float maxPos) {
+        return setMaxPositionLimitInSteps(recalculateUnitsToSteps(maxPos));
     }
 
-    void StepperMotor::setMaxPositionLimitInSteps(int maxPosInSteps){
-      _maxPositionLimitInSteps = maxPosInSteps;
+    bool StepperMotor::setMaxPositionLimitInSteps(int maxPosInSteps){
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _maxPositionLimitInSteps = maxPosInSteps;
+        return true;
+      }
+      return false;
     }
 
-    void StepperMotor::setMinPositionLimit(float minPos) {
-       setMinPositionLimitInSteps(recalculateUnitsToSteps(minPos));
+    bool StepperMotor::setMinPositionLimit(float minPos) {
+      return setMinPositionLimitInSteps(recalculateUnitsToSteps(minPos));
     }
 
-    void StepperMotor::setMinPositionLimitInSteps(int minPosInStep){
-      _minPositionLimitInSteps = minPosInStep;
+    bool StepperMotor::setMinPositionLimitInSteps(int minPosInStep){
+      std::lock_guard<std::mutex> lock(_operationalStateMutex);
+      if (_currentOperationalState == SYSTEM_IDLE && _currentEvent == _noEvent){
+        _minPositionLimitInSteps = minPosInStep;
+        return true;
+      }
+      return false;
     }
 
     float StepperMotor::getMaxPositionLimit() {
@@ -256,7 +283,7 @@ namespace mtca4u {
     }
 
     StepperMotorStatusAndError StepperMotor::getStatusAndError() {
-        return determineMotorStatusAndError();
+      return determineMotorStatusAndError();
     }
     
     bool StepperMotor::isSystemIdle(){
@@ -281,13 +308,13 @@ namespace mtca4u {
     }
 
     void StepperMotor::setEnabled(bool enable) {
-      boost::lock_guard<boost::mutex> guard(_mutex);
+      //boost::lock_guard<boost::mutex> guard(_mutex);
       _motorControler->setMotorCurrentEnabled(enable);
       _motorControler->setEndSwitchPowerEnabled(enable);
     }
 
     bool StepperMotor::getEnabled() const {
-      boost::lock_guard<boost::mutex> guard(_mutex);
+      //boost::lock_guard<boost::mutex> guard(_mutex);
       // card is disabled and safe to plug out only when both motor current
       // and endswitch power is killed
       // for the old firmware version isEndSwitchPowerEnabled always returns
@@ -354,7 +381,7 @@ namespace mtca4u {
     StepperMotorStatusAndError StepperMotor::determineMotorStatusAndError() {
 
       //InternalMutex intMutex(this);
-      boost::lock_guard<boost::mutex> guard(_mutex);
+      //boost::lock_guard<boost::mutex> guard(_mutex);
 
       _motorStatus = StepperMotorStatusTypes::M_OK;
       _motorError = StepperMotorErrorTypes::M_NO_ERROR;
@@ -428,29 +455,26 @@ namespace mtca4u {
         switch(_currentOperationalState){
           ///////*****SYSTEM_IDLE transitions
           case SYSTEM_IDLE:{
+            std::lock_guard<std::mutex> lock(_operationalStateMutex);
             if (_currentEvent == _noEvent){
               break;
             }else if (_currentEvent == _stopUserAction){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               break;
             }else if (_currentEvent == _startUserAction){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentOperationalState = USER_ACTION;
               startUserAction();
               break;
             }else if (_currentEvent == _startUserActionBlocking){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentOperationalState = USER_ACTION_BLOCKING;
               startUserAction();
             }else if (_currentEvent == _startUserActionAutoStart){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentOperationalState = USER_ACTION_AUTOSTART;
               startUserAction();
             }else if (_currentEvent == _startCalibration){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentOperationalState = CALIBRATION;
               _isActionComplete = false;
+              _stopMotorCalibration = false;
               std::async(std::launch::async, &StepperMotor::startCalibrationThread, this);
               break;
             }else{
@@ -459,15 +483,14 @@ namespace mtca4u {
           }
           ///////*****USER_ACTION transitions
           case USER_ACTION:{
+            std::lock_guard<std::mutex> lock(_operationalStateMutex);
             if (_currentEvent == _stopUserAction){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               int currentPosition = _motorControler->getActualPosition();
               _motorControler->setTargetPosition(currentPosition);
               _targetPositionInSteps = currentPosition;
               break;
             }else if (!isMoving()){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               _currentOperationalState = SYSTEM_IDLE;
               break;
@@ -476,15 +499,14 @@ namespace mtca4u {
           }
           ///////*****USER_ACTION_BLOCKING transitions
           case USER_ACTION_BLOCKING:{
+            std::lock_guard<std::mutex> lock(_operationalStateMutex);
             if (_currentEvent == _stopUserAction){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               int currentPosition = _motorControler->getActualPosition();
               _motorControler->setTargetPosition(currentPosition);
               _targetPositionInSteps = currentPosition;
               break;
             }else if (!isMoving()){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               _currentOperationalState = SYSTEM_IDLE;
               break;
@@ -493,15 +515,14 @@ namespace mtca4u {
           }
           ///////*****USER_ACTION_BLOCKING transitions
           case USER_ACTION_AUTOSTART:{
+            std::lock_guard<std::mutex> lock(_operationalStateMutex);
             if (_currentEvent == _stopUserAction){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               int currentPosition = _motorControler->getActualPosition();
               _motorControler->setTargetPosition(currentPosition);
               _targetPositionInSteps = currentPosition;
               break;
             }else if (!isMoving()){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
               _currentEvent = _noEvent;
               _currentOperationalState = SYSTEM_IDLE;
               break;
@@ -510,13 +531,15 @@ namespace mtca4u {
           }
           ///////*****CALIBRATION transitions:
           case CALIBRATION:{
-            if (_isActionComplete){
-              std::lock_guard<std::mutex> lock(_operationalStateMutex);
+            std::lock_guard<std::mutex> lock(_operationalStateMutex);
+            if (_currentEvent == _stopUserAction){
+              _stopMotorCalibration = true;
+              break;
+            }else if(_isActionComplete){
               _currentEvent = _noEvent;
-              _currentOperationalState = SYSTEM_IDLE;
-              break;
-            }else{
-              break;
+              _currentOperationalState = SYSTEM_IDLE;{
+                break;
+              }
             }
             break;
           }

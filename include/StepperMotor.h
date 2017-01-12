@@ -117,7 +117,7 @@ namespace mtca4u {
          * Function can be interrupted by using 'void stopMotor()' method.\n
          * Function returns StepperMotorStatusAndError object which is status of the motor after movement routine finished. Should be StepperMotorStatusTypes::M_OK in case of success.
          */
-        StepperMotorStatusAndError moveToPosition(float newPosition);
+        bool moveToPosition(float newPosition);
 
         /**
          * @brief Sending motor to new position (blocking)
@@ -126,7 +126,7 @@ namespace mtca4u {
          * @details see method moveToPosition(float)
          */
 
-        StepperMotorStatusAndError moveToPositionInSteps(int newPositionInSteps);
+        bool moveToPositionInSteps(int newPositionInSteps);
 
         /**
          * @brief  Set new position for the motor (no blocking)
@@ -141,7 +141,7 @@ namespace mtca4u {
          * Position is expressed in arbitrary units ex. mm or fs or deg or steps. Recalculation from arbitrary unit to steps is done by object of StepperMotorUnitsConverter.\n
          * StepperMotorUnitsConverter can be set by setStepperMotorUnitsConverter method. When not set conversion coefficient is 1 (steps = 1 x units). \n
          */
-         void setTargetPosition(float newPosition); // old name: setMotorPosition
+         bool setTargetPosition(float newPosition); // old name: setMotorPosition
 
          /**
           * @brief Set new position for the motor in steps (no blocking)
@@ -151,7 +151,7 @@ namespace mtca4u {
           * @details see method setTargetPosition(float)
           */
 
-         void setTargetPositionInSteps(int newPositionInSteps);
+         bool setTargetPositionInSteps(int newPositionInSteps);
 
          /**
          * Return target motor position in the arbitrary units.
@@ -189,7 +189,7 @@ namespace mtca4u {
          * Position is expressed in arbitrary units and internally recalculated into steps.\n
          * Can be used in example to zeroed current position.
          */
-        virtual void setCurrentPositionAs(float newPosition); // old name: setCurrentMotorPositionAs
+        virtual bool setCurrentPositionAs(float newPosition); // old name: setCurrentMotorPositionAs
 
         /**
          * @brief Set position passed as parameter as current position of the motor
@@ -198,7 +198,7 @@ namespace mtca4u {
          * @details see function setCurrentPositionAs(float newPosition)
          */
 
-        virtual void setCurrentPositionInStepsAs(int newPositionSteps);
+        virtual bool setCurrentPositionInStepsAs(int newPositionSteps);
 
         /**
          * @brief Set a pointer to StepperMotorUnitsConverter object.
@@ -225,7 +225,7 @@ namespace mtca4u {
          * Function starts the motor. When 'Autostart' is set to FALSE it allows to move motor.\n
          * 
          */      
-        void start();
+        bool start();
         
         /**
          * @brief Stop the motor 
@@ -264,7 +264,7 @@ namespace mtca4u {
         /**
          * @brief Start the calibration of the motor (non-blocking)
          */
-        virtual void startCalibration();
+        virtual bool startCalibration();
 
         /**
          * @brief Return current calibration status.
@@ -416,13 +416,13 @@ namespace mtca4u {
          * @details 
          * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
          */
-        void setMaxPositionLimit(float maxPos);
+        bool setMaxPositionLimit(float maxPos);
 
          /**
           * @brief Set soft limit on the maximum position of the motor expressed in steps
           * @param maxPosInSteps - Greatest position which motor will be able to reach
           */
-        void setMaxPositionLimitInSteps(int maxPosInSteps);
+        bool setMaxPositionLimitInSteps(int maxPosInSteps);
         
         /**
          * @brief Set soft limit on the minimum position of the motor expressed in arbitrary units
@@ -431,13 +431,13 @@ namespace mtca4u {
          * @details 
          * Motor can have not physical end switches which would limits range of possible position. For the reason software limits has been introduced.
          */
-        void setMinPositionLimit(float minPos);
+        bool setMinPositionLimit(float minPos);
 
         /**
          * @brief Set soft limit on the minimum position of the motor expressed in steps
          * @param minPosInSteps - Smallest position which motor will be able to reach
          */
-        void setMinPositionLimitInSteps(int minPosInSteps);
+        bool setMinPositionLimitInSteps(int minPosInSteps);
                       
         /**
          * @brief Set soft limit enabled or disabled. 
@@ -446,7 +446,7 @@ namespace mtca4u {
          * @details 
          * 
          */  
-        void setSoftwareLimitsEnabled(bool enabled);
+        bool setSoftwareLimitsEnabled(bool enabled);
 
         /**
          * @brief Get current soft limit enabled flag. 
@@ -577,7 +577,7 @@ namespace mtca4u {
         //flag which indicate error in blocking function
         //bool _blockingFunctionActive;
         Logger _logger;
-        mutable boost::mutex _mutex;
+        //mutable boost::mutex _mutex;
         std::mutex _operationalStateMutex;
         std::atomic<bool> _isActionComplete;
         Event _startUserAction;
@@ -589,6 +589,7 @@ namespace mtca4u {
         Event _currentEvent;
         std::atomic<bool> _runStateMachine;
         std::thread _transitionTableThread;
+        bool _stopMotorCalibration;
     };
 
 } //namespace mtca4u
