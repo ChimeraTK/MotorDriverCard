@@ -547,31 +547,228 @@ namespace mtca4u {
         Logger _logger;
         mutable boost::mutex _mutex;
     };
-
 } //namespace mtca4u
-#endif	/* MTCA4U_STEPPER_MOTOR_H */
 
+namespace chimeratk{
 
-
-
-
-
-
-
-/*
-class InternalMutex {
-private:
-    StepperMotor* _instance;
+class StepperMotor{
 public:
-    InternalMutex(StepperMotor* instance) {
-        _instance = instance;                
-        _instance->mutex.lock();
-        //std::cout << "LOCKING MUTEX !!!" << std::endl;
-    }
-    ~InternalMutex() {
-        _instance->mutex.unlock();
-        //std::cout << "UNLOCKING MUTEX !!!" << std::endl;
-    }
+	/**
+	 * @brief  Constructor of the class object
+	 * @param  motorDriverCardDeviceName Name of the device in DMAP file
+	 * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
+	 * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
+	 * @param  motorDriverCardConfigFileName Name of configuration file
+	 * @return
+	 */
+	StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
+
+	/**
+	 * @brief  Destructor of the class object
+	 */
+	virtual ~StepperMotor();
+
+	/**
+	 * @brief in unit
+	 */
+	virtual void moveToPosition(float newPosition);
+
+	/**
+	 * @brief in steps
+	 */
+
+	virtual void moveToPositionInSteps(int newPositionInSteps)
+
+	/**
+	 * @ brief move the motor a delta from the current position
+	 * @param delta is given in unit
+	 */
+	virtual void moveRelative(float delta);
+
+	/**
+	 * @brief move the motor a delta from the current position
+	 * @param delta is given in steps
+	 */
+	virtual void moveRelativeInSteps(int delta);
+
+	/**
+	 * @brief interrupt the current action and return the motor to idle
+	 *
+	 */
+	virtual void stop();
+
+	/**
+	 * @brief interrupt the current action, return the motor to idle and disable it
+	 */
+	virtual void emergencyStop();
+
+	/**
+	 * @brief It transforms units in steps using the internal converter
+	 * @param units Value in unit to be converted in steps
+	 * @return Value in steps
+	 */
+	virtual int recalculateUnitsInSteps(float units);
+
+	/**
+	 * @brief it transforms steps in units using the internal converter
+	 * @param steps Value in steps to be coverted in units
+	 * @return Value in units
+	 */
+	virtual float recalculateStepsInUnits(int float);
+
+	/**
+	 * @brief enable/disable software position limits
+	 */
+	virtual void setSoftwareLimitsEnabled(bool enabled);
+
+	/**
+	 * @brief get software position limits enabled flag
+	 */
+	virtual bool getSoftwareLimitsEnabled();
+
+	/**
+	 * @brief set maximal software position limit in units
+	 */
+	virtual void setMaxPositionLimit(float maxPos);
+
+	/**
+	 * @brief set maximal software position limit in steps
+	 */
+	virtual void setMaxPositionLimitInSteps(int maxPos);
+
+	/**
+	 * @brief get maximal software position limit in units
+	 */
+	virtual float getMaxPositionLimit();
+
+	/**
+	 * @brief get maximal software position limit in steps
+	 */
+	virtual int getMaxPositionLimitInSteps();
+
+	/**
+	 * @brief set minimal software position limit in units
+	 */
+	virtual void setMinPositionLimit(float maxPos);
+
+	/**
+	 * @brief set minimal software position limit in steps
+	 */
+	virtual void setMinPositionLimitInSteps(int maxPos);
+
+	/**
+	 * @brief get minimal software position limit in units
+	 */
+	virtual float getMinPositionLimit();
+
+	/**
+	 * @brief get minimal software position limit in steps
+	 */
+	virtual int getMinPositionLimitInSteps();
+
+	/**
+	 * @brieg set actual position in units of the motor respect to some reference
+	 * @param actualPositionInUnits In order to use the motor an absolute scale must be defined.
+	 * This can be done defining the position of the motor respect to an external reference (actual position).
+	 * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
+	 */
+	virtual void setActualPositon(float actualPositionInUnits);
+
+	/**
+	 * @brief set actual position in steps of the motor respect to some reference
+	 * @param actualPositionInSteps In order to use the motor an absolute scale must be defined.
+	 * This can be done defining the position of the motor respect to an external reference (actual position).
+	 * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
+	 */
+	virtual void setActualPositionInSteps(int actualPositionInSteps);
+
+	/**
+	 * @brief get current position of the motor in units
+	 */
+	virtual float getCurrentPosition();
+
+	/**
+	 * @brief get current position of the motor in steps
+	 */
+	virtual int getCurrentPositionInSteps();
+
+	/**
+	 * @brief set the steps-units converter. Per default each instance has a 1:1 converter
+	 */
+	virtual void setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+
+	/**
+	 * @brief check if the system is in idle and it returns true is it is so..
+	 * If in idle any action required by the user can be executed like move or move relative.
+	 */
+	virtual bool isSystemIdle();
+
+	/**
+	 * @brief actions are executed asynchronous, so using this function one can block the program in case an action is being executed
+	 * and waiting until this will be terminated and the system is back to idle.
+	 */
+	virtual void waitForIdle();
+
+	/**
+	 * @brief return error code for the motor. The error code is not a bit-field
+	 * 0 - NO_ERROR
+	 * 1 - ACTION_ERROR if any of the action started by the user was not successful
+	 * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.
+	 * 3 - CALIBRATION_LOST if calibration is lost.
+	 */
+	virtual StepperMotorError getError();
+
+	/**
+	 * @brief enable/disable the motor
+	 * @param enable if true motor is enabled
+	 */
+	virtual void setEnabled(bool enable);
+
+	/**
+	 * @brief get motor enalbed flag
+	 */
+	virtual bool getEnabled();
+
+	/**
+	 * @brief set logger level
+	 */
+	virtual void setLogLevel(mtca4u::Logger::LogLevel newLevel);
+
+	/**
+	 * @brief get logger level
+	 */
+	virtual mtca4u::Logger::LogLevel StepperMotor::getLogLevel();
+
+	/**
+	 * @brief get maximal speed capability
+	 */
+	virtual double getMaxSpeedCapability();
+
+	/**
+	 * @brief get safe current limit
+	 */
+	virtual double getSafeCurrentLimit();
+
+	/**
+	 * @brief set user current limit for the motor
+	 * @param currentInAmps current limit in ampere
+	 */
+	virtual void setUserCurrentLimit(double currentInAmps);
+
+	/**
+	 * @brief returns the user current limit in ampere
+	 */
+	virtual double getUserCurrentLimit();
+
+	/**
+	 * @brief set user speed limit
+	 */
+	virtual void setUserSpeedLimit(double newSpeed);//todo newSpeed unit!?!?
+
+	/**
+	 * @brief return user speed limit
+	 */
+	virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
 };
-friend class InternalMutex;
- */
+}// namespace chimeratk
+#endif	/* MTCA4U_STEPPER_MOTOR_H */

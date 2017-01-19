@@ -79,5 +79,26 @@ namespace mtca4u {
 
 } //namespace mtca4u
 
+namespace chimeratk{
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   // StepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+   class StepperMotorError : public mtca4u::GeneralStatus {
+   public:
+       //default constructor
+       StepperMotorError();
+       //constructor with params
+       StepperMotorError(int id);
+       //copy constructor
+       StepperMotorError(const StepperMotorError &error);
+       virtual ~StepperMotorError();
+
+       virtual std::string asString() const;
+
+   };
+}
+
 #endif	/* STEPPER_MOTOR_ERROR_H */
 
