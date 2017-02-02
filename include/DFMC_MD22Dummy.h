@@ -4,6 +4,7 @@
 #include <mtca4u/DummyBackend.h>
 #include "TMC429Words.h"
 #include <mtca4u/BackendFactory.h>
+#include <mtca4u/DeviceAccessVersion.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -211,9 +212,9 @@ class TMC429OutputWord;
   public:
   	DFMC_MD22DummyRegisterer(){
   #ifdef _DEBUG
-  		std::cout<<"DFMC_MD22DummyRegisterer"<<std::endl;
+          std::cout<<"DFMC_MD22DummyRegisterer"<<std::endl;
   #endif
-  		BackendFactory::getInstance().registerBackendType("dfmc_md22dummy","",&DFMC_MD22Dummy::createInstance);
+          BackendFactory::getInstance().registerBackendType("dfmc_md22dummy","",&DFMC_MD22Dummy::createInstance, CHIMERATK_DEVICEACCESS_VERSION);
     }
   };
 
