@@ -577,7 +577,7 @@ public:
 	 * @brief in steps
 	 */
 
-	virtual void moveToPositionInSteps(int newPositionInSteps)
+	virtual void moveToPositionInSteps(int newPositionInSteps);
 
 	/**
 	 * @ brief move the motor a delta from the current position
@@ -769,6 +769,42 @@ public:
 	 * @brief return user speed limit
 	 */
 	virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
+
+protected: // fields
+       std::string _motorDriverCardDeviceName;
+       unsigned int _motorDriverId;
+
+       //pointers to objects which controls the physical driver, we will use boost::shared_ptr
+	boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
+	boost::shared_ptr<mtca4u::MotorControler> _motorControler;
+
+       // current position
+       //int _currentPostionsInSteps;
+       //float _currentPostionsInUnits;
+       // current target
+	boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+       int _targetPositionInSteps;
+       //float _targetPositionInUnits;
+       //position limits
+       //float _maxPositionLimit;
+       int   _maxPositionLimitInSteps;
+       //float _minPositionLimit;
+       int   _minPositionLimitInSteps;
+       //pointer to the units converter class
+       //Autostart
+       bool _autostartFlag;
+       //Stop motor flag for blocking functions
+       bool _stopMotorForBlocking;
+       //soft limits enabled flag
+       bool _softwareLimitsEnabled;
+       //status and error
+       StepperMotorError  _motorError;
+//       StepperMotorCalibrationStatus _motorCalibrationStatus;
+//       StepperMotorStatus _motorStatus;
+       //flag which indicate error in blocking function
+       bool _blockingFunctionActive;
+       mtca4u::Logger _logger;
+       mutable boost::mutex _mutex;
 };
 }// namespace chimeratk
 #endif	/* MTCA4U_STEPPER_MOTOR_H */
