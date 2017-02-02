@@ -101,7 +101,7 @@ TargetAndAction<T>::TargetAndAction(State<T> *target, std::function<void(T*)> ca
 template <class T>
 class StateMachine : public State<T>{
 public:
-  StateMachine(T &frontEnd, std::string name, std::shared_ptr< StateMachine<T> > parentStateMachine = this);
+  StateMachine(T &frontEnd, std::string name, std::shared_ptr< StateMachine<T> > parentStateMachine);
   virtual ~StateMachine();
   virtual void processEvent();
   void init();
