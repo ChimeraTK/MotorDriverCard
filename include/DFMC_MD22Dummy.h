@@ -92,8 +92,11 @@ class TMC429OutputWord;
     void setDriverSpiRegistersForTesting();
 
     /** The dummy does not react on the SPI write registers if this flag is set true.
+     *  The limitToNTimeouts allows to return to normal operation (causesSpiTimeouts = false)
+     *  when the specified number if timeouts has been caused.
+     *  If the limitToNTimeouts is left at 0 there will be an unlimited number of timeouts.
      */
-    void causeSpiTimeouts(bool causeTimeouts);
+    void causeSpiTimeouts(bool causeTimeouts, unsigned int limitToNTimeouts=0);
 
     /** The dummy always reports an SPI error in the sync registers if this flag is set true.
      */
@@ -197,6 +200,7 @@ class TMC429OutputWord;
     std::vector< DriverSPI > _driverSPIs;
 
     bool _causeSpiTimeouts;
+    unsigned int _nSpiTimeoutsLeft; // when this counter reaches 0 it sets _causeSpiTimeouts back to false
     bool _causeSpiErrors;
 
     unsigned int _microsecondsControllerSpiDelay;
@@ -207,6 +211,10 @@ class TMC429OutputWord;
 
     bool checkStatusOfRWBit(const TMC429InputWord& inputSPMessage, uint32_t bitStatus);
     TMC429OutputWord frameTMC429SPIResponse(TMC429InputWord &inputSpi);
+
+    // If the timeout counter is not 0 it is decremented. Then it goes from 1 to 0 the
+    // _causeSpiTimeouts flag is set to false.
+    void checkSpiTimeoutsCounter();
   };
   class DFMC_MD22DummyRegisterer{
   public:
