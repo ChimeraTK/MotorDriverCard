@@ -214,7 +214,9 @@ class TMC429OutputWord;
 
     // If the timeout counter is not 0 it is decremented. Then it goes from 1 to 0 the
     // _causeSpiTimeouts flag is set to false.
-    void checkSpiTimeoutsCounter();
+    // It returns the _causeSpiTimeouts flag from before the reset, so the answer is true
+    // if the counter was 1, even tough the flag has been cleared.
+    bool checkSpiTimeoutsCounter();
   };
   class DFMC_MD22DummyRegisterer{
   public:

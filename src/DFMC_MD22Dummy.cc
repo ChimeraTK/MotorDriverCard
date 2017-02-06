@@ -188,8 +188,7 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::handleControlerSpiWrite(){
     //debug functionality: cause timeouts by ignoring spi writes
-    checkSpiTimeoutsCounter();
-    if (_causeSpiTimeouts){
+    if (checkSpiTimeoutsCounter()){
       return;
     }
     int32_t value = SPI_SYNC_ERROR;
@@ -233,8 +232,7 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::handleDriverSpiWrite(unsigned int ID){
     //debug functionality: cause timeouts by ignoring spi writes
-    checkSpiTimeoutsCounter();
-    if (_causeSpiTimeouts){
+    if (checkSpiTimeoutsCounter()){
       return;
     }
 
@@ -418,14 +416,16 @@ namespace mtca4u{
     _causeSpiErrors = causeErrors;
   }
 
-  void  DFMC_MD22Dummy::checkSpiTimeoutsCounter(){
+  bool  DFMC_MD22Dummy::checkSpiTimeoutsCounter(){
+    bool retVal =  _causeSpiTimeouts; // the value before a possible reset.
     if (_nSpiTimeoutsLeft >0){
       --_nSpiTimeoutsLeft; // decrement the counter
       if(_nSpiTimeoutsLeft == 0){ // the counter just reached 0
-        _causeSpiErrors = false; // turn off the causeSpiErrors flag
+        _causeSpiTimeouts = false; // turn off the causeSpiTimeouts flag
       }
     }
     // the counter was 0 leave the error flag untouched -> unlimited errors setting
+    return retVal;
   }
 
   boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(
