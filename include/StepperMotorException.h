@@ -11,7 +11,9 @@
 #include <exception>
 #include <string>
 
-namespace mtca4u
+#define EXCEPTION_MESSAGE std::string("error in ") + std::string(__PRETTY_FUNCTION__)
+
+namespace ChimeraTK
 {
   /** The type of exception thrown by StepperMotor.
    *
@@ -47,8 +49,10 @@ namespace mtca4u
     virtual ~StepperMotorException() throw(){}
   };
 
-}// namespace mtca4u
+}// namespace ChimeraTk
 
-
+namespace mtca4u{
+  using namespace ChimeraTK;
+}
 
 #endif /* INCLUDE_STEPPERMOTOREXCEPTION_H_ */

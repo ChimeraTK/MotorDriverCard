@@ -549,7 +549,7 @@ namespace mtca4u {
     };
 } //namespace mtca4u
 
-namespace chimeratk{
+namespace ChimeraTK{
 
 class StepperMotor{
 public:
@@ -806,5 +806,5 @@ protected: // fields
        mtca4u::Logger _logger;
        mutable boost::mutex _mutex;
 };
-}// namespace chimeratk
+}// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

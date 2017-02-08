@@ -12,7 +12,10 @@
 #include "GeneralStatus.h"
 
 
-namespace mtca4u {
+namespace ChimeraTK {
+
+  using namespace mtca4u;
+
     class StepperMotorError;
     class LinearStepperMotorError;
     
@@ -77,27 +80,10 @@ namespace mtca4u {
         static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
     };
 
-} //namespace mtca4u
+} //namespace ChimeraTK
 
-namespace chimeratk{
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   // StepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-   class StepperMotorError : public mtca4u::GeneralStatus {
-   public:
-       //default constructor
-       StepperMotorError();
-       //constructor with params
-       StepperMotorError(int id);
-       //copy constructor
-       StepperMotorError(const StepperMotorError &error);
-       virtual ~StepperMotorError();
-
-       virtual std::string asString() const;
-
-   };
+namespace mtca4u{
+  using namespace ChimeraTK;
 }
 
 #endif	/* STEPPER_MOTOR_ERROR_H */
