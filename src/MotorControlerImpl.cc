@@ -100,7 +100,7 @@ namespace mtca4u
       converter24bits(24), converter12bits(12)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
-    setActualPosition( motorControlerConfig.actualPosition );
+    //setActualPosition( motorControlerConfig.actualPosition );
     setChopperControlData( motorControlerConfig.chopperControlData );
     setCoolStepControlData( motorControlerConfig.coolStepControlData );
     setDecoderReadoutMode( motorControlerConfig.decoderReadoutMode );
