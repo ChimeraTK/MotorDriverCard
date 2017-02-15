@@ -10,7 +10,8 @@
 
 #include <iostream>
 
-namespace mtca4u {
+namespace ChimeraTK {
+  using namespace mtca4u;
 
   /**
    * Logger class which provides logging feature with 5 different logging levels.
@@ -158,6 +159,10 @@ namespace mtca4u {
     extern Logger _logstdout__;
     extern Logger _logstderr__;
     
+}
+
+namespace mtca4u{
+  using namespace ChimeraTK;
 }
 
 #endif	/* LOGGER_H */

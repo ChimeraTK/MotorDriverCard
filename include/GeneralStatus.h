@@ -5,7 +5,8 @@
 #include <boost/thread.hpp>
 
 
-namespace mtca4u {
+namespace ChimeraTK {
+  using namespace mtca4u;
 
     class GeneralStatus {
     protected:
@@ -37,6 +38,10 @@ namespace mtca4u {
         friend std::ostream &operator<<(std::ostream &out, const GeneralStatus &status);
     };
 
-} //namespace mtca4u
+} //namespace ChimeraTK
+
+namespace mtca4u{
+  using namespace ChimeraTK;
+}
 
 #endif //MTCA4U_STATUS_GENERAL_H
