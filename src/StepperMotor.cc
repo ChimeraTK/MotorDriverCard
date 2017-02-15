@@ -1,5 +1,6 @@
 #include "StepperMotor.h"
 #include <cmath>
+#include <future>
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
@@ -394,36 +395,264 @@ bool mtca4u::StepperMotor::isMoving() {
   return (_motorControler->isMotorMoving());
 }
 
-namespace chimeratk{
+namespace ChimeraTK{
 
   StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName,
                              std::string const & moduleName,
                              unsigned int motorDriverId,
                              std::string motorDriverCardConfigFileName):
-			       _motorDriverCardDeviceName(motorDriverCardDeviceName),
-			       _motorDriverId(motorDriverId),
-			       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-				   motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
-			       _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-			       //_currentPostionsInSteps(0),// position - don't know so set to 0
-			       //_currentPostionsInUnits(0),
-			       _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-			       _targetPositionInSteps(0),
-			       //_targetPositionInUnits(0),
-			       //_maxPositionLimit(std::numeric_limits<float>::max()),
-			       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-			       //_minPositionLimit(-std::numeric_limits<float>::max()),
-			       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
-			       _autostartFlag(false),
-			       _stopMotorForBlocking(false),
-			       _softwareLimitsEnabled(true),
-			       _motorError(),
-			       //			   _motorCalibrationStatus(StepperMotorCalibrationStatusType::M_NOT_CALIBRATED),
-			       //			   _motorStatus(),
-			       _blockingFunctionActive(false),
-			       _logger(),
-			       _mutex(){
-  }
-}
+				   _motorDriverCardDeviceName(motorDriverCardDeviceName),
+				   _motorDriverId(motorDriverId),
+				   _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+				       motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+				       _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+				       _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+				       _targetPositionInSteps(0),
+				       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+				       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
+				       _softwareLimitsEnabled(false),
+				       _logger(),
+				       _mutex(),
+				       _stateMachineThread(),
+				       _userEvent(StateMachine<StepperMotor>::noEvent),
+				       _stateMachine(this),
+				       _calibrated(false){}
 
+  StepperMotor::~StepperMotor() {}
+
+  void StepperMotor::moveToPositionInSteps(int newPositionInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    if (_softwareLimitsEnabled && (newPositionInSteps < _minPositionLimitInSteps || newPositionInSteps > _maxPositionLimitInSteps)){
+      throw MotorDriverException("new position out of range of the soft limits", MotorDriverException::OUT_OF_RANGE);
+    }
+    if (!_calibrated){
+      throw MotorDriverException("motor not calibrated", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _targetPositionInSteps = newPositionInSteps;
+    _userEvent = StepperMotorStateMachine::moveEvent;
+  }
+
+  void StepperMotor::moveToPosition(float newPosition){
+    moveToPositionInSteps(recalculateUnitsInSteps(newPosition));
+  }
+
+  void StepperMotor::moveRelativeInSteps(int delta){
+    int newPosition = getCurrentPositionInSteps() + delta;
+    moveToPositionInSteps(newPosition);
+  }
+
+  void StepperMotor::moveRelative(float delta){
+    int newPosition = recalculateUnitsInSteps(getCurrentPosition() + delta);
+    moveToPositionInSteps(newPosition);
+  }
+
+  void StepperMotor::stop(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    _userEvent = StepperMotorStateMachine::stopEvent;
+  }
+
+  void StepperMotor::emergencyStop(){
+    setEnabled(false);
+    stop();
+  }
+
+  int StepperMotor::recalculateUnitsInSteps(float units){
+    return _stepperMotorUnitsConverter->unitsToSteps(units);
+  }
+
+  float StepperMotor::recalculateStepsInUnits(int steps){
+    return _stepperMotorUnitsConverter->stepsToUnits(steps);
+  }
+
+  void StepperMotor::setSoftwareLimitsEnabled(bool enabled){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _softwareLimitsEnabled = enabled;
+  }
+
+  bool StepperMotor::getSoftwareLimitsEnabled(){
+    return _softwareLimitsEnabled;
+  }
+
+  void StepperMotor::setMaxPositionLimitInSteps(int maxPos){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _maxPositionLimitInSteps = maxPos;
+  }
+
+  void StepperMotor::setMaxPositionLimit(float maxPos){
+    setMaxPositionLimitInSteps(recalculateUnitsInSteps(maxPos));
+  }
+
+  int StepperMotor::getMaxPositionLimitInSteps(){
+    return _maxPositionLimitInSteps;
+  }
+
+  float StepperMotor::getMaxPositionLimit(){
+    return recalculateStepsInUnits(_maxPositionLimitInSteps);
+  }
+
+  void StepperMotor::setMinPositionLimitInSteps(int minPos){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _minPositionLimitInSteps = minPos;
+  }
+
+  void StepperMotor::setMinPositionLimit(float minPos){
+    setMinPositionLimitInSteps(recalculateUnitsInSteps(minPos));
+  }
+
+  int StepperMotor::getMinPositionLimitInSteps(){
+    return _minPositionLimitInSteps;
+  }
+
+  float StepperMotor::getMinPositionLimit(){
+    return recalculateStepsInUnits(_minPositionLimitInSteps);
+  }
+
+  void StepperMotor::setActualPositionInSteps(int actualPositionInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    bool enable = _motorControler->isEnabled();
+    _motorControler->setEnabled(false);
+    _motorControler->setActualPosition(actualPositionInSteps);
+    _motorControler->setTargetPosition(actualPositionInSteps);
+    _motorControler->setEnabled(enable);
+    _calibrated = false;
+  }
+
+  void StepperMotor::setActualPosition(float actualPosition){
+    setActualPositionInSteps(recalculateUnitsInSteps(actualPosition));
+  }
+
+  int StepperMotor::getCurrentPositionInSteps(){
+    return (_motorControler->getActualPosition());
+  }
+
+  float StepperMotor::getCurrentPosition(){
+    return recalculateStepsInUnits(_motorControler->getActualPosition());
+  }
+
+  void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    if (stepperMotorUnitsConverter == nullptr){
+      throw MotorDriverException("unit converter shared pointer not valid", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
+  }
+
+  void StepperMotor::setStepperMotorUnitsConverterToDefault(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _stepperMotorUnitsConverter.reset(new StepperMotorUnitsConverterTrivia());
+  }
+
+  bool StepperMotor::isSystemIdle(){
+    return stateMachineInIdleAndNoEvent();
+  }
+
+  void StepperMotor::isSystemIdleThread(){
+    while (!stateMachineInIdleAndNoEvent()){}
+  }
+
+  void StepperMotor::waitForIdle(){
+    std::future<void> future = async(std::launch::async, &StepperMotor::isSystemIdleThread, this);
+    future.wait();
+  }
+
+  StepperMotorError StepperMotor::getError(){
+    StepperMotorError _motorError = NO_ERROR;
+    if (stateMachineInIdleAndNoEvent()){
+      _motorControler->targetPositionReached();
+      _motorError = ACTION_ERROR;
+    }
+    return _motorError;
+  }
+
+  bool StepperMotor::isCalibrated(){
+    return _calibrated;
+  }
+
+  void StepperMotor::setEnabled(bool enable){
+    _motorControler->setMotorCurrentEnabled(enable);
+  }
+
+  bool StepperMotor::getEnabled(){
+    return _motorControler->isMotorCurrentEnabled();
+  }
+
+  void StepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){
+    _logger.setLogLevel(newLevel);
+  }
+
+  Logger::LogLevel StepperMotor::getLogLevel() {
+    return _logger.getLogLevel();
+  }
+
+  double StepperMotor::getMaxSpeedCapability() {
+    return _motorControler->getMaxSpeedCapability();
+  }
+
+  double StepperMotor::getSafeCurrentLimit() {
+    return (_motorControler->getMaxCurrentLimit());
+  }
+
+  double StepperMotor::setUserCurrentLimit(double currentInAmps) {
+    return (_motorControler->setUserCurrentLimit(currentInAmps));
+  }
+
+  double StepperMotor::getUserCurrentLimit() {
+    return (_motorControler->getUserCurrentLimit());
+  }
+
+  double StepperMotor::setUserSpeedLimit(double newSpeed) {
+    return _motorControler->setUserSpeedLimit(newSpeed);
+  }
+
+  double StepperMotor::getUserSpeedLimit() {
+    return (_motorControler->getUserSpeedLimit());
+  }
+
+  Event StepperMotor::getEvent(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    Event tempEvent = _userEvent;
+    _userEvent = State::noEvent;
+    return tempEvent;
+  }
+
+  bool StepperMotor::stateMachineInIdleAndNoEvent(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (_userEvent == State::noEvent && _stateMachine._currentState->getName() == "idleState"){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+ void StepperMotor::stateMachineThreadFunction(){
+   usleep(100);
+   stateMachinePerformTransition();
+ }
+
+ void StepperMotor::stateMachinePerformTransition(){
+   boost::lock_guard<boost::mutex> guard(_mutex);
+   _stateMachine.processEvent();
+ }
+}
 
