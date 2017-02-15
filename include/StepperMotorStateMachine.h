@@ -5,11 +5,12 @@
  *      Author: vitimic
  */
 
-#include "StepperMotor.h"
 #include "StateMachine.h"
 
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 #define INCLUDE_STEPPERMOTORSTATEMACHINE_H_
+
+class StepperMotor;
 
 namespace ChimeraTK{
   class  StepperMotorStateMachine : public StateMachine<StepperMotor>{

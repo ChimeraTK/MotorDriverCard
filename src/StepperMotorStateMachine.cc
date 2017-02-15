@@ -46,4 +46,12 @@ namespace ChimeraTK{
     float  currentPos = _frontEnd.getCurrentPosition();
     _frontEnd._motorControler->setTargetPosition(currentPos);
   }
+
+  void StepperMotorStateMachine::processEvent(){
+    Event event = _frontEnd.getEvent();
+    if (event == State::noEvent){
+      event = _currentState->getEvent();
+    }
+    _currentState = _currentState->performTransition(event);
+  }
 }
