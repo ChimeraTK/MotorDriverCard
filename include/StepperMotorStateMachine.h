@@ -13,11 +13,12 @@
 class StepperMotor;
 
 namespace ChimeraTK{
-  class  StepperMotorStateMachine : public StateMachine<StepperMotor>{
+  class  StepperMotorStateMachine : public StateMachine{
   public:
     StepperMotorStateMachine(StepperMotor &stepperMotor);
     virtual ~StepperMotorStateMachine();
     virtual void processEvent();
+    virtual State* performTransition(Event event);
     static Event moveEvent;
     static Event waitEvent;
     static Event stopEvent;
@@ -26,6 +27,7 @@ namespace ChimeraTK{
     State _moving;
     State _idle;
     State _stop;
+    StepperMotor &_stepperMotor;
     Event getActionCompleteEvent();
     void actionIdleToMove();
     void actionMovetoStop();

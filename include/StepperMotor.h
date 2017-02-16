@@ -789,6 +789,7 @@ namespace ChimeraTK{
     friend class StepperMotorStateMachine;
 
   protected: // fields
+    StepperMotor();
     std::string _motorDriverCardDeviceName;
     unsigned int _motorDriverId;
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
@@ -802,13 +803,14 @@ namespace ChimeraTK{
     mutable boost::mutex _mutex;
     std::thread _stateMachineThread;
     Event _userEvent;
-    StateMachine<StepperMotor> _stateMachine;
+    std::shared_ptr<StateMachine> _stateMachine;
     bool _calibrated;
     Event getEvent();
-    bool stateMachineInIdleAndNoEvent();
+    virtual bool stateMachineInIdleAndNoEvent();
     void stateMachineThreadFunction();
-    virtual void stateMachinePerformTransition();
+    void stateMachinePerformTransition();
     void isSystemIdleThread();
+    virtual void createStateMachine();
   };
 }// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

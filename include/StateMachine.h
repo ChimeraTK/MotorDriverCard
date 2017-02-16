@@ -63,6 +63,7 @@ namespace ChimeraTK{
     std::function<Event(void)> _callbackGenerateEvent;
     void noAction(){};
     bool _unknownEvent;
+    Event _latestEvent;
   };
 
   Event State::noEvent("noEvent");
@@ -94,8 +95,9 @@ namespace ChimeraTK{
   }
 
   State* State::performTransition(Event event){
+    _latestEvent = event;
     typename std::map< Event, TargetAndAction >::iterator it;
-    it = _transitionTable.find(std::string(event));
+    it = _transitionTable.find(event);
     if (it !=_transitionTable.end()){
       (it->second).callbackAction();
       _unknownEvent = false;
@@ -112,36 +114,35 @@ namespace ChimeraTK{
 
   //base class for a state machine
 
-  template <class T>
   class StateMachine : public State{
   public:
-    StateMachine(T &frontEnd, std::string name);
+    StateMachine(std::string name);
     virtual ~StateMachine();
     virtual void processEvent();
+    State* getCurrentState();
   private:
     State _initState;
     State _endState;
     State *_currentState;
-    T &_frontEnd;
   };
 
-  template <class T>
-  StateMachine<T>::StateMachine(T &frontEnd, std::string name) :
+  StateMachine::StateMachine(std::string name) :
   State(name),
   _initState("initState"),
   _endState("endState"),
-  _currentState(&_initState),
-  _frontEnd(frontEnd)
+  _currentState(&_initState)
   {}
 
-  template <class T>
-  StateMachine<T>::~StateMachine(){}
 
-  template<class T>
-  void StateMachine<T>::processEvent(){
+  StateMachine::~StateMachine(){}
+
+  void StateMachine::processEvent(){
     _currentState->performTransition(_currentState->getEvent());
   }
 
+  State* StateMachine::getCurrentState(){
+    return _currentState;
+  }
 }
 
 #endif /* INCLUDE_STATEMACHINE_H_ */
