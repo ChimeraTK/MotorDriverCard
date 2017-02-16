@@ -41,8 +41,6 @@ namespace ChimeraTK{
     std::function<void(void)> callbackAction;
   };
 
-  TargetAndAction::TargetAndAction(State *target, std::function<void(void)> callback) : targetState(target), callbackAction(callback){}
-
   //Declaration machine state class
 
   class State{
@@ -63,49 +61,6 @@ namespace ChimeraTK{
     bool _unknownEvent;
     Event _latestEvent;
   };
-
-  State::State(std::string stateName) :
-  _stateName(stateName),
-  _transitionTable(),
-  //_callbackGenerateEvent(),
-  _unknownEvent(false){}
-
-  State::~State(){}
-
-  void State::setTransition(Event event, State *target, std::function<void(void)> callbackAction){
-    TargetAndAction targetAndAction(target, callbackAction);
-    _transitionTable.insert(std::pair< Event, TargetAndAction >(event, targetAndAction));
-  }
-
-//  void State::setEventGeneration(std::function<Event(void)> callbackGenerateEvent){
-//    _callbackGenerateEvent = callbackGenerateEvent;
-//  }
-//
-//  Event State::getEvent(){
-//    try{
-//      return _callbackGenerateEvent();
-//    }catch(const std::bad_function_call& e){
-//      return State::noEvent;
-//    }
-//  }
-
-  State* State::performTransition(Event event){
-    _latestEvent = event;
-    typename std::map< Event, TargetAndAction >::iterator it;
-    it = _transitionTable.find(event);
-    if (it !=_transitionTable.end()){
-      (it->second).callbackAction();
-      _unknownEvent = false;
-      return ((it->second).targetState);
-    }else{
-      _unknownEvent = true;
-      return this;
-    }
-  }
-
-  std::string State::getName(){
-    return _stateName;
-  }
 
   //base class for a state machine
 
@@ -131,67 +86,6 @@ namespace ChimeraTK{
     Event getInternalEvent();
     virtual bool propagateEvent();
   };
-
-  Event StateMachine::noEvent("noEvent");
-  Event StateMachine::undefinedEvent("undefinedEvent");
-
-  StateMachine::StateMachine(std::string name) :
-      State(name),
-      _initState("initState"),
-      _endState("endState"),
-      _currentState(&_initState),
-      _userEvent(noEvent),
-      _internEvent(noEvent)
-  {}
-
-
-  StateMachine::~StateMachine(){}
-
-  void StateMachine::processEvent(){
-    if (_userEvent == noEvent){
-      _currentState->performTransition(getAndResetInternalEvent());
-    }else{
-      _currentState->performTransition(getAndResetUserEvent());
-    }
-  }
-
-  State* StateMachine::getCurrentState(){
-    return _currentState;
-  }
-
-  State* StateMachine::performTransition(Event event){
-    setUserEvent(event);
-    processEvent();
-    if (propagateEvent()){
-      return State::performTransition(event);
-    }else{
-      return this;
-    }
-  }
-
-  void StateMachine::setUserEvent(Event event){
-    _userEvent = event;
-  }
-
-  Event StateMachine::getAndResetUserEvent(){
-    Event tempEvent = _userEvent;
-    _userEvent = StateMachine::noEvent;
-    return tempEvent;
-  }
-
-  Event StateMachine::getUserEvent(){
-    return _userEvent;
-  }
-
-  Event StateMachine::getAndResetInternalEvent(){
-    Event tempEvent = _internEvent;
-    _internEvent = StateMachine::noEvent;
-    return tempEvent;
-  }
-
-  Event StateMachine::getInternalEvent(){
-    return _internEvent;
-  }
 }
 
 #endif /* INCLUDE_STATEMACHINE_H_ */
