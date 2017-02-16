@@ -802,10 +802,8 @@ namespace ChimeraTK{
     Logger _logger;
     mutable boost::mutex _mutex;
     std::thread _stateMachineThread;
-    Event _userEvent;
     std::shared_ptr<StateMachine> _stateMachine;
     bool _calibrated;
-    Event getEvent();
     virtual bool stateMachineInIdleAndNoEvent();
     void stateMachineThreadFunction();
     void stateMachinePerformTransition();

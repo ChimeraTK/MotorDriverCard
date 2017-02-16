@@ -17,8 +17,8 @@ namespace ChimeraTK{
   public:
     StepperMotorStateMachine(StepperMotor &stepperMotor);
     virtual ~StepperMotorStateMachine();
-    virtual void processEvent();
-    virtual State* performTransition(Event event);
+    //virtual void processEvent();
+    //virtual State* performTransition(Event event);
     static Event moveEvent;
     static Event waitEvent;
     static Event stopEvent;
@@ -28,10 +28,11 @@ namespace ChimeraTK{
     State _idle;
     State _stop;
     StepperMotor &_stepperMotor;
-    Event getActionCompleteEvent();
+    void getActionCompleteEvent();
     void actionIdleToMove();
     void actionMovetoStop();
     void actionToIdle();
+    virtual bool propagateEvent();
   };
 }
 #endif /* INCLUDE_STEPPERMOTORSTATEMACHINE_H_ */

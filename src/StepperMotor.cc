@@ -411,7 +411,6 @@ namespace ChimeraTK{
 				       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
 				       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
 				       _softwareLimitsEnabled(false),
-				       _userEvent(State::noEvent),
 				       _calibrated(false){
     createStateMachine();
   }
@@ -423,7 +422,6 @@ namespace ChimeraTK{
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
      _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
      _softwareLimitsEnabled(false),
-     _userEvent(State::noEvent),
      _calibrated(false){}
 
   StepperMotor::~StepperMotor() {}
@@ -440,7 +438,7 @@ namespace ChimeraTK{
       throw MotorDriverException("motor not calibrated", MotorDriverException::NOT_IMPLEMENTED);
     }
     _targetPositionInSteps = newPositionInSteps;
-    _userEvent = StepperMotorStateMachine::moveEvent;
+    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::moveToPosition(float newPosition){
@@ -459,7 +457,7 @@ namespace ChimeraTK{
 
   void StepperMotor::stop(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    _userEvent = StepperMotorStateMachine::stopEvent;
+    _stateMachine->setUserEvent(StepperMotorStateMachine::stopEvent);
   }
 
   void StepperMotor::emergencyStop(){
@@ -637,16 +635,9 @@ namespace ChimeraTK{
     return (_motorControler->getUserSpeedLimit());
   }
 
-  Event StepperMotor::getEvent(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    Event tempEvent = _userEvent;
-    _userEvent = State::noEvent;
-    return tempEvent;
-  }
-
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (_userEvent == State::noEvent && _stateMachine->_currentState->getName() == "idleState"){
+    if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "idleState"){
       return true;
     }else{
       return false;

@@ -49,30 +49,25 @@ namespace ChimeraTK{
   public:
     State(std::string stateName = "");
     virtual ~State();
-    void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
-    void setEventGeneration(std::function<Event(void)> callbackGenerateEvent);
-    virtual Event getEvent();
-    State* performTransition(Event event);
+    virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
+    //void setEventGeneration(std::function<Event(void)> callbackGenerateEvent);
+    //virtual Event getEvent();
+    virtual State* performTransition(Event event);
     std::string getName();
     bool isEventUnknown(){return _unknownEvent;}
-    static Event noEvent;
-    static Event undefinedEvent;
   private:
     std::string _stateName;
     std::map<Event, TargetAndAction > _transitionTable;
-    std::function<Event(void)> _callbackGenerateEvent;
-    void noAction(){};
+    //std::function<Event(void)> _callbackGenerateEvent;
+    //void noAction(){};
     bool _unknownEvent;
     Event _latestEvent;
   };
 
-  Event State::noEvent("noEvent");
-  Event State::undefinedEvent("undefinedEvent");
-
   State::State(std::string stateName) :
   _stateName(stateName),
   _transitionTable(),
-  _callbackGenerateEvent(),
+  //_callbackGenerateEvent(),
   _unknownEvent(false){}
 
   State::~State(){}
@@ -82,17 +77,17 @@ namespace ChimeraTK{
     _transitionTable.insert(std::pair< Event, TargetAndAction >(event, targetAndAction));
   }
 
-  void State::setEventGeneration(std::function<Event(void)> callbackGenerateEvent){
-    _callbackGenerateEvent = callbackGenerateEvent;
-  }
-
-  Event State::getEvent(){
-    try{
-      return _callbackGenerateEvent();
-    }catch(const std::bad_function_call& e){
-      return State::noEvent;
-    }
-  }
+//  void State::setEventGeneration(std::function<Event(void)> callbackGenerateEvent){
+//    _callbackGenerateEvent = callbackGenerateEvent;
+//  }
+//
+//  Event State::getEvent(){
+//    try{
+//      return _callbackGenerateEvent();
+//    }catch(const std::bad_function_call& e){
+//      return State::noEvent;
+//    }
+//  }
 
   State* State::performTransition(Event event){
     _latestEvent = event;
@@ -119,29 +114,83 @@ namespace ChimeraTK{
     StateMachine(std::string name);
     virtual ~StateMachine();
     virtual void processEvent();
+    virtual State* performTransition(Event event);
     State* getCurrentState();
-  private:
+    void setUserEvent(Event event);
+    Event getAndResetUserEvent();
+    Event getUserEvent();
+    static Event noEvent;
+    static Event undefinedEvent;
+  protected:
     State _initState;
     State _endState;
     State *_currentState;
+    Event _userEvent;
+    Event _internEvent;
+    Event getAndResetInternalEvent();
+    Event getInternalEvent();
+    virtual bool propagateEvent();
   };
 
+  Event StateMachine::noEvent("noEvent");
+  Event StateMachine::undefinedEvent("undefinedEvent");
+
   StateMachine::StateMachine(std::string name) :
-  State(name),
-  _initState("initState"),
-  _endState("endState"),
-  _currentState(&_initState)
+      State(name),
+      _initState("initState"),
+      _endState("endState"),
+      _currentState(&_initState),
+      _userEvent(noEvent),
+      _internEvent(noEvent)
   {}
 
 
   StateMachine::~StateMachine(){}
 
   void StateMachine::processEvent(){
-    _currentState->performTransition(_currentState->getEvent());
+    if (_userEvent == noEvent){
+      _currentState->performTransition(getAndResetInternalEvent());
+    }else{
+      _currentState->performTransition(getAndResetUserEvent());
+    }
   }
 
   State* StateMachine::getCurrentState(){
     return _currentState;
+  }
+
+  State* StateMachine::performTransition(Event event){
+    setUserEvent(event);
+    processEvent();
+    if (propagateEvent()){
+      return State::performTransition(event);
+    }else{
+      return this;
+    }
+  }
+
+  void StateMachine::setUserEvent(Event event){
+    _userEvent = event;
+  }
+
+  Event StateMachine::getAndResetUserEvent(){
+    Event tempEvent = _userEvent;
+    _userEvent = StateMachine::noEvent;
+    return tempEvent;
+  }
+
+  Event StateMachine::getUserEvent(){
+    return _userEvent;
+  }
+
+  Event StateMachine::getAndResetInternalEvent(){
+    Event tempEvent = _internEvent;
+    _internEvent = StateMachine::noEvent;
+    return tempEvent;
+  }
+
+  Event StateMachine::getInternalEvent(){
+    return _internEvent;
   }
 }
 
