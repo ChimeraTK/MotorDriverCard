@@ -46,22 +46,34 @@ namespace mtca4u{
   void SPIviaPCIe::write( int32_t spiCommand ){
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
 
-    // Implement the write handshake
-    // 1. write 0xff to the synch register
-    _synchronisationRegister->writeRaw( &SPI_SYNC_REQUESTED);
-
-    // 2. write the spi command
-    _writeRegister->writeRaw( &spiCommand );
-
-    // 3. wait for the handshake
     int32_t syncValue;
-    _synchronisationRegister->readRaw( &syncValue );
+    // try three times to mittigate effects of a firmware bug
+    for (int i = 0; i < 3; ++i){
+      if (i >0){
+        std::cerr << "Warning, SPI handshake timed out. Retrying..." << std::endl;
+      }
+
+      // Implement the write handshake
+      // 1. write 0xff to the synch register
+      _synchronisationRegister->writeRaw( &SPI_SYNC_REQUESTED);
+
+      // 2. write the spi command
+      _writeRegister->writeRaw( &spiCommand );
+
+      // 3. wait for the handshake
+      _synchronisationRegister->readRaw( &syncValue );
     
-    for (size_t syncCounter=0; 
-	 (syncValue==SPI_SYNC_REQUESTED) && (syncCounter < 10);
-	 ++syncCounter){
-      sleepMicroSeconds(_spiWaitingTime);
-      _synchronisationRegister->readRaw( & syncValue, sizeof(int));
+      for (size_t syncCounter=0; 
+           (syncValue==SPI_SYNC_REQUESTED) && (syncCounter < 10);
+           ++syncCounter){
+        sleepMicroSeconds(_spiWaitingTime);
+        _synchronisationRegister->readRaw( & syncValue, sizeof(int));
+      }
+
+      if (syncValue!=SPI_SYNC_REQUESTED){
+        // breack on either error or ok. If still in SPI_SYNC_REQUESTED repeat (up to 3 times)
+        break;
+      }
     }
 
     //It might be inefficient to always create the error message, even if not needed, but

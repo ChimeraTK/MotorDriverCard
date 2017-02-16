@@ -129,8 +129,8 @@ void SPIviaPCIeTest::testRead() {
     readbackWord.setDataWord(readbackInt);
     BOOST_CHECK(readbackWord.getDATA() == 0xAAAAAA);
 
-    // test the error cases
-    _dummyBackend->causeSpiTimeouts(true);
+    // test the error cases. More than 2 timeouts cause an error
+    _dummyBackend->causeSpiTimeouts(true,3);
     try {
         _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
         BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
@@ -140,6 +140,10 @@ void SPIviaPCIeTest::testRead() {
                     + e.what());
         }
     }
+    // up to two timeouts are caught by the backend via retry
+    _dummyBackend->causeSpiTimeouts(true,2);
+    BOOST_CHECK_NO_THROW(_readWriteSPIviaPCIe->read(coverDatagram.getDataWord()));
+    
     _dummyBackend->causeSpiTimeouts(false);
 
     _dummyBackend->causeSpiErrors(true);
