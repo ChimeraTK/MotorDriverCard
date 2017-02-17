@@ -7,7 +7,6 @@
 
 #include "StepperMotor.h"
 
-
 namespace ChimeraTK{
 
   class StepperMotorWithReference : public StepperMotor{
@@ -44,8 +43,6 @@ namespace ChimeraTK{
 
     void determineTolerance();
 
-    bool isCalibrated();
-
     int getPositiveEndReference();
 
     float getPositiveEndReferenceInSteps();
@@ -54,11 +51,28 @@ namespace ChimeraTK{
 
     float getNegativeEndReferenceInSteps();
 
-    float getTolerance();
+    float getTolerancePositiveEndSwitch();
+
+    float getToleranceNegativeEndSwitch();
+
+    bool isPositiveSwitchActive();
+
+    bool isNegativeSwitchActive();
+
+    friend class StepperMotorWithReferenceStateMachine;
 
   protected:
 
     bool stateMachineInIdleAndNoEvent();
     void createStateMachine();
+    bool _positiveEndSwitchEnabled;
+    bool _negativeEndSwitchEnabled;
+    std::atomic<bool> _calibrationFailed;
+    std::atomic<bool> _toleranceCalcFailed;
+    std::atomic<bool> _toleranceCalculated;
+    int _calibNegativeEndSwitchInSteps;
+    int _calibPositiveEndSwitchInSteps;
+    float _tolerancePositiveEndSwitch;
+    float _toleranceNegativeEndSwitch;
   };
 }

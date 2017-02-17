@@ -803,7 +803,7 @@ namespace ChimeraTK{
     mutable boost::mutex _mutex;
     std::thread _stateMachineThread;
     std::shared_ptr<StateMachine> _stateMachine;
-    bool _calibrated;
+    std::atomic<bool> _calibrated;
     virtual bool stateMachineInIdleAndNoEvent();
     void stateMachineThreadFunction();
     void stateMachinePerformTransition();

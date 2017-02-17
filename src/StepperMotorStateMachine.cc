@@ -15,13 +15,13 @@ namespace ChimeraTK{
   Event StepperMotorStateMachine::actionCompleteEvent("actionCompletedEvent");
 
   StepperMotorStateMachine::StepperMotorStateMachine(StepperMotor &stepperMotor) :
-      StateMachine("StepperMotorStateMachine"),
-      _moving("movingState"),
-      _idle("idleState"),
-      _stop("stopState"),
-      _stepperMotor(stepperMotor){
-//    _moving.setEventGeneration(std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
-//    _stop.setEventGeneration(std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
+	  StateMachine("StepperMotorStateMachine"),
+	  _moving("movingState"),
+	  _idle("idleState"),
+	  _stop("stopState"),
+	  _stepperMotor(stepperMotor){
+    //    _moving.setEventGeneration(std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
+    //    _stop.setEventGeneration(std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
     _moving.setTransition   (noEvent,             &_moving, std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
     _stop.setTransition     (noEvent,             &_stop,   std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
     _initState.setTransition(noEvent,             &_idle,   std::bind(&StepperMotorStateMachine::actionToIdle, this));
@@ -40,8 +40,8 @@ namespace ChimeraTK{
   }
 
   void StepperMotorStateMachine::actionIdleToMove(){
-      _stepperMotor._motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
-    }
+    _stepperMotor._motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
+  }
 
   void StepperMotorStateMachine::actionToIdle(){
   }
