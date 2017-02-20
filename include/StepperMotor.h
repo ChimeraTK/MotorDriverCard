@@ -807,8 +807,9 @@ namespace ChimeraTK{
     virtual bool stateMachineInIdleAndNoEvent();
     void stateMachineThreadFunction();
     void stateMachinePerformTransition();
-    void isSystemIdleThread();
+    void resetPositionMotorController(int newPositionInStep);
     virtual void createStateMachine();
+    virtual bool limitsOK(int newPositionInSteps);
   };
 }// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */
