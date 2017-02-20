@@ -8,6 +8,77 @@
 #include "StepperMotorWithReferenceStateMachine.h"
 
 namespace ChimeraTK{
+
+  Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
+  Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
+
+  StepperMotorWithReferenceStateMachine::StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference) :
+	  StateMachine("StepperMotorWithReferenceStateMachine"),
+	  _calibrating("calibrating"),
+	  _calculatingTolerance("calculatingTolerance"),
+	  _interruptingAction("interruptingAction"),
+	  _baseStateMachine(stepperMotorWithReference),
+	  _stepperMotorWithReference(stepperMotorWithReference),
+	  _stopAction(false),
+	  _moveInterrupted(false){
+    _initState.setTransition(StateMachine::noEvent, &_baseStateMachine, [](){});
+    _baseStateMachine.setTransition(StepperMotorWithReferenceStateMachine::calibEvent,
+                                    &_calibrating,
+                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this));
+    _baseStateMachine.setTransition(StepperMotorWithReferenceStateMachine::calcToleranceEvent,
+                                    &_calculatingTolerance,
+                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this));
+    _calibrating.setTransition(StateMachine::noEvent,
+                               &_calibrating,
+                               std::bind(&StepperMotorWithReferenceStateMachine::getActionCompletedEvent, this));
+    _calibrating.setTransition(StepperMotorStateMachine::actionCompleteEvent,
+                               &_baseStateMachine,
+                               [](){});
+    _calibrating.setTransition(StepperMotorStateMachine::stopEvent,
+                               &_interruptingAction,
+                               std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
+    _calculatingTolerance.setTransition(StateMachine::noEvent,
+                                        &_calculatingTolerance,
+                                        std::bind(&StepperMotorWithReferenceStateMachine::getActionCompletedEvent, this));
+    _calculatingTolerance.setTransition(StepperMotorStateMachine::actionCompleteEvent,
+                                        &_baseStateMachine,
+                                        [](){});
+    _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent,
+                                        &_interruptingAction,
+                                        std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
+    _interruptingAction.setTransition(StateMachine::noEvent,
+                                      &_interruptingAction,
+                                      std::bind(&StepperMotorWithReferenceStateMachine::getActionCompletedEvent, this));
+    _interruptingAction.setTransition(StepperMotorStateMachine::actionCompleteEvent,
+                                      &_baseStateMachine,
+                                      [](){});
+  }
+
+  void StepperMotorWithReferenceStateMachine::actionStop(){
+    _stopAction = true;
+    return;
+  }
+
+  void StepperMotorWithReferenceStateMachine::actionStartCalib(){
+    if (!_future.valid() || (_future.valid() && _future.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+      _future = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
+    }
+  }
+
+  void StepperMotorWithReferenceStateMachine::actionStartCalcTolercance(){
+    if (!_future.valid() || (_future.valid() && _future.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+      _future = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
+    }
+  }
+
+  void StepperMotorWithReferenceStateMachine::getActionCompletedEvent(){
+    if (!_future.valid() || (_future.valid() && _future.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+      _internEvent = StepperMotorStateMachine::actionCompleteEvent;
+      return;
+    }
+    return;
+  }
+
   void StepperMotorWithReferenceStateMachine::calibrationThreadFunction(){
     _stepperMotorWithReference._calibrationFailed = false;
     _stopAction = false;
@@ -131,7 +202,5 @@ namespace ChimeraTK{
 
     return meanSquare - squareMean * squareMean;
   }
-
-
 }
 

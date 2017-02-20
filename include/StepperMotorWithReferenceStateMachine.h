@@ -22,15 +22,17 @@ namespace ChimeraTK{
     static Event calibEvent;
     static Event calcToleranceEvent;
   protected:
-    State _calibration;
-    State _tolerance;
+    State _calibrating;
+    State _calculatingTolerance;
+    State _interruptingAction;
     StepperMotorStateMachine _baseStateMachine;
-    StepperMotorWithReference _stepperMotorWithReference;
+    StepperMotorWithReference &_stepperMotorWithReference;
     std::future<void> _future;
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
     enum Sign{NEGATIVE = -1, POSITIVE = 1};
-    void getCalibCompletedEvent();
+    void actionStop();
+    void getActionCompletedEvent();
     void actionStartCalib();
     void actionStartCalcTolercance();
     void calibrationThreadFunction();
