@@ -29,27 +29,21 @@ namespace ChimeraTK{
      */
     virtual ~StepperMotorWithReference();
 
-    /**
-     * @brief overloaded method from StepperMotor
-     */
-    virtual void moveToPosition(float newPosition);
+    void setActualPositionInSteps(int actualPositionInSteps);
 
-    /**
-     * @brief overloaded method from StepperMotor
-     */
-    virtual void moveToPositionInSteps(int newPositionInSteps);
-
-    virtual void calibrate();
+    void calibrate();
 
     void determineTolerance();
 
-    int getPositiveEndReference();
+    StepperMotorError getError();
 
-    float getPositiveEndReferenceInSteps();
+    float getPositiveEndReference();
 
-    int getNegativeEndReference();
+    int getPositiveEndReferenceInSteps();
 
-    float getNegativeEndReferenceInSteps();
+    float getNegativeEndReference();
+
+    int getNegativeEndReferenceInSteps();
 
     float getTolerancePositiveEndSwitch();
 
@@ -65,6 +59,7 @@ namespace ChimeraTK{
 
     bool stateMachineInIdleAndNoEvent();
     void createStateMachine();
+    bool limitsOK(int newPositionInSteps);
     bool _positiveEndSwitchEnabled;
     bool _negativeEndSwitchEnabled;
     std::atomic<bool> _calibrationFailed;
