@@ -9,7 +9,21 @@
 
 namespace ChimeraTK{
 
+  bool operator<(const Event &event1, const Event &event2){
+    return event1._eventName < event2._eventName;
+  }
+
   TargetAndAction::TargetAndAction(State *target, std::function<void(void)> callback) : targetState(target), callbackAction(callback){}
+
+  TargetAndAction::TargetAndAction(const TargetAndAction& targetAndAction) :
+      targetState(targetAndAction.targetState),
+      callbackAction(targetAndAction.callbackAction){}
+
+  TargetAndAction& TargetAndAction::operator=(const TargetAndAction& targetAndAction){
+    this->targetState = targetAndAction.targetState;
+    this->callbackAction = targetAndAction.callbackAction;
+    return *this;
+  }
 
   State::State(std::string stateName) :
       _stateName(stateName),

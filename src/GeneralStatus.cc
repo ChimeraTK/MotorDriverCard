@@ -3,7 +3,7 @@
 #include <sstream>
 
 
-namespace mtca4u {
+namespace ChimeraTK {
 
     GeneralStatus::GeneralStatus() : _id(0) {
     }

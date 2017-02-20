@@ -10,15 +10,13 @@
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 #define INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 
-class StepperMotor;
 
 namespace ChimeraTK{
+  class StepperMotor;
   class  StepperMotorStateMachine : public StateMachine{
   public:
-    StepperMotorStateMachine(StepperMotor &stepperMotor);
+    StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor);
     virtual ~StepperMotorStateMachine();
-    //virtual void processEvent();
-    //virtual State* performTransition(Event event);
     static Event moveEvent;
     static Event waitEvent;
     static Event stopEvent;

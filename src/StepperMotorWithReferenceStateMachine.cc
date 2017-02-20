@@ -6,6 +6,7 @@
  */
 
 #include "StepperMotorWithReferenceStateMachine.h"
+#include "StepperMotorWithReference.h"
 
 namespace ChimeraTK{
 

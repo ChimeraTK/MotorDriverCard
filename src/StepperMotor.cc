@@ -4,6 +4,7 @@
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
+#include "StepperMotorStateMachine.h"
 
 namespace mtca4u {
 
@@ -671,7 +672,7 @@ namespace ChimeraTK{
  }
 
  void StepperMotor::createStateMachine(){
-   _stateMachine.reset(new StepperMotorStateMachine(this));
+   _stateMachine.reset(new StepperMotorStateMachine(*this));
    _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
  }
 }

@@ -18,7 +18,8 @@ namespace ChimeraTK{
 
   class Event{
   public:
-    Event(std::string eventName = "undefinedEvent") :  _eventName(eventName){}
+    Event(std::string eventName) :  _eventName(eventName){}
+    Event() : _eventName("undefinedEvent"){}
     bool operator==(Event &event) const{
       if (this->_eventName == event._eventName){
 	return true;
@@ -27,9 +28,12 @@ namespace ChimeraTK{
       }
     }
     operator std::string() const {return _eventName;}
+    friend bool operator<(const Event &event1, const Event &event2);
   private:
     std::string _eventName;
   };
+
+  bool operator<(const Event &event1, const Event &event2);
 
   class State;
 
@@ -37,6 +41,8 @@ namespace ChimeraTK{
 
   struct TargetAndAction{
     TargetAndAction(State *target, std::function<void(void)> callback);
+    TargetAndAction(const TargetAndAction& targetAndAction);
+    TargetAndAction& operator=(const TargetAndAction& targetAndAction);
     State *targetState;
     std::function<void(void)> callbackAction;
   };
@@ -53,7 +59,7 @@ namespace ChimeraTK{
     virtual State* performTransition(Event event);
     std::string getName();
     bool isEventUnknown(){return _unknownEvent;}
-  private:
+  protected:
     std::string _stateName;
     std::map<Event, TargetAndAction > _transitionTable;
     //std::function<Event(void)> _callbackGenerateEvent;
@@ -87,5 +93,7 @@ namespace ChimeraTK{
     virtual bool propagateEvent();
   };
 }
+
+
 
 #endif /* INCLUDE_STATEMACHINE_H_ */

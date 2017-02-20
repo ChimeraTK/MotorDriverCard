@@ -14,15 +14,13 @@
 
 namespace ChimeraTK {
 
-  using namespace mtca4u;
-
   enum StepperMotorError{NO_ERROR, ACTION_ERROR, MOVE_INTERUPTED, CALIBRATION_LOST};
 
-  };
+}
 
 
 
-} //namespace ChimeraTK
+ //namespace ChimeraTK
 
 namespace mtca4u{
   using namespace ChimeraTK;

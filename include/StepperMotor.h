@@ -10,6 +10,8 @@
 #define	MTCA4U_STEPPER_MOTOR_H
 
 #include <string>
+#include <atomic>
+#include <thread>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
@@ -23,7 +25,7 @@
 #include "StepperMotorError.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
-#include "StepperMotorStateMachine.h"
+#include "StateMachine.h"
 #include "Logger.h"
 
 namespace ChimeraTK {
@@ -56,7 +58,11 @@ namespace ChimeraTK {
       return static_cast<int> (units);
     }
   };
+}
 
+namespace mtca4u{
+
+  using namespace ChimeraTK;
   /**
    * @class StepperMotorStatusAndError
    * @details Container class for status and error of StepperMotor. These two object describes the state of motor and create a pair.
@@ -71,11 +77,6 @@ namespace ChimeraTK {
                         	 status(statusParam), error(errorParam){
     }
   };
-}
-
-namespace mtca4u{
-
-  using namespace ChimeraTK;
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // StepperMotor class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -753,7 +754,7 @@ namespace ChimeraTK{
     /**
      * @brief get logger level
      */
-    virtual mtca4u::Logger::LogLevel StepperMotor::getLogLevel();
+    virtual ChimeraTK::Logger::LogLevel getLogLevel();
 
     /**
      * @brief get maximal speed capability

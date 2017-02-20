@@ -6,6 +6,7 @@
  */
 
 #include "StepperMotorStateMachine.h"
+#include "StepperMotor.h"
 #include <memory>
 
 namespace ChimeraTK{
@@ -14,7 +15,7 @@ namespace ChimeraTK{
   Event StepperMotorStateMachine::stopEvent("stopEvent");
   Event StepperMotorStateMachine::actionCompleteEvent("actionCompletedEvent");
 
-  StepperMotorStateMachine::StepperMotorStateMachine(StepperMotor &stepperMotor) :
+  StepperMotorStateMachine::StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor) :
 	  StateMachine("StepperMotorStateMachine"),
 	  _moving("movingState"),
 	  _idle("idleState"),

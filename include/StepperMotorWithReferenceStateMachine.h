@@ -6,6 +6,8 @@
  */
 
 #include "StepperMotorStateMachine.h"
+#include <atomic>
+#include <future>
 
 #ifndef INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
 #define INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_

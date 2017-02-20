@@ -6,6 +6,9 @@
  */
 
 #include "StepperMotor.h"
+#include "MotorDriverCardFactory.h"
+#include "MotorDriverException.h"
+#include "StepperMotorException.h"
 
 namespace ChimeraTK{
 

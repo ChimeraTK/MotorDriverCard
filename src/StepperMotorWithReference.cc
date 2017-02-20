@@ -6,6 +6,7 @@
  */
 
 #include "StepperMotorWithReference.h"
+#include "StepperMotorWithReferenceStateMachine.h"
 
 namespace ChimeraTK{
   StepperMotorWithReference::StepperMotorWithReference(std::string const & motorDriverCardDeviceName,
@@ -27,15 +28,15 @@ namespace ChimeraTK{
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
     createStateMachine();
-    _negativeEndSwitchEnabled( _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled() );
-    _positiveEndSwitchEnabled( _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled() );
+    _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
+    _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
   }
 
   StepperMotorWithReference::~StepperMotorWithReference(){}
 
   void StepperMotorWithReference::createStateMachine(){
-    _stateMachine.reset(new StepperMotorWithReferenceStateMachine(this));
-    _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
+    _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
+    _stateMachineThread = std::thread(&StepperMotorWithReference::stateMachineThreadFunction, this);
   }
 
   bool StepperMotorWithReference::stateMachineInIdleAndNoEvent(){

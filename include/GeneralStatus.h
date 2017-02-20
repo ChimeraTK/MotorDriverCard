@@ -6,7 +6,6 @@
 
 
 namespace ChimeraTK {
-  using namespace mtca4u;
 
     class GeneralStatus {
     protected:

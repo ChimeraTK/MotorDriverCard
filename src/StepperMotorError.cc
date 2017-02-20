@@ -1,6 +1,7 @@
 #include "StepperMotorError.h"
 
 namespace mtca4u {
+  using namespace ChimeraTK;
 
     const StepperMotorError StepperMotorErrorTypes::M_NO_ERROR(1);
     const StepperMotorError StepperMotorErrorTypes::M_COMMUNICATION_LOST(2);

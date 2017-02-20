@@ -4,7 +4,7 @@
 #include "Logger.h"
 
 
-namespace mtca4u {
+namespace ChimeraTK {
     
     Logger _logstdout__(Logger::NO_LOGGING, std::cout);
     Logger _logstderr__(Logger::NO_LOGGING, std::cerr);
