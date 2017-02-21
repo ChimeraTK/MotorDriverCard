@@ -85,14 +85,15 @@ namespace ChimeraTK{
 
   StepperMotorError StepperMotorWithReference::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (stateMachineInIdleAndNoEvent())
+    if (stateMachineInIdleAndNoEvent()){
       if (_toleranceCalcFailed || _calibrationFailed){
 	return ACTION_ERROR;
-      }else if (_motorControler->getTargetPosition() != _motorControler->getActualPosition() &&
+      }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&
 	  !isPositiveSwitchActive() &&
 	  !isNegativeSwitchActive()){
 	return ACTION_ERROR;
       }
+    }
     if (_toleranceCalculated){
       if (isPositiveSwitchActive() && fabs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
 	return CALIBRATION_LOST;
