@@ -20,6 +20,7 @@ namespace ChimeraTK{
 	  _interruptingAction("interruptingAction"),
 	  _baseStateMachine(stepperMotorWithReference),
 	  _stepperMotorWithReference(stepperMotorWithReference),
+	  _future(),
 	  _stopAction(false),
 	  _moveInterrupted(false){
     _initState.setTransition(StateMachine::noEvent, &_baseStateMachine, [](){});

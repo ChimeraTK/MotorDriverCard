@@ -28,7 +28,6 @@ namespace ChimeraTK{
   State::State(std::string stateName) :
       _stateName(stateName),
       _transitionTable(),
-      //_callbackGenerateEvent(),
       _unknownEvent(false){}
 
   State::~State(){}
@@ -39,7 +38,6 @@ namespace ChimeraTK{
   }
 
   State* State::performTransition(Event event){
-    _latestEvent = event;
     typename std::map< Event, TargetAndAction >::iterator it;
     it = _transitionTable.find(event);
     if (it !=_transitionTable.end()){
@@ -52,7 +50,7 @@ namespace ChimeraTK{
     }
   }
 
-  std::string State::getName(){
+  std::string State::getName() const{
     return _stateName;
   }
 
@@ -68,6 +66,26 @@ namespace ChimeraTK{
              _internEvent(noEvent)
   {}
 
+  StateMachine::StateMachine(const StateMachine &stateMachine) :
+      State(stateMachine.getName()),
+      _initState(stateMachine._initState),
+      _endState("endState"),
+      _currentState(&_initState),
+      _userEvent(noEvent),
+      _internEvent(noEvent){
+  }
+
+  StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
+    this->_stateName = stateMachine._stateName;
+    this->_transitionTable = stateMachine._transitionTable;
+    this->_unknownEvent = stateMachine._unknownEvent;
+    this->_initState = stateMachine._initState;
+    this->_endState = stateMachine._endState;
+    this->_currentState = stateMachine._currentState;
+    this->_userEvent = stateMachine._userEvent;
+    this->_internEvent = stateMachine._internEvent;
+    return *this;
+  }
 
   StateMachine::~StateMachine(){}
 

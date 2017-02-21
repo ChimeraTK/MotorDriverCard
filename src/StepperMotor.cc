@@ -412,17 +412,28 @@ namespace ChimeraTK{
 				       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
 				       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
 				       _softwareLimitsEnabled(false),
+				       _logger(),
+				       _mutex(),
+				       _stateMachineThread(),
+				       _stateMachine(),
 				       _calibrated(false){
     createStateMachine();
   }
 
   StepperMotor::StepperMotor() :
+     _motorDriverCardDeviceName(""),
      _motorDriverId(0),
+     _motorDriverCard(),
+     _motorControler(),
      _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
      _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
      _softwareLimitsEnabled(false),
+     _logger(),
+     _mutex(),
+     _stateMachineThread(),
+     _stateMachine(),
      _calibrated(false){}
 
   StepperMotor::~StepperMotor() {}
