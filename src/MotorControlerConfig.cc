@@ -5,7 +5,7 @@
 namespace mtca4u
 {
   MotorControlerConfig::MotorControlerConfig()
-    : accelerationThresholdData(0), actualPosition(0),
+    : accelerationThresholdData(0), //actualPosition(0),
       chopperControlData(CHOPPER_CONTROL_DEFAULT),
       coolStepControlData(COOL_STEP_CONTROL_DEFAULT),
       decoderReadoutMode(MotorControler::DecoderReadoutMode::INCREMENTAL),
@@ -29,7 +29,7 @@ namespace mtca4u
 
   bool MotorControlerConfig::operator==(MotorControlerConfig const & right) const{
     return ( (accelerationThresholdData 	  == right.accelerationThresholdData) &&
-	     (actualPosition			  == right.actualPosition) &&
+	    // (actualPosition			  == right.actualPosition) &&
 	     (chopperControlData		  == right.chopperControlData) &&
 	     (coolStepControlData		  == right.coolStepControlData) &&
 	     (decoderReadoutMode		  == right.decoderReadoutMode) &&

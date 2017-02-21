@@ -93,7 +93,7 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest()
     defaultControlerConfig(), plusOneControlerConfig()
 {
   ASSIGN_PLUS_ONE_CONTROLER( accelerationThresholdData );
-  plusOneControlerConfig.actualPosition = -(plusOneControlerConfig.actualPosition+1);
+  //plusOneControlerConfig.actualPosition = -(plusOneControlerConfig.actualPosition+1);
   ASSIGN_PLUS_ONE_CONTROLER( chopperControlData );
   ASSIGN_PLUS_ONE_CONTROLER( coolStepControlData );
   plusOneControlerConfig.decoderReadoutMode++;
@@ -181,7 +181,7 @@ void MotorDriverCardConfigXMLTest::checkControlerConfig( MotorControlerConfig co
   std::stringstream message;
   message << "check in motorControlerConfig " << motorID << " failed for variable ";
   CONTROLER_CHECK( accelerationThresholdData );
-  CONTROLER_CHECK( actualPosition );
+  //CONTROLER_CHECK( actualPosition );
   CONTROLER_CHECK( chopperControlData );
   CONTROLER_CHECK( coolStepControlData );
   CONTROLER_CHECK( decoderReadoutMode );

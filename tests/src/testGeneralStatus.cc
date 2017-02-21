@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( GeneralStatusTestCase ) {
     //test: operator=
     mtca4u::GeneralStatus status0Copy2;
     status0Copy2 = status0;
-    status0 = status0;
+    //status0 = status0;
     
     //test: operator int() const
     BOOST_CHECK ( checkOperatorForDefaultConstructedObject(status0) );

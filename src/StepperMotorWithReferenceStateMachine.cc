@@ -55,6 +55,8 @@ namespace ChimeraTK{
                                       [](){});
   }
 
+  StepperMotorWithReferenceStateMachine::~StepperMotorWithReferenceStateMachine(){}
+
   void StepperMotorWithReferenceStateMachine::actionStop(){
     _stopAction = true;
     return;

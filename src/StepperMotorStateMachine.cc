@@ -32,6 +32,8 @@ namespace ChimeraTK{
     _stop.setTransition     (actionCompleteEvent, &_idle,   std::bind(&StepperMotorStateMachine::actionToIdle, this));
   }
 
+  StepperMotorStateMachine::~StepperMotorStateMachine(){}
+
   void StepperMotorStateMachine::getActionCompleteEvent(){
     if (!_stepperMotor._motorControler->isMotorMoving()){
       _internEvent=StepperMotorStateMachine::actionCompleteEvent;

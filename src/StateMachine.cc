@@ -116,6 +116,10 @@ namespace ChimeraTK{
   Event StateMachine::getInternalEvent(){
     return _internEvent;
   }
+
+  bool StateMachine::propagateEvent(){
+    return _unknownEvent;
+  }
 }
 
 

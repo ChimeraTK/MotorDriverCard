@@ -118,7 +118,7 @@ void MotorDriverCardTest::testConstructor(){
     MotorControlerConfig motorControlerConfig;
 
     motorControlerConfig.accelerationThresholdData.setDATA( asciiToInt("THR") + motorID );
-    motorControlerConfig.actualPosition = asciiToInt("ACX") + motorID;;
+    //motorControlerConfig.actualPosition = asciiToInt("ACX") + motorID;;
     motorControlerConfig.chopperControlData.setPayloadData( asciiToInt("cp") + motorID );
     motorControlerConfig.coolStepControlData.setPayloadData( asciiToInt("cp") + motorID );
     motorControlerConfig.decoderReadoutMode = asciiToInt("DRM") + motorID;
@@ -206,7 +206,7 @@ void MotorDriverCardTest::testConfiguration(MotorDriverCardConfig const & motorD
      // only the data content is identical. The motorID is - for the config, and correct for the readback word
      BOOST_CHECK( motorControlerConfig.accelerationThresholdData.getDATA()
 		  == motorControler->getAccelerationThresholdData().getDATA() );
-     BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler->getActualPosition() );
+     //BOOST_CHECK( motorControlerConfig.actualPosition ==  motorControler->getActualPosition() );
      BOOST_CHECK( motorControlerConfig.chopperControlData == motorControler->getChopperControlData() );
      BOOST_CHECK( motorControlerConfig.coolStepControlData == motorControler->getCoolStepControlData() );
      BOOST_CHECK( motorControlerConfig.decoderReadoutMode ==  motorControler->getDecoderReadoutMode() );

@@ -13,7 +13,7 @@ namespace mtca4u
    */
   struct MotorControlerConfig{
     AccelerationThresholdData accelerationThresholdData;
-    int actualPosition;
+ //   int actualPosition;
     ChopperControlData chopperControlData;
     CoolStepControlData coolStepControlData;
     uint32_t decoderReadoutMode;

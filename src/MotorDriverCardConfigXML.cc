@@ -111,7 +111,7 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
   MotorControlerConfig controlerConfig;
 
   setValueIfFound("accelerationThresholdData", controlerConfig.accelerationThresholdData, controlerConfigXML);
-  setValueIfFound("actualPosition", controlerConfig.actualPosition, controlerConfigXML);
+  //setValueIfFound("actualPosition", controlerConfig.actualPosition, controlerConfigXML);
   setValueIfFound("chopperControlData", controlerConfig.chopperControlData, controlerConfigXML);
   setValueIfFound("coolStepControlData", controlerConfig.coolStepControlData, controlerConfigXML);
   setValueIfFound("decoderReadoutMode", controlerConfig.decoderReadoutMode, controlerConfigXML);
@@ -188,7 +188,7 @@ MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(  pugi::xml_
       NodeFiller controlerConfigFiller(controlerConfigXML, sparse);
       
       CONTROLER_CONFIG_ADD_REGISTER( accelerationThresholdData );
-      CONTROLER_CONFIG_ADD_REGISTER( actualPosition );
+      //CONTROLER_CONFIG_ADD_REGISTER( actualPosition );
       CONTROLER_CONFIG_ADD_REGISTER( chopperControlData );
       CONTROLER_CONFIG_ADD_REGISTER( coolStepControlData );
       CONTROLER_CONFIG_ADD_REGISTER( decoderReadoutMode );

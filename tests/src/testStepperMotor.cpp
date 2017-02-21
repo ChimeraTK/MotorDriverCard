@@ -67,7 +67,7 @@ class StepperMotorTest
   void testSetGetCurrent();
  
  private:
-  boost::shared_ptr<StepperMotor> _stepperMotor;
+  boost::shared_ptr<mtca4u::StepperMotor> _stepperMotor;
   boost::shared_ptr<MotorControlerDummy> _motorControlerDummy;
   
   boost::shared_ptr<TestUnitConveter> _testUnitConveter;
@@ -149,7 +149,7 @@ StepperMotorTest::StepperMotorTest()
     _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,  moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
     
     //_stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile, dmapPath));
-    _stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+    _stepperMotor.reset(new mtca4u::StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
     
     
     //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
@@ -681,7 +681,7 @@ void StepperMotorTest::testGetSetSpeedLimit() {
   mtca4u::setDMapFilePath("./dummies.dmap");
   auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
   MotorDriverCardFactory::instance().setDummyMode(false);
-  StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
+  mtca4u::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
 
 
   // Expected max speed  capability in this case:[from custom_speed_and_curruent_limits.xml]
@@ -740,7 +740,7 @@ void StepperMotorTest::testSetGetCurrent() {
   mtca4u::setDMapFilePath("./dummies.dmap");
   auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
   MotorDriverCardFactory::instance().setDummyMode(false);
-  StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
+  mtca4u::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
 
   // The motor has been configured for a maximum current of .24 Amps, with 1.8A
   // being the maximum the driver ic can provide. This translates to a current

@@ -6,7 +6,6 @@
 	<Register name="stepperMotorGlobalParameters" value="0x10702" />
 	<MotorControlerConfig motorID="1">
 		<Register name="accelerationThresholdData" value="0x1" />
-		<Register name="actualPosition" value="-1" />
 		<Register name="chopperControlData" value="0x1F4" />
 		<Register name="coolStepControlData" value="0x1" />
 		<Register name="decoderReadoutMode" value="0x2" />
