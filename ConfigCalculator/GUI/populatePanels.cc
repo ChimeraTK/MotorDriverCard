@@ -10,7 +10,7 @@
 void populateMotorExpertPanel(ParametersPanel *parametersPanel){
   mtca4u::MotorControlerConfig defaultConfig;
   ADD_TMC249_PARAMETER(accelerationThresholdData,"");
-  ADD_INT_PARAMETER(actualPosition,"");
+  //ADD_INT_PARAMETER(actualPosition,"");
   ADD_INT_PARAMETER(decoderReadoutMode, "");
   ADD_TMC249_PARAMETER(dividersAndMicroStepResolutionData, "(*)");
   ADD_INT_PARAMETER(enabled, "");

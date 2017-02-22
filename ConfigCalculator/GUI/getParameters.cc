@@ -10,7 +10,7 @@
 mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel *parametersPanel){
   mtca4u::MotorControlerConfig config;
   SET_FIELD(accelerationThresholdData);
-  ASSIGN_FIELD(actualPosition);
+  //ASSIGN_FIELD(actualPosition);
   SET_FIELD( chopperControlData );
   SET_FIELD( coolStepControlData );
   ASSIGN_FIELD(decoderReadoutMode);
