@@ -788,6 +788,7 @@ namespace ChimeraTK{
     virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
 
     friend class StepperMotorStateMachine;
+    friend class StepperMotorChimeraTKTest;
 
   protected: // fields
     StepperMotor();
