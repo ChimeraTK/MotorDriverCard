@@ -91,9 +91,9 @@ namespace ChimeraTK{
 
   void StateMachine::processEvent(){
     if (_userEvent == noEvent){
-      _currentState->performTransition(getAndResetInternalEvent());
+      _currentState = _currentState->performTransition(getAndResetInternalEvent());
     }else{
-      _currentState->performTransition(getAndResetUserEvent());
+      _currentState = _currentState->performTransition(getAndResetUserEvent());
     }
   }
 

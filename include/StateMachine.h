@@ -57,6 +57,8 @@ namespace ChimeraTK{
     virtual State* performTransition(Event event);
     std::string getName() const;
     bool isEventUnknown(){return _unknownEvent;}
+
+    friend class TestStateMachine;
   protected:
     std::string _stateName;
     std::map<Event, TargetAndAction > _transitionTable;
@@ -79,6 +81,8 @@ namespace ChimeraTK{
     Event getUserEvent();
     static Event noEvent;
     static Event undefinedEvent;
+
+    friend class TestStateMachine;
   protected:
     State _initState;
     State _endState;
