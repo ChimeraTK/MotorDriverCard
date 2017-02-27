@@ -633,14 +633,18 @@ namespace ChimeraTK{
     virtual bool getSoftwareLimitsEnabled();
 
     /**
-     * @brief set maximal software position limit in units
+     * @brief set software limits in units
+     * @param minPos minimum limit
+     * @param maxPos maximum limit
      */
-    virtual void setMaxPositionLimit(float maxPos);
+    virtual void setSoftwareLimits(float minPos, float maxPos);
 
     /**
-     * @brief set maximal software position limit in steps
+     * @brief set software limits in steps
+     * @param minPos minimum limit
+     * @param maxPos maximum limit
      */
-    virtual void setMaxPositionLimitInSteps(int maxPos);
+    virtual void setSoftwareLimitsInSteps(int minPos, int maxPos);
 
     /**
      * @brief get maximal software position limit in units
@@ -651,16 +655,6 @@ namespace ChimeraTK{
      * @brief get maximal software position limit in steps
      */
     virtual int getMaxPositionLimitInSteps();
-
-    /**
-     * @brief set minimal software position limit in units
-     */
-    virtual void setMinPositionLimit(float maxPos);
-
-    /**
-     * @brief set minimal software position limit in steps
-     */
-    virtual void setMinPositionLimitInSteps(int maxPos);
 
     /**
      * @brief get minimal software position limit in units
@@ -789,6 +783,7 @@ namespace ChimeraTK{
 
     friend class StepperMotorStateMachine;
     friend class StepperMotorChimeraTKTest;
+    //boost::shared_ptr<mtca4u::MotorControler> getController(){return _motorControler;}
 
   protected: // fields
     StepperMotor();
@@ -801,6 +796,7 @@ namespace ChimeraTK{
     int   _maxPositionLimitInSteps;
     int   _minPositionLimitInSteps;
     bool _softwareLimitsEnabled;
+    volatile std::atomic<bool> _runStateMachine;
     Logger _logger;
     mutable boost::mutex _mutex;
     std::thread _stateMachineThread;

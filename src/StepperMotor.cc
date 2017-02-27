@@ -412,6 +412,7 @@ namespace ChimeraTK{
 				       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
 				       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
 				       _softwareLimitsEnabled(false),
+				       _runStateMachine(true),
 				       _logger(),
 				       _mutex(),
 				       _stateMachineThread(),
@@ -430,13 +431,19 @@ namespace ChimeraTK{
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
      _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
      _softwareLimitsEnabled(false),
+     _runStateMachine(true),
      _logger(),
      _mutex(),
      _stateMachineThread(),
      _stateMachine(),
      _calibrated(false){}
 
-  StepperMotor::~StepperMotor() {}
+  StepperMotor::~StepperMotor() {
+    _runStateMachine = false;
+    if (_stateMachineThread.joinable()){
+      _stateMachineThread.join();
+    }
+  }
 
   void StepperMotor::moveToPositionInSteps(int newPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
@@ -507,16 +514,19 @@ namespace ChimeraTK{
     return _softwareLimitsEnabled;
   }
 
-  void StepperMotor::setMaxPositionLimitInSteps(int maxPos){
+  void StepperMotor::setSoftwareLimitsInSteps(int minPos, int maxPos){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }else if(minPos >= maxPos){
+      throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
     }
+    _minPositionLimitInSteps = minPos;
     _maxPositionLimitInSteps = maxPos;
   }
 
-  void StepperMotor::setMaxPositionLimit(float maxPos){
-    setMaxPositionLimitInSteps(recalculateUnitsInSteps(maxPos));
+  void StepperMotor::setSoftwareLimits(float minPos, float maxPos){
+    setSoftwareLimitsInSteps(recalculateUnitsInSteps(minPos), recalculateUnitsInSteps(maxPos));
   }
 
   int StepperMotor::getMaxPositionLimitInSteps(){
@@ -525,18 +535,6 @@ namespace ChimeraTK{
 
   float StepperMotor::getMaxPositionLimit(){
     return recalculateStepsInUnits(_maxPositionLimitInSteps);
-  }
-
-  void StepperMotor::setMinPositionLimitInSteps(int minPos){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
-    }
-    _minPositionLimitInSteps = minPos;
-  }
-
-  void StepperMotor::setMinPositionLimit(float minPos){
-    setMinPositionLimitInSteps(recalculateUnitsInSteps(minPos));
   }
 
   int StepperMotor::getMinPositionLimitInSteps(){
@@ -596,13 +594,15 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::isSystemIdle(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return stateMachineInIdleAndNoEvent();
   }
 
   void StepperMotor::waitForIdle(){
     while(1){
-      boost::lock_guard<boost::mutex> guard(_mutex);
-      if (stateMachineInIdleAndNoEvent()){
+      usleep(100);
+      //std::cout << "sto controllando" << std::endl;
+      if (isSystemIdle()){
 	break;
       }
     }
@@ -611,7 +611,7 @@ namespace ChimeraTK{
   StepperMotorError StepperMotor::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     StepperMotorError _motorError = NO_ERROR;
-    if (stateMachineInIdleAndNoEvent() && _motorControler->targetPositionReached()){
+    if (stateMachineInIdleAndNoEvent() && (_motorControler->getTargetPosition() != _motorControler->getActualPosition())){
       _motorError = ACTION_ERROR;
     }
     return _motorError;
@@ -664,14 +664,16 @@ namespace ChimeraTK{
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
     //boost::lock_guard<boost::mutex> guard(_mutex);
     if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "idleState"){
+      //std::cout << "InIdle " << std::string(StateMachine::noEvent) << " " << _stateMachine->getCurrentState()->getName() << std::endl;
       return true;
     }else{
+      //std::cout << "NOT in IDLE " << std::string(_stateMachine->getUserEvent()) << " " << _stateMachine->getCurrentState()->getName() << std::endl;
       return false;
     }
   }
 
   void StepperMotor::stateMachineThreadFunction(){
-    while(1){
+    while(_runStateMachine){
       usleep(100);
       stateMachinePerformTransition();
     }
