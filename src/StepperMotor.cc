@@ -402,41 +402,41 @@ namespace ChimeraTK{
                              std::string const & moduleName,
                              unsigned int motorDriverId,
                              std::string motorDriverCardConfigFileName):
-				   _motorDriverCardDeviceName(motorDriverCardDeviceName),
-				   _motorDriverId(motorDriverId),
-				   _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-				       motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
-				       _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-				       _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-				       _targetPositionInSteps(0),
-				       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-				       _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
-				       _softwareLimitsEnabled(false),
-				       _runStateMachine(true),
-				       _logger(),
-				       _mutex(),
-				       _stateMachineThread(),
-				       _stateMachine(),
-				       _calibrated(false){
+				       _motorDriverCardDeviceName(motorDriverCardDeviceName),
+				       _motorDriverId(motorDriverId),
+				       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+					   motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+					   _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+					   _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+					   _targetPositionInSteps(0),
+					   _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+					   _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
+					   _softwareLimitsEnabled(false),
+					   _runStateMachine(true),
+					   _logger(),
+					   _mutex(),
+					   _stateMachineThread(),
+					   _stateMachine(),
+					   _calibrated(false){
     createStateMachine();
   }
 
   StepperMotor::StepperMotor() :
-     _motorDriverCardDeviceName(""),
-     _motorDriverId(0),
-     _motorDriverCard(),
-     _motorControler(),
-     _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-     _targetPositionInSteps(0),
-     _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-     _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
-     _softwareLimitsEnabled(false),
-     _runStateMachine(true),
-     _logger(),
-     _mutex(),
-     _stateMachineThread(),
-     _stateMachine(),
-     _calibrated(false){}
+	 _motorDriverCardDeviceName(""),
+	 _motorDriverId(0),
+	 _motorDriverCard(),
+	 _motorControler(),
+	 _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+	 _targetPositionInSteps(0),
+	 _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+	 _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
+	 _softwareLimitsEnabled(false),
+	 _runStateMachine(true),
+	 _logger(),
+	 _mutex(),
+	 _stateMachineThread(),
+	 _stateMachine(),
+	 _calibrated(false){}
 
   StepperMotor::~StepperMotor() {
     _runStateMachine = false;
@@ -490,8 +490,8 @@ namespace ChimeraTK{
   }
 
   void StepperMotor::emergencyStop(){
-    setEnabled(false);
-    stop();
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    _stateMachine->setUserEvent(StepperMotorStateMachine::emergencyStopEvent);
   }
 
   int StepperMotor::recalculateUnitsInSteps(float units){
@@ -622,7 +622,12 @@ namespace ChimeraTK{
   }
 
   void StepperMotor::setEnabled(bool enable){
-    _motorControler->setMotorCurrentEnabled(enable);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (enable){
+      _motorControler->setMotorCurrentEnabled(enable);
+    }else{
+      _stateMachine->setUserEvent(StepperMotorStateMachine::disableEvent);
+    }
   }
 
   bool StepperMotor::getEnabled(){
@@ -646,6 +651,10 @@ namespace ChimeraTK{
   }
 
   double StepperMotor::setUserCurrentLimit(double currentInAmps) {
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
     return (_motorControler->setUserCurrentLimit(currentInAmps));
   }
 
@@ -654,6 +663,10 @@ namespace ChimeraTK{
   }
 
   double StepperMotor::setUserSpeedLimit(double newSpeed) {
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
     return _motorControler->setUserSpeedLimit(newSpeed);
   }
 
@@ -662,7 +675,6 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
-    //boost::lock_guard<boost::mutex> guard(_mutex);
     if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "idleState"){
       //std::cout << "InIdle " << std::string(StateMachine::noEvent) << " " << _stateMachine->getCurrentState()->getName() << std::endl;
       return true;
@@ -679,14 +691,15 @@ namespace ChimeraTK{
     }
   }
 
- void StepperMotor::stateMachinePerformTransition(){
-   boost::lock_guard<boost::mutex> guard(_mutex);
-   _stateMachine->processEvent();
- }
+  void StepperMotor::stateMachinePerformTransition(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    _stateMachine->processEvent();
+  }
 
- void StepperMotor::createStateMachine(){
-   _stateMachine.reset(new StepperMotorStateMachine(*this));
-   _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
- }
+  void StepperMotor::createStateMachine(){
+    _stateMachine.reset(new StepperMotorStateMachine(*this));
+    _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
+    waitForIdle();
+  }
 }
 
