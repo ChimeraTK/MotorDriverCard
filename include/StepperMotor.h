@@ -667,7 +667,7 @@ namespace ChimeraTK{
     virtual int getMinPositionLimitInSteps();
 
     /**
-     * @brieg set actual position in units of the motor respect to some reference
+     * @brief set actual position in units of the motor respect to some reference
      * @param actualPositionInUnits In order to use the motor an absolute scale must be defined.
      * This can be done defining the position of the motor respect to an external reference (actual position).
      * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
@@ -704,7 +704,7 @@ namespace ChimeraTK{
     virtual void setStepperMotorUnitsConverterToDefault();
 
     /**
-     * @brief check if the system is in idle and it returns true is it is so..
+     * Check if the system is in idle and it returns true is it is so.
      * If in idle any action required by the user can be executed like move or move relative.
      */
     virtual bool isSystemIdle();
