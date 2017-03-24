@@ -98,6 +98,9 @@ namespace mtca4u
 		  motorControlerConfig.driverSpiWaitingTime),
       _controlerSPI(controlerSPI),
       converter24bits(24), converter12bits(12)
+//      _localTargetPosition(0),
+//      _positiveSwitch(false),
+//      _negativeSwitch(false)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     //setActualPosition( motorControlerConfig.actualPosition );
@@ -116,11 +119,19 @@ namespace mtca4u
     setProportionalityFactorData( motorControlerConfig.proportionalityFactorData );
     setReferenceConfigAndRampModeData( motorControlerConfig.referenceConfigAndRampModeData );
     setStallGuardControlData( motorControlerConfig.stallGuardControlData );
-    setTargetPosition( motorControlerConfig.targetPosition );
+    //setTargetPosition( motorControlerConfig.targetPosition );
     setTargetVelocity( motorControlerConfig.targetVelocity );
+
+    //setPositionTolerance(0);
 
     // enabling the motor is the last step after setting all registers
     setEnabled( motorControlerConfig.enabled );
+
+//    _localTargetPosition = getTargetPosition();
+//
+//    MotorReferenceSwitchData referenceStatus = retrieveReferenceSwitchStatus();
+//    _positiveSwitch = referenceStatus.getPositiveSwitchActive();
+//    _negativeSwitch = referenceStatus.getNegativeSwitchActive();
 
     try {
       // this must throw on mapfile not having this register
@@ -142,6 +153,10 @@ namespace mtca4u
    
   int MotorControlerImpl::getActualPosition(){
     lock_guard guard(_mutex);
+    return readPositionRegisterAndConvert();
+  }
+
+  int MotorControlerImpl::readPositionRegisterAndConvert(){
     int readValue;
     _actualPosition->readRaw( &readValue );
     return converter24bits.customToThirtyTwo( readValue );
@@ -233,7 +248,42 @@ namespace mtca4u
     return isMotorCurrentEnabled();
   }
 
-  DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
+  //DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
+  int MotorControlerImpl::getTargetPosition() {
+    lock_guard guard(_mutex);
+    return retrieveTargetPositonAndConvert();
+  }
+
+  int MotorControlerImpl::retrieveTargetPositonAndConvert(){
+    int readValue = static_cast<int>(_controlerSPI->read(_id, IDX_TARGET_POSITION).getDATA());
+    return converter24bits.customToThirtyTwo(readValue);
+  }
+
+  void MotorControlerImpl::setTargetPosition(int value) {
+    lock_guard guard(_mutex);
+
+    MotorReferenceSwitchData referenceSwitchData = retrieveReferenceSwitchStatus();
+    if ((referenceSwitchData.getNegativeSwitchEnabled() &&  referenceSwitchData.getNegativeSwitchActive() &&
+	value <= readPositionRegisterAndConvert()) ||
+	(referenceSwitchData.getPositiveSwitchEnabled() &&  referenceSwitchData.getPositiveSwitchActive() &&
+	    value >= readPositionRegisterAndConvert()) ){
+      //std::cout << "ignoring" << std::endl;
+      return;
+    }else{
+//      std::cout << referenceSwitchData.getNegativeSwitchEnabled() << std::endl;
+//      std::cout << referenceSwitchData.getNegativeSwitchActive() << std::endl;
+      InterruptData interupts;
+      interupts = readTypedRegister<InterruptData>();
+      interupts.setMaskFlags(255);
+      interupts.setInterruptFlags(255);
+      writeTypedControlerRegister(interupts);
+    }
+
+    unsigned int writeValue =
+	static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
+    _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
+  }
+
   DEFINE_GET_SET_VALUE( MinimumVelocity, IDX_MINIMUM_VELOCITY )
   DEFINE_SIGNED_GET_SET_VALUE( TargetVelocity, IDX_TARGET_VELOCITY , converter12bits )
   DEFINE_GET_SET_VALUE( MaximumAcceleration, IDX_MAXIMUM_ACCELERATION )
@@ -308,10 +358,13 @@ namespace mtca4u
 
   MotorReferenceSwitchData MotorControlerImpl::getReferenceSwitchData(){
     lock_guard guard(_mutex);
+    return retrieveReferenceSwitchStatus();
+  }
 
+  MotorReferenceSwitchData MotorControlerImpl::retrieveReferenceSwitchStatus(){
     // the bit pattern for the active flags
     unsigned int bitMask = 0x3 << 2*_id;
-    
+
     unsigned int commonReferenceSwitchWord = _controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
     unsigned int dataWord = (commonReferenceSwitchWord & bitMask) >> 2*_id;
     // note: the following code uses the implicit bool conversion to/from 0/1 to keep the code short.
@@ -436,16 +489,27 @@ namespace mtca4u
   }
 
   bool MotorControlerImpl::isMotorMoving() {
-    // There is a delay between setting X_Target and the standstill indicator
-    // bit updating to 0 to indicate this. Reading the standstill indicator bit
-    // before this delay, incorrectly returns standstill indicator value as 1.
-    // To make sure we don't run into this situation, fetch the standstill
-    // indicator only after the time it takes for the indicator bit to update
-    // its value.
-    usleep(COMMUNICATION_DELAY);
-    // not getting a mutex here because getStatus() which is the critical
-    // section internally locks the mutex on its own.
-    return (!(getStatus().getStandstillIndicator()));
+    lock_guard guard(_mutex);
+    InterruptData interruptData = readTypedRegister<InterruptData>();
+    if (interruptData.getINT_POS_END() || interruptData.getINT_STOP()){
+      DriverStatusData status(readRegisterAccessor(_status));
+      //bool motorStandsStill = status.getStandstillIndicator(); //todo please write better
+      return !status.getStandstillIndicator();
+      //if (motorStandsStill){
+      //	std::cout << "INT_POS_END " << interruptData.getINT_POS_END() << std::endl;
+      //	std::cout << "INT_REF_WRONG " << interruptData.getINT_REF_WRONG() << std::endl;
+      //	std::cout << "INT_REF_MISS " << interruptData.getINT_REF_MISS() << std::endl;
+      //	std::cout << "INT_STOP " << interruptData.getINT_STOP() << std::endl;
+      //	std::cout << "INT_STOP_LEFT_LOW " << interruptData.getINT_STOP_LEFT_LOW() << std::endl;
+      //	std::cout << "INT_STOP_RIGHT_LOW " << interruptData.getINT_STOP_RIGHT_LOW() << std::endl;
+      //	std::cout << "INT_STOP_LEFT_HIGH " << interruptData.getINT_STOP_LEFT_HIGH() << std::endl;
+      //	std::cout << "INT_STOP_RIGHT_HIGH " << interruptData.getINT_STOP_RIGHT_HIGH() << std::endl;
+      //return false;
+      //      }else{
+      //	return true;
+      //      }
+    }
+    return true;
   }
 
   void MotorControlerImpl::setMotorCurrentEnabled(bool enable) {

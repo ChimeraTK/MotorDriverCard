@@ -243,6 +243,12 @@ namespace mtca4u
      SignedIntConverter converter24bits;
      SignedIntConverter converter12bits;
 
+     //int _localTargetPosition;
+     //bool _positiveSwitch, _negativeSwitch;
+     int retrieveTargetPositonAndConvert();
+     int readPositionRegisterAndConvert();
+     MotorReferenceSwitchData retrieveReferenceSwitchStatus();
+
      double convertVMaxToUstepsPerSec(double vMax);
      double convertUstepsPerSecToVmax(double speedInUstepsPerSec);
      static double calculateConversionFactor(MotorControlerConfig const & motorControlerConfig);
