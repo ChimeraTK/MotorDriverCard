@@ -69,6 +69,9 @@ namespace mtca4u
     virtual void setEnabled(bool enable=true)=0; ///< @deprecated Use setMotorCurrentEnabled instead.
     virtual void setDecoderReadoutMode(unsigned int decoderReadoutMode)=0;
 
+    virtual void enableFullStepping(bool enable=true)=0;
+    virtual bool isFullStepping()=0;
+
     virtual bool isEnabled()=0; ///< @deprecated Use isMotorCurrentEnabled instead.
     
     virtual bool isMotorMoving()=0; ///< check if the motor is moving.

@@ -97,10 +97,10 @@ namespace mtca4u
 		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
 		  motorControlerConfig.driverSpiWaitingTime),
       _controlerSPI(controlerSPI),
-      converter24bits(24), converter12bits(12)
-//      _localTargetPosition(0),
-//      _positiveSwitch(false),
-//      _negativeSwitch(false)
+      converter24bits(24), converter12bits(12),
+      _moveOnlyFullStep(false),
+      _userMicroStepSize(0),
+      _localTargetPosition(0)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     //setActualPosition( motorControlerConfig.actualPosition );
@@ -119,20 +119,15 @@ namespace mtca4u
     setProportionalityFactorData( motorControlerConfig.proportionalityFactorData );
     setReferenceConfigAndRampModeData( motorControlerConfig.referenceConfigAndRampModeData );
     setStallGuardControlData( motorControlerConfig.stallGuardControlData );
-    //setTargetPosition( motorControlerConfig.targetPosition );
     setTargetVelocity( motorControlerConfig.targetVelocity );
 
-    //setPositionTolerance(0);
+    _localTargetPosition = retrieveTargetPositonAndConvert();
+    _userMicroStepSize = pow(2, motorControlerConfig.driverControlData.getMicroStepResolution());
+
+    //std::cout << "user micro step size " << _userMicroStepSize << std::endl;
 
     // enabling the motor is the last step after setting all registers
     setEnabled( motorControlerConfig.enabled );
-
-//    _localTargetPosition = getTargetPosition();
-//
-//    MotorReferenceSwitchData referenceStatus = retrieveReferenceSwitchStatus();
-//    _positiveSwitch = referenceStatus.getPositiveSwitchActive();
-//    _negativeSwitch = referenceStatus.getNegativeSwitchActive();
-
     try {
       // this must throw on mapfile not having this register
       _endSwithPowerIndicator =
@@ -248,6 +243,14 @@ namespace mtca4u
     return isMotorCurrentEnabled();
   }
 
+  void MotorControlerImpl::enableFullStepping(bool enable){
+    _moveOnlyFullStep = enable;
+  }
+
+  bool MotorControlerImpl::isFullStepping(){
+    return _moveOnlyFullStep;
+  }
+
   //DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION, converter24bits )
   int MotorControlerImpl::getTargetPosition() {
     lock_guard guard(_mutex);
@@ -262,26 +265,36 @@ namespace mtca4u
   void MotorControlerImpl::setTargetPosition(int value) {
     lock_guard guard(_mutex);
 
-    MotorReferenceSwitchData referenceSwitchData = retrieveReferenceSwitchStatus();
-    if ((referenceSwitchData.getNegativeSwitchEnabled() &&  referenceSwitchData.getNegativeSwitchActive() &&
-	value <= readPositionRegisterAndConvert()) ||
-	(referenceSwitchData.getPositiveSwitchEnabled() &&  referenceSwitchData.getPositiveSwitchActive() &&
-	    value >= readPositionRegisterAndConvert()) ){
-      //std::cout << "ignoring" << std::endl;
-      return;
-    }else{
-//      std::cout << referenceSwitchData.getNegativeSwitchEnabled() << std::endl;
-//      std::cout << referenceSwitchData.getNegativeSwitchActive() << std::endl;
-      InterruptData interupts;
-      interupts = readTypedRegister<InterruptData>();
-      interupts.setMaskFlags(255);
-      interupts.setInterruptFlags(255);
-      writeTypedControlerRegister(interupts);
+    InterruptData interupts;
+    interupts = readTypedRegister<InterruptData>();
+    interupts.setMaskFlags(255);
+    interupts.setInterruptFlags(255);
+    writeTypedControlerRegister(interupts);
+
+    if (_moveOnlyFullStep){
+      roundToNextFullStep(value);
     }
+
+    _localTargetPosition = value;
 
     unsigned int writeValue =
 	static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
     _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
+  }
+
+  void MotorControlerImpl::roundToNextFullStep(int &targetPosition){ //todo implementing
+    int delta = targetPosition - readPositionRegisterAndConvert();
+    int deltaMicroStep = delta * _userMicroStepSize;
+    unsigned int actualMicroStepCount = readRegisterAccessor( _microStepCount );
+    std::cout << "present micro step count " <<actualMicroStepCount  << " " << readRegisterAccessor( _microStepCount ) << std::endl;
+    unsigned int newActualMicroStepCount = (actualMicroStepCount + deltaMicroStep) & 0x3FF;
+    std::cout << "expected micro step counting " << newActualMicroStepCount << std::endl;
+    unsigned int distanceToPreviousFullStep =  (newActualMicroStepCount + 1) % 256;
+    if (distanceToPreviousFullStep < 128){
+      targetPosition = targetPosition - distanceToPreviousFullStep/_userMicroStepSize;
+    }else{
+      targetPosition = targetPosition + (256 - distanceToPreviousFullStep)/_userMicroStepSize;
+    }
   }
 
   DEFINE_GET_SET_VALUE( MinimumVelocity, IDX_MINIMUM_VELOCITY )
@@ -493,7 +506,6 @@ namespace mtca4u
     InterruptData interruptData = readTypedRegister<InterruptData>();
     if (interruptData.getINT_POS_END() || interruptData.getINT_STOP()){
       DriverStatusData status(readRegisterAccessor(_status));
-      //bool motorStandsStill = status.getStandstillIndicator(); //todo please write better
       return !status.getStandstillIndicator();
       //if (motorStandsStill){
       //	std::cout << "INT_POS_END " << interruptData.getINT_POS_END() << std::endl;
@@ -508,6 +520,21 @@ namespace mtca4u
       //      }else{
       //	return true;
       //      }
+    }
+    int currentPos = readPositionRegisterAndConvert();
+
+    if (_localTargetPosition == currentPos){
+      DriverStatusData status(readRegisterAccessor(_status));
+      return !status.getStandstillIndicator();
+    }
+
+    MotorReferenceSwitchData referenceSwitchData = retrieveReferenceSwitchStatus();
+    if ((referenceSwitchData.getNegativeSwitchEnabled() &&  referenceSwitchData.getNegativeSwitchActive() &&
+	_localTargetPosition <= currentPos) ||
+	(referenceSwitchData.getPositiveSwitchEnabled() &&  referenceSwitchData.getPositiveSwitchActive() &&
+	    _localTargetPosition >= currentPos) ){
+      DriverStatusData status(readRegisterAccessor(_status));
+      return !status.getStandstillIndicator();
     }
     return true;
   }

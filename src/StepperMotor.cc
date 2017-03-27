@@ -92,6 +92,7 @@ namespace mtca4u {
     // target position during motor movement
     _targetPositionInSteps = truncateMotorPosition(_targetPositionInSteps);
     _motorControler->setTargetPosition(_targetPositionInSteps);
+    _targetPositionInSteps =  _motorControler->getTargetPosition();
   }
 
   void StepperMotor::stop() {
@@ -306,6 +307,18 @@ namespace mtca4u {
 
   double StepperMotor::getUserSpeedLimit() {
     return (_motorControler->getUserSpeedLimit());
+  }
+
+//  unsigned int StepperMotor::getMicroStepCount(){
+//    return _motorControler->getMicroStepCount();
+//  }
+
+  void StepperMotor::enableFullStepping(bool enable){
+    _motorControler->enableFullStepping(enable);
+  }
+
+  bool StepperMotor::isFullStepping(){
+    return _motorControler->isFullStepping();
   }
 
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -672,6 +685,14 @@ namespace ChimeraTK{
 
   double StepperMotor::getUserSpeedLimit() {
     return (_motorControler->getUserSpeedLimit());
+  }
+
+  void StepperMotor::enableFullStepping(bool enable){
+    _motorControler->enableFullStepping(enable);
+  }
+
+  bool StepperMotor::isFullStepping(){
+    return _motorControler->isFullStepping();
   }
 
   bool StepperMotor::stateMachineInIdleAndNoEvent(){

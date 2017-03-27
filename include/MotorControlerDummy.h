@@ -50,6 +50,9 @@ namespace mtca4u{
     void setEnabled(bool enable=true);
     void setDecoderReadoutMode(unsigned int decoderReadoutMode);
 
+    virtual void enableFullStepping(bool enable=true){};
+    virtual bool isFullStepping(){return false;};
+
     bool isEnabled();
     
     MotorReferenceSwitchData getReferenceSwitchData();

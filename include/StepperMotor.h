@@ -324,6 +324,9 @@ namespace mtca4u{
      * @brief Returns the maximum speed the motor is capable of achieving. Speed
      * is expressed in microsteps per second
      */
+
+//    unsigned int getMicroStepCount(); //todo to be removed
+
     double getMaxSpeedCapability();
 
     /**
@@ -511,6 +514,9 @@ namespace mtca4u{
      * @details
      */
     Logger::LogLevel getLogLevel();
+
+    void enableFullStepping(bool enable = true);
+    bool isFullStepping();
 
   protected: // methods
 
@@ -780,6 +786,9 @@ namespace ChimeraTK{
      * @brief return user speed limit
      */
     virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
+
+    void enableFullStepping(bool enable = true);
+    bool isFullStepping();
 
     friend class StepperMotorStateMachine;
     friend class StepperMotorChimeraTKTest;

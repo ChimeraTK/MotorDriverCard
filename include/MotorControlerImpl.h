@@ -106,6 +106,9 @@ namespace mtca4u
 
     virtual double getMaxCurrentLimit();
 
+    virtual void enableFullStepping(bool enable=true);
+    virtual bool isFullStepping();
+
 
     bool isEnabled();
 
@@ -243,7 +246,11 @@ namespace mtca4u
      SignedIntConverter converter24bits;
      SignedIntConverter converter12bits;
 
-     //int _localTargetPosition;
+     bool _moveOnlyFullStep;
+     //unsigned int _microStepsPerFullStep;
+     unsigned int _userMicroStepSize;
+
+     int _localTargetPosition;
      //bool _positiveSwitch, _negativeSwitch;
      int retrieveTargetPositonAndConvert();
      int readPositionRegisterAndConvert();
@@ -258,6 +265,8 @@ namespace mtca4u
      double convertAmpsToCurrentScale(double currentInAmps);
      unsigned int limitCurrentScale(double calculatedCurrentScale);
      void setCurrentScale(unsigned int currentScale);
+
+     void roundToNextFullStep(int &targetPosition);
   };
 
 }// namespace mtca4u
