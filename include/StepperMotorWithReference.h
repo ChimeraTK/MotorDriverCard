@@ -52,11 +52,16 @@ namespace ChimeraTK{
 
     float getToleranceNegativeEndSwitch();
 
-    bool isPositiveSwitchActive();
+    bool isPositiveReferenceActive();
 
-    bool isNegativeSwitchActive();
+    bool isNegativeReferenceActive();
+
+    bool isPositiveEndSwitchEnabled();
+
+    bool isNegativeEndSwitchEnabled();
 
     friend class StepperMotorWithReferenceStateMachine;
+    friend class StepperMotorWithReferenceTest;
 
   protected:
 

@@ -89,15 +89,15 @@ namespace ChimeraTK{
       if (_toleranceCalcFailed || _calibrationFailed){
 	return ACTION_ERROR;
       }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&
-	  !isPositiveSwitchActive() &&
-	  !isNegativeSwitchActive()){
+	  !isPositiveReferenceActive() &&
+	  !isNegativeReferenceActive()){
 	return ACTION_ERROR;
       }
     }
     if (_toleranceCalculated){
-      if (isPositiveSwitchActive() && fabs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
+      if (isPositiveReferenceActive() && fabs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
 	return CALIBRATION_LOST;
-      }else if(isNegativeSwitchActive() && fabs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
+      }else if(isNegativeReferenceActive() && fabs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
 	return CALIBRATION_LOST;
       }
     }
@@ -128,13 +128,20 @@ namespace ChimeraTK{
     return _toleranceNegativeEndSwitch;
   }
 
-  bool StepperMotorWithReference::isPositiveSwitchActive(){
+  bool StepperMotorWithReference::isPositiveReferenceActive(){
     return _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
   }
 
-  bool StepperMotorWithReference::isNegativeSwitchActive(){
+  bool StepperMotorWithReference::isNegativeReferenceActive(){
     return _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
   }
 
+  bool StepperMotorWithReference::isPositiveEndSwitchEnabled(){
+    return _positiveEndSwitchEnabled;
+  }
+
+  bool StepperMotorWithReference::isNegativeEndSwitchEnabled(){
+    return _negativeEndSwitchEnabled;
+  }
 }
 

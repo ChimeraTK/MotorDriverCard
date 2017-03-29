@@ -32,6 +32,7 @@ namespace ChimeraTK{
     void getActionCompleteEvent();
     void actionIdleToMove();
     void actionMovetoStop();
+    void actionMoveToFullStep();
     void actionToIdle();
     void actionDisable();
     void actionEmergencyStop();

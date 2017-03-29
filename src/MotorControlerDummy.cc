@@ -8,8 +8,8 @@ typedef std::unique_lock<std::mutex> unique_lock;
 
 namespace mtca4u {
 
-    int const MotorControlerDummy::_positiveEndSwitchPosition = 10000;
-    int const MotorControlerDummy::_negativeEndSwitchPosition = -10000;
+    int MotorControlerDummy::_positiveEndSwitchPosition = 10000;
+    int MotorControlerDummy::_negativeEndSwitchPosition = -10000;
 
     MotorControlerDummy::MotorControlerDummy(unsigned int id)
       : _motorControllerDummyMutex(),

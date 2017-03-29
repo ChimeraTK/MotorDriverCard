@@ -226,6 +226,8 @@ void TestStateMachine::testTransitionTable(){
   BOOST_CHECK(_stateMachineTransitionTable._userEvent == TestStateMachine::userEvent1);
   BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
   BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
+  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "secondState");
+  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->isEventUnknown() == true);
 
   BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
   BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
@@ -264,6 +266,8 @@ void TestStateMachine::testTransitionTable(){
   BOOST_CHECK(_stateMachineTransitionTable._userEvent == TestStateMachine::userEvent1);
   BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
   BOOST_CHECK(_stateMachineTransitionTable._userEvent == ChimeraTK::StateMachine::noEvent);
+  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "thirdState");
+  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->isEventUnknown() == true);
 
   BOOST_CHECK(_stateMachineTransitionTable.getInt() == 3);
   BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
@@ -359,6 +363,8 @@ void TestStateMachine::testSubStateMachine(){
   BOOST_CHECK(_stateMachineComplete._subStateMachine.getCount() == 0);
   _stateMachineComplete.setUserEvent(_stateMachineComplete._fromSubStateMachineToFirstUp);
   BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
+  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->isEventUnknown() == true);
+  BOOST_CHECK(_stateMachineComplete._subStateMachine.isEventUnknown() == false);
   BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
   BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
   BOOST_CHECK(_stateMachineComplete._subStateMachine.getInt() == 2);

@@ -106,7 +106,7 @@ namespace ChimeraTK{
 	  _stepperMotorWithReference._calibNegativeEndSwitchInSteps;
       _stepperMotorWithReference._calibNegativeEndSwitchInSteps = 0;
       _stepperMotorWithReference._calibrated = true;
-      _stepperMotorWithReference.setActualPositionInSteps(0);
+      _stepperMotorWithReference.resetPositionMotorController(0);
       return;
     }
   }
@@ -115,8 +115,9 @@ namespace ChimeraTK{
     while (!isEndSwitchActive(sign)){
       if (_stopAction || _moveInterrupted){
 	return;
-      }else if (_stepperMotorWithReference._motorControler->getTargetPosition() !=
-	  _stepperMotorWithReference._motorControler->getActualPosition()){
+      }else if (_stepperMotorWithReference._motorControler->getTargetPosition() != _stepperMotorWithReference._motorControler->getActualPosition() &&
+	  !_stepperMotorWithReference.isPositiveReferenceActive() &&
+	  !_stepperMotorWithReference.isNegativeReferenceActive()){
 	_moveInterrupted = true;
 	return;
       }
@@ -132,13 +133,13 @@ namespace ChimeraTK{
 
   bool StepperMotorWithReferenceStateMachine::isEndSwitchActive(Sign sign){
     if (sign == POSITIVE){
-      if (_stepperMotorWithReference.isPositiveSwitchActive()){
+      if (_stepperMotorWithReference.isPositiveReferenceActive()){
 	return true;
       }else{
 	return false;
       }
     }else{
-      if (_stepperMotorWithReference.isNegativeSwitchActive()){
+      if (_stepperMotorWithReference.isNegativeReferenceActive()){
 	return true;
       }else{
 	return false;

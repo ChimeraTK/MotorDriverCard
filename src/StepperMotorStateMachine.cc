@@ -27,12 +27,12 @@ namespace ChimeraTK{
 	  _stepperMotor(stepperMotor){
     _initState.setTransition    (noEvent,             &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
     _idle.setTransition         (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this));
-    _idle.setTransition         (disableEvent,        &_disable,       std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
+    _idle.setTransition         (disableEvent,        &_disable,       std::bind(&StepperMotorStateMachine::actionMoveToFullStep, this));
     _moving.setTransition       (noEvent,             &_moving,        std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
     _moving.setTransition       (actionCompleteEvent, &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
     _moving.setTransition       (stopEvent,           &_stop,          std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
     _moving.setTransition       (emergencyStopEvent,  &_emergencyStop, std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
-    _moving.setTransition       (disableEvent,        &_disable,       std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
+    _moving.setTransition       (disableEvent,        &_disable,       std::bind(&StepperMotorStateMachine::actionMoveToFullStep, this));
     _disable.setTransition      (noEvent,             &_disable,       std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
     _disable.setTransition      (actionCompleteEvent, &_idle,          std::bind(&StepperMotorStateMachine::actionDisable, this));
     _stop.setTransition         (noEvent,             &_stop,          std::bind(&StepperMotorStateMachine::getActionCompleteEvent, this));
@@ -67,6 +67,13 @@ namespace ChimeraTK{
     _stepperMotor._motorControler->setTargetPosition(currentPos);
   }
 
+  void StepperMotorStateMachine::actionMoveToFullStep(){
+    bool isFullStepping = _stepperMotor._motorControler->isFullStepping();
+    _stepperMotor._motorControler->enableFullStepping(true);
+    actionMovetoStop();
+    _stepperMotor._motorControler->enableFullStepping(isFullStepping);
+  }
+
   void StepperMotorStateMachine::actionEmergencyStop(){
     _stepperMotor._motorControler->setMotorCurrentEnabled(false);
     _stepperMotor._calibrated = false;
@@ -78,9 +85,11 @@ namespace ChimeraTK{
   }
 
   bool StepperMotorStateMachine::propagateEvent(){
-    if (_unknownEvent && _currentState->getName() == "idleState"){
+    if (_currentState->isEventUnknown() && _currentState->getName() == "idleState"){
+      //std::cout << "propagate " << _unknownEvent << " " << _currentState->getName() << std::endl;
       return true;
     }else{
+      //std::cout << "do not propagate " << _unknownEvent << " " << _currentState->getName() << std::endl;
       return false;
     }
   }
