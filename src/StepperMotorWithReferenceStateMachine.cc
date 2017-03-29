@@ -127,7 +127,7 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReferenceStateMachine::moveToEndSwitch(Sign sign){
-    _stepperMotorWithReference._motorControler->setTargetPosition(_stepperMotorWithReference._motorControler->getActualPosition() + sign*500000);
+    _stepperMotorWithReference._motorControler->setTargetPosition(_stepperMotorWithReference._motorControler->getActualPosition() + sign*50000);
     while (_stepperMotorWithReference._motorControler->isMotorMoving()){}
   }
 

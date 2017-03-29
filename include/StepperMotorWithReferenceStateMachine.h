@@ -22,6 +22,8 @@ namespace ChimeraTK{
     virtual ~StepperMotorWithReferenceStateMachine();
     static Event calibEvent;
     static Event calcToleranceEvent;
+
+    friend class StepperMotorWithReferenceTest;
   protected:
     State _calibrating;
     State _calculatingTolerance;

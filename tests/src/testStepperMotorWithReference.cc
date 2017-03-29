@@ -7,9 +7,11 @@
 
 #include <boost/test/included/unit_test.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/pointer_cast.hpp>
 using namespace boost::unit_test_framework;
 
 #include "StepperMotorWithReference.h"
+#include "StepperMotorWithReferenceStateMachine.h"
 #include "TMC429Constants.h"
 #include "DFMC_MD22Dummy.h"
 #include "MotorControlerDummy.h"
@@ -30,6 +32,8 @@ namespace ChimeraTK{
   public:
     StepperMotorWithReferenceTest();
     void testCalibrate();
+    void testCalibrateError();
+    void testCalibrateStop();
     void testDetermineTolerance();
   private:
     boost::shared_ptr<ChimeraTK::StepperMotorWithReference> _stepperMotorWithReference;
@@ -44,6 +48,8 @@ public:
   StepperMotorWithReferenceTestSuite() : test_suite("Stepper Motor With Reference Test Suite"){
     boost::shared_ptr<StepperMotorWithReferenceTest> myTest(new StepperMotorWithReferenceTest);
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testCalibrate, myTest));
+    add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testCalibrateError, myTest));
+    add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testCalibrateStop, myTest));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testDetermineTolerance, myTest));
   }
 };
@@ -137,6 +143,69 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotorWithReference->isSystemIdle()){}
   BOOST_CHECK(_stepperMotorWithReference->_motorControler->getActualPosition() == 100);
+}
+
+void StepperMotorWithReferenceTest::testCalibrateError(){
+  _motorControlerDummy->resetInternalStateToDefaults();
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK_NO_THROW(_stepperMotorWithReference->calibrate());
+  usleep(10000);
+  _motorControlerDummy->moveTowardsTarget(1);
+  usleep(10000);
+  _motorControlerDummy->moveTowardsTarget(0.01);
+  _motorControlerDummy->simulateBlockedMotor(true);
+  usleep(10000);
+  BOOST_CHECK(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps == 10000);
+  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotorWithReference->_stateMachine))->_moveInterrupted == true);
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK(_stepperMotorWithReference->isCalibrated() == false);
+  BOOST_CHECK(_stepperMotorWithReference->_calibrationFailed == true);
+  _motorControlerDummy->simulateBlockedMotor(false);
+  BOOST_CHECK(_stepperMotorWithReference->getError() == ACTION_ERROR);
+  BOOST_CHECK_NO_THROW(_stepperMotorWithReference->calibrate());
+  usleep(10000);
+  _motorControlerDummy->moveTowardsTarget(0.01);
+  usleep(10000);
+  _motorControlerDummy->simulateBlockedMotor(true);
+  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotorWithReference->_stateMachine))->_moveInterrupted == true);
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK(_stepperMotorWithReference->isCalibrated() == false);
+  BOOST_CHECK(_stepperMotorWithReference->_calibrationFailed == true);
+  _motorControlerDummy->simulateBlockedMotor(false);
+  BOOST_CHECK(_stepperMotorWithReference->getError() == ACTION_ERROR);
+}
+
+void StepperMotorWithReferenceTest::testCalibrateStop(){
+  _motorControlerDummy->resetInternalStateToDefaults();
+  MotorControlerDummy::_positiveEndSwitchPosition = 60000;
+  MotorControlerDummy::_negativeEndSwitchPosition = -60000;
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK_NO_THROW(_stepperMotorWithReference->calibrate());
+  usleep(10000);
+  _stepperMotorWithReference->stop();
+  usleep(10000);
+  _motorControlerDummy->moveTowardsTarget(1);
+  usleep(10000);
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotorWithReference->_stateMachine))->_moveInterrupted == false);
+  BOOST_CHECK(_stepperMotorWithReference->isCalibrated() == false);
+  BOOST_CHECK(_stepperMotorWithReference->_calibrationFailed == true);
+
+  _motorControlerDummy->resetInternalStateToDefaults();
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK_NO_THROW(_stepperMotorWithReference->calibrate());
+  usleep(10000);
+  _motorControlerDummy->moveTowardsTarget(1);
+  _motorControlerDummy->moveTowardsTarget(1);
+  usleep(10000);
+  _stepperMotorWithReference->stop();
+  usleep(10000);
+  _motorControlerDummy->moveTowardsTarget(1);
+  usleep(10000);
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotorWithReference->_stateMachine))->_moveInterrupted == false);
+  BOOST_CHECK(_stepperMotorWithReference->isCalibrated() == false);
+  BOOST_CHECK(_stepperMotorWithReference->_calibrationFailed == true);
 }
 
 void StepperMotorWithReferenceTest::testDetermineTolerance(){
