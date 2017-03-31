@@ -80,7 +80,7 @@ namespace ChimeraTK{
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _stateMachine->setUserEvent(StepperMotorWithReferenceStateMachine::calibEvent);
+    _stateMachine->setUserEvent(StepperMotorWithReferenceStateMachine::calcToleranceEvent);
   }
 
   StepperMotorError StepperMotorWithReference::getError(){

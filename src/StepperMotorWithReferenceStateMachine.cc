@@ -149,12 +149,13 @@ namespace ChimeraTK{
 
   void StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction(){
     _stepperMotorWithReference._toleranceCalcFailed = false;
+    _stepperMotorWithReference._toleranceCalculated = false;
     _stopAction = false;
     _moveInterrupted = false;
-
     if (_stepperMotorWithReference._calibrated == false){
       _stepperMotorWithReference._toleranceCalculated = false;
       _stepperMotorWithReference._toleranceCalcFailed = true;
+      return;
     }
 
     _stepperMotorWithReference._tolerancePositiveEndSwitch = getToleranceEndSwitch(POSITIVE);
@@ -163,9 +164,10 @@ namespace ChimeraTK{
     if (_moveInterrupted || _stopAction){
       _stepperMotorWithReference._toleranceCalculated = false;
       _stepperMotorWithReference._toleranceCalcFailed = true;
-    }else{
-      _stepperMotorWithReference._toleranceCalculated = true;
+      return;
     }
+    _stepperMotorWithReference._toleranceCalculated = true;
+    return;
   }
 
   int StepperMotorWithReferenceStateMachine::getPositionEndSwitch(Sign sign){
@@ -186,18 +188,21 @@ namespace ChimeraTK{
       if (_stopAction || _moveInterrupted){
 	break;
       }
-      _stepperMotorWithReference._motorControler->setTargetPosition(endSwitchPosition - sign*10000);
+      _stepperMotorWithReference._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
       while (_stepperMotorWithReference._motorControler->isMotorMoving()){}
-      if (_stepperMotorWithReference._motorControler->getTargetPosition() != _stepperMotorWithReference._motorControler->getActualPosition()){
+      if (_stepperMotorWithReference._motorControler->getTargetPosition() != _stepperMotorWithReference._motorControler->getActualPosition() &&
+	  !_stepperMotorWithReference.isPositiveReferenceActive() &&
+	  !_stepperMotorWithReference.isNegativeReferenceActive()){
 	_moveInterrupted = true;
 	break;
       }
-      _stepperMotorWithReference._motorControler->setTargetPosition(endSwitchPosition + sign*10000);
+      _stepperMotorWithReference._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
       while (_stepperMotorWithReference._motorControler->isMotorMoving()){}
       if (!isEndSwitchActive(sign)){
 	_moveInterrupted = true;
 	break;
       }
+
       squareMean += _stepperMotorWithReference._motorControler->getActualPosition();
       meanSquare += _stepperMotorWithReference._motorControler->getActualPosition() * _stepperMotorWithReference._motorControler->getActualPosition();
     }
@@ -205,7 +210,7 @@ namespace ChimeraTK{
     squareMean = squareMean / 10;
     meanSquare = meanSquare / 10;
 
-    return meanSquare - squareMean * squareMean;
+    return sqrt(meanSquare - squareMean * squareMean);
   }
 }
 
