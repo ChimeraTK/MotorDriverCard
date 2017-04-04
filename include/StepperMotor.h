@@ -684,9 +684,20 @@ namespace ChimeraTK{
      * @brief set actual position in steps of the motor respect to some reference
      * @param actualPositionInSteps In order to use the motor an absolute scale must be defined.
      * This can be done defining the position of the motor respect to an external reference (actual position).
-     * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
      */
     virtual void setActualPositionInSteps(int actualPositionInSteps);
+
+    /**@brief translate the reference axis of the motor. This operation will translate also the software limits
+     * @param actualPositionInSteps translation value in steps
+     */
+
+    virtual void translateAxisInSteps(int translationInSteps);
+
+    /**@brief translate the reference axis of the motor. This operation will translate also the software limits
+     * @param translationInSteps translation value in unit
+     */
+
+    virtual void translateAxis(float translateInUnits);
 
     /**
      * @brief get current position of the motor in units
@@ -817,6 +828,7 @@ namespace ChimeraTK{
     void resetPositionMotorController(int newPositionInStep);
     virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
+    virtual bool checkIfOverflow(int termA, int termB);
   };
 }// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

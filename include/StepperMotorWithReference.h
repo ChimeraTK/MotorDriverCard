@@ -34,6 +34,8 @@ namespace ChimeraTK{
 
     void setActualPositionInSteps(int actualPositionInSteps);
 
+    void translateAxisInSteps(int translationInSteps);
+
     void calibrate();
 
     void determineTolerance();

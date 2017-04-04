@@ -1,6 +1,7 @@
 #include "StepperMotor.h"
 #include <cmath>
 #include <future>
+#include <chrono>
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
@@ -423,7 +424,7 @@ namespace ChimeraTK{
 					   _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
 					   _targetPositionInSteps(0),
 					   _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-					   _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
+					   _minPositionLimitInSteps(std::numeric_limits<int>::min()),
 					   _softwareLimitsEnabled(false),
 					   _runStateMachine(true),
 					   _logger(),
@@ -442,7 +443,7 @@ namespace ChimeraTK{
 	 _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
 	 _targetPositionInSteps(0),
 	 _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-	 _minPositionLimitInSteps(-std::numeric_limits<int>::max()),
+	 _minPositionLimitInSteps(std::numeric_limits<int>::min()),
 	 _softwareLimitsEnabled(false),
 	 _runStateMachine(true),
 	 _logger(),
@@ -579,6 +580,49 @@ namespace ChimeraTK{
     setActualPositionInSteps(recalculateUnitsInSteps(actualPosition));
   }
 
+  void StepperMotor::translateAxisInSteps(int translationInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    int actualPosition = _motorControler->getActualPosition();
+    resetPositionMotorController(actualPosition+translationInSteps);
+    if (checkIfOverflow(_maxPositionLimitInSteps, translationInSteps)){
+      _maxPositionLimitInSteps = std::numeric_limits<int>::max();
+    }else{
+      _maxPositionLimitInSteps = _maxPositionLimitInSteps + translationInSteps;
+    }
+    if (checkIfOverflow(_minPositionLimitInSteps, translationInSteps)){
+      _minPositionLimitInSteps = std::numeric_limits<int>::min();
+    }else{
+      _minPositionLimitInSteps = _minPositionLimitInSteps + translationInSteps;
+    }
+  }
+
+  void StepperMotor::translateAxis(float translateInUnits){
+    translateAxisInSteps(recalculateUnitsInSteps(translateInUnits));
+  }
+
+  bool StepperMotor::checkIfOverflow(int termA, int termB){
+    int signTermA = (termA > 0) - (termA < 0);
+    int signTermB = (termB > 0) - (termB < 0);
+    if (signTermA*signTermB <= 0){
+      return false;
+    }else if (signTermA > 0){
+      if (termB > std::numeric_limits<int>::max() - termA){
+	return true;
+      }else{
+	return false;
+      }
+    }else{
+      if (termB < std::numeric_limits<int>::min() - termA){
+	return true;
+      }else{
+	return false;
+      }
+    }
+  }
+
   int StepperMotor::getCurrentPositionInSteps(){
     return (_motorControler->getActualPosition());
   }
@@ -707,7 +751,7 @@ namespace ChimeraTK{
 
   void StepperMotor::stateMachineThreadFunction(){
     while(_runStateMachine){
-      usleep(100);
+      std::this_thread::sleep_for(std::chrono::microseconds(100));
       stateMachinePerformTransition();
     }
   }

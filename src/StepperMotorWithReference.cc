@@ -67,6 +67,34 @@ namespace ChimeraTK{
     resetPositionMotorController(actualPositionInSteps);
   }
 
+  void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    int actualPosition = _motorControler->getActualPosition();
+    resetPositionMotorController(actualPosition+translationInSteps);
+    if (checkIfOverflow(_maxPositionLimitInSteps, translationInSteps)){
+      _maxPositionLimitInSteps = std::numeric_limits<int>::max();
+    }else{
+      _maxPositionLimitInSteps = _maxPositionLimitInSteps + translationInSteps;
+    }
+    if (checkIfOverflow(_minPositionLimitInSteps, translationInSteps)){
+      _minPositionLimitInSteps = std::numeric_limits<int>::min();
+    }else{
+      _minPositionLimitInSteps = _minPositionLimitInSteps + translationInSteps;
+    }
+    if(_calibrated){
+      if (checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
+	  checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps)){
+	throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
+      }else{
+	_calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps + translationInSteps;
+	_calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps + translationInSteps;
+      }
+    }
+  }
+
   void StepperMotorWithReference::calibrate(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){

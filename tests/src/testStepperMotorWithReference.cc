@@ -34,6 +34,7 @@ namespace ChimeraTK{
     void testCalibrate();
     void testCalibrateError();
     void testCalibrateStop();
+    void testTranslation();
     void testDetermineTolerance();
     void testDetermineToleranceError();
     void testDetermineToleranceStop();
@@ -52,6 +53,7 @@ public:
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testCalibrate, myTest));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testCalibrateError, myTest));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testCalibrateStop, myTest));
+    add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testTranslation, myTest));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testDetermineTolerance, myTest));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testDetermineToleranceError, myTest));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorWithReferenceTest::testDetermineToleranceStop, myTest));
@@ -214,6 +216,35 @@ void StepperMotorWithReferenceTest::testCalibrateStop(){
   BOOST_CHECK(_stepperMotorWithReference->isCalibrated() == false);
   BOOST_CHECK(_stepperMotorWithReference->_calibrationFailed == true);
   BOOST_CHECK(_stepperMotorWithReference->getError() == ACTION_ERROR);
+}
+
+void StepperMotorWithReferenceTest::testTranslation(){
+  _motorControlerDummy->resetInternalStateToDefaults();
+  MotorControlerDummy::_positiveEndSwitchPosition =  10000;
+  MotorControlerDummy::_negativeEndSwitchPosition = -10000;
+  _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
+  _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
+  while(!_stepperMotorWithReference->isSystemIdle()){}
+  BOOST_CHECK(_stepperMotorWithReference->_calibrated == false);
+
+  BOOST_CHECK_NO_THROW(_stepperMotorWithReference->translateAxisInSteps(100));
+  BOOST_CHECK(_stepperMotorWithReference->_maxPositionLimitInSteps == std::numeric_limits<int>::max());
+  BOOST_CHECK(_stepperMotorWithReference->_minPositionLimitInSteps == std::numeric_limits<int>::min() + 100);
+  BOOST_CHECK(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps == 10000);
+  BOOST_CHECK(_stepperMotorWithReference->_calibNegativeEndSwitchInSteps == -10000);
+
+  _stepperMotorWithReference->_calibrated = true;
+  _stepperMotorWithReference->_calibrationFailed = false;
+
+  BOOST_CHECK_NO_THROW(_stepperMotorWithReference->translateAxisInSteps(100));
+  BOOST_CHECK(_stepperMotorWithReference->_maxPositionLimitInSteps == std::numeric_limits<int>::max());
+  BOOST_CHECK(_stepperMotorWithReference->_minPositionLimitInSteps == std::numeric_limits<int>::min() + 200);
+  BOOST_CHECK(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps == 10100);
+  BOOST_CHECK(_stepperMotorWithReference->_calibNegativeEndSwitchInSteps == -9900);
+
+  BOOST_CHECK_THROW(_stepperMotorWithReference->translateAxisInSteps(std::numeric_limits<int>::max()), MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotorWithReference->translateAxisInSteps(std::numeric_limits<int>::min()), MotorDriverException);
+  _stepperMotorWithReference->_calibrated = false;
 }
 
 void StepperMotorWithReferenceTest::testDetermineTolerance(){

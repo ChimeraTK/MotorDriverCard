@@ -47,6 +47,7 @@ namespace ChimeraTK{
     void testSoftLimits();
     void testEnable();
     void testSetActualPosition();
+    void testTranslateAxis();
     void testMove();
     void testMoveRelative();
     void testStop();
@@ -75,6 +76,7 @@ public:
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testSoftLimits, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testEnable, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testSetActualPosition, stepperMotorChimeraTK));
+    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testTranslateAxis, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testMove, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testMoveRelative, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testStop, stepperMotorChimeraTK));
@@ -140,6 +142,27 @@ void StepperMotorChimeraTKTest::testSetActualPosition(){
   BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
   BOOST_CHECK(_stepperMotor->isCalibrated() == true);
+}
+
+void StepperMotorChimeraTKTest::testTranslateAxis(){
+  BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
+  BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == 1000);
+  BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1000);
+  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
+  BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == 1100);
+  BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -900);
+  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(-300));
+  BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == 800);
+  BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1200);
+  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()));
+  BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == std::numeric_limits<int>::max());
+  BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1200 + std::numeric_limits<int>::max());
+  BOOST_CHECK_NO_THROW(_stepperMotor->setSoftwareLimitsInSteps(-1000, 1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()));
+  BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == std::numeric_limits<int>::min() + 1000);
+  BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == std::numeric_limits<int>::min());
+  BOOST_CHECK_NO_THROW(_stepperMotor->setSoftwareLimitsInSteps(-1000, 1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
 }
 
 void StepperMotorChimeraTKTest::testMove(){
