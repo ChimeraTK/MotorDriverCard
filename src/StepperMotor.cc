@@ -20,7 +20,7 @@ namespace mtca4u {
 	//_currentPostionsInSteps(0),// position - don't know so set to 0
 	//_currentPostionsInUnits(0),
 	_stepperMotorUnitsConverter(new StepperMotorUnitsConverterTrivia()),
-	_targetPositionInSteps(0),
+	_targetPositionInSteps(_motorControler->getTargetPosition()),
 	//_targetPositionInUnits(0),
 	//_maxPositionLimit(std::numeric_limits<float>::max()),
 	_maxPositionLimitInSteps(std::numeric_limits<int>::max()),
