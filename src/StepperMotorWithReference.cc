@@ -114,6 +114,9 @@ namespace ChimeraTK{
 
   StepperMotorError StepperMotorWithReference::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
+    if (isPositiveReferenceActive() && isNegativeReferenceActive()){
+      return BOTH_END_SWITCHES_ON;
+    }
     if (stateMachineInIdleAndNoEvent()){
       if (_toleranceCalcFailed || _calibrationFailed){
 	return ACTION_ERROR;
