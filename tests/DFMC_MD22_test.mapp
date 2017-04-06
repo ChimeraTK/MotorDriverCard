@@ -45,6 +45,7 @@ MD22_0.WORD_I2C_FMC_TX                          1       1164         4         1
 MD22_0.WORD_I2C_FMC_RX                          1       1168         4         1
 MD22_0.WORD_I2C_FMC_ADR                         1       1172         4         1
 MD22_0.WORD_I2C_FMC_CMD                         1       1176         4         1
+MD22_0.WORD_PROJ_USER							1       1180         4         1
 
 MD22_1.WORD_PROJ_MAGIC_NUM                     1       1024         4         1
 MD22_1.WORD_PROJ_ID                            1       1028         4         1
@@ -85,3 +86,4 @@ MD22_1.WORD_I2C_FMC_TX                          1       1164         4         1
 MD22_1.WORD_I2C_FMC_RX                          1       1168         4         1
 MD22_1.WORD_I2C_FMC_ADR                         1       1172         4         1
 MD22_1.WORD_I2C_FMC_CMD                         1       1176         4         1
+MD22_1.WORD_PROJ_USER							1       1180         4         1

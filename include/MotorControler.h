@@ -72,6 +72,9 @@ namespace mtca4u
     virtual void enableFullStepping(bool enable=true)=0;
     virtual bool isFullStepping()=0;
 
+    virtual void setCalibrationTime(uint32_t calibrationTime) = 0;
+    virtual uint32_t getCalibrationTime() = 0;
+
     virtual bool isEnabled()=0; ///< @deprecated Use isMotorCurrentEnabled instead.
     
     virtual bool isMotorMoving()=0; ///< check if the motor is moving.

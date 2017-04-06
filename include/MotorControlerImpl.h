@@ -9,6 +9,8 @@
 #include "SignedIntConverter.h"
 #include "SPIviaPCIe.h"
 #include "TMC429SPI.h"
+#include <mtca4u/Device.h>
+#include  <cstdint>
 
 // Declatations needed in this header.
 // We intentionally do not include the mtca4u:Device header here
@@ -109,6 +111,8 @@ namespace mtca4u
     virtual void enableFullStepping(bool enable=true);
     virtual bool isFullStepping();
 
+    virtual void setCalibrationTime(uint32_t calibrationTime);
+    virtual uint32_t getCalibrationTime();
 
     bool isEnabled();
 
@@ -224,6 +228,7 @@ namespace mtca4u
      boost::shared_ptr< mtca4u::RegisterAccessor > _decoderReadoutMode;
      boost::shared_ptr< mtca4u::RegisterAccessor > _decoderPosition;
      boost::shared_ptr< mtca4u::RegisterAccessor > _endSwithPowerIndicator;
+     boost::shared_ptr< mtca4u::RegisterAccessor > _calibrationTime;
      
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;

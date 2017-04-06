@@ -92,6 +92,7 @@ namespace mtca4u
       _decoderReadoutMode( ACCESSOR_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
       _decoderPosition( ACCESSOR_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
       _endSwithPowerIndicator(), //set later in the constructor body, might throws which is to be caught
+      _calibrationTime(device->getRegisterAccessor( CALIBRATION_TIME, moduleName )),
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
 		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
@@ -286,9 +287,7 @@ namespace mtca4u
     int delta = targetPosition - readPositionRegisterAndConvert();
     int deltaMicroStep = delta * _userMicroStepSize;
     unsigned int actualMicroStepCount = readRegisterAccessor( _microStepCount );
-    std::cout << "present micro step count " <<actualMicroStepCount  << " " << readRegisterAccessor( _microStepCount ) << std::endl;
     unsigned int newActualMicroStepCount = (actualMicroStepCount + deltaMicroStep) & 0x3FF;
-    std::cout << "expected micro step counting " << newActualMicroStepCount << std::endl;
     unsigned int distanceToPreviousFullStep =  (newActualMicroStepCount + 1) % 256;
     if (distanceToPreviousFullStep < 128){
       targetPosition = targetPosition - distanceToPreviousFullStep/_userMicroStepSize;
@@ -405,6 +404,22 @@ namespace mtca4u
     writeTypedControlerRegister(referenceConfigAndRampModeData);
   }
 
+  void MotorControlerImpl::setCalibrationTime(uint32_t calibrationTime){
+    lock_guard guard(_mutex);
+    int32_t tempVar = static_cast<int32_t>(calibrationTime);
+    _calibrationTime->writeRaw(&tempVar);
+//    _calibrationTime = calibrationTime;
+//    _calibrationTime.write();
+  }
+
+  uint32_t MotorControlerImpl::getCalibrationTime(){
+    lock_guard guard(_mutex);
+    int32_t calibTime;
+    _calibrationTime->readRaw(&calibTime);
+    return static_cast<uint32_t>(calibTime);
+//    _calibrationTime.read();
+//    return _calibrationTime;
+  }
 
   bool MotorControlerImpl::targetPositionReached(){
     lock_guard guard(_mutex);

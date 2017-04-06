@@ -44,9 +44,7 @@ namespace ChimeraTK{
   StepperMotorStateMachine::~StepperMotorStateMachine(){}
 
   void StepperMotorStateMachine::getActionCompleteEvent(){
-    //std::cout << "checking if action completed" << " " << _stepperMotor._motorControler->isMotorMoving() << std::endl;
     if (!_stepperMotor._motorControler->isMotorMoving()){
-      //std::cout << "movement completed" << std::endl;
       _internEvent=StepperMotorStateMachine::actionCompleteEvent;
     }else{
       _internEvent=StateMachine::noEvent;
@@ -54,16 +52,14 @@ namespace ChimeraTK{
   }
 
   void StepperMotorStateMachine::actionIdleToMove(){
-    //std::cout << "starting move" << std::endl;
     _stepperMotor._motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
   void StepperMotorStateMachine::actionToIdle(){
-    //std::cout << "going to idle" << std::endl;
   }
 
   void StepperMotorStateMachine::actionMovetoStop(){
-    float  currentPos = _stepperMotor.getCurrentPosition();
+    int currentPos = _stepperMotor._motorControler->getActualPosition();
     _stepperMotor._motorControler->setTargetPosition(currentPos);
   }
 
@@ -76,8 +72,7 @@ namespace ChimeraTK{
 
   void StepperMotorStateMachine::actionEmergencyStop(){
     _stepperMotor._motorControler->setMotorCurrentEnabled(false);
-    _stepperMotor._calibrated = false;
-    //std::cout << "emergency stop" << std::endl;
+    _stepperMotor.setCalibrationTime(0);
   }
 
   void StepperMotorStateMachine::actionDisable(){
@@ -86,10 +81,8 @@ namespace ChimeraTK{
 
   bool StepperMotorStateMachine::propagateEvent(){
     if (_currentState->isEventUnknown() && _currentState->getName() == "idleState"){
-      //std::cout << "propagate " << _unknownEvent << " " << _currentState->getName() << std::endl;
       return true;
     }else{
-      //std::cout << "do not propagate " << _unknownEvent << " " << _currentState->getName() << std::endl;
       return false;
     }
   }

@@ -28,6 +28,7 @@ namespace ChimeraTK{
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
     createStateMachine();
+    _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
   }
@@ -84,7 +85,7 @@ namespace ChimeraTK{
     }else{
       _minPositionLimitInSteps = _minPositionLimitInSteps + translationInSteps;
     }
-    if(_calibrated){
+    if(retrieveCalibrationTime() != 0){
       if (checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
 	  checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps)){
 	throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);

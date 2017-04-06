@@ -710,6 +710,19 @@ namespace ChimeraTK{
     virtual int getCurrentPositionInSteps();
 
     /**
+     * Return target motor position in the arbitrary units.
+     * @return float - target position of motor in arbitrary units.
+     */
+    float getTargetPosition();
+
+    /**
+     * Return target motor position in steps
+     * @return int - target position of motor in steps
+     */
+
+    int getTargetPositionInSteps();
+
+    /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
     virtual void setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
@@ -742,9 +755,15 @@ namespace ChimeraTK{
     virtual StepperMotorError getError();
 
     /**
-     * @brief function return true if system is calibrated, false otherwise
+     * @brief function returns true if system is calibrated, false otherwise
      */
     virtual bool isCalibrated();
+
+    /**
+     * @brief function returns time last calibration, 0 if no calibration was performed about booting the hardware.
+     */
+
+    virtual uint32_t getCalibrationTime();
 
     /**
      * @brief enable/disable the motor
@@ -798,7 +817,16 @@ namespace ChimeraTK{
      */
     virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
 
+    /**
+     * @brief enabling full stepping movement.
+     * The target position is rounded to the next full step value before it is written to the register of the controller chip.
+     *
+     */
     void enableFullStepping(bool enable = true);
+
+    /**
+     * @brief returns true if motor is moving per full step, false otherwise
+     */
     bool isFullStepping();
 
     friend class StepperMotorStateMachine;
@@ -821,14 +849,16 @@ namespace ChimeraTK{
     mutable boost::mutex _mutex;
     std::thread _stateMachineThread;
     std::shared_ptr<StateMachine> _stateMachine;
-    std::atomic<bool> _calibrated;
+    //std::atomic<bool> _calibrated;
     virtual bool stateMachineInIdleAndNoEvent();
     void stateMachineThreadFunction();
     void stateMachinePerformTransition();
     void resetPositionMotorController(int newPositionInStep);
     virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
-    virtual bool checkIfOverflow(int termA, int termB);
+    bool checkIfOverflow(int termA, int termB);
+    void setCalibrationTime(uint32_t time);
+    uint32_t retrieveCalibrationTime();
   };
 }// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

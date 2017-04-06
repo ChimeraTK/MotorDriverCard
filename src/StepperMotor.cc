@@ -25,7 +25,7 @@ namespace mtca4u {
 	//_maxPositionLimit(std::numeric_limits<float>::max()),
 	_maxPositionLimitInSteps(std::numeric_limits<int>::max()),
 	//_minPositionLimit(-std::numeric_limits<float>::max()),
-	_minPositionLimitInSteps(-std::numeric_limits<int>::max()),
+	_minPositionLimitInSteps(std::numeric_limits<int>::min()),
 	_autostartFlag(false),
 	_stopMotorForBlocking(false),
 	_softwareLimitsEnabled(true),
@@ -422,7 +422,7 @@ namespace ChimeraTK{
 					   motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
 					   _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
 					   _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-					   _targetPositionInSteps(0),
+					   _targetPositionInSteps(_motorControler->getTargetPosition()),
 					   _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
 					   _minPositionLimitInSteps(std::numeric_limits<int>::min()),
 					   _softwareLimitsEnabled(false),
@@ -430,8 +430,7 @@ namespace ChimeraTK{
 					   _logger(),
 					   _mutex(),
 					   _stateMachineThread(),
-					   _stateMachine(),
-					   _calibrated(false){
+					   _stateMachine(){
     createStateMachine();
   }
 
@@ -449,8 +448,7 @@ namespace ChimeraTK{
 	 _logger(),
 	 _mutex(),
 	 _stateMachineThread(),
-	 _stateMachine(),
-	 _calibrated(false){}
+	 _stateMachine(){}
 
   StepperMotor::~StepperMotor() {
     _runStateMachine = false;
@@ -464,7 +462,7 @@ namespace ChimeraTK{
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    if (!_calibrated){
+    if (retrieveCalibrationTime() == 0){
       throw MotorDriverException("motor not calibrated", MotorDriverException::NOT_IMPLEMENTED);
     }
     if (!limitsOK(newPositionInSteps)){
@@ -573,7 +571,7 @@ namespace ChimeraTK{
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     resetPositionMotorController(actualPositionInSteps);
-    _calibrated = true;
+    setCalibrationTime(time(NULL));
   }
 
   void StepperMotor::setActualPosition(float actualPosition){
@@ -624,11 +622,23 @@ namespace ChimeraTK{
   }
 
   int StepperMotor::getCurrentPositionInSteps(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return (_motorControler->getActualPosition());
   }
 
   float StepperMotor::getCurrentPosition(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return recalculateStepsInUnits(_motorControler->getActualPosition());
+  }
+
+  int StepperMotor::getTargetPositionInSteps(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _motorControler->getTargetPosition();
+  }
+
+  float StepperMotor::getTargetPosition(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return recalculateStepsInUnits(_motorControler->getTargetPosition());
   }
 
   void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
@@ -658,7 +668,6 @@ namespace ChimeraTK{
   void StepperMotor::waitForIdle(){
     while(1){
       usleep(100);
-      //std::cout << "sto controllando" << std::endl;
       if (isSystemIdle()){
 	break;
       }
@@ -675,7 +684,26 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::isCalibrated(){
-    return _calibrated;
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    uint32_t calibTime = retrieveCalibrationTime();
+    if (calibTime == 0){
+      return false;
+    }else{
+      return true;
+    }
+  }
+
+  uint32_t StepperMotor::getCalibrationTime(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return retrieveCalibrationTime();
+  }
+
+  void StepperMotor::setCalibrationTime(uint32_t time){
+    _motorControler->setCalibrationTime(time);
+  }
+
+  uint32_t StepperMotor::retrieveCalibrationTime(){
+    return (_motorControler->getCalibrationTime());
   }
 
   void StepperMotor::setEnabled(bool enable){
@@ -741,17 +769,15 @@ namespace ChimeraTK{
 
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
     if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "idleState"){
-      //std::cout << "InIdle " << std::string(StateMachine::noEvent) << " " << _stateMachine->getCurrentState()->getName() << std::endl;
       return true;
     }else{
-      //std::cout << "NOT in IDLE " << std::string(_stateMachine->getUserEvent()) << " " << _stateMachine->getCurrentState()->getName() << std::endl;
       return false;
     }
   }
 
   void StepperMotor::stateMachineThreadFunction(){
     while(_runStateMachine){
-      std::this_thread::sleep_for(std::chrono::microseconds(100));
+      usleep(100);
       stateMachinePerformTransition();
     }
   }

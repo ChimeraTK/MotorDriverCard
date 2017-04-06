@@ -220,12 +220,13 @@ void StepperMotorWithReferenceTest::testCalibrateStop(){
 
 void StepperMotorWithReferenceTest::testTranslation(){
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotorWithReference->setCalibrationTime(0);
   MotorControlerDummy::_positiveEndSwitchPosition =  10000;
   MotorControlerDummy::_negativeEndSwitchPosition = -10000;
   _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
   _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
   while(!_stepperMotorWithReference->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotorWithReference->_calibrated == false);
+  BOOST_CHECK(_stepperMotorWithReference->retrieveCalibrationTime() == 0);
 
   BOOST_CHECK_NO_THROW(_stepperMotorWithReference->translateAxisInSteps(100));
   BOOST_CHECK(_stepperMotorWithReference->_maxPositionLimitInSteps == std::numeric_limits<int>::max());
@@ -233,7 +234,7 @@ void StepperMotorWithReferenceTest::testTranslation(){
   BOOST_CHECK(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps == 10000);
   BOOST_CHECK(_stepperMotorWithReference->_calibNegativeEndSwitchInSteps == -10000);
 
-  _stepperMotorWithReference->_calibrated = true;
+  _stepperMotorWithReference->setCalibrationTime(time(NULL));
   _stepperMotorWithReference->_calibrationFailed = false;
 
   BOOST_CHECK_NO_THROW(_stepperMotorWithReference->translateAxisInSteps(100));
@@ -244,21 +245,22 @@ void StepperMotorWithReferenceTest::testTranslation(){
 
   BOOST_CHECK_THROW(_stepperMotorWithReference->translateAxisInSteps(std::numeric_limits<int>::max()), MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotorWithReference->translateAxisInSteps(std::numeric_limits<int>::min()), MotorDriverException);
-  _stepperMotorWithReference->_calibrated = false;
+  _stepperMotorWithReference->setCalibrationTime(0);
 }
 
 void StepperMotorWithReferenceTest::testDetermineTolerance(){
   _motorControlerDummy->resetInternalStateToDefaults();
+  //_stepperMotorWithReference->setCalibrationTime(15);
   MotorControlerDummy::_positiveEndSwitchPosition =  10000;
   MotorControlerDummy::_negativeEndSwitchPosition = -10000;
   while(!_stepperMotorWithReference->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotorWithReference->_calibrated == false);
+  BOOST_CHECK(_stepperMotorWithReference->retrieveCalibrationTime() == 0);
   _stepperMotorWithReference->determineTolerance();
   while(!_stepperMotorWithReference->isSystemIdle()){}
   BOOST_CHECK(_stepperMotorWithReference->_toleranceCalculated == false);
   BOOST_CHECK(_stepperMotorWithReference->_toleranceCalcFailed == true);
 
-  _stepperMotorWithReference->_calibrated = true;
+  _stepperMotorWithReference->setCalibrationTime(time(NULL));
   _stepperMotorWithReference->_calibrationFailed = false;
   _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
   _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
@@ -305,6 +307,7 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
 
 void StepperMotorWithReferenceTest::testDetermineToleranceError(){
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotorWithReference->setCalibrationTime(15);
   MotorControlerDummy::_positiveEndSwitchPosition =  10000;
   MotorControlerDummy::_negativeEndSwitchPosition = -10000;
   while(!_stepperMotorWithReference->isSystemIdle()){}
@@ -324,7 +327,7 @@ void StepperMotorWithReferenceTest::testDetermineToleranceError(){
   _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  20000;
   _stepperMotorWithReference->_toleranceCalculated = true;
   _stepperMotorWithReference->_toleranceCalcFailed = false;
-  _stepperMotorWithReference->_calibrated = true;
+  _stepperMotorWithReference->setCalibrationTime(time(NULL));
   _stepperMotorWithReference->_calibrationFailed = false;
   _stepperMotorWithReference->moveToPositionInSteps(10000);
   usleep(10000);
@@ -335,6 +338,7 @@ void StepperMotorWithReferenceTest::testDetermineToleranceError(){
 
 void StepperMotorWithReferenceTest::testDetermineToleranceStop(){
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotorWithReference->setCalibrationTime(15);
   _motorControlerDummy->simulateBlockedMotor(false);
   _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
   _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;

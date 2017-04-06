@@ -50,8 +50,11 @@ namespace mtca4u{
     void setEnabled(bool enable=true);
     void setDecoderReadoutMode(unsigned int decoderReadoutMode);
 
-    virtual void enableFullStepping(bool enable=true){};
-    virtual bool isFullStepping(){return false;};
+    virtual void enableFullStepping(bool enable=true);
+    virtual bool isFullStepping();
+
+    virtual void setCalibrationTime(uint32_t calibrationTime);
+    virtual uint32_t getCalibrationTime();
 
     bool isEnabled();
     
@@ -133,6 +136,8 @@ namespace mtca4u{
     int _targetPosition; ///< Target position in steps
     int _currentPosition; ///< The current position can be set by the user (calibration)
 
+    uint32_t _calibrationTime;
+
     bool _positiveEndSwitchEnabled;///< Flag whether the positive end switch is being used
     bool _negativeEndSwitchEnabled;///< Flag whether the negative end switch is being used
     bool _motorCurrentEnabled;///< Flag indicating if motor current (driver chip) is enabled
@@ -155,6 +160,11 @@ namespace mtca4u{
     
     bool _blockMotor;
     bool _bothEndSwitchesAlwaysOn;
+    unsigned int _userMicroStepSize;
+    bool _isFullStepping;
+    void setMicroStepSize(unsigned int microStepSize){_userMicroStepSize = microStepSize;}
+    unsigned int getMicropStepSize(){return _userMicroStepSize;}
+    void roundToNextFullStep(int &targetPosition);
   };  
 
 }// namespace mtca4u

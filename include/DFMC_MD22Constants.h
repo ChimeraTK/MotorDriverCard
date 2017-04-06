@@ -24,6 +24,7 @@ namespace dfmc_md22{
   std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
   std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
   std::string const CONTROLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
+  std::string const CALIBRATION_TIME = "WORD_PROJ_USER";
 
   int32_t const SPI_SYNC_OK = 0;
   int32_t const SPI_SYNC_REQUESTED = 0xFF;

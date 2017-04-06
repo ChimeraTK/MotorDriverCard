@@ -13,11 +13,12 @@ namespace mtca4u {
 
     MotorControlerDummy::MotorControlerDummy(unsigned int id)
       : _motorControllerDummyMutex(),
-	_absolutePosition(0), _targetPosition(0), _currentPosition(0),
+	_absolutePosition(0), _targetPosition(0), _currentPosition(0), _calibrationTime(0),
 	_positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true),
 	_motorCurrentEnabled(false), _endSwitchPowerEnabled(false), _id(id), _blockMotor(false), 
-	_bothEndSwitchesAlwaysOn(false) {
-    }
+	_bothEndSwitchesAlwaysOn(false),
+	_userMicroStepSize(4),
+	_isFullStepping(false){}
 
     unsigned int MotorControlerDummy::getID() {
       lock_guard guard(_motorControllerDummyMutex);
@@ -39,6 +40,14 @@ namespace mtca4u {
       } else {
         return 0;
       }
+    }
+
+    void MotorControlerDummy::enableFullStepping(bool enable){
+      _isFullStepping = enable;
+    }
+
+    bool MotorControlerDummy::isFullStepping(){
+      return _isFullStepping;
     }
 
     bool MotorControlerDummy::isMotorMoving() {
@@ -81,8 +90,7 @@ namespace mtca4u {
 
     unsigned int MotorControlerDummy::getMicroStepCount() {
       lock_guard guard(_motorControllerDummyMutex);
-      // I actually don't know what to return. I use the current position....
-      return _currentPosition;
+      return ((_currentPosition * _userMicroStepSize) - 1 ) & 0x3FF;
     }
 
     DriverStatusData MotorControlerDummy::getStatus() {
@@ -131,6 +139,16 @@ namespace mtca4u {
       return _motorCurrentEnabled;
     }
 
+    void MotorControlerDummy::setCalibrationTime(uint32_t calibrationTime){
+      lock_guard guard(_motorControllerDummyMutex);
+      _calibrationTime = calibrationTime;
+    }
+
+    uint32_t MotorControlerDummy::getCalibrationTime(){
+      lock_guard guard(_motorControllerDummyMutex);
+      return static_cast<time_t>(_calibrationTime);
+    }
+
     MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {
       lock_guard guard(_motorControllerDummyMutex);
       MotorReferenceSwitchData motorReferenceSwitchData;
@@ -161,8 +179,24 @@ namespace mtca4u {
 
     void MotorControlerDummy::setTargetPosition(int steps) {
       lock_guard guard(_motorControllerDummyMutex);
+      if (_isFullStepping){
+          roundToNextFullStep(steps);
+        }
       _targetPosition = steps;
     }
+
+    void MotorControlerDummy::roundToNextFullStep(int &targetPosition){
+        int delta = targetPosition - _currentPosition;
+        int deltaMicroStep = delta * _userMicroStepSize;
+        unsigned int actualMicroStepCount = ((_currentPosition * _userMicroStepSize) - 1) & 0x3FF;
+        unsigned int newActualMicroStepCount = (actualMicroStepCount + deltaMicroStep) & 0x3FF;
+        unsigned int distanceToPreviousFullStep =  (newActualMicroStepCount + 1) % 256;
+        if (distanceToPreviousFullStep < 128){
+          targetPosition = targetPosition - distanceToPreviousFullStep/_userMicroStepSize;
+        }else{
+          targetPosition = targetPosition + (256 - distanceToPreviousFullStep)/_userMicroStepSize;
+        }
+      }
 
     int MotorControlerDummy::getTargetPosition() {
       lock_guard guard(_motorControllerDummyMutex);
@@ -264,6 +298,7 @@ namespace mtca4u {
       _absolutePosition = 0;
       _targetPosition = 0;
       _currentPosition = 0;
+      _calibrationTime = 0;
       _positiveEndSwitchEnabled = true;
       _negativeEndSwitchEnabled = true;
       _bothEndSwitchesAlwaysOn = false;
