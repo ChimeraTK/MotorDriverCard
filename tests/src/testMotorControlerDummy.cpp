@@ -199,7 +199,7 @@ void MotorControlerDummyTest::testGetSetMicroStepCount(){
   // positive and identical to the actual count.
   // Does this make sense? Check the data sheet. 
   _motorControlerDummy.setActualPosition(5000);
-  BOOST_CHECK( _motorControlerDummy.getMicroStepCount() == 5000 );
+  BOOST_CHECK( _motorControlerDummy.getMicroStepCount() == 543 );
   BOOST_CHECK_THROW(_motorControlerDummy.setMicroStepCount(0),
 		    MotorDriverException);
 }

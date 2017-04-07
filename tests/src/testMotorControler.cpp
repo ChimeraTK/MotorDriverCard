@@ -379,11 +379,13 @@ template<class T>
 void MotorControlerTest::testGetTypedData( T (MotorControlerImpl::* getterFunction)() ){
   T typedWord;
   unsigned int idx = typedWord.getIDX_JDX();
+  //std::cout << idx << std::endl;
   unsigned int expectedContent = tmc429::testWordFromSpiAddress( _motorControler->getID(),
 								 idx );
   // this assignment checks that the delivered data object actually is the right type of object.
   typedWord = ((*_motorControler).*getterFunction)();
   BOOST_CHECK( typedWord.getDATA() == expectedContent );
+  //std::cout << typedWord.getDATA() << " " << expectedContent << std::endl;
   BOOST_CHECK( typedWord.getSMDA() == _motorControler->getID() );
 }
 
