@@ -229,7 +229,6 @@ public:
 			   motorControlerTest,
 			   &MotorControler::getDecoderPosition, DECODER_POSITION_SUFFIX ) ));
 
-      ADD_GET_SET_TEST( TargetPosition );
       ADD_GET_SET_TEST( MinimumVelocity );
       ADD_GET_SET_TEST( MaximumVelocity );
       ADD_GET_SET_TEST( TargetVelocity ); 
@@ -241,6 +240,7 @@ public:
       ADD_GET_SET_TEST( ProportionalityFactorData );
       ADD_GET_SET_TEST( ReferenceConfigAndRampModeData );
       ADD_GET_SET_TEST( InterruptData );
+      ADD_GET_SET_TEST( TargetPosition );
       ADD_GET_SET_TEST( DividersAndMicroStepResolutionData );
 
       ADD_GET_SET_TEST( DriverControlData );
