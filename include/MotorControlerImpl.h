@@ -9,7 +9,6 @@
 #include "SignedIntConverter.h"
 #include "SPIviaPCIe.h"
 #include "TMC429SPI.h"
-#include <mtca4u/Device.h>
 #include  <cstdint>
 
 // Declatations needed in this header.
