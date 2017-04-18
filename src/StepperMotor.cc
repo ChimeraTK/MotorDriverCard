@@ -597,8 +597,8 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotor::translateAxis(float translateInUnits){
-    translateAxisInSteps(recalculateUnitsInSteps(translateInUnits));
+  void StepperMotor::translateAxis(float translationInUnits){
+    translateAxisInSteps(recalculateUnitsInSteps(translationInUnits));
   }
 
   bool StepperMotor::checkIfOverflow(int termA, int termB){

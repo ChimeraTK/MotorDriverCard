@@ -688,16 +688,16 @@ namespace ChimeraTK{
     virtual void setActualPositionInSteps(int actualPositionInSteps);
 
     /**@brief translate the reference axis of the motor. This operation will translate also the software limits
-     * @param actualPositionInSteps translation value in steps
+     * @param translationInSteps translation value in steps
      */
 
     virtual void translateAxisInSteps(int translationInSteps);
 
     /**@brief translate the reference axis of the motor. This operation will translate also the software limits
-     * @param translationInSteps translation value in unit
+     * @param translationInUnits translation value in unit
      */
 
-    virtual void translateAxis(float translateInUnits);
+    virtual void translateAxis(float translationInUnits);
 
     /**
      * @brief get current position of the motor in units
