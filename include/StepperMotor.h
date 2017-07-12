@@ -859,7 +859,7 @@ namespace ChimeraTK{
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
     void checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps);
-    void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
+    virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
   };
 }// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */
