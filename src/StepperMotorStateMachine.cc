@@ -24,7 +24,8 @@ namespace ChimeraTK{
 	  _stop("stopState"),
 	  _emergencyStop("emergencyStop"),
 	  _disable("disable"),
-	  _stepperMotor(stepperMotor){
+	  _stepperMotor(stepperMotor),
+	  _motorControler(stepperMotor._motorControler){
     _initState.setTransition    (noEvent,             &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
     _idle.setTransition         (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this));
     _idle.setTransition         (disableEvent,        &_disable,       std::bind(&StepperMotorStateMachine::actionMoveToFullStep, this));
@@ -44,7 +45,7 @@ namespace ChimeraTK{
   StepperMotorStateMachine::~StepperMotorStateMachine(){}
 
   void StepperMotorStateMachine::getActionCompleteEvent(){
-    if (!_stepperMotor._motorControler->isMotorMoving()){
+    if (!_motorControler->isMotorMoving()){
       _internEvent=StepperMotorStateMachine::actionCompleteEvent;
     }else{
       _internEvent=StateMachine::noEvent;
@@ -52,31 +53,31 @@ namespace ChimeraTK{
   }
 
   void StepperMotorStateMachine::actionIdleToMove(){
-    _stepperMotor._motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
+    _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
   void StepperMotorStateMachine::actionToIdle(){
   }
 
   void StepperMotorStateMachine::actionMovetoStop(){
-    int currentPos = _stepperMotor._motorControler->getActualPosition();
-    _stepperMotor._motorControler->setTargetPosition(currentPos);
+    int currentPos = _motorControler->getActualPosition();
+    _motorControler->setTargetPosition(currentPos);
   }
 
   void StepperMotorStateMachine::actionMoveToFullStep(){
-    bool isFullStepping = _stepperMotor._motorControler->isFullStepping();
-    _stepperMotor._motorControler->enableFullStepping(true);
+    bool isFullStepping = _motorControler->isFullStepping();
+    _motorControler->enableFullStepping(true);
     actionMovetoStop();
-    _stepperMotor._motorControler->enableFullStepping(isFullStepping);
+    _motorControler->enableFullStepping(isFullStepping);
   }
 
   void StepperMotorStateMachine::actionEmergencyStop(){
-    _stepperMotor._motorControler->setMotorCurrentEnabled(false);
-    _stepperMotor.setCalibrationTime(0);
+    _motorControler->setMotorCurrentEnabled(false);
+    _motorControler->setCalibrationTime(0);
   }
 
   void StepperMotorStateMachine::actionDisable(){
-    _stepperMotor._motorControler->setMotorCurrentEnabled(false);
+    _motorControler->setMotorCurrentEnabled(false);
   }
 
   bool StepperMotorStateMachine::propagateEvent(){

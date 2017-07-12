@@ -6,6 +6,8 @@
  */
 
 #include "StateMachine.h"
+#include "MotorControler.h"
+#include <boost/shared_ptr.hpp>
 
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 #define INCLUDE_STEPPERMOTORSTATEMACHINE_H_
@@ -29,6 +31,7 @@ namespace ChimeraTK{
     State _emergencyStop;
     State _disable;
     StepperMotor &_stepperMotor;
+    boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
     void getActionCompleteEvent();
     void actionIdleToMove();
     void actionMovetoStop();
