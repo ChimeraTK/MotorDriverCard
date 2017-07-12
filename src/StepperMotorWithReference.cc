@@ -68,24 +68,17 @@ namespace ChimeraTK{
     resetPositionMotorController(actualPositionInSteps);
   }
 
-  void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
+  void StepperMotorWithReference::setActualPosition(float actualPosition){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    int actualPosition = _motorControler->getActualPosition();
-    resetPositionMotorController(actualPosition+translationInSteps);
-    if (checkIfOverflow(_maxPositionLimitInSteps, translationInSteps)){
-      _maxPositionLimitInSteps = std::numeric_limits<int>::max();
-    }else{
-      _maxPositionLimitInSteps = _maxPositionLimitInSteps + translationInSteps;
-    }
-    if (checkIfOverflow(_minPositionLimitInSteps, translationInSteps)){
-      _minPositionLimitInSteps = std::numeric_limits<int>::min();
-    }else{
-      _minPositionLimitInSteps = _minPositionLimitInSteps + translationInSteps;
-    }
-    if(retrieveCalibrationTime() != 0){
+    resetPositionMotorController(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
+  }
+
+  void StepperMotorWithReference::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
+    StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
+    if(_motorControler->getCalibrationTime() != 0){
       if (checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
 	  checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps)){
 	throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
@@ -94,6 +87,22 @@ namespace ChimeraTK{
 	_calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps + translationInSteps;
       }
     }
+  }
+
+  void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
+  }
+
+  void StepperMotorWithReference::translateAxis(float translationInUnits){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    resetMotorControlerAndCheckOverFlowSoftLimits(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
   }
 
   void StepperMotorWithReference::calibrate(){
@@ -114,22 +123,22 @@ namespace ChimeraTK{
 
   StepperMotorError StepperMotorWithReference::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (isPositiveReferenceActive() && isNegativeReferenceActive()){
+    if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() && _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
       return BOTH_END_SWITCHES_ON;
     }
     if (stateMachineInIdleAndNoEvent()){
       if (_toleranceCalcFailed || _calibrationFailed){
 	return ACTION_ERROR;
       }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&
-	  !isPositiveReferenceActive() &&
-	  !isNegativeReferenceActive()){
+	  !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+	  !_motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
 	return ACTION_ERROR;
       }
     }
     if (_toleranceCalculated){
-      if (isPositiveReferenceActive() && fabs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
+      if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() && std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
 	return CALIBRATION_LOST;
-      }else if(isNegativeReferenceActive() && fabs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
+      }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() && std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
 	return CALIBRATION_LOST;
       }
     }
@@ -137,42 +146,52 @@ namespace ChimeraTK{
   }
 
   int StepperMotorWithReference::getPositiveEndReferenceInSteps(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _calibPositiveEndSwitchInSteps;
   }
 
   float StepperMotorWithReference::getPositiveEndReference(){
-    return recalculateStepsInUnits(_calibPositiveEndSwitchInSteps);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _stepperMotorUnitsConverter->stepsToUnits(_calibPositiveEndSwitchInSteps);
   }
 
   int StepperMotorWithReference::getNegativeEndReferenceInSteps(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _calibNegativeEndSwitchInSteps;
   }
 
   float StepperMotorWithReference::getNegativeEndReference(){
-    return recalculateStepsInUnits(_calibNegativeEndSwitchInSteps);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _stepperMotorUnitsConverter->stepsToUnits(_calibNegativeEndSwitchInSteps);
   }
 
   float StepperMotorWithReference::getTolerancePositiveEndSwitch(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _tolerancePositiveEndSwitch;
   }
 
   float StepperMotorWithReference::getToleranceNegativeEndSwitch(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _toleranceNegativeEndSwitch;
   }
 
   bool StepperMotorWithReference::isPositiveReferenceActive(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
   }
 
   bool StepperMotorWithReference::isNegativeReferenceActive(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
   }
 
   bool StepperMotorWithReference::isPositiveEndSwitchEnabled(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _positiveEndSwitchEnabled;
   }
 
   bool StepperMotorWithReference::isNegativeEndSwitchEnabled(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _negativeEndSwitchEnabled;
   }
 }

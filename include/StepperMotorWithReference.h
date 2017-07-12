@@ -32,52 +32,57 @@ namespace ChimeraTK{
      */
     virtual ~StepperMotorWithReference();
 
-    void setActualPositionInSteps(int actualPositionInSteps);
+    virtual void setActualPositionInSteps(int actualPositionInSteps);
 
-    void translateAxisInSteps(int translationInSteps);
+    virtual void setActualPosition(float actualPosition);
 
-    void calibrate();
+    virtual void translateAxisInSteps(int translationInSteps);
 
-    void determineTolerance();
+    virtual void translateAxis(float translationInUnits);
 
-    StepperMotorError getError();
+    virtual void calibrate();
 
-    float getPositiveEndReference();
+    virtual void determineTolerance();
 
-    int getPositiveEndReferenceInSteps();
+    virtual StepperMotorError getError();
 
-    float getNegativeEndReference();
+    virtual float getPositiveEndReference();
 
-    int getNegativeEndReferenceInSteps();
+    virtual int getPositiveEndReferenceInSteps();
 
-    float getTolerancePositiveEndSwitch();
+    virtual float getNegativeEndReference();
 
-    float getToleranceNegativeEndSwitch();
+    virtual int getNegativeEndReferenceInSteps();
 
-    bool isPositiveReferenceActive();
+    virtual float getTolerancePositiveEndSwitch();
 
-    bool isNegativeReferenceActive();
+    virtual float getToleranceNegativeEndSwitch();
 
-    bool isPositiveEndSwitchEnabled();
+    virtual bool isPositiveReferenceActive();
 
-    bool isNegativeEndSwitchEnabled();
+    virtual bool isNegativeReferenceActive();
+
+    virtual bool isPositiveEndSwitchEnabled();
+
+    virtual bool isNegativeEndSwitchEnabled();
 
     friend class StepperMotorWithReferenceStateMachine;
     friend class StepperMotorWithReferenceTest;
 
   protected:
 
-    bool stateMachineInIdleAndNoEvent();
-    void createStateMachine();
-    bool limitsOK(int newPositionInSteps);
-    bool _positiveEndSwitchEnabled;
-    bool _negativeEndSwitchEnabled;
+    virtual bool stateMachineInIdleAndNoEvent();
+    virtual void createStateMachine();
+    virtual bool limitsOK(int newPositionInSteps);
+    virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
+    std::atomic<bool> _positiveEndSwitchEnabled;
+    std::atomic<bool> _negativeEndSwitchEnabled;
     std::atomic<bool> _calibrationFailed;
     std::atomic<bool> _toleranceCalcFailed;
     std::atomic<bool> _toleranceCalculated;
-    int _calibNegativeEndSwitchInSteps;
-    int _calibPositiveEndSwitchInSteps;
-    float _tolerancePositiveEndSwitch;
-    float _toleranceNegativeEndSwitch;
+    std::atomic<int> _calibNegativeEndSwitchInSteps;
+    std::atomic<int> _calibPositiveEndSwitchInSteps;
+    std::atomic<float> _tolerancePositiveEndSwitch;
+    std::atomic<float> _toleranceNegativeEndSwitch;
   };
 }
