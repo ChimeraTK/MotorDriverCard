@@ -310,9 +310,9 @@ namespace mtca4u {
     return (_motorControler->getUserSpeedLimit());
   }
 
-//  unsigned int StepperMotor::getMicroStepCount(){
-//    return _motorControler->getMicroStepCount();
-//  }
+  //  unsigned int StepperMotor::getMicroStepCount(){
+  //    return _motorControler->getMicroStepCount();
+  //  }
 
   void StepperMotor::enableFullStepping(bool enable){
     _motorControler->enableFullStepping(enable);
@@ -416,39 +416,41 @@ namespace ChimeraTK{
                              std::string const & moduleName,
                              unsigned int motorDriverId,
                              std::string motorDriverCardConfigFileName):
-				       _motorDriverCardDeviceName(motorDriverCardDeviceName),
-				       _motorDriverId(motorDriverId),
-				       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-					   motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
-					   _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-					   _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-					   _targetPositionInSteps(_motorControler->getTargetPosition()),
-					   _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-					   _minPositionLimitInSteps(std::numeric_limits<int>::min()),
-					   _softwareLimitsEnabled(false),
-					   _runStateMachine(true),
-					   _logger(),
-					   _mutex(),
-					   _stateMachineThread(),
-					   _stateMachine(){
+					       _motorDriverCardDeviceName(motorDriverCardDeviceName),
+					       _motorDriverId(motorDriverId),
+					       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+						   motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+						   _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+						   _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+						   _targetPositionInSteps(_motorControler->getTargetPosition()),
+						   _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+						   _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+						   _softwareLimitsEnabled(false),
+						   _runStateMachine(true),
+						   _logger(),
+						   _mutex(),
+						   _converterMutex(),
+						   _stateMachineThread(),
+						   _stateMachine(){
     createStateMachine();
   }
 
   StepperMotor::StepperMotor() :
-	 _motorDriverCardDeviceName(""),
-	 _motorDriverId(0),
-	 _motorDriverCard(),
-	 _motorControler(),
-	 _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-	 _targetPositionInSteps(0),
-	 _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-	 _minPositionLimitInSteps(std::numeric_limits<int>::min()),
-	 _softwareLimitsEnabled(false),
-	 _runStateMachine(true),
-	 _logger(),
-	 _mutex(),
-	 _stateMachineThread(),
-	 _stateMachine(){}
+		 _motorDriverCardDeviceName(""),
+		 _motorDriverId(0),
+		 _motorDriverCard(),
+		 _motorControler(),
+		 _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+		 _targetPositionInSteps(0),
+		 _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+		 _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+		 _softwareLimitsEnabled(false),
+		 _runStateMachine(true),
+		 _logger(),
+		 _mutex(),
+		 _converterMutex(),
+		 _stateMachineThread(),
+		 _stateMachine(){}
 
   StepperMotor::~StepperMotor() {
     _runStateMachine = false;
@@ -457,12 +459,11 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotor::moveToPositionInSteps(int newPositionInSteps){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+  void StepperMotor::checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps){
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    if (retrieveCalibrationTime() == 0){
+    if (_motorControler->getCalibrationTime() == 0){
       throw MotorDriverException("motor not calibrated", MotorDriverException::NOT_IMPLEMENTED);
     }
     if (!limitsOK(newPositionInSteps)){
@@ -482,18 +483,26 @@ namespace ChimeraTK{
     }
   }
 
+  void StepperMotor::moveToPositionInSteps(int newPositionInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    checkConditionsSetTargetPosAndEmitMoveEvent(newPositionInSteps);
+  }
+
   void StepperMotor::moveToPosition(float newPosition){
-    moveToPositionInSteps(recalculateUnitsInSteps(newPosition));
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    checkConditionsSetTargetPosAndEmitMoveEvent(_stepperMotorUnitsConverter->unitsToSteps(newPosition));
   }
 
   void StepperMotor::moveRelativeInSteps(int delta){
-    int newPosition = getCurrentPositionInSteps() + delta;
-    moveToPositionInSteps(newPosition);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    int newPosition = _motorControler->getActualPosition() + delta;
+    checkConditionsSetTargetPosAndEmitMoveEvent(newPosition);
   }
 
   void StepperMotor::moveRelative(float delta){
-    int newPosition = recalculateUnitsInSteps(getCurrentPosition() + delta);
-    moveToPositionInSteps(newPosition);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    int newPosition = _motorControler->getActualPosition() + _stepperMotorUnitsConverter->unitsToSteps(delta);
+    checkConditionsSetTargetPosAndEmitMoveEvent(newPosition);
   }
 
   void StepperMotor::stop(){
@@ -507,10 +516,12 @@ namespace ChimeraTK{
   }
 
   int StepperMotor::recalculateUnitsInSteps(float units){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _stepperMotorUnitsConverter->unitsToSteps(units);
   }
 
   float StepperMotor::recalculateStepsInUnits(int steps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _stepperMotorUnitsConverter->stepsToUnits(steps);
   }
 
@@ -523,6 +534,7 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::getSoftwareLimitsEnabled(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _softwareLimitsEnabled;
   }
 
@@ -538,23 +550,34 @@ namespace ChimeraTK{
   }
 
   void StepperMotor::setSoftwareLimits(float minPos, float maxPos){
-    setSoftwareLimitsInSteps(recalculateUnitsInSteps(minPos), recalculateUnitsInSteps(maxPos));
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }else if(minPos >= maxPos){
+      throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _minPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(minPos);
+    _maxPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(maxPos);
   }
 
   int StepperMotor::getMaxPositionLimitInSteps(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _maxPositionLimitInSteps;
   }
 
   float StepperMotor::getMaxPositionLimit(){
-    return recalculateStepsInUnits(_maxPositionLimitInSteps);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _stepperMotorUnitsConverter->stepsToUnits(_maxPositionLimitInSteps);
   }
 
   int StepperMotor::getMinPositionLimitInSteps(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _minPositionLimitInSteps;
   }
 
   float StepperMotor::getMinPositionLimit(){
-    return recalculateStepsInUnits(_minPositionLimitInSteps);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _stepperMotorUnitsConverter->stepsToUnits(_minPositionLimitInSteps);
   }
 
   void StepperMotor::resetPositionMotorController(int actualPositionInSteps){
@@ -571,18 +594,19 @@ namespace ChimeraTK{
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     resetPositionMotorController(actualPositionInSteps);
-    setCalibrationTime(time(NULL));
+    _motorControler->setCalibrationTime(time(NULL));
   }
 
   void StepperMotor::setActualPosition(float actualPosition){
-    setActualPositionInSteps(recalculateUnitsInSteps(actualPosition));
-  }
-
-  void StepperMotor::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
+    resetPositionMotorController(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
+    _motorControler->setCalibrationTime(time(NULL));
+  }
+
+  void StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
     int actualPosition = _motorControler->getActualPosition();
     resetPositionMotorController(actualPosition+translationInSteps);
     if (checkIfOverflow(_maxPositionLimitInSteps, translationInSteps)){
@@ -597,8 +621,20 @@ namespace ChimeraTK{
     }
   }
 
+  void StepperMotor::translateAxisInSteps(int translationInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
+  }
+
   void StepperMotor::translateAxis(float translationInUnits){
-    translateAxisInSteps(recalculateUnitsInSteps(translationInUnits));
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    resetMotorControlerAndCheckOverFlowSoftLimits(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
   }
 
   bool StepperMotor::checkIfOverflow(int termA, int termB){
@@ -628,7 +664,7 @@ namespace ChimeraTK{
 
   float StepperMotor::getCurrentPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return recalculateStepsInUnits(_motorControler->getActualPosition());
+    return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getActualPosition());
   }
 
   int StepperMotor::getTargetPositionInSteps(){
@@ -638,7 +674,7 @@ namespace ChimeraTK{
 
   float StepperMotor::getTargetPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return recalculateStepsInUnits(_motorControler->getTargetPosition());
+    return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
   }
 
   void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
@@ -685,7 +721,7 @@ namespace ChimeraTK{
 
   bool StepperMotor::isCalibrated(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    uint32_t calibTime = retrieveCalibrationTime();
+    uint32_t calibTime = _motorControler->getCalibrationTime();
     if (calibTime == 0){
       return false;
     }else{
@@ -695,15 +731,7 @@ namespace ChimeraTK{
 
   uint32_t StepperMotor::getCalibrationTime(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return retrieveCalibrationTime();
-  }
-
-  void StepperMotor::setCalibrationTime(uint32_t time){
-    _motorControler->setCalibrationTime(time);
-  }
-
-  uint32_t StepperMotor::retrieveCalibrationTime(){
-    return (_motorControler->getCalibrationTime());
+    return _motorControler->getCalibrationTime();
   }
 
   void StepperMotor::setEnabled(bool enable){
@@ -716,22 +744,27 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::getEnabled(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _motorControler->isMotorCurrentEnabled();
   }
 
   void StepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     _logger.setLogLevel(newLevel);
   }
 
   Logger::LogLevel StepperMotor::getLogLevel() {
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _logger.getLogLevel();
   }
 
   double StepperMotor::getMaxSpeedCapability() {
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _motorControler->getMaxSpeedCapability();
   }
 
   double StepperMotor::getSafeCurrentLimit() {
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return (_motorControler->getMaxCurrentLimit());
   }
 
@@ -744,6 +777,7 @@ namespace ChimeraTK{
   }
 
   double StepperMotor::getUserCurrentLimit() {
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return (_motorControler->getUserCurrentLimit());
   }
 
@@ -756,14 +790,17 @@ namespace ChimeraTK{
   }
 
   double StepperMotor::getUserSpeedLimit() {
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return (_motorControler->getUserSpeedLimit());
   }
 
   void StepperMotor::enableFullStepping(bool enable){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     _motorControler->enableFullStepping(enable);
   }
 
   bool StepperMotor::isFullStepping(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
     return _motorControler->isFullStepping();
   }
 

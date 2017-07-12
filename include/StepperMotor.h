@@ -840,13 +840,14 @@ namespace ChimeraTK{
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
     boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    int _targetPositionInSteps;
+    std::atomic<int> _targetPositionInSteps;
     int   _maxPositionLimitInSteps;
     int   _minPositionLimitInSteps;
     bool _softwareLimitsEnabled;
     volatile std::atomic<bool> _runStateMachine;
     Logger _logger;
     mutable boost::mutex _mutex;
+    boost::mutex _converterMutex;
     std::thread _stateMachineThread;
     std::shared_ptr<StateMachine> _stateMachine;
     //std::atomic<bool> _calibrated;
@@ -857,8 +858,8 @@ namespace ChimeraTK{
     virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
-    void setCalibrationTime(uint32_t time);
-    uint32_t retrieveCalibrationTime();
+    void checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps);
+    void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
   };
 }// namespace
 #endif	/* MTCA4U_STEPPER_MOTOR_H */
