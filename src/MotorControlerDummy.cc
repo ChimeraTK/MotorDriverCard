@@ -8,17 +8,43 @@ typedef std::unique_lock<std::mutex> unique_lock;
 
 namespace mtca4u {
 
-    int MotorControlerDummy::_positiveEndSwitchPosition = 10000;
-    int MotorControlerDummy::_negativeEndSwitchPosition = -10000;
+//    std::atomic<int> MotorControlerDummy::_positiveEndSwitchPosition; //= 10000;
+//    std::atomic<int> MotorControlerDummy::_negativeEndSwitchPosition;// = -10000;
 
     MotorControlerDummy::MotorControlerDummy(unsigned int id)
       : _motorControllerDummyMutex(),
 	_absolutePosition(0), _targetPosition(0), _currentPosition(0), _calibrationTime(0),
 	_positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true),
-	_motorCurrentEnabled(false), _endSwitchPowerEnabled(false), _id(id), _blockMotor(false), 
+	_motorCurrentEnabled(false), _endSwitchPowerEnabled(false),
+	_positiveEndSwitchPosition(10000),
+	_negativeEndSwitchPosition(-10000),
+	_id(id), _blockMotor(false),
 	_bothEndSwitchesAlwaysOn(false),
 	_userMicroStepSize(4),
-	_isFullStepping(false){}
+	_isFullStepping(false){
+      MotorControlerDummy::_positiveEndSwitchPosition = 10000;
+      MotorControlerDummy::_negativeEndSwitchPosition = -10000;
+    }
+
+    void MotorControlerDummy::setPositiveEndSwitch(int endSwicthPos){
+      lock_guard guard(_motorControllerDummyMutex);
+      _positiveEndSwitchPosition = endSwicthPos;
+    }
+
+    int MotorControlerDummy::getPositiveEndSwitch(){
+      lock_guard guard(_motorControllerDummyMutex);
+      return _positiveEndSwitchPosition;
+    }
+
+    void MotorControlerDummy::setNegativeEndSwitch(int endSwitchNeg){
+      lock_guard guard(_motorControllerDummyMutex);
+      _negativeEndSwitchPosition = endSwitchNeg;
+    }
+
+    int MotorControlerDummy::getNEgativeEndSwitch(){
+      lock_guard guard(_motorControllerDummyMutex);
+      return _negativeEndSwitchPosition;
+    }
 
     unsigned int MotorControlerDummy::getID() {
       lock_guard guard(_motorControllerDummyMutex);

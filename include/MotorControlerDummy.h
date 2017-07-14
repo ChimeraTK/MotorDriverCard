@@ -3,6 +3,7 @@
 
 #include "MotorControler.h"
 #include <mutex>
+#include <atomic>
 
 #define MCD_DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -126,8 +127,13 @@ namespace mtca4u{
 
     virtual bool isMotorMoving();
 
-    static int _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
-    static int _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
+    void setPositiveEndSwitch(int endSwitchPos);
+    int  getPositiveEndSwitch();
+    void setNegativeEndSwitch(int endSwitchNeg);
+    int  getNEgativeEndSwitch();
+
+//    static std::atomic<int> _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
+//    static std::atomic<int> _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
     mutable std::mutex _motorControllerDummyMutex;
     int _absolutePosition; ///< Like the real absolute position of a motor, in steps
@@ -143,6 +149,8 @@ namespace mtca4u{
     bool _motorCurrentEnabled;///< Flag indicating if motor current (driver chip) is enabled
     bool _endSwitchPowerEnabled;///< Flag indicating if the end switches are powered up
     ///< not change if this flag is false.
+    int _positiveEndSwitchPosition;
+    int _negativeEndSwitchPosition;
 
     unsigned int _id;
 
