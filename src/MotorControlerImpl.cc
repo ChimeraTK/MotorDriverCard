@@ -125,8 +125,6 @@ namespace mtca4u
     _localTargetPosition = retrieveTargetPositonAndConvert();
     _userMicroStepSize = pow(2, motorControlerConfig.driverControlData.getMicroStepResolution());
 
-    //std::cout << "user micro step size " << _userMicroStepSize << std::endl;
-
     // enabling the motor is the last step after setting all registers
     setEnabled( motorControlerConfig.enabled );
     try {

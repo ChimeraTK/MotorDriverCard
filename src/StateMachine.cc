@@ -42,11 +42,9 @@ namespace ChimeraTK{
     it = _transitionTable.find(event);
     if (it !=_transitionTable.end()){
       (it->second).callbackAction();
-      //std::cout << "target state " << (it->second).targetState->getName() << std::endl;
       return ((it->second).targetState);
       _unknownEvent = false;
     }else{
-      //std::cout << "unknown event " << std::string(event) << std::endl;
       _unknownEvent = true;
       return this;
     }
@@ -96,7 +94,6 @@ namespace ChimeraTK{
     if (_userEvent == noEvent){
       _currentState = _currentState->performTransition(getAndResetInternalEvent());
     }else{
-      //std::cout << std::string(_userEvent) << std::endl;
       _currentState = _currentState->performTransition(getAndResetUserEvent());
     }
   }
@@ -108,7 +105,6 @@ namespace ChimeraTK{
   State* StateMachine::performTransition(Event event){
     setUserEvent(event);
     processEvent();
-    //std::cout << std::string(event) << " " <<  _unknownEvent << std::endl;
     if (propagateEvent()){
       return State::performTransition(event);
     }else{

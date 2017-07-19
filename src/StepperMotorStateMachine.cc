@@ -56,8 +56,7 @@ namespace ChimeraTK{
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
-  void StepperMotorStateMachine::actionToIdle(){
-  }
+  void StepperMotorStateMachine::actionToIdle(){}
 
   void StepperMotorStateMachine::actionMovetoStop(){
     int currentPos = _motorControler->getActualPosition();
