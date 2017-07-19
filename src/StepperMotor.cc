@@ -814,7 +814,7 @@ namespace ChimeraTK{
 
   void StepperMotor::stateMachineThreadFunction(){
     while(_runStateMachine){
-      usleep(100);
+      std::this_thread::sleep_for(std::chrono::microseconds(100));
       stateMachinePerformTransition();
     }
   }
