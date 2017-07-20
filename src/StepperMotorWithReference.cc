@@ -22,7 +22,8 @@ namespace ChimeraTK{
                                                 		    _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
                                                 		    _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()),
                                                 		    _tolerancePositiveEndSwitch(0),
-                                                		    _toleranceNegativeEndSwitch(0){
+                                                		    _toleranceNegativeEndSwitch(0),
+                                                		    _index(0){
     _motorDriverCardDeviceName = motorDriverCardDeviceName;
     _motorDriverId = motorDriverId;
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);

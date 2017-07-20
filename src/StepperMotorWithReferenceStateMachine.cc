@@ -184,7 +184,7 @@ namespace ChimeraTK{
 
     int endSwitchPosition = getPositionEndSwitch(sign);
 
-    for (unsigned int i=0; i<10; i++){
+    for (_stepperMotorWithReference._index=0; _stepperMotorWithReference._index<10; _stepperMotorWithReference._index++){
       if (_stopAction || _moveInterrupted){
 	break;
       }
