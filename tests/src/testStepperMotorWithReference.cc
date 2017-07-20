@@ -432,11 +432,15 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
 
 void StepperMotorWithReferenceTest::testDetermineToleranceError(){
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotorWithReference.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotorWithReference->setEnabled(true);
   _stepperMotorWithReference->_mutex.lock();
   _stepperMotorWithReference->_motorControler->setCalibrationTime(15);
   _stepperMotorWithReference->_mutex.unlock();
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
+  _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
+  _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
   while(!_stepperMotorWithReference->isSystemIdle()){}
   _stepperMotorWithReference->determineTolerance();
   waitForDetTolerance();
@@ -465,18 +469,23 @@ void StepperMotorWithReferenceTest::testDetermineToleranceError(){
 
 void StepperMotorWithReferenceTest::testDetermineToleranceStop(){
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotorWithReference.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotorWithReference->setEnabled(true);
+  _motorControlerDummy->setPositiveEndSwitch(10000);
+  _motorControlerDummy->setNegativeEndSwitch(-10000);
+  _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
+  _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
+  while(!_stepperMotorWithReference->isSystemIdle()){}
   _stepperMotorWithReference->_mutex.lock();
   _stepperMotorWithReference->_motorControler->setCalibrationTime(15);
   _stepperMotorWithReference->_mutex.unlock();
   _motorControlerDummy->simulateBlockedMotor(false);
-  _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = -10000;
-  _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
-  while(!_stepperMotorWithReference->isSystemIdle()){}
   _stepperMotorWithReference->determineTolerance();
   waitToSetPositiveTargetPos(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps - 1000);
   _stepperMotorWithReference->stop();
-  _motorControlerDummy->moveTowardsTarget(1);
   waitForStop();
+  _motorControlerDummy->moveTowardsTarget(1);
+  waitToSetPositiveTargetPos(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps + 1000);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotorWithReference->isSystemIdle()){}
   BOOST_CHECK(_stepperMotorWithReference->_toleranceCalculated == false);
