@@ -4,6 +4,7 @@
 #include "MotorControlerExpert.h"
 
 #include <mutex>
+#include <atomic>
 
 #include "MotorControlerConfig.h"
 #include "SignedIntConverter.h"
