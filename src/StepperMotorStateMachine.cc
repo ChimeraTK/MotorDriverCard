@@ -72,6 +72,7 @@ namespace ChimeraTK{
 
   void StepperMotorStateMachine::actionEmergencyStop(){
     _motorControler->setMotorCurrentEnabled(false);
+    _motorControler->setEndSwitchPowerEnabled(false);
     _motorControler->setCalibrationTime(0);
   }
 
