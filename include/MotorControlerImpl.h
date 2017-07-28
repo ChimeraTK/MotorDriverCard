@@ -250,7 +250,7 @@ namespace mtca4u
      SignedIntConverter converter24bits;
      SignedIntConverter converter12bits;
 
-     bool _moveOnlyFullStep;
+     std::atomic<bool> _moveOnlyFullStep;
      //unsigned int _microStepsPerFullStep;
      unsigned int _userMicroStepSize;
 
