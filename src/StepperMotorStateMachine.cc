@@ -77,6 +77,7 @@ namespace ChimeraTK{
 
   void StepperMotorStateMachine::actionDisable(){
     _motorControler->setMotorCurrentEnabled(false);
+    _motorControler->setEndSwitchPowerEnabled(false);
   }
 
   bool StepperMotorStateMachine::propagateEvent(){

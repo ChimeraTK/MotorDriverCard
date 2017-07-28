@@ -738,6 +738,7 @@ namespace ChimeraTK{
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (enable){
       _motorControler->setMotorCurrentEnabled(enable);
+      _motorControler->setEndSwitchPowerEnabled(enable);
     }else{
       _stateMachine->setUserEvent(StepperMotorStateMachine::disableEvent);
     }
@@ -745,7 +746,8 @@ namespace ChimeraTK{
 
   bool StepperMotor::getEnabled(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _motorControler->isMotorCurrentEnabled();
+    return (_motorControler->isEndSwitchPowerEnabled() ||
+    	_motorControler->isMotorCurrentEnabled());
   }
 
   void StepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){
