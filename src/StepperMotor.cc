@@ -538,27 +538,45 @@ namespace ChimeraTK{
     return _softwareLimitsEnabled;
   }
 
-  void StepperMotor::setSoftwareLimitsInSteps(int minPos, int maxPos){
+  void StepperMotor::setMaxPositionLimitInSteps(int maxPos){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
-    }else if(minPos >= maxPos){
+    }else if(maxPos <= _minPositionLimitInSteps){
       throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _minPositionLimitInSteps = minPos;
     _maxPositionLimitInSteps = maxPos;
   }
 
-  void StepperMotor::setSoftwareLimits(float minPos, float maxPos){
+  void StepperMotor::setMaxPositionLimit(float maxPos){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
-    }else if(minPos >= maxPos){
+    }else if(_stepperMotorUnitsConverter->unitsToSteps(maxPos) <= _minPositionLimitInSteps){
       throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _minPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(minPos);
     _maxPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(maxPos);
   }
+
+  void StepperMotor::setMinPositionLimitInSteps(int minPos){
+      boost::lock_guard<boost::mutex> guard(_mutex);
+      if (!stateMachineInIdleAndNoEvent()){
+        throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      }else if(minPos >= _maxPositionLimitInSteps){
+        throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
+      }
+      _minPositionLimitInSteps = minPos;
+    }
+
+  void StepperMotor::setMinPositionLimit(float minPos){
+      boost::lock_guard<boost::mutex> guard(_mutex);
+      if (!stateMachineInIdleAndNoEvent()){
+        throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      }else if(_stepperMotorUnitsConverter->unitsToSteps(minPos) >= _maxPositionLimitInSteps){
+        throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
+      }
+      _minPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(minPos);
+    }
 
   int StepperMotor::getMaxPositionLimitInSteps(){
     boost::lock_guard<boost::mutex> guard(_mutex);

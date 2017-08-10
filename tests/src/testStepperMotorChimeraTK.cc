@@ -150,9 +150,13 @@ void StepperMotorChimeraTKTest::waitForDisable(){
 void StepperMotorChimeraTKTest::testSoftLimits(){
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == false);
-  BOOST_CHECK_THROW(_stepperMotor->setSoftwareLimitsInSteps(1000, -1000), mtca4u::MotorDriverException);
-  BOOST_CHECK_THROW(_stepperMotor->setSoftwareLimitsInSteps(1000, 1000), mtca4u::MotorDriverException);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setSoftwareLimitsInSteps(-1000, 1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(-1000));
+  BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(1000), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000), mtca4u::MotorDriverException);
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
+  BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimitInSteps(-1000), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimitInSteps(-2000), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == 1000);
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1000);
 }
@@ -197,11 +201,13 @@ void StepperMotorChimeraTKTest::testTranslateAxis(){
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()));
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == std::numeric_limits<int>::max());
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1200 + std::numeric_limits<int>::max());
-  BOOST_CHECK_NO_THROW(_stepperMotor->setSoftwareLimitsInSteps(-1000, 1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()));
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == std::numeric_limits<int>::min() + 1000);
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == std::numeric_limits<int>::min());
-  BOOST_CHECK_NO_THROW(_stepperMotor->setSoftwareLimitsInSteps(-1000, 1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
   BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
 }
 
@@ -237,7 +243,8 @@ void StepperMotorChimeraTKTest::testMove(){
   BOOST_CHECK_THROW(_stepperMotor->setSoftwareLimitsEnabled(false), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == true);
-  BOOST_CHECK_THROW(_stepperMotor->setSoftwareLimitsInSteps(20000, 40000), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(20000), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimitInSteps(40000), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == 1000);
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1000);
   BOOST_CHECK_THROW(_stepperMotor->setActualPositionInSteps(10000), mtca4u::MotorDriverException);
@@ -438,8 +445,10 @@ void StepperMotorChimeraTKTest::testConverter(){
   _stepperMotor->setActualPosition(10.3);
   BOOST_CHECK_CLOSE(_stepperMotor->getCurrentPosition(), 10.3, 1e-4);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 103);
-  BOOST_CHECK_THROW(_stepperMotor->setSoftwareLimits(90, -90), mtca4u::MotorDriverException);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setSoftwareLimits(-90, 90));
+  BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimit(-900), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimit(900), mtca4u::MotorDriverException);
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimit(90));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimit(-90));
   BOOST_CHECK(_stepperMotor->getMinPositionLimit() == -90);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimit() ==  90);
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -900);

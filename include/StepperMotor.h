@@ -639,18 +639,28 @@ namespace ChimeraTK{
     virtual bool getSoftwareLimitsEnabled();
 
     /**
-     * @brief set software limits in units
-     * @param minPos minimum limit
+     * @brief set maximum software limit in units
      * @param maxPos maximum limit
      */
-    virtual void setSoftwareLimits(float minPos, float maxPos);
+    virtual void setMaxPositionLimit(float maxPos);
 
     /**
-     * @brief set software limits in steps
-     * @param minPos minimum limit
+     * @brief set maximum software limit in steps
      * @param maxPos maximum limit
      */
-    virtual void setSoftwareLimitsInSteps(int minPos, int maxPos);
+    virtual void setMaxPositionLimitInSteps(int maxPos);
+
+    /**
+     * @brief set minimum software limit in units
+     * @param minPos minimum limit
+     */
+    virtual void setMinPositionLimit(float minPos);
+
+    /**
+     * @brief set minimum software limit in steps
+     * @param minPos maximum limit
+     */
+    virtual void setMinPositionLimitInSteps(int minPos);
 
     /**
      * @brief get maximal software position limit in units
