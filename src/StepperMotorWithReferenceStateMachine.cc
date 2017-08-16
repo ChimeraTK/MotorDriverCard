@@ -14,15 +14,15 @@ namespace ChimeraTK{
   Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
 
   StepperMotorWithReferenceStateMachine::StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference) :
-	  StateMachine("StepperMotorWithReferenceStateMachine"),
-	  _calibrating("calibrating"),
-	  _calculatingTolerance("calculatingTolerance"),
-	  _interruptingAction("interruptingAction"),
-	  _baseStateMachine(stepperMotorWithReference),
-	  _stepperMotorWithReference(stepperMotorWithReference),
-	  _future(),
-	  _stopAction(false),
-	  _moveInterrupted(false){
+	      StateMachine("StepperMotorWithReferenceStateMachine"),
+	      _calibrating("calibrating"),
+	      _calculatingTolerance("calculatingTolerance"),
+	      _interruptingAction("interruptingAction"),
+	      _baseStateMachine(stepperMotorWithReference),
+	      _stepperMotorWithReference(stepperMotorWithReference),
+	      _future(),
+	      _stopAction(false),
+	      _moveInterrupted(false){
     _initState.setTransition(StateMachine::noEvent, &_baseStateMachine, [](){});
     _baseStateMachine.setTransition(StepperMotorWithReferenceStateMachine::calibEvent,
                                     &_calibrating,
@@ -128,7 +128,9 @@ namespace ChimeraTK{
 
   void StepperMotorWithReferenceStateMachine::moveToEndSwitch(Sign sign){
     _stepperMotorWithReference._motorControler->setTargetPosition(_stepperMotorWithReference._motorControler->getActualPosition() + sign*50000);
-    while (_stepperMotorWithReference._motorControler->isMotorMoving()){}
+    while (_stepperMotorWithReference._motorControler->isMotorMoving()){
+      std::this_thread::sleep_for(std::chrono::microseconds(100));
+    }
   }
 
   bool StepperMotorWithReferenceStateMachine::isEndSwitchActive(Sign sign){
@@ -189,7 +191,9 @@ namespace ChimeraTK{
 	break;
       }
       _stepperMotorWithReference._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
-      while (_stepperMotorWithReference._motorControler->isMotorMoving()){}
+      while (_stepperMotorWithReference._motorControler->isMotorMoving()){
+	std::this_thread::sleep_for(std::chrono::microseconds(100));
+      }
       if (_stepperMotorWithReference._motorControler->getTargetPosition() != _stepperMotorWithReference._motorControler->getActualPosition() &&
 	  !_stepperMotorWithReference._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
 	  !_stepperMotorWithReference._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
@@ -197,7 +201,9 @@ namespace ChimeraTK{
 	break;
       }
       _stepperMotorWithReference._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
-      while (_stepperMotorWithReference._motorControler->isMotorMoving()){}
+      while (_stepperMotorWithReference._motorControler->isMotorMoving()){
+	std::this_thread::sleep_for(std::chrono::microseconds(100));
+      }
       if (!isEndSwitchActive(sign)){
 	_moveInterrupted = true;
 	break;
