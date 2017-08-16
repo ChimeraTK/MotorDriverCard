@@ -418,8 +418,8 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
     while (_stepperMotorWithReference->_index != i+1 && i != 9){}
   }
   while(!_stepperMotorWithReference->isSystemIdle()){}
-  BOOST_CHECK_CLOSE(_stepperMotorWithReference->getTolerancePositiveEndSwitch(), 2.87228, 0.001);
-  BOOST_CHECK_CLOSE(_stepperMotorWithReference->getToleranceNegativeEndSwitch(), 28.72281, 0.001);
+  BOOST_CHECK_CLOSE(_stepperMotorWithReference->getTolerancePositiveEndSwitch(), 3.02765, 0.001);
+  BOOST_CHECK_CLOSE(_stepperMotorWithReference->getToleranceNegativeEndSwitch(), 30.2765, 0.001);
   _stepperMotorWithReference->moveToPositionInSteps(0);
   waitToSetPositiveTargetPos(0);
   _motorControlerDummy->moveTowardsTarget(1);
@@ -452,6 +452,8 @@ void StepperMotorWithReferenceTest::testDetermineToleranceError(){
   BOOST_CHECK(_stepperMotorWithReference->_toleranceCalculated == false);
   BOOST_CHECK(_stepperMotorWithReference->_toleranceCalcFailed == true);
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotorWithReference->_tolerancePositiveEndSwitch = 100;
+  _stepperMotorWithReference->_toleranceNegativeEndSwitch = 100;
   _stepperMotorWithReference->_calibNegativeEndSwitchInSteps = 0;
   _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  20000;
   _stepperMotorWithReference->_toleranceCalculated = true;

@@ -212,17 +212,13 @@ namespace ChimeraTK{
 
       meanMeasurement += _stepperMotorWithReference._motorControler->getActualPosition() / 10.;
       measurements[_stepperMotorWithReference._index] = _stepperMotorWithReference._motorControler->getActualPosition();
-      //meanSquare += (_stepperMotorWithReference._motorControler->getActualPosition() / 10.) * _stepperMotorWithReference._motorControler->getActualPosition();
     }
 
-    for (unsigned int i=0; i<10; i++){
-      stdMeasurememnt += ((measurements[i] - meanMeasurement) / 9) * (measurements[i] - meanMeasurement);
+    if (!(_stopAction || _moveInterrupted) ){
+      for (unsigned int i=0; i<10; i++){
+	stdMeasurememnt += ((measurements[i] - meanMeasurement) / 9) * (measurements[i] - meanMeasurement);
+      }
     }
-
-//    squareMean = squareMean / 10;
-//    meanSquare = meanSquare / 10;
-
-    //std::cout << squareMean << " " << meanSquare << std::endl;
 
     return sqrt(stdMeasurememnt);
   }
