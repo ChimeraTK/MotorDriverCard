@@ -181,8 +181,9 @@ namespace ChimeraTK{
   }
 
   double StepperMotorWithReferenceStateMachine::getToleranceEndSwitch(Sign sign){
-    double squareMean = 0;
-    double meanSquare = 0;
+    double meanMeasurement = 0;
+    double stdMeasurememnt = 0;
+    double measurements[10];
 
     int endSwitchPosition = getPositionEndSwitch(sign);
 
@@ -209,14 +210,21 @@ namespace ChimeraTK{
 	break;
       }
 
-      squareMean += _stepperMotorWithReference._motorControler->getActualPosition();
-      meanSquare += _stepperMotorWithReference._motorControler->getActualPosition() * _stepperMotorWithReference._motorControler->getActualPosition();
+      meanMeasurement += _stepperMotorWithReference._motorControler->getActualPosition() / 10.;
+      measurements[_stepperMotorWithReference._index] = _stepperMotorWithReference._motorControler->getActualPosition();
+      //meanSquare += (_stepperMotorWithReference._motorControler->getActualPosition() / 10.) * _stepperMotorWithReference._motorControler->getActualPosition();
     }
 
-    squareMean = squareMean / 10;
-    meanSquare = meanSquare / 10;
+    for (unsigned int i=0; i<10; i++){
+      stdMeasurememnt += ((measurements[i] - meanMeasurement) / 9) * (measurements[i] - meanMeasurement);
+    }
 
-    return sqrt(meanSquare - squareMean * squareMean);
+//    squareMean = squareMean / 10;
+//    meanSquare = meanSquare / 10;
+
+    //std::cout << squareMean << " " << meanSquare << std::endl;
+
+    return sqrt(stdMeasurememnt);
   }
 }
 
