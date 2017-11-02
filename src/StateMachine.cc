@@ -42,8 +42,8 @@ namespace ChimeraTK{
     it = _transitionTable.find(event);
     if (it !=_transitionTable.end()){
       (it->second).callbackAction();
-      return ((it->second).targetState);
       _unknownEvent = false;
+      return ((it->second).targetState);
     }else{
       _unknownEvent = true;
       return this;
