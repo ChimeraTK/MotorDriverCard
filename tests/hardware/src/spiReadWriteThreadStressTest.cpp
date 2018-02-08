@@ -1,5 +1,5 @@
 #include "MotorDriverCard.h"
-#include "MotorDriverCardImpl.h"
+#include "MotorDriverCardExpert.h"
 #include "MotorDriverCardFactory.h"
 #include "MotorControlerExpert.h"
 #include "TMC429DummyConstants.h"
@@ -369,7 +369,7 @@ void SpiReadWriteThreadStressTest::readReferenceSwitchData(
 		boost::shared_ptr<MotorDriverCard> & motorDriverCard,
 		boost::shared_ptr<MotorControlerExpert>  & /* motorControler, not used */ ){
 
-  boost::dynamic_pointer_cast<MotorDriverCardImpl>(motorDriverCard)->getReferenceSwitchData();
+  boost::dynamic_pointer_cast<MotorDriverCardExpert>(motorDriverCard)->getReferenceSwitchData();
   // do nothing with it, just read
 }
 

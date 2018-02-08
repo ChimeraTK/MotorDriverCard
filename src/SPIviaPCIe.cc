@@ -1,4 +1,4 @@
-#include "SPIviaPCIe.h"
+#include "impl/SPIviaPCIe.h"
 #include "DFMC_MD22Constants.h"
 #include "MotorDriverException.h"
 #include <ctime>

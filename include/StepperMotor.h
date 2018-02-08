@@ -17,7 +17,7 @@
 
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
-#include "MotorDriverCardImpl.h"
+#include "MotorDriverCard.h"
 #include "MotorControler.h"
 #include "MotorDriverException.h"
 

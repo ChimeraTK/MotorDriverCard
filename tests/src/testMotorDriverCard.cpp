@@ -2,7 +2,7 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Dummy.h"
-#include "MotorDriverCardImpl.h"
+#include "impl/MotorDriverCardImpl.h"
 #include "MotorControlerExpert.h"
 #include "MotorDriverException.h"
 #include <mtca4u/MapFileParser.h>

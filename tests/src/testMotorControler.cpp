@@ -5,8 +5,8 @@ using namespace boost::unit_test_framework;
 #include <thread>
 
 #include "DFMC_MD22Dummy.h"
-#include "MotorDriverCardImpl.h"
-#include "MotorControlerImpl.h"
+#include "impl/MotorDriverCardImpl.h"
+#include "impl/MotorControlerImpl.h"
 #include "DFMC_MD22Constants.h"
 #include "testWordFromPCIeAddress.h"
 using namespace mtca4u::dfmc_md22;

@@ -1,4 +1,4 @@
-#include "TMC429SPI.h"
+#include "impl/TMC429SPI.h"
 #include "TMC429Constants.h"
 
 namespace mtca4u{

@@ -11,15 +11,7 @@
 #include "SPIviaPCIe.h"
 #include "TMC429SPI.h"
 #include  <cstdint>
-
-// Declatations needed in this header.
-// We intentionally do not include the mtca4u:Device header here
-// in order not to expose its interface. It is not part of the public API 
-// of this library.
-namespace mtca4u{
-  class Device;
-  class RegisterAccessor;
-}
+#include <mtca4u/Device.h>
 
 #define MCI_DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\

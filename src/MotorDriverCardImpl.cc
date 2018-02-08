@@ -5,8 +5,8 @@
 #include <cerrno>
 
 #include "MotorDriverException.h" 
-#include "MotorDriverCardImpl.h"
-#include "MotorControlerImpl.h"
+#include "impl/MotorDriverCardImpl.h"
+#include "impl/MotorControlerImpl.h"
 using namespace mtca4u::tmc429;
 
 #include <mtca4u/Device.h>

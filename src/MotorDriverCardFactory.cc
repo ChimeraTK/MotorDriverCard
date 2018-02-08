@@ -1,6 +1,6 @@
 #include "MotorDriverCardFactory.h"
 
-#include "MotorDriverCardImpl.h"
+#include "impl/MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
 #include <mtca4u/Device.h>

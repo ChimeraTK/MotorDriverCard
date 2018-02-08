@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverCardImpl.h"
+#include "MotorDriverCard.h"
 #include "MotorControlerExpert.h"
 #include <mtca4u/DMapFileParser.h>
 #include <mtca4u/BackendFactory.h>

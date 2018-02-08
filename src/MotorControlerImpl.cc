@@ -1,11 +1,11 @@
-#include "MotorControlerImpl.h"
+#include "impl/MotorControlerImpl.h"
 
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
 #include "TMC429Constants.h"
 using namespace mtca4u::tmc429;
 
-#include "MotorDriverCardImpl.h"
+#include "impl/MotorDriverCardImpl.h"
 #include <mtca4u/Device.h>
 #include <cmath>
 

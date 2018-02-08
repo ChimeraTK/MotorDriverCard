@@ -6,7 +6,7 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Constants.h"
 #include <mtca4u/Device.h>
 #include <mtca4u/MapFileParser.h>
-#include "SPIviaPCIe.h"
+#include "impl/SPIviaPCIe.h"
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 #include "TMC260Words.h"

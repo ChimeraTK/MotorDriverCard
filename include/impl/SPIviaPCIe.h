@@ -1,17 +1,12 @@
 #ifndef MTCA4U_SPI_VIA_PCIE_H
 #define MTCA4U_SPI_VIA_PCIE_H
 
+#include <mtca4u/Device.h>
+
 #include <boost/thread/recursive_mutex.hpp>
 namespace mtca4u{
 
-  // Declatations needed in this header.
-  // We intentionally do not include the mtca4u:Device header here
-  // in order not to expose its interface. It is not part of the public API 
-  // of this library.
-  class Device;
-  class RegisterAccessor;
-
-	/** This class implements synchronous SPI operation over PCIexpress, using an SPI command register
+  /** This class implements synchronous SPI operation over PCIexpress, using an SPI command register
    *  and a synchronisation register. Readback is optional.
    * 
    */

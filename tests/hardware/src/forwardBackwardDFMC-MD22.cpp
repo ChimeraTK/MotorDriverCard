@@ -1,7 +1,8 @@
 #include <iostream>
 
-#include "MotorDriverCardImpl.h"
+#include "MotorDriverCardExpert.h"
 #include "MotorDriverException.h"
+#include "MotorControler.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardFactory.h"
 #include <mtca4u/DMapFileParser.h>
@@ -69,8 +70,8 @@ int main( int argc, char* argv[] )
   int32_t ONE = 1;
   device.writeReg("WORD_RESET_N","BOARD0",&ONE);
 
-  boost::shared_ptr<mtca4u::MotorDriverCardImpl> motorDriverCard
-	= boost::dynamic_pointer_cast<mtca4u::MotorDriverCardImpl>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3] ));
+  boost::shared_ptr<mtca4u::MotorDriverCardExpert> motorDriverCard
+	= boost::dynamic_pointer_cast<mtca4u::MotorDriverCardExpert>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3] ));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the motor
 
