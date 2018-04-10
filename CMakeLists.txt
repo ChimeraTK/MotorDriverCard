@@ -31,7 +31,9 @@ if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
 
-include(${CMAKE_SOURCE_DIR}/cmake/enable_cxx11_support.cmake)
+#Technically we only need c++11 in the MotorDriverCard interface. For consistency in libraries that also use deviceaccess, which needs c++14, we also set
+#the c++ version to 14. No harm done, as it is used for the compilation anyway.
+set(${PROJECT_NAME}_CXX_FLAGS "-std=c++14")
 
 #use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
 
