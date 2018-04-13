@@ -28,7 +28,7 @@ if(TESTING_IS_ENABLED)
     #NAME_WE means the base name without path and (longest) extension
     get_filename_component(excutableName ${testSourceFile} NAME_WE)
     add_executable(${excutableName} ${testSourceFile})
-    target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_LIBRARIES})    
+    target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
     add_test(${excutableName} ${excutableName})
   endforeach( testSourceFile )
   
