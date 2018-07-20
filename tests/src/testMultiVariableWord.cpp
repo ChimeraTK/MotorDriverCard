@@ -122,8 +122,8 @@ class MultiVariableWordTest
 template <class T>
 class MultiVariableWordTestSuite : public test_suite {
 public:
-  MultiVariableWordTestSuite()
-    : test_suite(" MultiVariableWord test suite") {
+  MultiVariableWordTestSuite(std::string testSuiteName)
+    : test_suite(testSuiteName) {
         // add member function test cases to a test suite
         boost::shared_ptr<MultiVariableWordTest<T> > multiVariableWord( new MultiVariableWordTest<T> );
 
@@ -157,11 +157,11 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
   framework::master_test_suite().p_name.value = "MultiVariableWordTest";
   
   framework::master_test_suite().add( 
-      new MultiVariableWordTestSuite<ThreeVariablesNotConnectedWord> );
+       new MultiVariableWordTestSuite<ThreeVariablesNotConnectedWord>("ThreeVariablesNotConnectedWord test suite") );
   framework::master_test_suite().add( 
-      new MultiVariableWordTestSuite<ThreeVariablesContiguousEdgesWord> );
+      new MultiVariableWordTestSuite<ThreeVariablesContiguousEdgesWord>("ThreeVariablesContiguousEdgesWord test suite") );
   framework::master_test_suite().add( 
-      new MultiVariableWordTestSuite<SingleBitNotConnectedWord> );
+      new MultiVariableWordTestSuite<SingleBitNotConnectedWord>("SingleBitNotConnectedWord test suite") );
 
   return 0;
 }
