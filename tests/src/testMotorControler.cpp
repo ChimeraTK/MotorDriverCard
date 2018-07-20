@@ -169,8 +169,8 @@ class  MotorControlerTestSuite : public test_suite{
 private:
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
 public:
-  MotorControlerTestSuite(std::string const & mapFileName) 
-    : test_suite(" MotorControler test suite"),  _motorDriverCard(){
+  MotorControlerTestSuite(std::string const & mapFileName, unsigned int motorId) 
+    : test_suite(" MotorControler test suite"+std::to_string(motorId)),  _motorDriverCard(){
     //boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy(MODULE_NAME_0) );
   	std::list<std::string>parameters;
   	parameters.push_back(MODULE_NAME_0);
@@ -193,76 +193,74 @@ public:
     boost::shared_ptr<DFMC_MD22Dummy> d = boost::static_pointer_cast<DFMC_MD22Dummy>(dummyDevice);
     dummyDevice->setRegistersForTesting();
 
-    for (unsigned int i = 0; i < N_MOTORS_MAX ; ++i){
-      boost::shared_ptr<MotorControlerTest> motorControlerTest( 
-	       new MotorControlerTest( _motorDriverCard->getMotorControler( i ) ,
-				       registerMapping, 
-				       dummyDevice) );
+    boost::shared_ptr<MotorControlerTest> motorControlerTest( 
+       new MotorControlerTest( _motorDriverCard->getMotorControler( motorId ) ,
+                               registerMapping, 
+                               dummyDevice) );
 
-      ADD_GET_SET_TEST( ActualPosition );
-      ADD_GET_SET_TEST( ActualVelocity );
-      ADD_GET_SET_TEST( ActualAcceleration );
-      //      ADD_GET_SET_TEST( AccelerationThreshold );
-      ADD_GET_SET_TEST( MicroStepCount );
-
+    ADD_GET_SET_TEST( ActualPosition );
+    ADD_GET_SET_TEST( ActualVelocity );
+    ADD_GET_SET_TEST( ActualAcceleration );
+    //      ADD_GET_SET_TEST( AccelerationThreshold );
+    ADD_GET_SET_TEST( MicroStepCount );
+    
       
-      add( BOOST_TEST_CASE(
-	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
-			   motorControlerTest,
-			   &MotorControlerImpl::getStallGuardValue,  STALL_GUARD_VALUE_SUFFIX ) ));
-      add( BOOST_TEST_CASE(
-	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
-			   motorControlerTest,
-			   &MotorControlerImpl::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
-      add( BOOST_TEST_CASE(
-			   boost::bind( &MotorControlerTest::testReadTypedPCIeRegister<DriverStatusData>,
-			   motorControlerTest,
-			   &MotorControler::getStatus, STATUS_SUFFIX ) ));
+    add( BOOST_TEST_CASE(
+           boost::bind( &MotorControlerTest::testReadPCIeRegister,
+                        motorControlerTest,
+                        &MotorControlerImpl::getStallGuardValue,  STALL_GUARD_VALUE_SUFFIX ) ));
+    add( BOOST_TEST_CASE(
+           boost::bind( &MotorControlerTest::testReadPCIeRegister,
+                        motorControlerTest,
+                        &MotorControlerImpl::getCoolStepValue,  COOL_STEP_VALUE_SUFFIX ) ));
+    add( BOOST_TEST_CASE(
+           boost::bind( &MotorControlerTest::testReadTypedPCIeRegister<DriverStatusData>,
+                        motorControlerTest,
+                        &MotorControler::getStatus, STATUS_SUFFIX ) ));
 
-      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetIsEnabled,
-				  motorControlerTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetIsEnabled,
+                                motorControlerTest ) );
   
-      ADD_GET_SET_TEST( DecoderReadoutMode );
+    ADD_GET_SET_TEST( DecoderReadoutMode );
+    
+    add( BOOST_TEST_CASE(
+           boost::bind( &MotorControlerTest::testReadPCIeRegister,
+                        motorControlerTest,
+                        &MotorControler::getDecoderPosition, DECODER_POSITION_SUFFIX ) ));
 
-      add( BOOST_TEST_CASE(
-	      boost::bind( &MotorControlerTest::testReadPCIeRegister,
-			   motorControlerTest,
-			   &MotorControler::getDecoderPosition, DECODER_POSITION_SUFFIX ) ));
+    ADD_GET_SET_TEST( MinimumVelocity );
+    ADD_GET_SET_TEST( MaximumVelocity );
+    ADD_GET_SET_TEST( TargetVelocity ); 
+    ADD_GET_SET_TEST( MaximumAcceleration );
+    ADD_GET_SET_TEST( PositionTolerance );
+    ADD_GET_SET_TEST( PositionLatched );
+    
+    ADD_GET_SET_TEST( AccelerationThresholdData );
+    ADD_GET_SET_TEST( ProportionalityFactorData );
+    ADD_GET_SET_TEST( ReferenceConfigAndRampModeData );
+    ADD_GET_SET_TEST( InterruptData );
+    ADD_GET_SET_TEST( TargetPosition );
+    ADD_GET_SET_TEST( DividersAndMicroStepResolutionData );
+    
+    ADD_GET_SET_TEST( DriverControlData );
+    ADD_GET_SET_TEST( ChopperControlData );
+    ADD_GET_SET_TEST( CoolStepControlData );
+    ADD_GET_SET_TEST( StallGuardControlData );
+    ADD_GET_SET_TEST( DriverConfigData );
 
-      ADD_GET_SET_TEST( MinimumVelocity );
-      ADD_GET_SET_TEST( MaximumVelocity );
-      ADD_GET_SET_TEST( TargetVelocity ); 
-      ADD_GET_SET_TEST( MaximumAcceleration );
-      ADD_GET_SET_TEST( PositionTolerance );
-      ADD_GET_SET_TEST( PositionLatched );
+    add( BOOST_TEST_CASE( boost::bind( &MotorControlerTest::testGetReferenceSwitchData,
+                                       motorControlerTest,
+                                       _motorDriverCard) ));
+    add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetReferenceSwitchEnabled,
+                                motorControlerTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testTargetPositionReached,
+                                motorControlerTest ) );
+    add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetReferenceSwitchBit,
+                                motorControlerTest ) );
 
-      ADD_GET_SET_TEST( AccelerationThresholdData );
-      ADD_GET_SET_TEST( ProportionalityFactorData );
-      ADD_GET_SET_TEST( ReferenceConfigAndRampModeData );
-      ADD_GET_SET_TEST( InterruptData );
-      ADD_GET_SET_TEST( TargetPosition );
-      ADD_GET_SET_TEST( DividersAndMicroStepResolutionData );
+    add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
+    add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetEndSwitchPowerEnabled, motorControlerTest));
 
-      ADD_GET_SET_TEST( DriverControlData );
-      ADD_GET_SET_TEST( ChopperControlData );
-      ADD_GET_SET_TEST( CoolStepControlData );
-      ADD_GET_SET_TEST( StallGuardControlData );
-      ADD_GET_SET_TEST( DriverConfigData );
-
-      add( BOOST_TEST_CASE( boost::bind( &MotorControlerTest::testGetReferenceSwitchData,
-					 motorControlerTest,
-					 _motorDriverCard) ));
-      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testSetReferenceSwitchEnabled,
-				  motorControlerTest ) );
-      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testTargetPositionReached,
-				  motorControlerTest ) );
-      add( BOOST_CLASS_TEST_CASE( &MotorControlerTest::testGetReferenceSwitchBit,
-				  motorControlerTest ) );
-
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetEndSwitchPowerEnabled, motorControlerTest));
-
-   }// for i < N_MOTORS_MAX
   }// constructor
 };// test suite
 
@@ -582,6 +580,9 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 {
    framework::master_test_suite().p_name.value = "MotorControler test suite";
 
-   return new mtca4u::MotorControlerTestSuite(MAP_FILE_NAME);
+   framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(MAP_FILE_NAME, 0));
+   framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(MAP_FILE_NAME, 1));
+
+   return nullptr;
 }
 
