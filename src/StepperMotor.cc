@@ -505,6 +505,11 @@ namespace ChimeraTK{
     checkConditionsSetTargetPosAndEmitMoveEvent(newPosition);
   }
 
+  void StepperMotor::start(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    // TODO Start event?
+  }
+
   void StepperMotor::stop(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     _stateMachine->setUserEvent(StepperMotorStateMachine::stopEvent);
@@ -693,6 +698,16 @@ namespace ChimeraTK{
   float StepperMotor::getTargetPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
+  }
+
+  void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    //TODO Rework state machine first
+  }
+
+  void StepperMotor::setTargetPosition(float newPosition){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    //TODO Rework state machine first
   }
 
   void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter){

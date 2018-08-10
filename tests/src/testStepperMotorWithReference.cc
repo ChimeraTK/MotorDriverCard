@@ -389,6 +389,8 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
   _stepperMotorWithReference->_calibPositiveEndSwitchInSteps =  10000;
 
   _stepperMotorWithReference->determineTolerance();
+  //FIXME This test is the only place where member _index is used. It syncs the test to every step of the tolerance calculation.
+  //      -> Modify test and remove _index. Based on implementation of the dummy, can this even fail?
   waitForDetTolerance();
   for (unsigned int i=0; i<10; i++){
     _motorControlerDummy->setPositiveEndSwitch(10000 + i);

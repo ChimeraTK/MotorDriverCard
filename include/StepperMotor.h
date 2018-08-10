@@ -604,6 +604,27 @@ namespace ChimeraTK{
     virtual void moveRelativeInSteps(int delta);
 
     /**
+     * @brief Sets the target position in arbitrary units (according to the scaling).
+     *        If the autostart flag is set to true, this will initiate movement, otherwise movement needs to be triggered
+     *        by calling start().
+     */
+    void setTargetPosition(float newPosition);
+
+    /**
+     * @brief Sets the target position in steps.
+     *        If the autostart flag is set to true, this will initiate movement, otherwise movement needs to be triggered
+     *        by calling start().
+     */
+    void setTargetPositionInSteps(int newPositionInSteps);
+
+    /**
+     * @brief Initiates movement of the motor. This command is in effect, if
+     *        the autostart flag is set to false.
+     *
+     */
+    virtual void start();
+
+    /**
      * @brief interrupt the current action and return the motor to idle
      *
      */

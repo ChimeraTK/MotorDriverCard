@@ -129,18 +129,20 @@ namespace ChimeraTK{
     }
     if (stateMachineInIdleAndNoEvent()){
       if (_toleranceCalcFailed || _calibrationFailed){
-	return ACTION_ERROR;
+        return ACTION_ERROR;
       }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&
-	  !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-	  !_motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
-	return ACTION_ERROR;
+                !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+                !_motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+        return ACTION_ERROR;
       }
     }
     if (_toleranceCalculated){
-      if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() && std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
-	return CALIBRATION_LOST;
-      }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() && std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
-	return CALIBRATION_LOST;
+      if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+          std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
+        return CALIBRATION_LOST;
+      }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() &&
+          std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
+        return CALIBRATION_LOST;
       }
     }
     return NO_ERROR;

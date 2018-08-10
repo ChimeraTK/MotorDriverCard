@@ -50,6 +50,7 @@ namespace ChimeraTK{
     void testTranslateAxis();
     void testMove();
     void testMoveRelative();
+    void testStart();
     void testStop();
     void testEmergencyStop();
     void testFullStepping();
@@ -82,6 +83,7 @@ public:
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testTranslateAxis, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testMove, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testMoveRelative, stepperMotorChimeraTK));
+    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testStart, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testStop, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testEmergencyStop, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testFullStepping, stepperMotorChimeraTK));
@@ -279,6 +281,10 @@ void StepperMotorChimeraTKTest::testMoveRelative(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 35);
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
+}
+
+void StepperMotorChimeraTKTest::testStart(){
+  //TODO
 }
 
 void StepperMotorChimeraTKTest::testStop(){
