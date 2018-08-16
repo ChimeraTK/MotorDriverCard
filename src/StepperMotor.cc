@@ -15,26 +15,26 @@ namespace mtca4u {
   : _motorDriverCardDeviceName(motorDriverCardDeviceName),
     _motorDriverId(motorDriverId),
     _motorDriverCard( MotorDriverCardFactory::instance().createMotorDriverCard(
-	motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
-	_motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-	//_currentPostionsInSteps(0),// position - don't know so set to 0
-	//_currentPostionsInUnits(0),
-	_stepperMotorUnitsConverter(new StepperMotorUnitsConverterTrivia()),
-	_targetPositionInSteps(_motorControler->getTargetPosition()),
-	//_targetPositionInUnits(0),
-	//_maxPositionLimit(std::numeric_limits<float>::max()),
-	_maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-	//_minPositionLimit(-std::numeric_limits<float>::max()),
-	_minPositionLimitInSteps(std::numeric_limits<int>::min()),
-	_autostartFlag(false),
-	_stopMotorForBlocking(false),
-	_softwareLimitsEnabled(true),
-	_motorError(),
-	_motorCalibrationStatus(StepperMotorCalibrationStatusType::M_NOT_CALIBRATED),
-	_motorStatus(),
-	_blockingFunctionActive(false),
-	_logger(),
-	_mutex(){
+  motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+  _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+  //_currentPostionsInSteps(0),// position - don't know so set to 0
+  //_currentPostionsInUnits(0),
+  _stepperMotorUnitsConverter(new StepperMotorUnitsConverterTrivia()),
+  _targetPositionInSteps(_motorControler->getTargetPosition()),
+  //_targetPositionInUnits(0),
+  //_maxPositionLimit(std::numeric_limits<float>::max()),
+  _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+  //_minPositionLimit(-std::numeric_limits<float>::max()),
+  _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+  _autostartFlag(false),
+  _stopMotorForBlocking(false),
+  _softwareLimitsEnabled(true),
+  _motorError(),
+  _motorCalibrationStatus(StepperMotorCalibrationStatusType::M_NOT_CALIBRATED),
+  _motorStatus(),
+  _blockingFunctionActive(false),
+  _logger(),
+  _mutex(){
   }
 
   StepperMotor::~StepperMotor() {
@@ -182,7 +182,7 @@ namespace mtca4u {
     this->determineMotorStatusAndError();
     if (_motorError == StepperMotorErrorTypes::M_NO_ERROR) {
       if (_autostartFlag) {
-	this->start();
+  this->start();
       }
     }
   }
@@ -279,7 +279,7 @@ namespace mtca4u {
     // for the old firmware version isEndSwitchPowerEnabled always returns
     // false (End switch power is not applicable in this scenario).
     return (_motorControler->isEndSwitchPowerEnabled() ||
-	_motorControler->isMotorCurrentEnabled());
+  _motorControler->isMotorCurrentEnabled());
   }
 
   void StepperMotor::setLogLevel(Logger::LogLevel newLevel) {
@@ -392,13 +392,13 @@ namespace mtca4u {
 
     if (_softwareLimitsEnabled) {
       if (_targetPositionInSteps >= _maxPositionLimitInSteps) {
-	_motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
-	return StepperMotorStatusAndError(_motorStatus, _motorError);
+  _motorStatus = StepperMotorStatusTypes::M_SOFT_POSITIVE_END_SWITCHED_ON;
+  return StepperMotorStatusAndError(_motorStatus, _motorError);
       }
 
       if (_targetPositionInSteps <= _minPositionLimitInSteps) {
-	_motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
-	return StepperMotorStatusAndError(_motorStatus, _motorError);
+  _motorStatus = StepperMotorStatusTypes::M_SOFT_NEGATIVE_END_SWITCHED_ON;
+  return StepperMotorStatusAndError(_motorStatus, _motorError);
       }
     }
 
@@ -416,41 +416,41 @@ namespace ChimeraTK{
                              std::string const & moduleName,
                              unsigned int motorDriverId,
                              std::string motorDriverCardConfigFileName):
-					       _motorDriverCardDeviceName(motorDriverCardDeviceName),
-					       _motorDriverId(motorDriverId),
-					       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-						   motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
-						   _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-						   _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-						   _targetPositionInSteps(_motorControler->getTargetPosition()),
-						   _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-						   _minPositionLimitInSteps(std::numeric_limits<int>::min()),
-						   _softwareLimitsEnabled(false),
-						   _runStateMachine(true),
-						   _logger(),
-						   _mutex(),
-						   _converterMutex(),
-						   _stateMachineThread(),
-						   _stateMachine(){
+               _motorDriverCardDeviceName(motorDriverCardDeviceName),
+               _motorDriverId(motorDriverId),
+               _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+               motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+               _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+               _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+               _targetPositionInSteps(_motorControler->getTargetPosition()),
+               _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+               _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+               _softwareLimitsEnabled(false),
+               _runStateMachine(true),
+               _logger(),
+               _mutex(),
+               _converterMutex(),
+               _stateMachineThread(),
+               _stateMachine(){
     createStateMachine();
   }
 
   StepperMotor::StepperMotor() :
-		 _motorDriverCardDeviceName(""),
-		 _motorDriverId(0),
-		 _motorDriverCard(),
-		 _motorControler(),
-		 _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-		 _targetPositionInSteps(0),
-		 _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-		 _minPositionLimitInSteps(std::numeric_limits<int>::min()),
-		 _softwareLimitsEnabled(false),
-		 _runStateMachine(true),
-		 _logger(),
-		 _mutex(),
-		 _converterMutex(),
-		 _stateMachineThread(),
-		 _stateMachine(){}
+     _motorDriverCardDeviceName(""),
+     _motorDriverId(0),
+     _motorDriverCard(),
+     _motorControler(),
+     _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+     _targetPositionInSteps(0),
+     _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+     _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+     _softwareLimitsEnabled(false),
+     _runStateMachine(true),
+     _logger(),
+     _mutex(),
+     _converterMutex(),
+     _stateMachineThread(),
+     _stateMachine(){}
 
   StepperMotor::~StepperMotor() {
     _runStateMachine = false;
@@ -667,15 +667,15 @@ namespace ChimeraTK{
       return false;
     }else if (signTermA > 0){
       if (termB > std::numeric_limits<int>::max() - termA){
-	return true;
+  return true;
       }else{
-	return false;
+  return false;
       }
     }else{
       if (termB < std::numeric_limits<int>::min() - termA){
-	return true;
+  return true;
       }else{
-	return false;
+  return false;
       }
     }
   }
@@ -729,6 +729,11 @@ namespace ChimeraTK{
     _stepperMotorUnitsConverter.reset(new StepperMotorUnitsConverterTrivia());
   }
 
+  std::string StepperMotor::getState(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _stateMachine->getCurrentState()->getName();
+  }
+
   bool StepperMotor::isSystemIdle(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     return stateMachineInIdleAndNoEvent();
@@ -738,7 +743,7 @@ namespace ChimeraTK{
     while(1){
       usleep(100);
       if (isSystemIdle()){
-	break;
+  break;
       }
     }
   }
@@ -780,7 +785,7 @@ namespace ChimeraTK{
   bool StepperMotor::getEnabled(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     return (_motorControler->isEndSwitchPowerEnabled() ||
-    	_motorControler->isMotorCurrentEnabled());
+      _motorControler->isMotorCurrentEnabled());
   }
 
   void StepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){

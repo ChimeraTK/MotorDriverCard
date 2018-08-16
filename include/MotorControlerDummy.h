@@ -84,7 +84,7 @@ namespace mtca4u{
      *   Valid range [0..1]. 1 moves all the way to the target, 0.5 only half the way etc.
      *  @param blockMotor Block the motor and do not move if true.
      *  @param bothEndSwitchesAlwaysOn Emulate that no motor is connected (both end switches are active)
-     *  @param zeroPositions FIXME: what exactly does this do?
+     *  @param zeroPositions FIXME: what exactly does this do? TODO Find out
      *
      *  @attention The 'actual' position is where the step counter currently is.
      *  it is not the hardware positon (absolute position). If the motor is disabled

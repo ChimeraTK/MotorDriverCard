@@ -776,6 +776,9 @@ namespace ChimeraTK{
      */
     virtual void waitForIdle();
 
+
+    virtual std::string getState();
+
     /**
      * @brief return error code for the motor. The error code is not a bit-field
      * 0 - NO_ERROR
