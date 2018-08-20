@@ -608,19 +608,18 @@ namespace ChimeraTK{
      *        If the autostart flag is set to true, this will initiate movement, otherwise movement needs to be triggered
      *        by calling start().
      */
-    void setTargetPosition(float newPosition);
+    virtual void setTargetPosition(float newPosition);
 
     /**
      * @brief Sets the target position in steps.
      *        If the autostart flag is set to true, this will initiate movement, otherwise movement needs to be triggered
      *        by calling start().
      */
-    void setTargetPositionInSteps(int newPositionInSteps);
+    virtual void setTargetPositionInSteps(int newPositionInSteps);
 
     /**
      * @brief Initiates movement of the motor. This command is in effect, if
      *        the autostart flag is set to false.
-     *
      */
     virtual void start();
 
@@ -777,6 +776,9 @@ namespace ChimeraTK{
     virtual void waitForIdle();
 
 
+    /**
+     * @brief Returns the state of the stepper motor's state machine
+     */
     virtual std::string getState();
 
     /**
@@ -814,6 +816,19 @@ namespace ChimeraTK{
      * @brief set logger level
      */
     virtual void setLogLevel(ChimeraTK::Logger::LogLevel newLevel);
+
+
+    /**
+     * @brief Sets the autostart flag. Allows automatic start of movement
+     *        on change of target position if set to true
+     */
+    virtual void setAutostart(bool autostart);
+
+    /**
+     * @brief Returns the value of the autostart flag. If true, movement is
+     *        initiated automatically on change of the target position
+     */
+    virtual bool getAutostart();
 
     /**
      * @brief get logger level
@@ -875,8 +890,9 @@ namespace ChimeraTK{
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
     boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
     std::atomic<int> _targetPositionInSteps;
-    int   _maxPositionLimitInSteps;
-    int   _minPositionLimitInSteps;
+    int  _maxPositionLimitInSteps;
+    int  _minPositionLimitInSteps;
+    bool _autostart;
     bool _softwareLimitsEnabled;
     volatile std::atomic<bool> _runStateMachine;
     Logger _logger;
