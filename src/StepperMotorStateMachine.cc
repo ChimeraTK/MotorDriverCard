@@ -18,14 +18,15 @@ namespace ChimeraTK{
   Event StepperMotorStateMachine::disableEvent("disableEvent");
 
   StepperMotorStateMachine::StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor) :
-	  StateMachine("StepperMotorStateMachine"),
-	  _moving("movingState"),
-	  _idle("idleState"),
-	  _stop("stopState"),
-	  _emergencyStop("emergencyStop"),
-	  _disable("disable"),
-	  _stepperMotor(stepperMotor),
-	  _motorControler(stepperMotor._motorControler){
+      StateMachine("StepperMotorStateMachine"),
+      _moving("movingState"),
+      _idle("idleState"),
+      _stop("stopState"),
+      _emergencyStop("emergencyStop"),
+      _disable("disable"),
+      _stepperMotor(stepperMotor),
+      _motorControler(stepperMotor._motorControler)
+  {
     _initState.setTransition    (noEvent,             &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
     _idle.setTransition         (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this));
     _idle.setTransition         (disableEvent,        &_disable,       std::bind(&StepperMotorStateMachine::actionMoveToFullStep, this));
