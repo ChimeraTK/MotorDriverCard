@@ -182,7 +182,7 @@ namespace mtca4u {
     this->determineMotorStatusAndError();
     if (_motorError == StepperMotorErrorTypes::M_NO_ERROR) {
       if (_autostartFlag) {
-  this->start();
+        this->start();
       }
     }
   }
@@ -410,6 +410,8 @@ bool mtca4u::StepperMotor::isMoving() {
   return (_motorControler->isMotorMoving());
 }
 
+
+
 namespace ChimeraTK{
 
   StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName,
@@ -425,6 +427,7 @@ namespace ChimeraTK{
                _targetPositionInSteps(_motorControler->getTargetPosition()),
                _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
                _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+               _autostart(false),
                _softwareLimitsEnabled(false),
                _runStateMachine(true),
                _logger(),
@@ -444,6 +447,7 @@ namespace ChimeraTK{
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+     _autostart(false),
      _softwareLimitsEnabled(false),
      _runStateMachine(true),
      _logger(),
@@ -505,9 +509,19 @@ namespace ChimeraTK{
     checkConditionsSetTargetPosAndEmitMoveEvent(newPosition);
   }
 
+  void StepperMotor::setTargetPosition(float newPosition){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    _targetPositionInSteps = _stepperMotorUnitsConverter->unitsToSteps(newPosition);
+
+    if(_autostart){
+      start();
+    }
+  }
+
   void StepperMotor::start(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    // TODO Start event?
+    // TODO Rework checkConditions...MoveEvent(). The move.. routines may also use start()
+    checkConditionsSetTargetPosAndEmitMoveEvent(getTargetPosition());
   }
 
   void StepperMotor::stop(){
@@ -698,16 +712,6 @@ namespace ChimeraTK{
   float StepperMotor::getTargetPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
-  }
-
-  void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    //TODO Rework state machine first
-  }
-
-  void StepperMotor::setTargetPosition(float newPosition){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    //TODO Rework state machine first
   }
 
   void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
