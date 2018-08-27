@@ -518,8 +518,19 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotor::start(){
+  void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
+    _targetPositionInSteps = newPositionInSteps;
+
+    if(_autostart){
+      start();
+    }
+  }
+
+  void StepperMotor::start(){
+    // FIXME This would try to acquire the mutex again, when called through setTargetPosition methods
+    // Is the StepperMotor instance shared within the library so that we need this?
+    //boost::lock_guard<boost::mutex> guard(_mutex);
     // TODO Rework checkConditions...MoveEvent(). The move.. routines may also use start()
     checkConditionsSetTargetPosAndEmitMoveEvent(getTargetPosition());
   }
@@ -792,6 +803,15 @@ namespace ChimeraTK{
       _motorControler->isMotorCurrentEnabled());
   }
 
+  void StepperMotor::setAutostart(bool autostart){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    _autostart = autostart;
+  }
+
+  bool StepperMotor::getAutostart(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _autostart;
+  }
   void StepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){
     boost::lock_guard<boost::mutex> guard(_mutex);
     _logger.setLogLevel(newLevel);
