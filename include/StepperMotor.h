@@ -740,6 +740,12 @@ namespace ChimeraTK{
     virtual int getCurrentPositionInSteps();
 
     /**
+     * @ Get the current position from the decoder in nm
+     * TODO Clarify difference between decoder and currentPostion
+     */
+    virtual unsigned int getDecoderPosition();
+
+    /**
      * Return target motor position in the arbitrary units.
      * @return float - target position of motor in arbitrary units.
      */

@@ -715,6 +715,11 @@ namespace ChimeraTK{
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getActualPosition());
   }
 
+  unsigned int StepperMotor::getDecoderPosition(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return _motorControler->getDecoderPosition();
+  }
+
   int StepperMotor::getTargetPositionInSteps(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     return _motorControler->getTargetPosition();
