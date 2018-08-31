@@ -7,6 +7,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 #include <boost/shared_ptr.hpp>
+#include <memory>
 using namespace boost::unit_test_framework;
 
 #include "StepperMotor.h"
@@ -65,7 +66,7 @@ namespace ChimeraTK{
 
     boost::shared_ptr<ChimeraTK::StepperMotor> _stepperMotor;
     boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
-    boost::shared_ptr<TestUnitConveter> _testUnitConveter;
+    std::shared_ptr<TestUnitConveter> _testUnitConveter;
   };
 }
 

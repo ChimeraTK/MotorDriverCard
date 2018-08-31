@@ -12,7 +12,8 @@
 #include <string>
 #include <atomic>
 #include <thread>
-#include <boost/shared_ptr.hpp>
+#include <boost/shared_ptr.hpp> // TODO Move to std lib
+#include <memory>
 #include <boost/thread.hpp>
 
 //MD22 library includes
@@ -761,12 +762,11 @@ namespace ChimeraTK{
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual void setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual void setStepperMotorUnitsConverter(std::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     /**
      * @brief set the steps-units converter to the default one
      */
-
     virtual void setStepperMotorUnitsConverterToDefault();
 
     /**
@@ -894,7 +894,7 @@ namespace ChimeraTK{
     unsigned int _motorDriverId;
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
-    boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
     std::atomic<int> _targetPositionInSteps;
     int  _maxPositionLimitInSteps;
     int  _minPositionLimitInSteps;

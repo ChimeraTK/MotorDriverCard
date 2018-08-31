@@ -730,7 +730,7 @@ namespace ChimeraTK{
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
   }
 
-  void StepperMotor::setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
+  void StepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
