@@ -5,8 +5,8 @@ using namespace boost::unit_test_framework;
 #include "impl/MotorDriverCardImpl.h"
 #include "MotorControlerExpert.h"
 #include "MotorDriverException.h"
-#include <mtca4u/MapFileParser.h>
-#include <mtca4u/Device.h>
+#include <ChimeraTK/MapFileParser.h>
+#include <ChimeraTK/Device.h>
 
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
@@ -32,6 +32,7 @@ using namespace mtca4u::tmc429;
   add( set ## NAME ## TestCase )
 
 namespace mtca4u{
+  using namespace ChimeraTK;
 
 class MotorDriverCardTest{
 public:
@@ -143,14 +144,14 @@ void MotorDriverCardTest::testConstructor(){
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
                        new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
                      //FIXME: create a DeviceException. Has to work for real and dummy devices
-                     DeviceException );
+                     ChimeraTK::logic_error );
 
   // try opening with bad mapping, also has to throw
   boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::DummyBackend(BROKEN_MAP_FILE_NAME));
   device->open(dummyDevice);
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
                        new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
-                     LibMapException );
+                     ChimeraTK::logic_error );
 
   device->close();
   dummyDevice = boost::shared_ptr<mtca4u::DeviceBackend> ( new mtca4u::DummyBackend(_mapFileName));
