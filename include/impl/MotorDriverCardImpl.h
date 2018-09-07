@@ -14,7 +14,7 @@ namespace mtca4u
 {
   /**
    * The implementation of the DFMC-MD22 motor driver card.
-   * It has a private contructor and can only be created using the
+   * It has a private constructor and can only be created using the
    * MotorDriverCardFactory. This ensures that only one instance per device is created,
    * which allows thread safe access to the motors.
    */
@@ -48,7 +48,7 @@ namespace mtca4u
                   InterfaceConfiguration const & interfaceConfiguration);
     InterfaceConfiguration getInterfaceConfiguration();
 
-    /// Very expert function only avaialble in the implementation. Usually
+    /// Very expert function only available in the implementation. Usually
     /// the programmer should not have to touch this.
     void setPositionCompareWord(unsigned int positionCompareWord); //??? data sheet is completely unclear
     unsigned int getPositionCompareWord(); //??? data sheet is completely unclear

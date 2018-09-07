@@ -40,6 +40,9 @@ class TMC429SPITest{
 class TMC429SPITestSuite : public test_suite {
 public:
   TMC429SPITestSuite(std::string const & mapFileName, std::string const & moduleName): test_suite("TMC429SPI test suite") {
+
+    ChimeraTK::setDMapFilePath("./dummies.dmap");
+
     // create an instance of the test class
     boost::shared_ptr<TMC429SPITest> tmc429SpiTest( new TMC429SPITest(mapFileName, moduleName) );
 
@@ -64,19 +67,15 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName)
   : _dummyDevice(), _mappedDevice(), _mapFileName(), _tmc429Spi()
 {
-
-	_dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );//fixme mapFileName should be an alias instead
-	//_dummyDevice.reset( new DFMC_MD22Dummy(moduleName) );
+  _dummyDevice = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
   // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
   _mappedDevice.reset(new Device());
-  //_dummyDevice->open( mapFileName );
-  //_dummyDevice->open();
  
   MapFileParser fileParser;
   boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-  _mappedDevice->open( _dummyDevice, registerMapping );
+  _mappedDevice->open(DFMC_ALIAS);
   
   _dummyDevice->setRegistersForTesting();
 

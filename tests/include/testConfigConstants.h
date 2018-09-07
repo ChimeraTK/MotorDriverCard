@@ -14,5 +14,6 @@ const std::string CONFIG_FILE("VT21-MotorDriverCardConfig.xml");
 
 const std::string DUMMY_DEV_PATH("/dev/mtcadummys0");
 const std::string DUMMY_DEV_ALIAS("PCIE2");
+const std::string BROKEN_DUMMY_DEV_ALIAS("BROKE_PCIE2");
 
 #endif //MTCA4U_TEST_MD22_CONFIG_CONSTANTS_H

@@ -4,6 +4,7 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
+#include "ChimeraTK/BackendFactory.h"
 #include <mtca4u/Device.h>
 #include <mtca4u/MapFileParser.h>
 #include "impl/SPIviaPCIe.h"
@@ -40,6 +41,8 @@ class SPIviaPCIeTestSuite : public test_suite {
 public:
 
     SPIviaPCIeTestSuite(std::string const & mapFileName, std::string const & moduleName) : test_suite("SPIviaPCIe test suite") {
+
+        ChimeraTK::setDMapFilePath("./dummies.dmap");
         // create an instance of the test class
         boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest(new SPIviaPCIeTest(mapFileName, moduleName));
 
@@ -70,9 +73,7 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string cons
   : _dummyBackend(), _device(), _mapFileName(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe()
 {
 
-
-	 _dummyBackend.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );
-	//_dummyBackend.reset(new DFMC_MD22Dummy(moduleName));
+    _dummyBackend = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
     // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
 
@@ -84,7 +85,7 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const & mapFileName, std::string cons
     MapFileParser fileParser;
     boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-    _device->open(_dummyBackend, registerMapping);
+    _device->open(DFMC_ALIAS);
 
     //_dummyBackend->setRegistersForTesting();
 

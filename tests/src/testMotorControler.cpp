@@ -5,6 +5,7 @@ using namespace boost::unit_test_framework;
 #include <thread>
 
 #include "DFMC_MD22Dummy.h"
+#include "MotorDriverCard.h"
 #include "impl/MotorDriverCardImpl.h"
 #include "impl/MotorControlerImpl.h"
 #include "DFMC_MD22Constants.h"
@@ -15,6 +16,7 @@ using namespace mtca4u::dfmc_md22;
 #include "testWordFromSpiAddress.h"
 #include <mtca4u/MapFileParser.h>
 #include <mtca4u/Device.h>
+#include "ChimeraTK/BackendFactory.h"
 #include <mtca4u/Utilities.h>
 
 using namespace mtca4u::tmc429;
@@ -87,8 +89,8 @@ namespace mtca4u{
 class MotorControlerTest{
 public:
   MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler, 
-		     boost::shared_ptr<RegisterInfoMap> & registerMapping,
-		     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
+                     boost::shared_ptr<RegisterInfoMap> & registerMapping,
+                     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
   // getID() is tested in the MotorDriver card, where 
   // different ID are known. This test is for just one
   // Motor with one ID, which is now known to be ok.
@@ -163,34 +165,39 @@ private:
   void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorControler> controller);
   boost::shared_ptr<MotorControler> createMotorController(const std::string deviceName);
 
-};
+}; /*class MotorControlerTest*/
+
 
 class  MotorControlerTestSuite : public test_suite{
 private:
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
 public:
-  MotorControlerTestSuite(std::string const & mapFileName, unsigned int motorId) 
-    : test_suite(" MotorControler test suite"+std::to_string(motorId)),  _motorDriverCard(){
-    //boost::shared_ptr<DFMC_MD22Dummy> dummyDevice( new DFMC_MD22Dummy(MODULE_NAME_0) );
-  	std::list<std::string>parameters;
-  	parameters.push_back(MODULE_NAME_0);
-  	boost::shared_ptr<DFMC_MD22Dummy> dummyDevice (new DFMC_MD22Dummy(mapFileName, MODULE_NAME_0) );
-    //dummyDevice->open( mapFileName );
-  	//dummyDevice->open();
+  MotorControlerTestSuite(std::string const & mapFileName, unsigned int motorId)
+    : test_suite(" MotorControler test suite"+std::to_string(motorId)),
+      _motorDriverCard()
+{
+    ChimeraTK::setDMapFilePath("./dummies.dmap");
+
+    std::list<std::string>parameters;
+    parameters.push_back(MODULE_NAME_0);
+
     MapFileParser fileParser;
     boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
+    boost::shared_ptr<DFMC_MD22Dummy> dummyDevice
+      = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend("DFMC_MD22"));
     boost::shared_ptr< Device > device(new Device());
     MotorDriverCardConfig  motorDriverCardConfig;
-    device->open(dummyDevice, registerMapping);
-    //device->open( dummyDevice, registerMapping );
+
+    device->open("DFMC_MD22");
+
     // We need the motor driver card as private variable because it has to
     // survive the constructor. Otherwise the MotorControlers passed to
     // the tests will be invalid.
-    _motorDriverCard.reset( new MotorDriverCardImpl( device,
-                                                     MODULE_NAME_0,
-    						     motorDriverCardConfig ) );
-    boost::shared_ptr<DFMC_MD22Dummy> d = boost::static_pointer_cast<DFMC_MD22Dummy>(dummyDevice);
+    _motorDriverCard.reset( new MotorDriverCardImpl(device,
+                                                    MODULE_NAME_0,
+                                                    motorDriverCardConfig ) );
+
     dummyDevice->setRegistersForTesting();
 
     boost::shared_ptr<MotorControlerTest> motorControlerTest( 
@@ -266,8 +273,8 @@ public:
 
 
 MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const & motorControler,
-				       boost::shared_ptr<RegisterInfoMap> & registerMapping,
-				       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
+                                       boost::shared_ptr<RegisterInfoMap> & registerMapping,
+                                       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
   : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)),
     _registerMapping( registerMapping ), _dummyDevice(dummyDevice){
 }
@@ -275,14 +282,15 @@ MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const &
 DEFINE_SIGNED_GET_SET_TEST( ActualPosition, IDX_ACTUAL_POSITION, 24 )
 DEFINE_SIGNED_GET_SET_TEST( ActualVelocity, IDX_ACTUAL_VELOCITY, 12  )
 DEFINE_GET_SET_TEST( ActualAcceleration, IDX_ACTUAL_ACCELERATION, 0xFFFFFF ) 
-DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA ) 
+DEFINE_GET_SET_TEST( MicroStepCount, IDX_MICRO_STEP_COUNT, 0xAAAAAA )
+
 
 void MotorControlerTest::testReadPCIeRegister( unsigned int(MotorControlerImpl::* readFunction)(void),
-						std::string const & registerSuffix){
+                                               std::string const & registerSuffix){
   unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
   std::stringstream message;
   message << "read () " <<  ((*_motorControler).*readFunction)() 
-	  << ", expected " << expectedValue << std::endl;
+          << ", expected " << expectedValue << std::endl;
   BOOST_CHECK_MESSAGE( ((*_motorControler).*readFunction)() == expectedValue , message.str());
 }
 
@@ -566,7 +574,7 @@ void MotorControlerTest::listOfMotorControllerPubilcMethods(
 
 boost::shared_ptr<MotorControler>
 MotorControlerTest::createMotorController(const std::string deviceName) {
-  mtca4u::setDMapFilePath("./dummies.dmap");
+
   boost::shared_ptr<mtca4u::Device> device(new mtca4u::Device());
   device->open(deviceName);
   boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));

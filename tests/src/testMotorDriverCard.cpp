@@ -1,11 +1,14 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
+#include <boost/shared_ptr.hpp>
+
 #include "DFMC_MD22Dummy.h"
 #include "impl/MotorDriverCardImpl.h"
 #include "MotorControlerExpert.h"
 #include "MotorDriverException.h"
 #include <mtca4u/MapFileParser.h>
+#include "ChimeraTK/BackendFactory.h"
 #include <mtca4u/Device.h>
 #include <mtca4u/PcieBackend.h>
 
@@ -68,6 +71,9 @@ private:
 class  MotorDriverCardTestSuite : public test_suite{
  public:
   MotorDriverCardTestSuite() : test_suite(" MotorDriverCard test suite"){
+
+    ChimeraTK::setDMapFilePath("./dummies.dmap");
+
     boost::shared_ptr<MotorDriverCardTest> motorDriverCardTest( new MotorDriverCardTest(MAP_FILE_NAME, MODULE_NAME_0) );
     
     test_case* constructorTestCase = BOOST_CLASS_TEST_CASE( &MotorDriverCardTest::testConstructor, motorDriverCardTest );
@@ -98,11 +104,11 @@ MotorDriverCardTest::MotorDriverCardTest(std::string const & mapFileName, std::s
 
 void MotorDriverCardTest::testConstructor(){
 
-  _dummyDevice.reset( new DFMC_MD22Dummy(_mapFileName, MODULE_NAME_0) );
-   MapFileParser fileParser;
+  _dummyDevice = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
+  boost::shared_ptr< Device> device(new Device());
+  MapFileParser fileParser;
   _registerMapping = fileParser.parse(_mapFileName);
 
-  boost::shared_ptr< Device> device(new Device());
   MotorDriverCardConfig motorDriverCardConfig;
   motorDriverCardConfig.coverDatagram = asciiToInt("DTGR");
   motorDriverCardConfig.coverPositionAndLength.setDATA(asciiToInt( "POSL") );
@@ -140,33 +146,32 @@ void MotorDriverCardTest::testConstructor(){
 
     motorDriverCardConfig.motorControlerConfigurations[motorID] = motorControlerConfig;
   }
+
   // has to throw because the device is not open
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
-		     //FIXME: create a DeviceException. Has to work for real and dummy devices
-		     DeviceException );
+                        new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ), std::exception );
 
   // try opening with bad mapping, also has to throw
-  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
-  device->open(dummyDevice);
+//  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new mtca4u::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
+  boost::shared_ptr<mtca4u::DeviceBackend> brokenDummyDevice
+      = boost::dynamic_pointer_cast<mtca4u::DeviceBackend>(ChimeraTK::BackendFactory::getInstance().createBackend(BROKEN_DUMMY_DEV_ALIAS));
+  device->open(BROKEN_DUMMY_DEV_ALIAS);
   BOOST_CHECK_THROW( _motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
-		       new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
-		     LibMapException );
-
+                       new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ), std::exception );
   device->close();
-  dummyDevice = boost::shared_ptr<mtca4u::DeviceBackend> ( new mtca4u::PcieBackend("/dev/mtcadummys0", _mapFileName));
-  device->open(_dummyDevice);
+
+  // Opens the device corresponding to backend variable _dummyDevice
+  device->open(DFMC_ALIAS);
 
   //try something with a wrong firmware version
   // wrong major (too large by 1):
-  //boost::shared_ptr<DFMC_MD22Dummy> md22Dummy = dynamic_pointer_cast<DFMC_MD22Dummy> (_dummyDevice);
   _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000 );
   BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
-		     MotorDriverException );
+                    MotorDriverException );
 
   _dummyDevice->setFirmwareVersion( dfmc_md22::MINIMAL_FIRMWARE_VERSION -1 );
   BOOST_CHECK_THROW( _motorDriverCard.reset( new MotorDriverCardImpl( device, _moduleName, motorDriverCardConfig ) ),
-		     MotorDriverException );
+                    MotorDriverException );
 
   _dummyDevice->resetFirmwareVersion();
   
