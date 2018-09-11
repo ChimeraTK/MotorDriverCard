@@ -1,5 +1,5 @@
-#ifndef MTCA4U_TMC429_CONSTANTS_H
-#define MTCA4U_TMC429_CONSTANTS_H
+#ifndef CHIMERATK_TMC429_CONSTANTS_H
+#define CHIMERATK_TMC429_CONSTANTS_H
 
 #include <stdint.h>
 
@@ -49,4 +49,4 @@ namespace tmc429{
 
 }// namespace mtca4u
 
-#endif// MTCA4U_TMC429_CONSTANTS_H
+#endif// CHIMERATK_TMC429_CONSTANTS_H
