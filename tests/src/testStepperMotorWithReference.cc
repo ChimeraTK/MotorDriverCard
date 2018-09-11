@@ -18,8 +18,8 @@ using namespace boost::unit_test_framework;
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
-#include <mtca4u/DMapFilesParser.h>
-#include <mtca4u/Utilities.h>
+#include <ChimeraTK/DMapFilesParser.h>
+#include <ChimeraTK/Utilities.h>
 
 
 static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");

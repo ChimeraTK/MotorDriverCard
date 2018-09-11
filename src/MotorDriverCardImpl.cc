@@ -9,13 +9,13 @@
 #include "impl/MotorControlerImpl.h"
 using namespace mtca4u::tmc429;
 
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
-  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< mtca4u::Device > const & device,
+  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr< ChimeraTK::Device > const & device,
                                            std::string const & moduleName,	
 					   MotorDriverCardConfig const & cardConfiguration)
     : _motorControlers(), // done later in the constructor body
@@ -34,9 +34,9 @@ namespace mtca4u{
     _powerMonitor.reset(new PowerMonitor);
     _controlerSPI.reset( new TMC429SPI(device, moduleName,
                                        CONTROLER_SPI_WRITE_ADDRESS_STRING,
-				       CONTROLER_SPI_SYNC_ADDRESS_STRING,  
+                                       CONTROLER_SPI_SYNC_ADDRESS_STRING,
                                        CONTROLER_SPI_READBACK_ADDRESS_STRING,
-				       cardConfiguration.controlerSpiWaitingTime ) );
+                                       cardConfiguration.controlerSpiWaitingTime ) );
 
     // initialise common registers
     setCoverDatagram( cardConfiguration.coverDatagram );

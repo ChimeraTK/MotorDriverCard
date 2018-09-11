@@ -4,15 +4,14 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
-#include <mtca4u/Device.h>
-//#include <mtca4u/libmap.h>
+#include <ChimeraTK/Device.h>
 #include "impl/TMC429SPI.h"
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 #include "TMC429Words.h"
 #include "TMC429Constants.h"
 #include "MotorDriverException.h" 
-#include <mtca4u/MapFileParser.h>
+#include <ChimeraTK/MapFileParser.h>
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
@@ -31,7 +30,7 @@ class TMC429SPITest{
 
  private:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-  boost::shared_ptr< Device > _mappedDevice;
+  boost::shared_ptr< ChimeraTK::Device > _mappedDevice;
   std::string _mapFileName;
 
   boost::shared_ptr<TMC429SPI> _tmc429Spi;
@@ -40,6 +39,9 @@ class TMC429SPITest{
 class TMC429SPITestSuite : public test_suite {
 public:
   TMC429SPITestSuite(std::string const & mapFileName, std::string const & moduleName): test_suite("TMC429SPI test suite") {
+
+    ChimeraTK::setDMapFilePath("./dummies.dmap");
+
     // create an instance of the test class
     boost::shared_ptr<TMC429SPITest> tmc429SpiTest( new TMC429SPITest(mapFileName, moduleName) );
 
@@ -64,19 +66,15 @@ init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
 TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const & moduleName)
   : _dummyDevice(), _mappedDevice(), _mapFileName(), _tmc429Spi()
 {
-
-	_dummyDevice.reset( new DFMC_MD22Dummy(mapFileName, moduleName) );//fixme mapFileName should be an alias instead
-	//_dummyDevice.reset( new DFMC_MD22Dummy(moduleName) );
+  _dummyDevice = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
   // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
-  _mappedDevice.reset(new Device());
-  //_dummyDevice->open( mapFileName );
-  //_dummyDevice->open();
+  _mappedDevice.reset(new ChimeraTK::Device());
  
-  MapFileParser fileParser;
-  boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
+  ChimeraTK::MapFileParser fileParser;
+  boost::shared_ptr<ChimeraTK::RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
-  _mappedDevice->open( _dummyDevice, registerMapping );
+  _mappedDevice->open(DFMC_ALIAS);
   
   _dummyDevice->setRegistersForTesting();
 

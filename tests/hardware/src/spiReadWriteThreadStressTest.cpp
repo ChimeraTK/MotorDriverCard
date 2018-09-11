@@ -8,7 +8,7 @@
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
-#include <mtca4u/BackendFactory.h>
+#include <ChimeraTK/BackendFactory.h>
 
 using namespace mtca4u;
 
@@ -434,7 +434,7 @@ int main(int argc, char* argv []){
   }
 
   if (argc==5){
-    BackendFactory::getInstance().setDMapFilePath(argv[4]);
+    ChimeraTK::BackendFactory::getInstance().setDMapFilePath(argv[4]);
   }
   
   SpiReadWriteThreadStressTest stressTest(argv[1], argv[2], argv[3]);

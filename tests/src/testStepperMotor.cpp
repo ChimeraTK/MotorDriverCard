@@ -11,8 +11,8 @@ using namespace boost::unit_test_framework;
 #include "StepperMotorException.h"
 #include "TMC429Constants.h"
 #include "DFMC_MD22Dummy.h"
-#include <mtca4u/DMapFilesParser.h>
-#include <mtca4u/Utilities.h>
+#include <ChimeraTK/DMapFilesParser.h>
+#include <ChimeraTK/Utilities.h>
 
 #include <boost/thread.hpp>
 

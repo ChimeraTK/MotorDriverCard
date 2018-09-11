@@ -5,13 +5,13 @@
 #include <cerrno>
 
 #include <boost/thread/locks.hpp>
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u{
 
-  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< Device > const & device,
+  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< ChimeraTK::Device > const & device,
 			  std::string const & moduleName, 
                           std::string const & writeRegisterName, 
                           std::string const & syncRegisterName,
@@ -27,7 +27,7 @@ namespace mtca4u{
       _spiMutex()
   {}
 
-  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< Device > const & device,
+  SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< ChimeraTK::Device > const & device,
 			  std::string const & moduleName, 
                           std::string const & writeRegisterName, 
                           std::string const & syncRegisterName,

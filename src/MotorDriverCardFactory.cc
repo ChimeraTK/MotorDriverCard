@@ -3,7 +3,7 @@
 #include "impl/MotorDriverCardImpl.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardDummy.h"
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 
 #include <boost/thread/locks.hpp>
 
@@ -38,7 +38,7 @@ MotorDriverCardFactory::createMotorDriverCard(std::string alias,
 		  // just create a MotorDriverCardDummy
 		  motorDriverCard.reset(new MotorDriverCardDummy());
 		}else{
-		  boost::shared_ptr<Device> device(new Device);
+		  boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device);
 		  device->open(alias);
 		  MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
@@ -61,11 +61,11 @@ void MotorDriverCardFactory::setDummyMode(bool dummyMode)
 }
 
 void MotorDriverCardFactory::setDeviceaccessDMapFilePath(std::string dmapFileName){
-  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 }
 
 std::string MotorDriverCardFactory::getDeviceaccessDMapFilePath(){
-  return BackendFactory::getInstance().getDMapFilePath();
+  return ChimeraTK::BackendFactory::getInstance().getDMapFilePath();
 }
 
 }// namespace mtca4u

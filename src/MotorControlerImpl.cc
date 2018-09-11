@@ -6,7 +6,7 @@ using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
 
 #include "impl/MotorDriverCardImpl.h"
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 #include <cmath>
 
 // just save some typing...
@@ -15,8 +15,8 @@ using namespace mtca4u::tmc429;
 
 // Macros which cover more than one line are not good for the code coverage test, as only the 
 // macro call is checked. In this case it is probably ok because we gain a lot of code because
-// we have to define many variables, AND there is only one line per function without braching,
-// which is covered by the funcion coverage test (not the line coverage test).
+// we have to define many variables, AND there is only one line per function without branching,
+// which is covered by the function coverage test (not the line coverage test).
 // Otherwise we would need a complete test which checks the macro.
 #define DEFINE_GET_SET_VALUE(NAME, IDX)                                        \
   unsigned int MotorControlerImpl::get##NAME() {                               \
@@ -67,7 +67,7 @@ typedef std::unique_lock<std::mutex> unique_lock;
 namespace mtca4u
 {
   MotorControlerImpl::MotorControlerImpl( unsigned int ID,
-		  boost::shared_ptr< Device > const & device,
+		  boost::shared_ptr< ChimeraTK::Device > const & device,
                   std::string const & moduleName,
                   boost::shared_ptr< TMC429SPI > const & controlerSPI,
 		  MotorControlerConfig const & motorControlerConfig ) 
@@ -156,7 +156,7 @@ namespace mtca4u
     return converter24bits.customToThirtyTwo( readValue );
   }
 
-  unsigned int MotorControlerImpl::readRegisterAccessor( boost::shared_ptr< RegisterAccessor > const & registerAccessor){
+  unsigned int MotorControlerImpl::readRegisterAccessor( boost::shared_ptr< ChimeraTK::RegisterAccessor > const & registerAccessor){
     int readValue;
     registerAccessor->readRaw( &readValue );
     return static_cast<unsigned int>(readValue);

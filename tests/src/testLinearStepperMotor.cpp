@@ -8,7 +8,7 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
-#include <mtca4u/DMapFilesParser.h>
+#include <ChimeraTK/DMapFilesParser.h>
 
 
 #include <boost/thread.hpp>

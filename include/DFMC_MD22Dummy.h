@@ -1,10 +1,10 @@
-#ifndef MTCA4U_DFMC_MD22_DUMMY_H
-#define MTCA4U_DFMC_MD22_DUMMY_H
+#ifndef CHIMERATK_DFMC_MD22_DUMMY_H
+#define CHIMERATK_DFMC_MD22_DUMMY_H
 
-#include <mtca4u/DummyBackend.h>
+#include <ChimeraTK/DummyBackend.h>
 #include "TMC429Words.h"
-#include <mtca4u/BackendFactory.h>
-#include <mtca4u/DeviceAccessVersion.h>
+#include <ChimeraTK/BackendFactory.h>
+#include <ChimeraTK/DeviceAccessVersion.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -34,7 +34,7 @@ class TMC429OutputWord;
    *  \li A read request to the SPI_CTRL register updates the value in the SPI_CTRL_B
    *      register
    */
-  class DFMC_MD22Dummy : public mtca4u::DummyBackend{
+  class DFMC_MD22Dummy : public ChimeraTK::DummyBackend{
   public:
     enum class TMC260Register{
       DRIVER_CONTROL_REG = 0, // DRVCTRL
@@ -136,12 +136,12 @@ class TMC429OutputWord;
      *
      * @returns: Returns the content of the desired register as a uint32_t
      * that can be provided as an input to the corresponding derived version of
-     * mtca4u::TMC260Word
+     * ChimeraTK::TMC260Word
      */
     uint32_t readTMC260Register(uint32_t motorID, TMC260Register configuredRegister);
 
 
-    static boost::shared_ptr<mtca4u::DeviceBackend> createInstance(std::string host, std::string interface,
+    static boost::shared_ptr<ChimeraTK::DeviceBackend> createInstance(std::string host, std::string interface,
         std::list<std::string> parameters, std::string mapFileName);
 
 
@@ -224,11 +224,11 @@ class TMC429OutputWord;
   #ifdef _DEBUG
           std::cout<<"DFMC_MD22DummyRegisterer"<<std::endl;
   #endif
-          BackendFactory::getInstance().registerBackendType("dfmc_md22dummy","",&DFMC_MD22Dummy::createInstance, CHIMERATK_DEVICEACCESS_VERSION);
+          ChimeraTK::BackendFactory::getInstance().registerBackendType("dfmc_md22dummy","",&DFMC_MD22Dummy::createInstance, CHIMERATK_DEVICEACCESS_VERSION);
     }
   };
 
 
 }// namespace mtca4u
 
-#endif // MTCA4U_DFMC_MD22_DUMMY_H
+#endif // CHIMERATK_DFMC_MD22_DUMMY_H
