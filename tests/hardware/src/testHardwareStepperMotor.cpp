@@ -5,7 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <pthread.h>
-#include <mtca4u/BackendFactory.h>
+#include <ChimeraTK/BackendFactory.h>
 
 pthread_t statusReaderThreadTab[5];
 bool threadActive = false;
@@ -43,7 +43,7 @@ int main( int argc, char* argv[] ) {
 
 
   std::string dmapFileName = argv[1];
-  mtca4u::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   std::string moduleName = argv[2];
    

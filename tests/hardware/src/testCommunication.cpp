@@ -3,8 +3,8 @@
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverCard.h"
 #include "MotorControlerExpert.h"
-#include <mtca4u/DMapFileParser.h>
-#include <mtca4u/BackendFactory.h>
+#include <ChimeraTK/DMapFileParser.h>
+#include <ChimeraTK/BackendFactory.h>
 #include <unistd.h>
 #include <ctime>
 
@@ -35,8 +35,8 @@ int main( int argc, char* argv[] )
 
   // get the first device alias from the dmap file and tell the factory to use this dmap file
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->deviceName;
-  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+  std::string deviceAlias = ChimeraTK::DMapFileParser().parse( dmapFileName )->begin()->deviceName;
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   std::string moduleName = argv[2];
   std::string motorConfig = argv[3];

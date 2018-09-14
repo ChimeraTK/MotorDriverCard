@@ -5,9 +5,9 @@
 #include "MotorControler.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardFactory.h"
-#include <mtca4u/DMapFileParser.h>
-#include <mtca4u/BackendFactory.h>
-#include <mtca4u/Device.h>
+#include <ChimeraTK/DMapFileParser.h>
+#include <ChimeraTK/BackendFactory.h>
+#include <ChimeraTK/Device.h>
 #include <unistd.h>
 #include <signal.h>
 #include <ctime>
@@ -60,15 +60,20 @@ int main( int argc, char* argv[] )
   signal(SIGINT, intHandler);
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->deviceName;
-  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+  std::string deviceAlias = ChimeraTK::DMapFileParser().parse( dmapFileName )->begin()->deviceName;
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   // first turn off the reset of the board so the firmware can get active. For this we manually have to 
   // open the device and set the register.
-  mtca4u::Device device;
+  ChimeraTK::Device device;
   device.open( deviceAlias );
-  int32_t ONE = 1;
-  device.writeReg("WORD_RESET_N","BOARD0",&ONE);
+  //int32_t ONE = 1;
+  //device.writeReg("WORD_RESET_N","BOARD0",&ONE);
+
+  ChimeraTK::ScalarRegisterAccessor<int32_t>  boardResetN = device.getScalarRegisterAccessor<int32_t>("BOARD0/WORD_RESET_N");
+  boardResetN = 1;
+  boardResetN.write();
+
 
   boost::shared_ptr<mtca4u::MotorDriverCardExpert> motorDriverCard
 	= boost::dynamic_pointer_cast<mtca4u::MotorDriverCardExpert>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3] ));

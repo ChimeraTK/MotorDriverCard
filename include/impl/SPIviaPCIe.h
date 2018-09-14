@@ -1,7 +1,7 @@
-#ifndef MTCA4U_SPI_VIA_PCIE_H
-#define MTCA4U_SPI_VIA_PCIE_H
+#ifndef CHIMERATK_SPI_VIA_PCIE_H
+#define CHIMERATK_SPI_VIA_PCIE_H
 
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 
 #include <boost/thread/recursive_mutex.hpp>
 namespace mtca4u{
@@ -28,14 +28,14 @@ namespace mtca4u{
      *  An internal copy of the shared pointer of the mapped device is held in this class,
      *  so the SPIviaPCIe always stays valid, even if the original shared pointer goes out of scope.
      */
-    SPIviaPCIe( boost::shared_ptr<Device > const & device,
+    SPIviaPCIe( boost::shared_ptr<ChimeraTK::Device > const & device,
 		std::string const & moduleName, 
                 std::string const & writeRegisterName, 
                 std::string const & syncRegisterName,
 		unsigned int spiWaitingTime =SPI_DEFAULT_WAITING_TIME );
 
     /// Constructor for write and readback.
-    SPIviaPCIe( boost::shared_ptr< Device > const & device,
+    SPIviaPCIe( boost::shared_ptr< ChimeraTK::Device > const & device,
 		std::string const & moduleName, 
                 std::string const & writeRegisterName, 
                 std::string const & syncRegisterName,
@@ -68,9 +68,9 @@ namespace mtca4u{
 
   private:
     // No need to keep an instance of the  shared pointer. Each accessor has one.
-    boost::shared_ptr< RegisterAccessor > _writeRegister;
-    boost::shared_ptr< RegisterAccessor > _synchronisationRegister;
-    boost::shared_ptr< RegisterAccessor > _readbackRegister;
+    boost::shared_ptr< ChimeraTK::RegisterAccessor > _writeRegister;
+    boost::shared_ptr< ChimeraTK::RegisterAccessor > _synchronisationRegister;
+    boost::shared_ptr< ChimeraTK::RegisterAccessor > _readbackRegister;
 
     static void sleepMicroSeconds(unsigned int microSeconds);
     /** Time in microseconds to wait for the transaction to be finished on the SPI bus
@@ -88,4 +88,4 @@ namespace mtca4u{
 
 }//namespace mtca4u
 
-#endif// MTCA4U_SPI_VIA_PCIE_H
+#endif// CHIMERATK_SPI_VIA_PCIE_H

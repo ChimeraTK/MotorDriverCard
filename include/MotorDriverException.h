@@ -5,6 +5,10 @@
 #include <string>
 
 namespace mtca4u
+
+/*FIXME This does not conform with the new ChimeraTK exception scheme.
+ *      Remove this class and use ChimeraTK/Exception.h instead.
+ */
 {
   /** The type of exception thrown by MotorDriverCard and MotorControler.
    */

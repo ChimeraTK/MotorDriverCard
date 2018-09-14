@@ -11,7 +11,7 @@
 #include "SPIviaPCIe.h"
 #include "TMC429SPI.h"
 #include  <cstdint>
-#include <mtca4u/Device.h>
+#include <ChimeraTK/Device.h>
 
 #define MCI_DECLARE_SET_GET_VALUE( NAME, VARIABLE_IN_UNITS )\
   void set ## NAME (unsigned int VARIABLE_IN_UNITS );	\
@@ -36,7 +36,7 @@ namespace mtca4u
      *  object stays valid even if the original shared pointer goes out of scope.
      *  The config is only used in the constuctor, no reference is kept in the class.
      */
-    MotorControlerImpl(unsigned int ID, boost::shared_ptr<Device> const& device,
+    MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
                        std::string const& moduleName,
                        boost::shared_ptr<TMC429SPI> const& controlerSPI,
                        MotorControlerConfig const& motorControlerConfig);
@@ -182,7 +182,7 @@ namespace mtca4u
      // Reason for mtable keyword:
      // http://stackoverflow.com/questions/25521570/can-mutex-locking-function-be-marked-as-const
      mutable std::mutex _mutex;
-     boost::shared_ptr< Device > _device;
+     boost::shared_ptr< ChimeraTK::Device > _device;
 
      unsigned int _id;
      const MotorControlerConfig _controlerConfig;
@@ -207,20 +207,20 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
 
-     boost::shared_ptr< mtca4u::RegisterAccessor > _controlerStatus;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _controlerStatus;
 
-     boost::shared_ptr< mtca4u::RegisterAccessor > _actualPosition;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _actualVelocity;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _actualAcceleration;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _microStepCount;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _stallGuardValue;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _coolStepValue;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _status;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _motorCurrentEnabled;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _decoderReadoutMode;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _decoderPosition;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _endSwithPowerIndicator;
-     boost::shared_ptr< mtca4u::RegisterAccessor > _calibrationTime;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _actualPosition;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _actualVelocity;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _actualAcceleration;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _microStepCount;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _stallGuardValue;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _coolStepValue;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _status;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _motorCurrentEnabled;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _decoderReadoutMode;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _decoderPosition;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _endSwithPowerIndicator;
+     boost::shared_ptr< ChimeraTK::RegisterAccessor > _calibrationTime;
      
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
@@ -230,7 +230,7 @@ namespace mtca4u
      /// Simplify the syntax to read from a RegisterAccessor which need call by reference.
      /// Remove this function once the RegisterAccessor interface has been fixed.
      unsigned int readRegisterAccessor( 
-			 boost::shared_ptr< mtca4u::RegisterAccessor > const & registerAccessor);
+			 boost::shared_ptr< ChimeraTK::RegisterAccessor > const & registerAccessor);
 
      template<class T>
        T readTypedRegister();

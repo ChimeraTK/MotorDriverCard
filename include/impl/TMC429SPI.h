@@ -5,11 +5,11 @@
 #include "TMC429Words.h"
 
 namespace mtca4u{
-  /** This class implements the special format of the SPI regsiters in the TPC429 chip.
+  /** This class implements the special format of the SPI registers in the TPC429 chip.
    */
   class TMC429SPI{
   public:
-    TMC429SPI(  boost::shared_ptr< Device > const & device,
+    TMC429SPI(  boost::shared_ptr< ChimeraTK::Device > const & device,
 		std::string const & moduleName,
                 std::string const & writeRegisterName,
 		std::string const & syncRegisterName,

@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "MotorDriverCardFactory.h"
-#include <mtca4u/DMapFileParser.h>
-#include <mtca4u/BackendFactory.h>
+#include <ChimeraTK/DMapFileParser.h>
+#include <ChimeraTK/BackendFactory.h>
 #include <unistd.h>
 
 using namespace mtca4u;
@@ -22,8 +22,8 @@ int main( int argc, char* argv[] )
   std::string motorConfigFileName=argv[3];
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = DMapFileParser().parse( dmapFileName )->begin()->deviceName;
-  BackendFactory::getInstance().setDMapFilePath( dmapFileName );
+  std::string deviceAlias = ChimeraTK::DMapFileParser().parse( dmapFileName )->begin()->deviceName;
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath( dmapFileName );
 
   (void) mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard( deviceAlias,
 									   moduleName,

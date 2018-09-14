@@ -51,14 +51,14 @@ namespace mtca4u{
 
   void DFMC_MD22Dummy::open(){
     DummyBackend::open();
-    setPCIeRegistersForTesting(); // some of them will be overwriten if a 
-    // defined behaviour exists for them
+    setPCIeRegistersForTesting(); // some of them will be overwritten if a
+    // defined behavior exists for them
 
     _controlerSpiAddressSpace.resize( tmc429::SIZE_OF_SPI_ADDRESS_SPACE , 0 );
 
     setControlerSpiRegistersForOperation();
 
-    RegisterInfoMap::RegisterInfo registerInformation;
+    ChimeraTK::RegisterInfoMap::RegisterInfo registerInformation;
     DEFINE_ADDRESS_RANGE( controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING, _moduleName );
     _controlerSpiWriteAddress = registerInformation.address;
     _controlerSpiBar = registerInformation.bar;
@@ -148,7 +148,7 @@ namespace mtca4u{
   }
 
   void DFMC_MD22Dummy::setConstantPCIeRegister( std::string registerName, int32_t content){
-    RegisterInfoMap::RegisterInfo registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
+    ChimeraTK::RegisterInfoMap::RegisterInfo registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
     DEFINE_ADDRESS_RANGE( addressRange, registerName, _moduleName);
     size_t addressIndex = addressRange.offset/sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;
@@ -384,7 +384,7 @@ namespace mtca4u{
   void DFMC_MD22Dummy::writeControlerSpiRegisterToFpga( unsigned int ID, unsigned int IDX, std::string suffix ){
     unsigned int controlerSpiAddress = spiAddressFromSmdaIdxJdx( ID, IDX );
     std::string registerName = createMotorRegisterName( ID, suffix );
-    RegisterInfoMap::RegisterInfo registerInformation;
+    ChimeraTK::RegisterInfoMap::RegisterInfo registerInformation;
     _registerMapping->getRegisterInfo (registerName, registerInformation, _moduleName);
     writeRegisterWithoutCallback(  registerInformation.bar , registerInformation.address,
         _controlerSpiAddressSpace[controlerSpiAddress]
@@ -428,7 +428,7 @@ namespace mtca4u{
     return retVal;
   }
 
-  boost::shared_ptr<mtca4u::DeviceBackend> DFMC_MD22Dummy::createInstance(
+  boost::shared_ptr<ChimeraTK::DeviceBackend> DFMC_MD22Dummy::createInstance(
       std::string /*host*/, std::string instance,
       std::list<std::string> parameters, std::string ) {
 

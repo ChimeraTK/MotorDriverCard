@@ -4,7 +4,7 @@
 namespace mtca4u{
 
   //TMC429SPI::TMC429SPI(  boost::shared_ptr< Device<BaseDevice> > const & device,
-  TMC429SPI::TMC429SPI(  boost::shared_ptr< Device > const & device,
+  TMC429SPI::TMC429SPI(  boost::shared_ptr< ChimeraTK::Device > const & device,
 			 std::string const & moduleName,
                          std::string const & writeRegisterName,
 			 std::string const & syncRegisterName,

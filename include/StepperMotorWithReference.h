@@ -5,6 +5,9 @@
  *      Author: vitimic
  */
 
+#ifndef CHIMERATK_STEPPER_MOTOR_H
+#define CHIMERATK_STEPPER_MOTOR_H
+
 #include "StepperMotor.h"
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
@@ -87,3 +90,4 @@ namespace ChimeraTK{
     std::atomic<uint32_t> _index; //variable used only in tests. to be removed?
   };
 }
+#endif /* CHIMERATK_STEPPER_MOTOR_H */

@@ -1,5 +1,5 @@
-#ifndef MTCA4U_TMC429WORDS_H
-#define MTCA4U_TMC429WORDS_H
+#ifndef CHIMERATK_TMC429WORDS_H
+#define CHIMERATK_TMC429WORDS_H
 
 #include "MultiVariableWord.h"
 #include "DFMC_MD22Constants.h"
@@ -27,7 +27,7 @@ namespace mtca4u{
    *  chapter 8, page 17ff, especially table 8-2.
    *
    *  We intentionally break the naming convention here and go for
-   *  data sheed syntax. This also makes it easier to distiguisch 
+   *  data sheet syntax. This also makes it easier to distinguish
    *  MultiVariableWord::getDataWord() (the full 32 bit content)
    *  from TMC429InputWord::getDATA() (the data payload sub word as described in the 
    *  data sheet).
@@ -303,4 +303,4 @@ namespace mtca4u{
 
 }// namespace mtca4u
 
-#endif// MTCA4U_TMC429WORDS_H
+#endif// CHIMERATK_TMC429WORDS_H

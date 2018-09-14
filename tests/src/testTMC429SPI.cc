@@ -4,15 +4,14 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
-#include <mtca4u/Device.h>
-//#include <mtca4u/libmap.h>
+#include <ChimeraTK/Device.h>
 #include "impl/TMC429SPI.h"
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 #include "TMC429Words.h"
 #include "TMC429Constants.h"
 #include "MotorDriverException.h" 
-#include <mtca4u/MapFileParser.h>
+#include <ChimeraTK/MapFileParser.h>
 using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
@@ -31,7 +30,7 @@ class TMC429SPITest{
 
  private:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-  boost::shared_ptr< Device > _mappedDevice;
+  boost::shared_ptr< ChimeraTK::Device > _mappedDevice;
   std::string _mapFileName;
 
   boost::shared_ptr<TMC429SPI> _tmc429Spi;
@@ -70,10 +69,10 @@ TMC429SPITest::TMC429SPITest(std::string const & mapFileName, std::string const 
   _dummyDevice = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
   // we need a mapped device of BaseDevice. Unfortunately this is still really clumsy to produce/open
-  _mappedDevice.reset(new Device());
+  _mappedDevice.reset(new ChimeraTK::Device());
  
-  MapFileParser fileParser;
-  boost::shared_ptr<RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
+  ChimeraTK::MapFileParser fileParser;
+  boost::shared_ptr<ChimeraTK::RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
   _mappedDevice->open(DFMC_ALIAS);
   
