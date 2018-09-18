@@ -572,6 +572,7 @@ namespace ChimeraTK{
      * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
+     * @param  unitsConverter A unit converter based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
      * @return
      */
     StepperMotor(std::string const & motorDriverCardDeviceName,
