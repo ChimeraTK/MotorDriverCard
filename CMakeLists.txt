@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.0)
 project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
-set(${PROJECT_NAME}_MINOR_VERSION 04)
+set(${PROJECT_NAME}_MINOR_VERSION 07)
 set(${PROJECT_NAME}_PATCH_VERSION 00)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
@@ -50,11 +50,9 @@ else(SUPPRESS_AUTO_DOC_BUILD)
     set(DOC_DEPENDENCY ALL)
 endif(SUPPRESS_AUTO_DOC_BUILD)
 
-# The MIN versions are needed for automatic replacement in the debian control file
-SET(mtca4u-deviceaccess_MIN_VERSION 00.19)
-FIND_PACKAGE(mtca4u-deviceaccess ${mtca4u-deviceaccess_MIN_VERSION} REQUIRED)
-include_directories(SYSTEM ${mtca4u-deviceaccess_INCLUDE_DIRS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${mtca4u-deviceaccess_CXX_FLAGS}")
+FIND_PACKAGE(ChimeraTK-DeviceAccess 01.00 REQUIRED)
+include_directories(SYSTEM ${ChimeraTK-DeviceAccess_INCLUDE_DIRS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-DeviceAccess_CXX_FLAGS}")
 
 #pugixml now comes with the MotorDriverCard source code
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src)
@@ -135,7 +133,7 @@ endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${pugixml_sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} ${mtca4u-deviceaccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY} pthread)
+target_link_libraries(${PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY} pthread)
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
@@ -172,13 +170,13 @@ install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/Mot
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
 # Note: Most of them are empty, but have to be set. The library itself does not include
-# mtca4u-deviceaccess in the headers any more, so most of them are not needed at the 
+# ChimeraTK-DeviceAccess in the headers any more, so most of them are not needed at the 
 # moment.
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(${PROJECT_NAME}_LIBRARIES "")
 set(${PROJECT_NAME}_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
 #set(${PROJECT_NAME}_CXX_FLAGS "") #have already been set by enable_cxx11_support
-set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags ${mtca4u-deviceaccess_LINKER_FLAGS}")
+set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags ${ChimeraTK-DeviceAccess_LINKER_FLAGS}")
 #no matlab bindings foreseen yet
 #set(${PROJECT_NAME}_MEXFLAGS "-I${CMAKE_INSTALL_PREFIX}/include -L${CMAKE_INSTALL_PREFIX}/lib -l${PROJECT_NAME}")
 
@@ -186,8 +184,6 @@ include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
 add_subdirectory(ConfigCalculator) 
 
-# The instructions to create a debian package are loaded from a separate file
-include(${CMAKE_SOURCE_DIR}/cmake/prepare_debian_package.cmake)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
