@@ -13,6 +13,8 @@
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
 
+#include <memory>
+
 namespace ChimeraTK{
 
   class StepperMotorWithReference : public StepperMotor{
@@ -28,7 +30,8 @@ namespace ChimeraTK{
     StepperMotorWithReference(std::string const & motorDriverCardDeviceName,
                               std::string const & moduleName,
                               unsigned int motorDriverId,
-                              std::string motorDriverCardConfigFileName);
+                              std::string motorDriverCardConfigFileName,
+                              std::shared_ptr<StepperMotorUnitsConverter> unitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>());
 
     /**
      * @brief  Destructor of the class object

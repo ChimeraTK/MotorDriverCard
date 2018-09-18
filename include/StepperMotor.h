@@ -574,7 +574,11 @@ namespace ChimeraTK{
      * @param  motorDriverCardConfigFileName Name of configuration file
      * @return
      */
-    StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
+    StepperMotor(std::string const & motorDriverCardDeviceName,
+                 std::string const & moduleName,
+                 unsigned int motorDriverId,
+                 std::string motorDriverCardConfigFileName,
+                 std::shared_ptr<StepperMotorUnitsConverter> unitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>());
 
     /**
      * @brief  Destructor of the class object

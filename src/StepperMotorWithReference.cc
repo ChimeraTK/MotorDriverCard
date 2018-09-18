@@ -12,22 +12,24 @@ namespace ChimeraTK{
   StepperMotorWithReference::StepperMotorWithReference(std::string const & motorDriverCardDeviceName,
                                                        std::string const & moduleName,
                                                        unsigned int motorDriverId,
-                                                       std::string motorDriverCardConfigFileName):
-                                                		    StepperMotor(),
-                                                		    _positiveEndSwitchEnabled(false),
-                                                		    _negativeEndSwitchEnabled(false),
-                                                		    _calibrationFailed(false),
-                                                		    _toleranceCalcFailed(false),
-                                                		    _toleranceCalculated(false),
-                                                		    _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
-                                                		    _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()),
-                                                		    _tolerancePositiveEndSwitch(0),
-                                                		    _toleranceNegativeEndSwitch(0),
-                                                		    _index(0){
+                                                       std::string motorDriverCardConfigFileName,
+                                                       std::shared_ptr<StepperMotorUnitsConverter> unitsConverter):
+                                                           StepperMotor(),
+                                                           _positiveEndSwitchEnabled(false),
+                                                           _negativeEndSwitchEnabled(false),
+                                                           _calibrationFailed(false),
+                                                           _toleranceCalcFailed(false),
+                                                           _toleranceCalculated(false),
+                                                           _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
+                                                           _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()),
+                                                           _tolerancePositiveEndSwitch(0),
+                                                           _toleranceNegativeEndSwitch(0),
+                                                           _index(0){
     _motorDriverCardDeviceName = motorDriverCardDeviceName;
     _motorDriverId = motorDriverId;
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
+    _stepperMotorUnitsConverter = unitsConverter,
     createStateMachine();
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();

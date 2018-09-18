@@ -417,13 +417,14 @@ namespace ChimeraTK{
   StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName,
                              std::string const & moduleName,
                              unsigned int motorDriverId,
-                             std::string motorDriverCardConfigFileName):
+                             std::string motorDriverCardConfigFileName,
+                             std::shared_ptr<StepperMotorUnitsConverter> unitsConverter):
                _motorDriverCardDeviceName(motorDriverCardDeviceName),
                _motorDriverId(motorDriverId),
                _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
                motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
                _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-               _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+               _stepperMotorUnitsConverter(unitsConverter),
                _targetPositionInSteps(_motorControler->getTargetPosition()),
                _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
                _minPositionLimitInSteps(std::numeric_limits<int>::min()),
@@ -531,8 +532,9 @@ namespace ChimeraTK{
     // FIXME This would try to acquire the mutex again, when called through setTargetPosition methods
     // Is the StepperMotor instance shared within the library so that we need this?
     //boost::lock_guard<boost::mutex> guard(_mutex);
-    // TODO Rework checkConditions...MoveEvent(). The move.. routines may also use start()
-    checkConditionsSetTargetPosAndEmitMoveEvent(getTargetPosition());
+    // TODO Rework checkConditions...MoveEvent(). The move.. routines may also use start(),
+    //      also, this is not clean because _targetPositionInSteps is set to the same value again in that function
+    checkConditionsSetTargetPosAndEmitMoveEvent(_targetPositionInSteps);
   }
 
   void StepperMotor::stop(){
