@@ -32,15 +32,16 @@ BOOST_AUTO_TEST_CASE( testInstance ){
 BOOST_AUTO_TEST_CASE( testGetSetDMapFilePath ){
 #pragma GCC diagnostic pop
   // make sure there is something different set than the one we want to test
-  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("some/initial/file");
+  // we have to use real files, otherwise we get an exception here.
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("MD22_on_DAMC2.dmap");
   // check that you can read it through the MotorDriverCardFactory interface
   BOOST_CHECK( mtca4u::MotorDriverCardFactory::getDeviceaccessDMapFilePath() ==
-               "some/initial/file" );
+               "MD22_on_DAMC2.dmap" );
 
   // set using the MotorDriverCardFactory's interface
-  mtca4u::MotorDriverCardFactory::setDeviceaccessDMapFilePath("my/dmapfile");
+  mtca4u::MotorDriverCardFactory::setDeviceaccessDMapFilePath("dummies.dmap");
   // check that it arrived correctly in the BackendFactory
-  BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() == "my/dmapfile");
+  BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() == "dummies.dmap");
 }
 
 #pragma GCC diagnostic push
