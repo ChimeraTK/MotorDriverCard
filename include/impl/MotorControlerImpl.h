@@ -3,6 +3,7 @@
 
 #include "MotorControlerExpert.h"
 
+#include "memory"
 #include <mutex>
 #include <atomic>
 
@@ -207,30 +208,25 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
 
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _controlerStatus;
-
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _actualPosition;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _actualVelocity;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _actualAcceleration;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _microStepCount;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _stallGuardValue;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _coolStepValue;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _status;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _motorCurrentEnabled;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _decoderReadoutMode;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _decoderPosition;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _endSwithPowerIndicator;
-     boost::shared_ptr< ChimeraTK::RegisterAccessor > _calibrationTime;
+     //boost::shared_ptr< ChimeraTK::RegisterAccessor > _controlerStatus;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _controlerStatus;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _actualPosition;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _actualVelocity;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _actualAcceleration;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _microStepCount;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _stallGuardValue;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _coolStepValue;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _status;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _motorCurrentEnabled;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderReadoutMode;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderPosition;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibrationTime;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwithPowerIndicator;
      
      mtca4u::SPIviaPCIe _driverSPI;
      boost::shared_ptr<mtca4u::TMC429SPI>  _controlerSPI;
 
      static const unsigned int MD_22_DEFAULT_CLOCK_FREQ_MHZ = 32;
-
-     /// Simplify the syntax to read from a RegisterAccessor which need call by reference.
-     /// Remove this function once the RegisterAccessor interface has been fixed.
-     unsigned int readRegisterAccessor( 
-			 boost::shared_ptr< ChimeraTK::RegisterAccessor > const & registerAccessor);
 
      template<class T>
        T readTypedRegister();
@@ -264,6 +260,8 @@ namespace mtca4u
      void setCurrentScale(unsigned int currentScale);
 
      void roundToNextFullStep(int &targetPosition);
+
+     inline unsigned int readRegisterAccessor( ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue);
   };
 
 }// namespace mtca4u

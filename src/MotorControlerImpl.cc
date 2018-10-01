@@ -10,8 +10,8 @@ using namespace mtca4u::tmc429;
 #include <cmath>
 
 // just save some typing...
-#define ACCESSOR_FROM_SUFFIX( SUFFIX, moduleName )\
-  device->getRegisterAccessor( createMotorRegisterName( _id, SUFFIX ), moduleName )
+#define RAW_ACCESSOR_FROM_SUFFIX( MODULE_NAME, SUFFIX )\
+  device->getScalarRegisterAccessor<int32_t>(MODULE_NAME + "/" + createMotorRegisterName(_id, SUFFIX), 0, {ChimeraTK::AccessMode::raw})
 
 // Macros which cover more than one line are not good for the code coverage test, as only the 
 // macro call is checked. In this case it is probably ok because we gain a lot of code because
@@ -80,23 +80,23 @@ namespace mtca4u
       _coolStepControlData(), //set later in the constructor body
       _stallGuardControlData(), //set later in the constructor body
       _driverConfigData(), //set later in the constructor body
-      _controlerStatus(device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
-      _actualPosition( ACCESSOR_FROM_SUFFIX(  ACTUAL_POSITION_SUFFIX, moduleName ) ),
-      _actualVelocity( ACCESSOR_FROM_SUFFIX( ACTUAL_VELOCITY_SUFFIX, moduleName ) ),
-      _actualAcceleration( ACCESSOR_FROM_SUFFIX( ACTUAL_ACCELETATION_SUFFIX, moduleName ) ),
-      _microStepCount( ACCESSOR_FROM_SUFFIX( MICRO_STEP_COUNT_SUFFIX, moduleName ) ),
-      _stallGuardValue( ACCESSOR_FROM_SUFFIX( STALL_GUARD_VALUE_SUFFIX, moduleName ) ),
-      _coolStepValue( ACCESSOR_FROM_SUFFIX( COOL_STEP_VALUE_SUFFIX, moduleName ) ),
-      _status( ACCESSOR_FROM_SUFFIX( STATUS_SUFFIX, moduleName ) ),
-      _motorCurrentEnabled( ACCESSOR_FROM_SUFFIX( MOTOR_CURRENT_ENABLE_SUFFIX, moduleName ) ),
-      _decoderReadoutMode( ACCESSOR_FROM_SUFFIX( DECODER_READOUT_MODE_SUFFIX, moduleName ) ),
-      _decoderPosition( ACCESSOR_FROM_SUFFIX( DECODER_POSITION_SUFFIX, moduleName ) ),
-      _endSwithPowerIndicator(), //set later in the constructor body, might throws which is to be caught
-      _calibrationTime(device->getRegisterAccessor( CALIBRATION_TIME, moduleName )),
+      _controlerStatus{device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})},
+      _actualPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_POSITION_SUFFIX)},
+      _actualVelocity{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_VELOCITY_SUFFIX)},
+      _actualAcceleration{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_ACCELETATION_SUFFIX)},
+      _microStepCount{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MICRO_STEP_COUNT_SUFFIX)},
+      _stallGuardValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STALL_GUARD_VALUE_SUFFIX)},
+      _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)},
+      _status{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STATUS_SUFFIX)},
+      _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
+      _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
+      _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
+      _calibrationTime{device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
+      _endSwithPowerIndicator{},
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
-		  createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
-		  motorControlerConfig.driverSpiWaitingTime),
+      createMotorRegisterName(ID, SPI_SYNC_SUFFIX ),
+      motorControlerConfig.driverSpiWaitingTime),
       _controlerSPI(controlerSPI),
       converter24bits(24), converter12bits(12),
       _moveOnlyFullStep(false),
@@ -129,14 +129,14 @@ namespace mtca4u
     setEnabled( motorControlerConfig.enabled );
     try {
       // this must throw on mapfile not having this register
-      _endSwithPowerIndicator =
-          ACCESSOR_FROM_SUFFIX(ENDSWITCH_ENABLE_SUFFIX, moduleName);
+      _endSwithPowerIndicator.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, ENDSWITCH_ENABLE_SUFFIX));
     }
     catch (std::exception& a) {
       // ignore exception when creating the accessor with the consequence that
-      // _endSwithPowerIndicator becomes a nullptr. This happens when the
+      // _endSwithPowerIndicator stays uninitialized. This happens when the
       // library is used with old firmware that does not have the
-      // WORD_M1_VOLTAGE_EN register in the mapfile.
+      // WORD_M1_VOLTAGE_EN register in the mapfile. Methods using this accessor have to
+      // check its isInitialised() method prior to using it.
     }
   }
 
@@ -151,14 +151,12 @@ namespace mtca4u
   }
 
   int MotorControlerImpl::readPositionRegisterAndConvert(){
-    int readValue;
-    _actualPosition->readRaw( &readValue );
-    return converter24bits.customToThirtyTwo( readValue );
+    _actualPosition.read();
+    return converter24bits.customToThirtyTwo( _actualPosition );
   }
 
-  unsigned int MotorControlerImpl::readRegisterAccessor( boost::shared_ptr< ChimeraTK::RegisterAccessor > const & registerAccessor){
-    int readValue;
-    registerAccessor->readRaw( &readValue );
+  unsigned int MotorControlerImpl::readRegisterAccessor( ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue){
+    readValue.read();
     return static_cast<unsigned int>(readValue);
   }
 
@@ -170,9 +168,8 @@ namespace mtca4u
 
   int MotorControlerImpl::getActualVelocity(){
     lock_guard guard(_mutex);
-    int readValue;
-    _actualVelocity->readRaw( &readValue );
-    return converter12bits.customToThirtyTwo( readValue );
+    _actualVelocity.read();
+    return converter12bits.customToThirtyTwo( _actualVelocity );
   }
 
   void MotorControlerImpl::setActualVelocity(int velocity){
@@ -218,8 +215,8 @@ namespace mtca4u
  
   void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode){
     lock_guard guard(_mutex);
-    int32_t temporaryWriteWord = static_cast<int32_t>(readoutMode);
-    _decoderReadoutMode->writeRaw( &temporaryWriteWord );
+    _decoderReadoutMode = static_cast<int32_t>(readoutMode);
+    _decoderReadoutMode.write();
   }
 
   unsigned int MotorControlerImpl::getDecoderReadoutMode(){
@@ -404,35 +401,28 @@ namespace mtca4u
 
   void MotorControlerImpl::setCalibrationTime(uint32_t calibrationTime){
     lock_guard guard(_mutex);
-    int32_t tempVar = static_cast<int32_t>(calibrationTime);
-    _calibrationTime->writeRaw(&tempVar);
-//    _calibrationTime = calibrationTime;
-//    _calibrationTime.write();
+    _calibrationTime = static_cast<int32_t>(calibrationTime);
+    _calibrationTime.write();
   }
 
   uint32_t MotorControlerImpl::getCalibrationTime(){
     lock_guard guard(_mutex);
-    int32_t calibTime;
-    _calibrationTime->readRaw(&calibTime);
-    return static_cast<uint32_t>(calibTime);
-//    _calibrationTime.read();
-//    return _calibrationTime;
+    _calibrationTime.read();
+    return static_cast<uint32_t>(_calibrationTime);
   }
 
   bool MotorControlerImpl::targetPositionReached(){
     lock_guard guard(_mutex);
-    int readValue;
-    _controlerStatus->readRaw( &readValue );
-    TMC429StatusWord controlerStatusWord( readValue );
+    _controlerStatus.read();
+       TMC429StatusWord controlerStatusWord(_controlerStatus);
 
     return controlerStatusWord.getTargetPositionReached(_id);
   }
 
   unsigned int MotorControlerImpl::getReferenceSwitchBit(){
     lock_guard guard(_mutex);
-    int readValue;
-    _controlerStatus->readRaw( &readValue );
-    TMC429StatusWord controlerStatusWord( readValue );
+    _controlerStatus.read();
+    TMC429StatusWord controlerStatusWord(_controlerStatus);
 
     return controlerStatusWord.getReferenceSwitchBit(_id);
   }
@@ -554,8 +544,8 @@ namespace mtca4u
 
   void MotorControlerImpl::setMotorCurrentEnabled(bool enable) {
     lock_guard guard(_mutex);
-    int32_t enableWord = (enable ? 1 : 0);
-    _motorCurrentEnabled->writeRaw(&enableWord);
+    _motorCurrentEnabled = (enable ? 1 : 0);
+    _motorCurrentEnabled.write();
   }
 
   bool MotorControlerImpl::isMotorCurrentEnabled() {
@@ -565,17 +555,17 @@ namespace mtca4u
 
   void MotorControlerImpl::setEndSwitchPowerEnabled(bool enable) {
     lock_guard guard(_mutex);
-    if (_endSwithPowerIndicator == nullptr) {
+    if (!_endSwithPowerIndicator.isInitialised()) {
       return; // Meaning we are on an old firmware that does not support this
               // register. Do nothing
     }
-    int32_t endSwithEnableWord = (enable ? 3 : 0);
-    _endSwithPowerIndicator->writeRaw(&endSwithEnableWord);
+    _endSwithPowerIndicator = (enable ? 3 : 0);
+    _endSwithPowerIndicator.write();
   }
 
   bool MotorControlerImpl::isEndSwitchPowerEnabled() {
     lock_guard guard(_mutex);
-    if (_endSwithPowerIndicator == nullptr) {
+    if (!_endSwithPowerIndicator.isInitialised()) {
       return false; // taking a convenient default to make logic easier in
       // StepperMotor getEnabled . With the old firmware status of the end
       // switches is a don't care condition anyway

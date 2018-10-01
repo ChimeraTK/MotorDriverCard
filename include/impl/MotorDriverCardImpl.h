@@ -76,7 +76,7 @@ namespace mtca4u
 
     boost::shared_ptr<TMC429SPI> _controlerSPI;
 
-    boost::shared_ptr< ChimeraTK::RegisterAccessor > _controlerStatusRegister;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _controlerStatusRegister;
     
     std::string _moduleName;
 
