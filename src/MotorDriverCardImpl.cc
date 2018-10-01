@@ -22,7 +22,7 @@ namespace mtca4u{
       _device(device),
       _powerMonitor(), // done later in the constructor body
       _controlerSPI(), // done later in the constructor body
-      _controlerStatusRegister(_device->getRegisterAccessor( CONTROLER_STATUS_BITS_ADDRESS_STRING, moduleName )),
+      _controlerStatusRegister( device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})),
       _moduleName(moduleName)
   {
     checkFirmwareVersion();
@@ -155,14 +155,14 @@ namespace mtca4u{
   }
 
   TMC429StatusWord MotorDriverCardImpl::getStatusWord(){
-    int readValue;
-    _controlerStatusRegister->readRaw( &readValue );
-    return TMC429StatusWord( readValue );
+    _controlerStatusRegister.read();
+    return TMC429StatusWord( _controlerStatusRegister );
   }
 
   void  MotorDriverCardImpl::checkFirmwareVersion(){
-    int32_t firmwareVersion;
-    _device->readReg(  PROJECT_VERSION_ADDRESS_STRING, _moduleName, &firmwareVersion );
+    ChimeraTK::ScalarRegisterAccessor<int32_t> firmwareVersion
+      = _device->getScalarRegisterAccessor<int32_t>(_moduleName + "/" + PROJECT_VERSION_ADDRESS_STRING);
+    firmwareVersion.read();
 
     // only allow firmware versions with the same major number
     uint32_t maxFirmwareVersion =  (MINIMAL_FIRMWARE_VERSION & 0xFF000000) | 0x00FFFFFF;
