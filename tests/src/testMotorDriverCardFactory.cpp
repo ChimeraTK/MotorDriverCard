@@ -67,8 +67,9 @@ BOOST_AUTO_TEST_CASE( testCreate ){
 
         boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe1 =
                         //MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH,
-            mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_ALIAS,
+            mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2,
                                         MODULE_NAME_0,CONFIG_FILE);
+        BOOST_CHECK(true);
         boost::shared_ptr<mtca4u::MotorDriverCard> md22_dummy1 =
                         mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS,
                                         MODULE_NAME_0, CONFIG_FILE);
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE( testCreate ){
         module0ProjectVersion.write();
 
         boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe2 =
-                        mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_ALIAS,
+                        mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2,
                                         MODULE_NAME_0, CONFIG_FILE);
 
         BOOST_CHECK( motorDriverCard_PCIe1.get() == motorDriverCard_PCIe2.get() );
