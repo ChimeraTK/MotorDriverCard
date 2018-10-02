@@ -32,15 +32,16 @@ BOOST_AUTO_TEST_CASE( testInstance ){
 BOOST_AUTO_TEST_CASE( testGetSetDMapFilePath ){
 #pragma GCC diagnostic pop
   // make sure there is something different set than the one we want to test
-  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("some/initial/file");
+  // we have to use real files, otherwise we get an exception here.
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("MD22_on_DAMC2.dmap");
   // check that you can read it through the MotorDriverCardFactory interface
   BOOST_CHECK( mtca4u::MotorDriverCardFactory::getDeviceaccessDMapFilePath() ==
-               "some/initial/file" );
+               "MD22_on_DAMC2.dmap" );
 
   // set using the MotorDriverCardFactory's interface
-  mtca4u::MotorDriverCardFactory::setDeviceaccessDMapFilePath("my/dmapfile");
+  mtca4u::MotorDriverCardFactory::setDeviceaccessDMapFilePath("dummies.dmap");
   // check that it arrived correctly in the BackendFactory
-  BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() == "my/dmapfile");
+  BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() == "dummies.dmap");
 }
 
 #pragma GCC diagnostic push
@@ -55,19 +56,11 @@ BOOST_AUTO_TEST_CASE( testCreate ){
          std::string testFilePath = TEST_DMAP_FILE_PATH;
          ChimeraTK::BackendFactory::getInstance().setDMapFilePath(testFilePath);
 
-        boost::shared_ptr < ChimeraTK::Device > 	mappedMtcadummy (new ChimeraTK::Device());
-        mappedMtcadummy->open(DUMMY_DEV_ALIAS);
-        ChimeraTK::ScalarRegisterAccessor<int32_t> module0ProjectVersion
-            = mappedMtcadummy->getScalarRegisterAccessor<int32_t>(MODULE_NAME_0 + "/" + mtca4u::dfmc_md22::PROJECT_VERSION_ADDRESS_STRING);
-
-        //mappedMtcadummy->writeReg(mtca4u::dfmc_md22::PROJECT_VERSION_ADDRESS_STRING, MODULE_NAME_0,  &mtca4u::dfmc_md22::MINIMAL_FIRMWARE_VERSION);
-        module0ProjectVersion = mtca4u::dfmc_md22::MINIMAL_FIRMWARE_VERSION;
-        module0ProjectVersion.write();
-
         boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe1 =
                         //MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH,
-            mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_ALIAS,
+            mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2,
                                         MODULE_NAME_0,CONFIG_FILE);
+        BOOST_CHECK(true);
         boost::shared_ptr<mtca4u::MotorDriverCard> md22_dummy1 =
                         mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS,
                                         MODULE_NAME_0, CONFIG_FILE);
@@ -82,14 +75,8 @@ BOOST_AUTO_TEST_CASE( testCreate ){
         // there are two instances here, and one in the factory
         BOOST_CHECK( md22_dummy1.use_count() == 3 );
 
-        // change the firmware version to 0. Still 'creation' has to work because the
-        // device must not be reopened but the same instance has to be used.
-        //mappedMtcadummy->writeReg(mtca4u::dfmc_md22::PROJECT_VERSION_ADDRESS_STRING, MODULE_NAME_0, &mtca4u::dfmc_md22::MINIMAL_FIRMWARE_VERSION);
-        module0ProjectVersion = mtca4u::dfmc_md22::MINIMAL_FIRMWARE_VERSION;
-        module0ProjectVersion.write();
-
         boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe2 =
-                        mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_ALIAS,
+                        mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2,
                                         MODULE_NAME_0, CONFIG_FILE);
 
         BOOST_CHECK( motorDriverCard_PCIe1.get() == motorDriverCard_PCIe2.get() );

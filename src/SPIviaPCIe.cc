@@ -12,14 +12,14 @@ using namespace mtca4u::dfmc_md22;
 namespace mtca4u{
 
   SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< ChimeraTK::Device > const & device,
-			  std::string const & moduleName, 
+                          std::string const & moduleName,
                           std::string const & writeRegisterName, 
                           std::string const & syncRegisterName,
-			  unsigned int spiWaitingTime)
-    : _writeRegister( device->getRegisterAccessor(writeRegisterName, moduleName) ),
-      _synchronisationRegister(  device->getRegisterAccessor(syncRegisterName, moduleName) ),
+                          unsigned int spiWaitingTime)
+    : _writeRegister(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
+      _synchronisationRegister(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + syncRegisterName, 0, {ChimeraTK::AccessMode::raw})),
       // will always return the last written word
-      _readbackRegister(  device->getRegisterAccessor(writeRegisterName, moduleName) ),
+      _readbackRegister(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
       _spiWaitingTime(spiWaitingTime),
       _moduleName(moduleName),
       _writeRegisterName(writeRegisterName),
@@ -28,14 +28,14 @@ namespace mtca4u{
   {}
 
   SPIviaPCIe::SPIviaPCIe( boost::shared_ptr< ChimeraTK::Device > const & device,
-			  std::string const & moduleName, 
+                          std::string const & moduleName,
                           std::string const & writeRegisterName, 
                           std::string const & syncRegisterName,
-			  std::string const & readbackRegisterName,
-			  unsigned int spiWaitingTime )
-    : _writeRegister( device->getRegisterAccessor(writeRegisterName, moduleName) ),
-      _synchronisationRegister(  device->getRegisterAccessor(syncRegisterName, moduleName) ),
-      _readbackRegister(  device->getRegisterAccessor(readbackRegisterName, moduleName) ),
+                          std::string const & readbackRegisterName,
+                          unsigned int spiWaitingTime )
+    : _writeRegister(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
+      _synchronisationRegister(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + syncRegisterName, 0, {ChimeraTK::AccessMode::raw})),
+      _readbackRegister(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + readbackRegisterName, 0, {ChimeraTK::AccessMode::raw})),
       _spiWaitingTime(spiWaitingTime),
       _moduleName(moduleName),
       _writeRegisterName(writeRegisterName),
@@ -46,7 +46,6 @@ namespace mtca4u{
   void SPIviaPCIe::write( int32_t spiCommand ){
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
 
-    int32_t syncValue;
     // try three times to mittigate effects of a firmware bug
     for (int i = 0; i < 3; ++i){
       if (i >0){
@@ -55,23 +54,26 @@ namespace mtca4u{
 
       // Implement the write handshake
       // 1. write 0xff to the synch register
-      _synchronisationRegister->writeRaw( &SPI_SYNC_REQUESTED);
+      _synchronisationRegister = SPI_SYNC_REQUESTED;
+      _synchronisationRegister.write();
 
       // 2. write the spi command
-      _writeRegister->writeRaw( &spiCommand );
+      _writeRegister = spiCommand;
+      _writeRegister.write();
 
       // 3. wait for the handshake
-      _synchronisationRegister->readRaw( &syncValue );
+      _synchronisationRegister.read();
     
       for (size_t syncCounter=0; 
-           (syncValue==SPI_SYNC_REQUESTED) && (syncCounter < 10);
+           (_synchronisationRegister==SPI_SYNC_REQUESTED) && (syncCounter < 10);
            ++syncCounter){
         sleepMicroSeconds(_spiWaitingTime);
-        _synchronisationRegister->readRaw( & syncValue, sizeof(int));
+
+        _synchronisationRegister.read();
       }
 
-      if (syncValue!=SPI_SYNC_REQUESTED){
-        // breack on either error or ok. If still in SPI_SYNC_REQUESTED repeat (up to 3 times)
+      if (_synchronisationRegister!=SPI_SYNC_REQUESTED){
+        // break on either error or ok. If still in SPI_SYNC_REQUESTED repeat (up to 3 times)
         break;
       }
     }
@@ -80,9 +82,9 @@ namespace mtca4u{
     //it minimises code duplication.
     std::stringstream errorDetails;
     errorDetails << "PCIe register " << _moduleName << "." << _writeRegisterName
-		 << ", sync register " << _moduleName << "." << _syncRegisterName  << "= 0x"<< std::hex << syncValue
+		 << ", sync register " << _moduleName << "." << _syncRegisterName  << "= 0x"<< std::hex << _synchronisationRegister
 		 << ", spi command 0x" << std::hex << spiCommand << std::dec;
-    switch( syncValue ){
+    switch( _synchronisationRegister ){
     case SPI_SYNC_OK:
       break;
     case SPI_SYNC_REQUESTED:
@@ -102,10 +104,8 @@ namespace mtca4u{
     // readback word is valid.
     write( spiCommand );
 
-    int32_t readbackValue;
-    _readbackRegister->readRaw( &readbackValue );
-
-    return readbackValue;
+    _readbackRegister.read();
+    return static_cast<uint32_t>(_readbackRegister);
   }
 
   void SPIviaPCIe::sleepMicroSeconds(unsigned int microSeconds){

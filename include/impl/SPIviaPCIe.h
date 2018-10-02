@@ -68,9 +68,9 @@ namespace mtca4u{
 
   private:
     // No need to keep an instance of the  shared pointer. Each accessor has one.
-    boost::shared_ptr< ChimeraTK::RegisterAccessor > _writeRegister;
-    boost::shared_ptr< ChimeraTK::RegisterAccessor > _synchronisationRegister;
-    boost::shared_ptr< ChimeraTK::RegisterAccessor > _readbackRegister;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _writeRegister;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _synchronisationRegister;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _readbackRegister;
 
     static void sleepMicroSeconds(unsigned int microSeconds);
     /** Time in microseconds to wait for the transaction to be finished on the SPI bus
