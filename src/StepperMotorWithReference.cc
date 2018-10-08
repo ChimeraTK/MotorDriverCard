@@ -82,12 +82,13 @@ namespace ChimeraTK{
   void StepperMotorWithReference::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
     StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
     if(_motorControler->getCalibrationTime() != 0){
-      if (checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
-	  checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps)){
-	throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
+      if(checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
+         checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps))
+      {
+        throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
       }else{
-	_calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps + translationInSteps;
-	_calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps + translationInSteps;
+        _calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps + translationInSteps;
+        _calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps + translationInSteps;
       }
     }
   }
