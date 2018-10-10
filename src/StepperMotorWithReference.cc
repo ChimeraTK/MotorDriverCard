@@ -46,9 +46,9 @@ namespace ChimeraTK{
   bool StepperMotorWithReference::stateMachineInIdleAndNoEvent(){
     if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "StepperMotorStateMachine"){
       if ((dynamic_cast<StepperMotorStateMachine*>(_stateMachine->getCurrentState()))->getCurrentState()->getName() == "idleState"){
-	return true;
+        return true;
       }else{
-	return false;
+        return false;
       }
     }else{
       return false;
@@ -80,7 +80,9 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReference::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
+
     StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
+
     if(_motorControler->getCalibrationTime() != 0){
       if(checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
          checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps))
