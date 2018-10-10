@@ -44,4 +44,6 @@ FIND_PACKAGE(Qt4)
 
 if(QT4_FOUND)
   add_subdirectory(GUI)
+else(QT4_FOUND)
+  message("    QT4 not found. Graphical user interface will not be build.")
 endif(QT4_FOUND)
