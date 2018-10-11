@@ -418,13 +418,15 @@ namespace ChimeraTK{
                              std::string const & moduleName,
                              unsigned int motorDriverId,
                              std::string motorDriverCardConfigFileName,
-                             std::shared_ptr<StepperMotorUnitsConverter> unitsConverter):
+                             std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
+                             std::shared_ptr<StepperMotorUnitsConverter> encoderUnitsConverter):
                _motorDriverCardDeviceName(motorDriverCardDeviceName),
                _motorDriverId(motorDriverId),
                _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
                motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
                _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-               _stepperMotorUnitsConverter(unitsConverter),
+               _stepperMotorUnitsConverter(motorUnitsConverter),
+               _encoderUnitsConverter(encoderUnitsConverter),
                _targetPositionInSteps(_motorControler->getTargetPosition()),
                _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
                _minPositionLimitInSteps(std::numeric_limits<int>::min()),
@@ -445,6 +447,7 @@ namespace ChimeraTK{
      _motorDriverCard(),
      _motorControler(),
      _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
+     _encoderUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
@@ -717,9 +720,9 @@ namespace ChimeraTK{
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getActualPosition());
   }
 
-  unsigned int StepperMotor::getDecoderPosition(){
+  double StepperMotor::getEncoderPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _motorControler->getDecoderPosition();
+    return _encoderUnitsConverter->stepsToUnits(_motorControler->getDecoderPosition());
   }
 
   int StepperMotor::getTargetPositionInSteps(){

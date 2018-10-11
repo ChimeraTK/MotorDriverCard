@@ -572,14 +572,16 @@ namespace ChimeraTK{
      * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
-     * @param  unitsConverter A unit converter based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
+     * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
+     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
      * @return
      */
     StepperMotor(std::string const & motorDriverCardDeviceName,
                  std::string const & moduleName,
                  unsigned int motorDriverId,
                  std::string motorDriverCardConfigFileName,
-                 std::shared_ptr<StepperMotorUnitsConverter> unitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>());
+                 std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>(),
+                 std::shared_ptr<StepperMotorUnitsConverter> encoderUnitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>());
 
     /**
      * @brief  Destructor of the class object
@@ -746,10 +748,10 @@ namespace ChimeraTK{
     virtual int getCurrentPositionInSteps();
 
     /**
-     * @ Get the current position from the decoder in nm
-     * TODO Clarify difference between decoder and currentPostion
+     * @brief Get the current position from encoder in user-defined units,
+     *        according to the encoderUnitsConverter defined for the instance.
      */
-    virtual unsigned int getDecoderPosition();
+    virtual double getEncoderPosition();
 
     /**
      * Return target motor position in the arbitrary units.
@@ -764,11 +766,13 @@ namespace ChimeraTK{
 
     int getTargetPositionInSteps();
 
+    // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
     virtual void setStepperMotorUnitsConverter(std::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
+    // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter to the default one
      */
@@ -899,7 +903,8 @@ namespace ChimeraTK{
     unsigned int _motorDriverId;
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
-    std::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> _encoderUnitsConverter;
     std::atomic<int> _targetPositionInSteps;
     int  _maxPositionLimitInSteps;
     int  _minPositionLimitInSteps;
@@ -922,5 +927,5 @@ namespace ChimeraTK{
     void checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps);
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
   };
-}// namespace
+}// namespace ChimeraTK
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

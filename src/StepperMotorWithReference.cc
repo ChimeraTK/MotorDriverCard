@@ -13,7 +13,8 @@ namespace ChimeraTK{
                                                        std::string const & moduleName,
                                                        unsigned int motorDriverId,
                                                        std::string motorDriverCardConfigFileName,
-                                                       std::shared_ptr<StepperMotorUnitsConverter> unitsConverter):
+                                                       std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
+                                                       std::shared_ptr<StepperMotorUnitsConverter> encoderUnitsConverter):
                                                            StepperMotor(),
                                                            _positiveEndSwitchEnabled(false),
                                                            _negativeEndSwitchEnabled(false),
@@ -29,7 +30,8 @@ namespace ChimeraTK{
     _motorDriverId = motorDriverId;
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
-    _stepperMotorUnitsConverter = unitsConverter,
+    _stepperMotorUnitsConverter = motorUnitsConverter,
+    _encoderUnitsConverter = encoderUnitsConverter,
     createStateMachine();
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
