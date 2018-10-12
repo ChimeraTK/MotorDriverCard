@@ -573,7 +573,7 @@ namespace ChimeraTK{
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
      * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
+     * @param  encoderUnitsToStepsRatio Ratio between user position unit ad encoder steps. Defaults to a 1.
      * @return
      */
     StepperMotor(std::string const & motorDriverCardDeviceName,
@@ -581,7 +581,7 @@ namespace ChimeraTK{
                  unsigned int motorDriverId,
                  std::string motorDriverCardConfigFileName,
                  std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>(),
-                 std::shared_ptr<StepperMotorUnitsConverter> encoderUnitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>());
+                 double encoderUnitToStepsRatio = 1.0);
 
     /**
      * @brief  Destructor of the class object
@@ -904,7 +904,7 @@ namespace ChimeraTK{
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
     std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> _encoderUnitsConverter;
+    double _encoderUnitToStepsRatio;
     std::atomic<int> _targetPositionInSteps;
     int  _maxPositionLimitInSteps;
     int  _minPositionLimitInSteps;

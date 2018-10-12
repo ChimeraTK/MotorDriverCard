@@ -296,8 +296,11 @@ void StepperMotorChimeraTKTest::testMoveRelative(){
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   //usleep(10000);
   waitForMoveState();
+  double firstEncoderPosition = _stepperMotor->getEncoderPosition();
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
+  double secondEncoderPosition = _stepperMotor->getEncoderPosition();
+  BOOST_CHECK(static_cast<int>(secondEncoderPosition - firstEncoderPosition) == 5);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 35);
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
