@@ -467,7 +467,7 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotor::checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps){
+  void StepperMotor::checkNewPosition(int newPositionInSteps){
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
@@ -477,8 +477,6 @@ namespace ChimeraTK{
     if (!limitsOK(newPositionInSteps)){
       throw MotorDriverException("new position out of range of the soft limits", MotorDriverException::OUT_OF_RANGE);
     }
-    _targetPositionInSteps = newPositionInSteps;
-    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   bool StepperMotor::limitsOK(int newPositionInSteps){
@@ -491,53 +489,55 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotor::moveToPositionInSteps(int newPositionInSteps){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    checkConditionsSetTargetPosAndEmitMoveEvent(newPositionInSteps);
-  }
-
-  void StepperMotor::moveToPosition(float newPosition){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    checkConditionsSetTargetPosAndEmitMoveEvent(_stepperMotorUnitsConverter->unitsToSteps(newPosition));
-  }
-
   void StepperMotor::moveRelativeInSteps(int delta){
     boost::lock_guard<boost::mutex> guard(_mutex);
+
     int newPosition = _motorControler->getActualPosition() + delta;
-    checkConditionsSetTargetPosAndEmitMoveEvent(newPosition);
+    checkNewPosition(newPosition);
+    _targetPositionInSteps =  newPosition;
+
+    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::moveRelative(float delta){
     boost::lock_guard<boost::mutex> guard(_mutex);
+
     int newPosition = _motorControler->getActualPosition() + _stepperMotorUnitsConverter->unitsToSteps(delta);
-    checkConditionsSetTargetPosAndEmitMoveEvent(newPosition);
+    checkNewPosition(newPosition);
+    _targetPositionInSteps =  newPosition;
+
+    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::setTargetPosition(float newPosition){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    _targetPositionInSteps = _stepperMotorUnitsConverter->unitsToSteps(newPosition);
+
+    float newPositionInSteps = _stepperMotorUnitsConverter->unitsToSteps(newPosition);
+    checkNewPosition( newPositionInSteps);
+    _targetPositionInSteps =  newPositionInSteps;
 
     if(_autostart){
-      start();
+      _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
     }
   }
 
   void StepperMotor::setTargetPositionInSteps(int newPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
+
+    checkNewPosition(newPositionInSteps);
     _targetPositionInSteps = newPositionInSteps;
 
     if(_autostart){
-      start();
+      _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
     }
   }
 
   void StepperMotor::start(){
-    // FIXME This would try to acquire the mutex again, when called through setTargetPosition methods
-    // Is the StepperMotor instance shared within the library so that we need this?
-    //boost::lock_guard<boost::mutex> guard(_mutex);
-    // TODO Rework checkConditions...MoveEvent(). The move.. routines may also use start(),
-    //      also, this is not clean because _targetPositionInSteps is set to the same value again in that function
-    checkConditionsSetTargetPosAndEmitMoveEvent(_targetPositionInSteps);
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::stop(){

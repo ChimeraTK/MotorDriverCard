@@ -120,6 +120,8 @@ StepperMotorChimeraTKTest::StepperMotorChimeraTKTest() :
 
   // Omit the optional 5th argument for the units converter here so we get the default 1:1 converter
   _stepperMotor.reset(new ChimeraTK::StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  // Allow autostart to save some lines in the tests
+  _stepperMotor->setAutostart(true);
 
   //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
@@ -131,7 +133,6 @@ void StepperMotorChimeraTKTest::waitForMoveState(){
     usleep(1000);
     _stepperMotor->_mutex.lock();
     if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){
-      //std::cout << _stepperMotor->_stateMachine->getCurrentState()->getName() << std::endl;
       _stepperMotor->_mutex.unlock();
     }else{
       break;
@@ -198,7 +199,7 @@ void StepperMotorChimeraTKTest::testSetActualPosition(){
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
   BOOST_CHECK(_stepperMotor->isCalibrated() == false);
   BOOST_CHECK(_stepperMotor->getCalibrationTime() == 0);
-  BOOST_CHECK_THROW(_stepperMotor->moveToPositionInSteps(10), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(10), mtca4u::MotorDriverException);
   BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
   BOOST_CHECK(_stepperMotor->isCalibrated() == true);
@@ -237,14 +238,14 @@ void StepperMotorChimeraTKTest::testMove(){
   _stepperMotor->setSoftwareLimitsEnabled(true);
 
   BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == true);
-  BOOST_CHECK_THROW(_stepperMotor->moveToPositionInSteps(100000), mtca4u::MotorDriverException);
-  BOOST_CHECK_THROW(_stepperMotor->moveToPositionInSteps(-100000), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(100000), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(-100000), mtca4u::MotorDriverException);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(10));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(10));
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   //usleep(10000);
   waitForMoveState();
-  BOOST_CHECK_THROW(_stepperMotor->moveToPositionInSteps(20), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(20), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   BOOST_CHECK_THROW(_stepperMotor->moveRelativeInSteps(10), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
@@ -253,12 +254,12 @@ void StepperMotorChimeraTKTest::testMove(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 10);
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(20));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(20));
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   //usleep(10000);
   waitForMoveState();
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
-  BOOST_CHECK_THROW(_stepperMotor->moveToPositionInSteps(20), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(20), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   BOOST_CHECK_THROW(_stepperMotor->moveRelativeInSteps(10), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
@@ -279,7 +280,7 @@ void StepperMotorChimeraTKTest::testMove(){
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(30));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(30));
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   //usleep(10000);
   waitForMoveState();
@@ -307,9 +308,27 @@ void StepperMotorChimeraTKTest::testMoveRelative(){
 }
 
 void StepperMotorChimeraTKTest::testTargetPositionAndStart(){
+
+  // Don't want to dig through relation of positions between test cases
+  // just restore where we came from in the end
+  int initialPosition = _stepperMotor->getCurrentPositionInSteps();
+
+  // Autostart should be true from test constructor
+  BOOST_CHECK(_stepperMotor->getAutostart() == true);
+  int targetPosSteps = 350;
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(targetPosSteps));
+  waitForMoveState();
+  _motorControlerDummy->moveTowardsTarget(1.f);
+  BOOST_CHECK(_stepperMotor->getTargetPositionInSteps() == targetPosSteps);
+  BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == targetPosSteps);
+  _stepperMotor->waitForIdle();
+
+  // Test movement with autostart set to false
+  _stepperMotor->setAutostart(false);
   float targetPos = 432.f;
+
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(targetPos));
-  BOOST_CHECK(_stepperMotor->getAutostart() == false); /* should be false from member init*/
+  BOOST_CHECK(_stepperMotor->getAutostart() == false);
   BOOST_CHECK_NO_THROW(_stepperMotor->start());
 
   waitForMoveState();
@@ -319,22 +338,15 @@ void StepperMotorChimeraTKTest::testTargetPositionAndStart(){
   BOOST_CHECK(_stepperMotor->getTargetPosition() == targetPos);
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == _stepperMotor->getTargetPosition());
 
+  // Reset to true for other tests
   _stepperMotor->setAutostart(true);
-  int targetPosSteps = 35;
-  _stepperMotor->setTargetPositionInSteps(targetPosSteps);
-  waitForMoveState();
-  _motorControlerDummy->moveTowardsTarget(1.f);
-  BOOST_CHECK(_stepperMotor->getTargetPositionInSteps() == targetPosSteps);
-  BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == targetPosSteps);
-  _stepperMotor->waitForIdle();
-
-  _stepperMotor->setAutostart(false);
-  BOOST_CHECK(_stepperMotor->getAutostart() == false);
+  _stepperMotor->setActualPositionInSteps(initialPosition);
+  BOOST_CHECK(_stepperMotor->getAutostart() == true);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
 }
 
 void StepperMotorChimeraTKTest::testStop(){
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(50));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(50));
 
   waitForMoveState();
   _motorControlerDummy->moveTowardsTarget(0.4);
@@ -348,7 +360,7 @@ void StepperMotorChimeraTKTest::testStop(){
 
 void StepperMotorChimeraTKTest::testEmergencyStop(){
   BOOST_CHECK(_stepperMotor->getEnabled() == true);
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(56));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(56));
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   //usleep(10000);
   waitForMoveState();
@@ -376,7 +388,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK_NO_THROW(_stepperMotor->enableFullStepping());
   BOOST_CHECK(_stepperMotor->isFullStepping() == true);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == true);
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(23));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(23));
   //usleep(10000);
   _stepperMotor->waitForIdle();
   //BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
@@ -387,7 +399,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 1023);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(-12));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(-12));
   _stepperMotor->waitForIdle();
   //waitForMoveState();
   //usleep(1000);
@@ -396,7 +408,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 1023);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(-32));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(-32));
   _stepperMotor->waitForIdle();
   //waitForMoveState();
   //usleep(1000);
@@ -405,7 +417,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 1023);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(-33));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(-33));
   waitForMoveState();
   //usleep(1000);
   _motorControlerDummy->moveTowardsTarget(1);
@@ -413,7 +425,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == -64);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 767);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(-48));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(-48));
   _stepperMotor->waitForIdle();
   //waitForMoveState();
   //usleep(1000);
@@ -422,7 +434,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == -64);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 767);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(48));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(48));
   waitForMoveState();
   //usleep(1000);
   _motorControlerDummy->moveTowardsTarget(1);
@@ -430,7 +442,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 64);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 255);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(67));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(67));
   _stepperMotor->waitForIdle();
   //waitForMoveState();
   //usleep(1000);
@@ -439,7 +451,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 64);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 255);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(95));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(95));
   _stepperMotor->waitForIdle();
   //waitForMoveState();
   //usleep(1000);
@@ -448,7 +460,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 64);
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 255);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(96));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
   waitForMoveState();
   //usleep(1000);
   _motorControlerDummy->moveTowardsTarget(1);
@@ -462,7 +474,7 @@ void StepperMotorChimeraTKTest::testFullStepping(){
 void StepperMotorChimeraTKTest::testDisable(){
   _motorControlerDummy->resetInternalStateToDefaults();
   _motorControlerDummy->setCalibrationTime(32);
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPositionInSteps(96));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   waitForMoveState();
   //usleep(10000);
@@ -507,7 +519,7 @@ void StepperMotorChimeraTKTest::testConverter(){
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -900);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() ==  900);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPosition(10));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(10));
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   //usleep(10000);
@@ -534,7 +546,7 @@ void StepperMotorChimeraTKTest::testConverter(){
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter));
   _stepperMotor->waitForIdle();
-  _stepperMotor->moveToPositionInSteps(100);
+  _stepperMotor->setTargetPositionInSteps(100);
   //usleep(1000);
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   //BOOST_CHECK(_stepperMotor->_stateMachine->getCurrentState()->getName() == "movingState");
@@ -549,7 +561,7 @@ void StepperMotorChimeraTKTest::testConverter(){
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 125);
   _stepperMotor->setStepperMotorUnitsConverterToDefault();
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->moveToPosition(100));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(100));
   BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
   //while ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){}
   //usleep(10000);

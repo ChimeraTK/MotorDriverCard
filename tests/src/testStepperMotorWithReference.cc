@@ -244,7 +244,7 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   BOOST_CHECK(_stepperMotorWithReference->_calibPositiveEndSwitchInSteps == 10000);
   BOOST_CHECK(_stepperMotorWithReference->_motorControler->getActualPosition() == 10000);
   BOOST_CHECK(_stepperMotorWithReference->isPositiveReferenceActive() == true);
-  BOOST_CHECK_THROW(_stepperMotorWithReference->moveToPositionInSteps(0), ChimeraTK::MotorDriverException);
+  BOOST_CHECK_THROW(_stepperMotorWithReference->setTargetPositionInSteps(0), ChimeraTK::MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotorWithReference->moveRelativeInSteps(-100), ChimeraTK::MotorDriverException);
   BOOST_CHECK(_stepperMotorWithReference->_motorControler->getActualPosition() == 10000);
   _motorControlerDummy->moveTowardsTarget(1);
@@ -257,7 +257,8 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   BOOST_CHECK(_stepperMotorWithReference->getError() == NO_ERROR);
   BOOST_CHECK(_stepperMotorWithReference->_motorControler->getActualPosition() == 0);
   while(!_stepperMotorWithReference->isSystemIdle()){}
-  _stepperMotorWithReference->moveToPositionInSteps(100);
+  _stepperMotorWithReference->setTargetPositionInSteps(100);
+  _stepperMotorWithReference->start();
   waitForMoveState();
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotorWithReference->isSystemIdle()){}
@@ -422,7 +423,8 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
   while(!_stepperMotorWithReference->isSystemIdle()){}
   BOOST_CHECK_CLOSE(_stepperMotorWithReference->getTolerancePositiveEndSwitch(), 3.02765, 0.001);
   BOOST_CHECK_CLOSE(_stepperMotorWithReference->getToleranceNegativeEndSwitch(), 30.2765, 0.001);
-  _stepperMotorWithReference->moveToPositionInSteps(0);
+  _stepperMotorWithReference->setTargetPositionInSteps(0);
+  _stepperMotorWithReference->start();
   waitToSetPositiveTargetPos(0);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotorWithReference->isSystemIdle()){}
@@ -464,7 +466,8 @@ void StepperMotorWithReferenceTest::testDetermineToleranceError(){
   _stepperMotorWithReference->_motorControler->setCalibrationTime(time(NULL));
   _stepperMotorWithReference->_mutex.unlock();
   _stepperMotorWithReference->_calibrationFailed = false;
-  _stepperMotorWithReference->moveToPositionInSteps(10000);
+  _stepperMotorWithReference->setTargetPositionInSteps(10000);
+  _stepperMotorWithReference->start();
   waitToSetPositiveTargetPos(10000);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotorWithReference->isSystemIdle()){}

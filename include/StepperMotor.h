@@ -589,17 +589,6 @@ namespace ChimeraTK{
     virtual ~StepperMotor();
 
     /**
-     * @brief in unit
-     */
-    virtual void moveToPosition(float newPosition);
-
-    /**
-     * @brief in steps
-     */
-
-    virtual void moveToPositionInSteps(int newPositionInSteps);
-
-    /**
      * @ brief move the motor a delta from the current position
      * @param delta is given in unit
      */
@@ -613,21 +602,23 @@ namespace ChimeraTK{
 
     /**
      * @brief Sets the target position in arbitrary units (according to the scaling).
-     *        If the autostart flag is set to true, this will initiate movement, otherwise movement needs to be triggered
-     *        by calling start().
+     *
+     *        If the autostart flag is set to true, this will initiate movement,
+     *        otherwise movement needs to be triggered by calling start().
      */
     virtual void setTargetPosition(float newPosition);
 
     /**
      * @brief Sets the target position in steps.
-     *        If the autostart flag is set to true, this will initiate movement, otherwise movement needs to be triggered
-     *        by calling start().
+     *
+     *        If the autostart flag is set to true, this will initiate movement,
+     *        otherwise movement needs to be triggered by calling start().
      */
     virtual void setTargetPositionInSteps(int newPositionInSteps);
 
     /**
-     * @brief Initiates movement of the motor. This command is in effect, if
-     *        the autostart flag is set to false.
+     * @brief Initiates movement of the motor. This command is called implicitly, if
+     *        the autostart flag is set to true.
      */
     virtual void start();
 
@@ -638,7 +629,10 @@ namespace ChimeraTK{
     virtual void stop();
 
     /**
-     * @brief interrupt the current action, return the motor to idle and disable it
+     * @brief Immediately interrupt the current action, return the motor to idle and disable it.
+     *
+     * Note: As an effect of stopping the motor as fast as possible, the real motor position and the controller's step counter
+     *       will lose synchronization. Hence, calibration will be lost after calling this method.
      */
     virtual void emergencyStop();
 
@@ -924,8 +918,8 @@ namespace ChimeraTK{
     virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
-    void checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps);
+    void checkNewPosition(int newPositionInSteps);
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
-  };
+  }; // class StepperMotor
 }// namespace ChimeraTK
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

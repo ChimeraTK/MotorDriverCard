@@ -274,7 +274,7 @@ namespace mtca4u
     _localTargetPosition = value;
 
     unsigned int writeValue =
-	static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
+    static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
     _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
   }
 
