@@ -23,6 +23,7 @@ namespace ChimeraTK{
                                                            _toleranceCalculated(false),
                                                            _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
                                                            _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()),
+                                                           _calibrationMode(StepperMotorCalibrationMode::NONE),
                                                            _tolerancePositiveEndSwitch(0),
                                                            _toleranceNegativeEndSwitch(0),
                                                            _index(0){
@@ -71,14 +72,15 @@ namespace ChimeraTK{
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     resetPositionMotorController(actualPositionInSteps);
+
+    // Overwrite end switch calibration and reset calibration mode
+    _calibNegativeEndSwitchInSteps = -std::numeric_limits<int>::max();
+    _calibPositiveEndSwitchInSteps = std::numeric_limits<int>::max();
+    _calibrationMode = StepperMotorCalibrationMode::SIMPLE;
   }
 
   void StepperMotorWithReference::setActualPosition(float actualPosition){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
-    }
-    resetPositionMotorController(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
+    setActualPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
   }
 
   void StepperMotorWithReference::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
@@ -203,6 +205,10 @@ namespace ChimeraTK{
   bool StepperMotorWithReference::isNegativeEndSwitchEnabled(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     return _negativeEndSwitchEnabled;
+  }
+
+  StepperMotorCalibrationMode StepperMotorWithReference::getCalibrationMode(){
+    return std::atomic_load(&_calibrationMode);
   }
 }
 

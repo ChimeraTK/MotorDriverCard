@@ -90,6 +90,7 @@ namespace ChimeraTK{
     if(!(_stepperMotorWithReference._positiveEndSwitchEnabled && _stepperMotorWithReference._negativeEndSwitchEnabled)){
       _stepperMotorWithReference._motorControler->setCalibrationTime(0);
       _stepperMotorWithReference._calibrationFailed = true;
+      _stepperMotorWithReference. _calibrationMode = StepperMotorCalibrationMode::NONE;
       return;
     }
     findEndSwitch(POSITIVE);
@@ -100,12 +101,14 @@ namespace ChimeraTK{
     if (_moveInterrupted || _stopAction){
       _stepperMotorWithReference._motorControler->setCalibrationTime(0);
       _stepperMotorWithReference._calibrationFailed = true;
+      _stepperMotorWithReference. _calibrationMode = StepperMotorCalibrationMode::NONE;
       return;
     }else{
       _stepperMotorWithReference._calibPositiveEndSwitchInSteps = _stepperMotorWithReference._calibPositiveEndSwitchInSteps -
       _stepperMotorWithReference._calibNegativeEndSwitchInSteps;
       _stepperMotorWithReference._calibNegativeEndSwitchInSteps = 0;
       _stepperMotorWithReference._motorControler->setCalibrationTime(time(NULL));
+      _stepperMotorWithReference. _calibrationMode = StepperMotorCalibrationMode::FULL;
       _stepperMotorWithReference.resetPositionMotorController(0);
       return;
     }

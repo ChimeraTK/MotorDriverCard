@@ -792,10 +792,10 @@ namespace ChimeraTK{
 
     /**
      * @brief return error code for the motor. The error code is not a bit-field
-     * 0 - NO_ERROR
-     * 1 - ACTION_ERROR if any of the action started by the user was not successful
-     * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.
-     * 3 - CALIBRATION_LOST if calibration is lost.
+     * 0 - NO_ERROR\n
+     * 1 - ACTION_ERROR if any of the action started by the user was not successful\n
+     * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.\n
+     * 3 - CALIBRATION_LOST if calibration is lost.\n
      */
     virtual StepperMotorError getError();
 
@@ -817,7 +817,7 @@ namespace ChimeraTK{
     virtual void setEnabled(bool enable);
 
     /**
-     * @brief get motor enalbed flag
+     * @brief get motor enabled flag
      */
     virtual bool getEnabled();
 
