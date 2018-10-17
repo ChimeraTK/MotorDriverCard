@@ -76,7 +76,7 @@ namespace ChimeraTK{
     // Overwrite end switch calibration and reset calibration mode
     _calibNegativeEndSwitchInSteps = -std::numeric_limits<int>::max();
     _calibPositiveEndSwitchInSteps = std::numeric_limits<int>::max();
-    _calibrationMode = StepperMotorCalibrationMode::SIMPLE;
+    _calibrationMode.store(StepperMotorCalibrationMode::SIMPLE);
   }
 
   void StepperMotorWithReference::setActualPosition(float actualPosition){
@@ -208,7 +208,7 @@ namespace ChimeraTK{
   }
 
   StepperMotorCalibrationMode StepperMotorWithReference::getCalibrationMode(){
-    return std::atomic_load(&_calibrationMode);
+    return _calibrationMode.load();
   }
 }
 

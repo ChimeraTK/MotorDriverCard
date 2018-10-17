@@ -791,7 +791,7 @@ namespace ChimeraTK{
     virtual std::string getState();
 
     /**
-     * @brief return error code for the motor. The error code is not a bit-field
+     * @brief Return error code for the motor. The error code is not a bit-field.\n
      * 0 - NO_ERROR\n
      * 1 - ACTION_ERROR if any of the action started by the user was not successful\n
      * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.\n
@@ -811,8 +811,8 @@ namespace ChimeraTK{
     virtual uint32_t getCalibrationTime();
 
     /**
-     * @brief enable/disable the motor
-     * @param enable if true motor is enabled
+     * @brief Enable/disable the motor.
+     * @param enable If true, motor is enabled.
      */
     virtual void setEnabled(bool enable);
 
@@ -828,14 +828,14 @@ namespace ChimeraTK{
 
 
     /**
-     * @brief Sets the autostart flag. Allows automatic start of movement
-     *        on change of target position if set to true
+     * @brief Sets the autostart flag.
+     *        Allows automatic start of movement on change of target position if set to true.
      */
     virtual void setAutostart(bool autostart);
 
     /**
-     * @brief Returns the value of the autostart flag. If true, movement is
-     *        initiated automatically on change of the target position
+     * @brief Returns the value of the autostart flag.
+     *        If true, movement is initiated automatically on change of the target position.
      */
     virtual bool getAutostart();
 
