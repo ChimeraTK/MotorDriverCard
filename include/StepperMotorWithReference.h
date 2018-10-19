@@ -27,6 +27,9 @@ namespace ChimeraTK{
    */
   enum class StepperMotorCalibrationMode{NONE, SIMPLE, FULL};
 
+  /**
+   *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
+   */
   class StepperMotorWithReference : public StepperMotor{
   public:
     /**
@@ -117,12 +120,12 @@ namespace ChimeraTK{
     virtual bool isNegativeReferenceActive();
 
     /**
-     *  Determines if the end switch is enabled, i.e. will be activated when hit.
+     *  Determines if the end switch is enabled (and will be activated when hit).
      */
     virtual bool isPositiveEndSwitchEnabled();
 
     /**
-     *  Determines if the end switch is enabled, i.e. will be activated when hit.
+     *  Determines if the end switch is enabled (and will be activated when hit).
      */
     virtual bool isNegativeEndSwitchEnabled();
 

@@ -564,6 +564,10 @@ namespace mtca4u{
 
 namespace ChimeraTK{
 
+  /**
+   *  @class StepperMotor
+   *  @brief This class provides the user interface for a basic stepper motor.
+   */
   class StepperMotor{
   public:
     /**
@@ -573,7 +577,7 @@ namespace ChimeraTK{
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
      * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  encoderUnitsToStepsRatio Ratio between user position unit ad encoder steps. Defaults to a 1.
+     * @param  encoderUnitsToStepsRatio Ratio between user position unit and encoder steps. Defaults to 1.
      * @return
      */
     StepperMotor(std::string const & motorDriverCardDeviceName,
@@ -645,7 +649,7 @@ namespace ChimeraTK{
 
     /**
      * @brief it transforms steps in units using the internal converter
-     * @param steps Value in steps to be coverted in units
+     * @param steps Value in steps to be converted in units
      * @return Value in units
      */
     virtual float recalculateStepsInUnits(int steps);
@@ -707,7 +711,8 @@ namespace ChimeraTK{
     /**
      * @brief set actual position in units of the motor respect to some reference
      * @param actualPositionInUnits In order to use the motor an absolute scale must be defined.
-     * This can be done defining the position of the motor respect to an external reference (actual position).
+     *
+     * This can be done defining the position of the motor respect to an external reference (actual position).\n
      * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
      */
     virtual void setActualPosition(float actualPositionInUnits);
@@ -715,6 +720,7 @@ namespace ChimeraTK{
     /**
      * @brief set actual position in steps of the motor respect to some reference
      * @param actualPositionInSteps In order to use the motor an absolute scale must be defined.
+     *
      * This can be done defining the position of the motor respect to an external reference (actual position).
      */
     virtual void setActualPositionInSteps(int actualPositionInSteps);
@@ -750,8 +756,8 @@ namespace ChimeraTK{
     /**
      *  @brief Set the actual encoder position to a reference value.
      *
-     *  Analogous to setActualPosition() which sets the motor driver's internal
-     *  step counter to a reference value, this function can be used to define a reference
+     *  Analogous to setActualPosition() which sets the motor driver's internal\n
+     *  step counter to a reference value, this function can be used to define a reference\n
      *  for the encoder output.
      */
     virtual void setActualEncoderPosition(double referencePosition);
