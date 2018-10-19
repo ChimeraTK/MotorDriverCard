@@ -748,6 +748,15 @@ namespace ChimeraTK{
     virtual double getEncoderPosition();
 
     /**
+     *  @brief Set the actual encoder position to a reference value.
+     *
+     *  Analogous to setActualPosition() which sets the motor driver's internal
+     *  step counter to a reference value, this function can be used to define a reference
+     *  for the encoder output.
+     */
+    virtual void setActualEncoderPosition(double referencePosition);
+
+    /**
      * Return target motor position in the arbitrary units.
      * @return float - target position of motor in arbitrary units.
      */
@@ -899,6 +908,7 @@ namespace ChimeraTK{
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
     std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
     double _encoderUnitToStepsRatio;
+    int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
     int  _maxPositionLimitInSteps;
     int  _minPositionLimitInSteps;

@@ -427,6 +427,7 @@ namespace ChimeraTK{
                _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
                _stepperMotorUnitsConverter(motorUnitsConverter),
                _encoderUnitToStepsRatio(encoderUnitToStepsRatio),
+               _encoderPositionOffset(0),
                _targetPositionInSteps(_motorControler->getTargetPosition()),
                _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
                _minPositionLimitInSteps(std::numeric_limits<int>::min()),
@@ -448,6 +449,7 @@ namespace ChimeraTK{
      _motorControler(),
      _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
      _encoderUnitToStepsRatio(1.0),
+     _encoderPositionOffset(0),
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
@@ -722,7 +724,16 @@ namespace ChimeraTK{
 
   double StepperMotor::getEncoderPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _encoderUnitToStepsRatio * _motorControler->getDecoderPosition();
+    return _encoderUnitToStepsRatio * (_motorControler->getDecoderPosition() + _encoderPositionOffset);
+  }
+
+  void StepperMotor::setActualEncoderPosition(double referencePosition){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if(!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    _encoderPositionOffset = static_cast<int>(referencePosition/_encoderUnitToStepsRatio)
+                             - _motorControler->getDecoderPosition();
   }
 
   int StepperMotor::getTargetPositionInSteps(){
