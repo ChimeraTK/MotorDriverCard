@@ -92,6 +92,7 @@ namespace mtca4u
       _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
       _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
       _calibrationTime{device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
+      //_calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)}, // Might use this with newer FW
       _endSwithPowerIndicator{},
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),

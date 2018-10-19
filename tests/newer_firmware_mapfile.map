@@ -53,6 +53,12 @@ MD22_0.WORD_I2C_FMC_CMD                                               1         
 MD22_0.WORD_M1_VOLTAGE_EN                                             1         2260            4      1      2      0    0
 MD22_0.WORD_M2_VOLTAGE_EN                                             1         2264            4      1      2      0    0
 MD22_0.WORD_LIMITER_FAULT                                             1         2268            4      1      2      0    0
+MD22_0.WORD_M1_END_SW_POS                                             1         2272            4      1     32      0    1
+MD22_0.WORD_M1_END_SW_NEG                                             1         2276            4      1     32      0    1
+MD22_0.WORD_M1_CAL_TIME                                               1         2280            4      1     32      0    0
+MD22_0.WORD_M2_END_SW_POS                                             1         2284            4      1     32      0    1
+MD22_0.WORD_M2_END_SW_NEG                                             1         2288            4      1     32      0    1
+MD22_0.WORD_M2_CAL_TIME                                               1         2292            4      1     32      0    0
 SYNC_PZT4_FMC20_6S150.0.VAR_CON_FMC_2                               512         4096         2048      1     32      0    0
 MD22_1.SHAPI_MOD_MAGIC_AND_VERSION                                    1         4096            4      1     32      0    0
 MD22_1.SHAPI_MOD_NEXT_MODULE_ADDRESS                                  1         4100            4      1     32      0    0
@@ -109,3 +115,9 @@ MD22_1.WORD_I2C_FMC_CMD                                               1         
 MD22_1.WORD_M1_VOLTAGE_EN                                             1         4308            4      1      2      0    0
 MD22_1.WORD_M2_VOLTAGE_EN                                             1         4312            4      1      2      0    0
 MD22_1.WORD_LIMITER_FAULT                                             1         4316            4      1      2      0    0
+MD22_1.WORD_M1_END_SW_POS                                             1         4320            4      1     32      0    1
+MD22_1.WORD_M1_END_SW_NEG                                             1         4324            4      1     32      0    1
+MD22_1.WORD_M1_CAL_TIME                                               1         4328            4      1     32      0    0
+MD22_1.WORD_M2_END_SW_POS                                             1         4332            4      1     32      0    1
+MD22_1.WORD_M2_END_SW_NEG                                             1         4336            4      1     32      0    1
+MD22_1.WORD_M2_CAL_TIME                                               1         4340            4      1     32      0    0

@@ -24,7 +24,7 @@ namespace dfmc_md22{
   std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
   std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
   std::string const CONTROLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
-  std::string const CALIBRATION_TIME = "WORD_PROJ_USER";
+  std::string const CALIBRATION_TIME = "WORD_PROJ_USER"; // TODO: Needs to be keep for backward compatibility?
 
   int32_t const SPI_SYNC_OK = 0;
   int32_t const SPI_SYNC_REQUESTED = 0xFF;
@@ -47,6 +47,7 @@ namespace dfmc_md22{
   std::string const ENDSWITCH_ENABLE_SUFFIX = "VOLTAGE_EN";
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
+  std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME"; // Added as support for newer FW > r2261
 
   uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 
