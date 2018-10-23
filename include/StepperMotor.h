@@ -621,8 +621,10 @@ namespace ChimeraTK{
     virtual void setTargetPositionInSteps(int newPositionInSteps);
 
     /**
-     * @brief Initiates movement of the motor. This command is called implicitly, if
-     *        the autostart flag is set to true.
+     * @brief Initiates movement of the motor.
+     *
+     *  This command is called implicitly if autostart mode is enabled.
+     *  @see setAutostart()
      */
     virtual void start();
 

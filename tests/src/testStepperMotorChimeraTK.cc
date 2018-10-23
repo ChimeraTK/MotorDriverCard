@@ -57,6 +57,7 @@ namespace ChimeraTK{
     void testStop();
     void testEmergencyStop();
     void testFullStepping();
+    void testLocking();
     void testDisable();
     void testConverter();
     void testLogSettings();
@@ -91,6 +92,7 @@ public:
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testStop, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testEmergencyStop, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testFullStepping, stepperMotorChimeraTK));
+    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testLocking, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testDisable, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testConverter, stepperMotorChimeraTK));
     add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testLogSettings, stepperMotorChimeraTK));
@@ -469,6 +471,31 @@ void StepperMotorChimeraTKTest::testFullStepping(){
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 511);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->enableFullStepping(false));
+}
+
+void StepperMotorChimeraTKTest::testLocking(){
+  auto currentPosition = _stepperMotor->getCurrentPositionInSteps();
+
+  BOOST_CHECK(_stepperMotor->isSystemIdle());
+  _stepperMotor->setSoftwareLimitsEnabled(false);
+
+  BOOST_CHECK_NO_THROW(
+    for(unsigned i = 0; i<1000; i++){
+
+      _stepperMotor->setTargetPositionInSteps(currentPosition + (i+1)*2);
+
+      if(_stepperMotor->isSystemIdle()){
+        _stepperMotor->setUserSpeedLimit(10000);
+      }
+      waitForMoveState();
+      _motorControlerDummy->moveTowardsTarget(1.0f);
+      _stepperMotor->waitForIdle();
+    }
+  )
+
+  _stepperMotor->setActualPositionInSteps(currentPosition);
+  std::cout << "Finished test Locking." << std::endl;
+  _stepperMotor->setSoftwareLimitsEnabled(true);
 }
 
 void StepperMotorChimeraTKTest::testDisable(){
