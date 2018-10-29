@@ -494,7 +494,6 @@ void StepperMotorChimeraTKTest::testLocking(){
   )
 
   _stepperMotor->setActualPositionInSteps(currentPosition);
-  std::cout << "Finished test Locking." << std::endl;
   _stepperMotor->setSoftwareLimitsEnabled(true);
 }
 

@@ -724,7 +724,7 @@ namespace ChimeraTK{
 
   double StepperMotor::getEncoderPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _encoderUnitToStepsRatio * (_motorControler->getDecoderPosition() + _encoderPositionOffset);
+    return _encoderUnitToStepsRatio * (static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
   }
 
   void StepperMotor::setActualEncoderPosition(double referencePosition){
@@ -733,7 +733,7 @@ namespace ChimeraTK{
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     _encoderPositionOffset = static_cast<int>(referencePosition/_encoderUnitToStepsRatio)
-                             - _motorControler->getDecoderPosition();
+                             - static_cast<int>(_motorControler->getDecoderPosition());
   }
 
   int StepperMotor::getTargetPositionInSteps(){
@@ -779,7 +779,7 @@ namespace ChimeraTK{
     while(1){
       usleep(100);
       if (isSystemIdle()){
-  break;
+        break;
       }
     }
   }
