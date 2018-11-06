@@ -18,7 +18,7 @@ namespace ChimeraTK{
   Event StepperMotorStateMachine::disableEvent("disableEvent");
 
   StepperMotorStateMachine::StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor) :
-      StateMachine("StepperMotorStateMachine"),
+      StateMachine(/*"StepperMotorStateMachine"*/),
       _moving("movingState"),
       _idle("idleState"),
       _stop("stopState"),

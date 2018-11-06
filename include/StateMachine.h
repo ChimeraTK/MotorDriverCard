@@ -20,13 +20,16 @@ namespace ChimeraTK{
   public:
     Event(std::string eventName) :  _eventName(eventName){}
     Event() : _eventName("undefinedEvent"){}
+
     bool operator==(Event &event) const{
       if (this->_eventName == event._eventName){
-	return true;
-      }else{
-	return false;
+        return true;
+      }
+      else{
+        return false;
       }
     }
+
     operator std::string() const {return _eventName;}
     friend bool operator<(const Event &event1, const Event &event2);
   private:
@@ -38,7 +41,6 @@ namespace ChimeraTK{
   class State;
 
   //structure for target and action
-
   struct TargetAndAction{
     TargetAndAction(State *target, std::function<void(void)> callback);
     TargetAndAction(const TargetAndAction& targetAndAction);
@@ -48,7 +50,6 @@ namespace ChimeraTK{
   };
 
   //Declaration machine state class
-
   class State{
   public:
     State(std::string stateName = "");
@@ -56,29 +57,30 @@ namespace ChimeraTK{
     virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
     virtual State* performTransition(Event event);
     std::string getName() const;
-    bool isEventUnknown(){return _unknownEvent;}
+    bool isEventUnknown(){return _isEventUnknown;}
 
     friend class TestStateMachine;
   protected:
     std::string _stateName;
     std::map<Event, TargetAndAction > _transitionTable;
-    bool _unknownEvent;
+    bool _isEventUnknown;
   };
 
   //base class for a state machine
   //FIXME Not appropriate to inherit from State, rather aggregate.
   //      This is only done to use State::setTransition(), so give the FSM a addTransition(src, target, callback) function?
   //      What is the source state anyway, if called from the StateMachine?
-  class StateMachine : public State{
+  class StateMachine {// : public State{
   public:
-    StateMachine(std::string name);
+    StateMachine(/*std::string name*/);
     StateMachine(const StateMachine& stateMachine);
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
     virtual void processEvent();
-    virtual State* performTransition(Event event);
+    //virtual State* performTransition(Event event);
     State* getCurrentState();
     void setUserEvent(Event event);
+    void setAndProcessUserEvent(Event event);
     Event getAndResetUserEvent();
     Event getUserEvent();
     static Event noEvent;
@@ -91,6 +93,7 @@ namespace ChimeraTK{
     State *_currentState;
     Event _userEvent;
     Event _internEvent;
+    //bool _isEventUnknown;
     Event getAndResetInternalEvent();
     Event getInternalEvent();
     virtual bool propagateEvent();

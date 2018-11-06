@@ -46,17 +46,17 @@ namespace ChimeraTK{
     _stateMachineThread = std::thread(&StepperMotorWithReference::stateMachineThreadFunction, this);
   }
 
-  bool StepperMotorWithReference::stateMachineInIdleAndNoEvent(){
-    if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "StepperMotorStateMachine"){
-      if ((dynamic_cast<StepperMotorStateMachine*>(_stateMachine->getCurrentState()))->getCurrentState()->getName() == "idleState"){
-        return true;
-      }else{
-        return false;
-      }
-    }else{
-      return false;
-    }
-  }
+//  bool StepperMotorWithReference::stateMachineInIdleAndNoEvent(){
+//    if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "StepperMotorStateMachine"){
+//      if ((dynamic_cast<StepperMotorStateMachine*>(_stateMachine->getCurrentState()))->getCurrentState()->getName() == "idleState"){
+//        return true;
+//      }else{
+//        return false;
+//      }
+//    }else{
+//      return false;
+//    }
+//  }
 
   bool StepperMotorWithReference::limitsOK(int newPositionInSteps){
     if (newPositionInSteps >= _calibNegativeEndSwitchInSteps && newPositionInSteps <= _calibPositiveEndSwitchInSteps) {

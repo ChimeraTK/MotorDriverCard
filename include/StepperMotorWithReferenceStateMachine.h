@@ -16,7 +16,7 @@ namespace ChimeraTK{
 
   class StepperMotorWithReference;
 
-  class StepperMotorWithReferenceStateMachine : public StateMachine{
+  class StepperMotorWithReferenceStateMachine : public StepperMotorStateMachine{
   public:
     StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference);
     virtual ~StepperMotorWithReferenceStateMachine();
@@ -28,7 +28,7 @@ namespace ChimeraTK{
     State _calibrating;
     State _calculatingTolerance;
     State _interruptingAction;
-    StepperMotorStateMachine _baseStateMachine;
+    //TODO Remove StepperMotorStateMachine _baseStateMachine;
     StepperMotorWithReference &_stepperMotorWithReference;
     std::future<void> _future;
     std::atomic<bool> _stopAction;

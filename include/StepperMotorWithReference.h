@@ -139,7 +139,7 @@ namespace ChimeraTK{
 
   protected:
 
-    virtual bool stateMachineInIdleAndNoEvent();
+    //virtual bool stateMachineInIdleAndNoEvent();
     virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);

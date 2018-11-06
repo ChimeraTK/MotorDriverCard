@@ -139,10 +139,8 @@ void StepperMotorWithReferenceTest::waitForMoveState(){
   while (1){
     usleep(1000);
     _stepperMotorWithReference->_mutex.lock();
-    if (_stepperMotorWithReference->_stateMachine->getCurrentState()->getName() == "StepperMotorStateMachine"){
-      if ((dynamic_cast<StepperMotorStateMachine*>(_stepperMotorWithReference->_stateMachine->getCurrentState()))->getCurrentState()->getName() == "movingState"){
-	break;
-      }
+    if (_stepperMotorWithReference->_stateMachine->getCurrentState()->getName() == "movingState"){
+      break;
     }
     _stepperMotorWithReference->_mutex.unlock();
   }
