@@ -66,10 +66,10 @@ namespace ChimeraTK{
     bool _isEventUnknown;
   };
 
-  //base class for a state machine
+  //Base class for a state machine
   class StateMachine {
   public:
-    StateMachine(/*std::string name*/);
+    StateMachine();
     StateMachine(const StateMachine& stateMachine);
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
@@ -90,13 +90,10 @@ namespace ChimeraTK{
     State *_currentState;
     Event _userEvent;
     Event _internEvent;
-    //bool _isEventUnknown;
     Event getAndResetInternalEvent();
     Event getInternalEvent();
     virtual bool propagateEvent();
   };
 }
-
-
 
 #endif /* INCLUDE_STATEMACHINE_H_ */

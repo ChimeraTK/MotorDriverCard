@@ -68,13 +68,11 @@ namespace ChimeraTK{
   {}
 
   StateMachine::StateMachine(const StateMachine &stateMachine) :
-      //State(stateMachine.getName()),
       _initState(stateMachine._initState),
       _endState("endState"),
       _currentState(&_initState),
       _userEvent(noEvent),
-      _internEvent(noEvent)/*,
-      _isEventUnknown(false)*/
+      _internEvent(noEvent)
   {}
 
   StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
