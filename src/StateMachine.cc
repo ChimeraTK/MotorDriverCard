@@ -57,14 +57,12 @@ namespace ChimeraTK{
   Event StateMachine::noEvent("noEvent");
   Event StateMachine::undefinedEvent("undefinedEvent");
 
-  StateMachine::StateMachine(/*std::string name*/) :
-             //State(name),
+  StateMachine::StateMachine() :
              _initState("initState"),
              _endState("endState"),
              _currentState(&_initState),
              _userEvent(noEvent),
-             _internEvent(noEvent)/*,
-             _isEventUnknown(false)*/
+             _internEvent(noEvent)
   {}
 
   StateMachine::StateMachine(const StateMachine &stateMachine) :
@@ -76,23 +74,19 @@ namespace ChimeraTK{
   {}
 
   StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
-    //this->_stateName = stateMachine._stateName;
-    //this->_transitionTable = stateMachine._transitionTable;
-    //this->_unknownEvent = stateMachine._unknownEvent;
     this->_initState = stateMachine._initState;
     this->_endState = stateMachine._endState;
     this->_currentState = stateMachine._currentState;
     this->_userEvent = stateMachine._userEvent;
     this->_internEvent = stateMachine._internEvent;
-    //this->_isEventUnknown = stateMachine._isEventUnknown;
     return *this;
   }
 
   StateMachine::~StateMachine(){}
 
   void StateMachine::processEvent(){
-    //_isEventUnknown = false;
     if (_userEvent == noEvent){
+      //TODO Maybe initiate internal events only from the callbacks
       _currentState = _currentState->performTransition(getAndResetInternalEvent());
     }else{
       _currentState = _currentState->performTransition(getAndResetUserEvent());
@@ -103,21 +97,13 @@ namespace ChimeraTK{
     return _currentState;
   }
 
-//  State* StateMachine::performTransition(Event event){
-//    setUserEvent(event);
-//    processEvent();
-//    if (propagateEvent()){
-//      return State::performTransition(event);
-//    }else{
-//      return this;
-//    }
-//  }
-
   void StateMachine::setUserEvent(Event event){
     _userEvent = event;
   }
 
   void StateMachine::setAndProcessUserEvent(Event event){
+    _userEvent = event;
+    processEvent();
     return;
   }
 
@@ -141,9 +127,6 @@ namespace ChimeraTK{
     return _internEvent;
   }
 
-  bool StateMachine::propagateEvent(){
-    return _currentState->isEventUnknown();
-  }
-}
+} /* namespace ChimeraTK */
 
 

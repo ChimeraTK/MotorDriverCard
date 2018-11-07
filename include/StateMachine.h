@@ -73,17 +73,16 @@ namespace ChimeraTK{
     StateMachine(const StateMachine& stateMachine);
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
-    virtual void processEvent();
-    //virtual State* performTransition(Event event);
     State* getCurrentState();
     void setUserEvent(Event event);
+    virtual void processEvent();
     void setAndProcessUserEvent(Event event);
     Event getAndResetUserEvent();
     Event getUserEvent();
     static Event noEvent;
     static Event undefinedEvent;
 
-    friend class TestStateMachine;
+  friend class TestStateMachine;
   protected:
     State _initState;
     State _endState;
@@ -92,7 +91,6 @@ namespace ChimeraTK{
     Event _internEvent;
     Event getAndResetInternalEvent();
     Event getInternalEvent();
-    virtual bool propagateEvent();
   };
 }
 

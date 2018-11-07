@@ -18,9 +18,7 @@ namespace ChimeraTK{
       _calibrating("calibrating"),
       _calculatingTolerance("calculatingTolerance"),
       _interruptingAction("interruptingAction"),
-      //TODO Remove _baseStateMachine(stepperMotorWithReference),
       _stepperMotorWithReference(stepperMotorWithReference),
-      _future(),
       _stopAction(false),
       _moveInterrupted(false)
   {
@@ -33,7 +31,7 @@ namespace ChimeraTK{
                                     std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this));
     _calibrating.setTransition(StateMachine::noEvent,
                                &_calibrating,
-                               std::bind(&StepperMotorWithReferenceStateMachine::getActionCompletedEvent, this));
+                               std::bind(&StepperMotorWithReferenceStateMachine::actionWaitForStandstill, this));
     _calibrating.setTransition(StepperMotorStateMachine::actionCompleteEvent,
                                &_idle, //_baseStateMachine,
                                [](){});
@@ -42,7 +40,7 @@ namespace ChimeraTK{
                                std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
     _calculatingTolerance.setTransition(StateMachine::noEvent,
                                         &_calculatingTolerance,
-                                        std::bind(&StepperMotorWithReferenceStateMachine::getActionCompletedEvent, this));
+                                        std::bind(&StepperMotorWithReferenceStateMachine::actionWaitForStandstill, this));
     _calculatingTolerance.setTransition(StepperMotorStateMachine::actionCompleteEvent,
                                         &_idle, //_baseStateMachine,
                                         [](){});
@@ -51,7 +49,7 @@ namespace ChimeraTK{
                                         std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
     _interruptingAction.setTransition(StateMachine::noEvent,
                                       &_interruptingAction,
-                                      std::bind(&StepperMotorWithReferenceStateMachine::getActionCompletedEvent, this));
+                                      std::bind(&StepperMotorWithReferenceStateMachine::actionWaitForStandstill, this));
     _interruptingAction.setTransition(StepperMotorStateMachine::actionCompleteEvent,
                                       &_idle, //_baseStateMachine,
                                       [](){});

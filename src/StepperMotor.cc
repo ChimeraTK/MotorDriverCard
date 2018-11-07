@@ -433,13 +433,12 @@ namespace ChimeraTK{
                _minPositionLimitInSteps(std::numeric_limits<int>::min()),
                _autostart(false),
                _softwareLimitsEnabled(false),
-               _runStateMachine(true),
                _logger(),
                _mutex(),
                _converterMutex(),
-               _stateMachineThread(),
-               _stateMachine(){
-    createStateMachine();
+               _stateMachine()
+  {
+    _stateMachine.reset(new StepperMotorStateMachine(*this));
   }
 
   StepperMotor::StepperMotor() :
@@ -455,19 +454,12 @@ namespace ChimeraTK{
      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
      _autostart(false),
      _softwareLimitsEnabled(false),
-     _runStateMachine(true),
      _logger(),
      _mutex(),
      _converterMutex(),
-     _stateMachineThread(),
      _stateMachine(){}
 
-  StepperMotor::~StepperMotor() {
-    _runStateMachine = false;
-    if (_stateMachineThread.joinable()){
-      _stateMachineThread.join();
-    }
-  }
+  StepperMotor::~StepperMotor(){}
 
   void StepperMotor::checkNewPosition(int newPositionInSteps){
     if (!stateMachineInIdleAndNoEvent()){
@@ -498,7 +490,7 @@ namespace ChimeraTK{
     checkNewPosition(newPosition);
     _targetPositionInSteps =  newPosition;
 
-    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::moveRelative(float delta){
@@ -508,7 +500,7 @@ namespace ChimeraTK{
     checkNewPosition(newPosition);
     _targetPositionInSteps =  newPosition;
 
-    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::setTargetPosition(float newPosition){
@@ -519,7 +511,7 @@ namespace ChimeraTK{
     _targetPositionInSteps =  newPositionInSteps;
 
     if(_autostart){
-      _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
     }
   }
 
@@ -530,7 +522,7 @@ namespace ChimeraTK{
     _targetPositionInSteps = newPositionInSteps;
 
     if(_autostart){
-      _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
     }
   }
 
@@ -539,17 +531,17 @@ namespace ChimeraTK{
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _stateMachine->setUserEvent(StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
   }
 
   void StepperMotor::stop(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    _stateMachine->setUserEvent(StepperMotorStateMachine::stopEvent);
+    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::stopEvent);
   }
 
   void StepperMotor::emergencyStop(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    _stateMachine->setUserEvent(StepperMotorStateMachine::emergencyStopEvent);
+    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::emergencyStopEvent);
   }
 
   int StepperMotor::recalculateUnitsInSteps(float units){
@@ -814,7 +806,7 @@ namespace ChimeraTK{
       _motorControler->setMotorCurrentEnabled(enable);
       _motorControler->setEndSwitchPowerEnabled(enable);
     }else{
-      _stateMachine->setUserEvent(StepperMotorStateMachine::disableEvent);
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::disableEvent);
     }
   }
 
@@ -897,22 +889,22 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotor::stateMachineThreadFunction(){
-    while(_runStateMachine){
-      std::this_thread::sleep_for(std::chrono::microseconds(100));
-      stateMachinePerformTransition();
-    }
-  }
-
-  void StepperMotor::stateMachinePerformTransition(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    _stateMachine->processEvent();
-  }
-
-  void StepperMotor::createStateMachine(){
-    _stateMachine.reset(new StepperMotorStateMachine(*this));
-    _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
-    waitForIdle();
-  }
+//  void StepperMotor::stateMachineThreadFunction(){
+//    while(_runStateMachine){
+//      std::this_thread::sleep_for(std::chrono::microseconds(100));
+//      stateMachinePerformTransition();
+//    }
+//  }
+//
+//  void StepperMotor::stateMachinePerformTransition(){
+//    boost::lock_guard<boost::mutex> guard(_mutex);
+//    _stateMachine->processEvent();
+//  }
+//
+//  void StepperMotor::createStateMachine(){
+//    _stateMachine.reset(new StepperMotorStateMachine(*this));
+//    _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
+//    waitForIdle();
+//  }
 }
 

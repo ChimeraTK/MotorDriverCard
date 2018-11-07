@@ -7,7 +7,7 @@
 
 #include "StepperMotorStateMachine.h"
 #include <atomic>
-#include <future>
+
 
 #ifndef INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
 #define INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
@@ -28,9 +28,7 @@ namespace ChimeraTK{
     State _calibrating;
     State _calculatingTolerance;
     State _interruptingAction;
-    //TODO Remove StepperMotorStateMachine _baseStateMachine;
     StepperMotorWithReference &_stepperMotorWithReference;
-    std::future<void> _future;
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
     enum Sign{NEGATIVE = -1, POSITIVE = 1};

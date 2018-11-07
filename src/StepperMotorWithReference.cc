@@ -33,30 +33,13 @@ namespace ChimeraTK{
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
     _stepperMotorUnitsConverter = motorUnitsConverter,
     _encoderUnitToStepsRatio = encoderUnitsToStepsRatio,
-    createStateMachine();
+    _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
   }
 
   StepperMotorWithReference::~StepperMotorWithReference(){}
-
-  void StepperMotorWithReference::createStateMachine(){
-    _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
-    _stateMachineThread = std::thread(&StepperMotorWithReference::stateMachineThreadFunction, this);
-  }
-
-//  bool StepperMotorWithReference::stateMachineInIdleAndNoEvent(){
-//    if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "StepperMotorStateMachine"){
-//      if ((dynamic_cast<StepperMotorStateMachine*>(_stateMachine->getCurrentState()))->getCurrentState()->getName() == "idleState"){
-//        return true;
-//      }else{
-//        return false;
-//      }
-//    }else{
-//      return false;
-//    }
-//  }
 
   bool StepperMotorWithReference::limitsOK(int newPositionInSteps){
     if (newPositionInSteps >= _calibNegativeEndSwitchInSteps && newPositionInSteps <= _calibPositiveEndSwitchInSteps) {
