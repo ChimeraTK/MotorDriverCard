@@ -39,7 +39,7 @@ namespace ChimeraTK{
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
      * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  @param  encoderUnitsToStepsRatio Ratio between user position unit ad encoder steps. Defaults to a 1.
+     * @param  encoderUnitToStepsRatio Ratio between user position unit and encoder steps. Defaults to a 1.
      * @return
      */
     StepperMotorWithReference(std::string const & motorDriverCardDeviceName,
