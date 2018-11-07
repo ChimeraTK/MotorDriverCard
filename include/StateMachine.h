@@ -67,10 +67,7 @@ namespace ChimeraTK{
   };
 
   //base class for a state machine
-  //FIXME Not appropriate to inherit from State, rather aggregate.
-  //      This is only done to use State::setTransition(), so give the FSM a addTransition(src, target, callback) function?
-  //      What is the source state anyway, if called from the StateMachine?
-  class StateMachine {// : public State{
+  class StateMachine {
   public:
     StateMachine(/*std::string name*/);
     StateMachine(const StateMachine& stateMachine);
