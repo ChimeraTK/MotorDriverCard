@@ -621,8 +621,10 @@ namespace ChimeraTK{
     virtual void setTargetPositionInSteps(int newPositionInSteps);
 
     /**
-     * @brief Initiates movement of the motor. This command is called implicitly, if
-     *        the autostart flag is set to true.
+     * @brief Initiates movement of the motor.
+     *
+     *  This command is called implicitly if autostart mode is enabled.
+     *  @see setAutostart()
      */
     virtual void start();
 
@@ -904,7 +906,6 @@ namespace ChimeraTK{
 
     friend class StepperMotorStateMachine;
     friend class StepperMotorChimeraTKTest;
-    //boost::shared_ptr<mtca4u::MotorControler> getController(){return _motorControler;}
 
   protected: // fields
     StepperMotor();
@@ -920,18 +921,16 @@ namespace ChimeraTK{
     int  _minPositionLimitInSteps;
     bool _autostart;
     bool _softwareLimitsEnabled;
-    volatile std::atomic<bool> _runStateMachine;
     Logger _logger;
     mutable boost::mutex _mutex;
-    boost::mutex _converterMutex;
-    std::thread _stateMachineThread;
+    boost::mutex _converterMutex; //TODO Not used anymore!?
     std::shared_ptr<StateMachine> _stateMachine;
-    //std::atomic<bool> _calibrated;
+
     virtual bool stateMachineInIdleAndNoEvent();
-    void stateMachineThreadFunction();
-    void stateMachinePerformTransition();
+//    void stateMachineThreadFunction();
+//    void stateMachinePerformTransition();
     void resetPositionMotorController(int newPositionInStep);
-    virtual void createStateMachine();
+//    virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
     void checkNewPosition(int newPositionInSteps);

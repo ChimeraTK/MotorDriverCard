@@ -138,9 +138,6 @@ namespace ChimeraTK{
     friend class StepperMotorWithReferenceTest;
 
   protected:
-
-    virtual bool stateMachineInIdleAndNoEvent();
-    virtual void createStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
     std::atomic<bool> _positiveEndSwitchEnabled;
