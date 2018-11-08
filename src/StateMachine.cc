@@ -43,8 +43,16 @@ namespace ChimeraTK{
     if (it !=_transitionTable.end()){
       (it->second).callbackAction();
       _isEventUnknown = false;
-      return ((it->second).targetState);
-    }else{
+
+      // We need to distinguish if an async action
+      if(_asyncActionActive.valid()){
+        _requestedState = *(it->second).targetState;
+      }
+      else{
+        return ((it->second).targetState);
+      }
+    }
+    else{
       _isEventUnknown = true;
       return this;
     }
@@ -62,7 +70,8 @@ namespace ChimeraTK{
              _endState("endState"),
              _currentState(&_initState),
              _userEvent(noEvent),
-             _internEvent(noEvent)
+             _internEvent(noEvent),
+             _mutex()
   {}
 
   StateMachine::StateMachine(const StateMachine &stateMachine) :
@@ -70,17 +79,18 @@ namespace ChimeraTK{
       _endState("endState"),
       _currentState(&_initState),
       _userEvent(noEvent),
-      _internEvent(noEvent)
+      _internEvent(noEvent),
+      _mutex()
   {}
 
-  StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
-    this->_initState = stateMachine._initState;
-    this->_endState = stateMachine._endState;
-    this->_currentState = stateMachine._currentState;
-    this->_userEvent = stateMachine._userEvent;
-    this->_internEvent = stateMachine._internEvent;
-    return *this;
-  }
+//  StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
+//    this->_initState = stateMachine._initState;
+//    this->_endState = stateMachine._endState;
+//    this->_currentState = stateMachine._currentState;
+//    this->_userEvent = stateMachine._userEvent;
+//    this->_internEvent = stateMachine._internEvent;
+//    return *this;
+//  }
 
   StateMachine::~StateMachine(){}
 

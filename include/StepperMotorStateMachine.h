@@ -7,9 +7,11 @@
 
 #include "StateMachine.h"
 #include "MotorControler.h"
-#include <boost/shared_ptr.hpp>
+#include <boost/shared_ptr.hpp> //TODO Move to stdlib
+#include <boost/thread.hpp>
 
 #include <future>
+#include <memory>
 
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 #define INCLUDE_STEPPERMOTORSTATEMACHINE_H_

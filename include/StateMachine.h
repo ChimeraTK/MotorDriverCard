@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <mutex>
 
 namespace ChimeraTK{
 
@@ -86,11 +87,13 @@ namespace ChimeraTK{
   protected:
     State _initState;
     State _endState;
+    State _requestedState;
     State *_currentState;
     Event _userEvent;
     Event _internEvent;
     Event getAndResetInternalEvent();
     Event getInternalEvent();
+    std::mutex _stateMachineMutex;
   };
 }
 

@@ -44,7 +44,8 @@ namespace ChimeraTK{
   bool StepperMotorWithReference::limitsOK(int newPositionInSteps){
     if (newPositionInSteps >= _calibNegativeEndSwitchInSteps && newPositionInSteps <= _calibPositiveEndSwitchInSteps) {
       return StepperMotor::limitsOK(newPositionInSteps);
-    }else{
+    }
+    else{
       return false;
     }
   }
