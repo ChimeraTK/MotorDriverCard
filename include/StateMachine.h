@@ -13,6 +13,8 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <mutex>
+#include <future>
 
 namespace ChimeraTK{
 
@@ -49,24 +51,28 @@ namespace ChimeraTK{
     std::function<void(void)> callbackAction;
   };
 
-  //Declaration machine state class
+
+using TransitionTable = std::map<Event, TargetAndAction >;
+
+  //State class
   class State{
   public:
     State(std::string stateName = "");
     virtual ~State();
     virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
-    virtual State* performTransition(Event event);
+    //virtual State* performTransition(Event event);
+    TransitionTable& getTransitionTable();
     std::string getName() const;
-    bool isEventUnknown(){return _isEventUnknown;}
+    //bool isEventUnknown(){return _isEventUnknown;}
 
     friend class TestStateMachine;
   protected:
     std::string _stateName;
-    std::map<Event, TargetAndAction > _transitionTable;
-    bool _isEventUnknown;
+    TransitionTable _transitionTable;
   };
 
-  //Base class for a state machine
+
+  // Base class for a state machine
   class StateMachine {
   public:
     StateMachine();
@@ -74,23 +80,33 @@ namespace ChimeraTK{
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
     State* getCurrentState();
-    void setUserEvent(Event event);
-    virtual void processEvent();
+//    void setUserEvent(Event event);
+//    virtual void processEvent();
     void setAndProcessUserEvent(Event event);
-    Event getAndResetUserEvent();
+//    Event getAndResetUserEvent();
     Event getUserEvent();
+    //bool isEventPending();
     static Event noEvent;
     static Event undefinedEvent;
 
+  // FIXME Make state a nested class once this works
+  friend class State;
   friend class TestStateMachine;
   protected:
     State _initState;
     State _endState;
-    State *_currentState;
+    State *_currentState; //FIXME Use references?
+    State *_requestedState;
     Event _userEvent;
-    Event _internEvent;
-    Event getAndResetInternalEvent();
-    Event getInternalEvent();
+    //Event _internEvent;
+    //Event _propagatedEvent;
+    std::mutex _stateMachineMutex;
+    std::future<void> _asyncActionActive;
+    bool _isEventUnknown; //FIXME This is not used anymore
+    void performTransition(Event event);
+    void setRequestedState();
+//    Event getAndResetInternalEvent();
+//    Event getInternalEvent();
   };
 }
 
