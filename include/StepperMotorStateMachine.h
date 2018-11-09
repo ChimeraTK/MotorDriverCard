@@ -10,7 +10,6 @@
 #include <boost/shared_ptr.hpp> //TODO Move to stdlib
 #include <boost/thread.hpp>
 
-#include <future>
 #include <memory>
 
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
@@ -27,24 +26,24 @@ namespace ChimeraTK{
     static Event stopEvent;
     static Event emergencyStopEvent;
     static Event actionCompleteEvent;
+    static Event enableEvent;
     static Event disableEvent;
   protected:
     State _moving;
     State _idle;
-    State _stop;
-    State _emergencyStop;
+//    State _stop;
+//    State _emergencyStop;
     State _disable;
+    State _error;
     StepperMotor &_stepperMotor;
     boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
-    std::future<void> _future;
     void getActionCompleteEvent();
     void actionWaitForStandstill();
-    void waitForStandstillThreadFunction();
+    void waitForStandstill();
     void actionIdleToMove();
     void actionMovetoStop();
     void actionMoveToFullStep();
-    void actionToIdle();
-    void actionDisable();
+    void actionDisable();  // FIXME This can maybe be removed, what is done in StepperMotor::setEnabled(false)?
     void actionEmergencyStop();
   };
 }

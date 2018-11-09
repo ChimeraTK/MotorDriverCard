@@ -27,8 +27,8 @@ namespace ChimeraTK{
   protected:
     State _calibrating;
     State _calculatingTolerance;
-    State _interruptingAction;
-    StepperMotorWithReference &_stepperMotorWithReference;
+    //State _interruptingAction;
+    StepperMotorWithReference& _motor;
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
     enum Sign{NEGATIVE = -1, POSITIVE = 1};
