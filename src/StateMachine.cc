@@ -140,27 +140,31 @@ namespace ChimeraTK{
     TransitionTable& transitionTable = _currentState->getTransitionTable();
     it = transitionTable.find(event);
     if(it != transitionTable.end()){
-      (it->second).callbackAction();
       _isEventUnknown = false;
       _requestedState = ((it->second).targetState);
 
-      if(!_asyncActionActive.valid()){
+      // Apply new state right away, if no async action active
+      if(!_asyncActionActive.valid()
+          || (_asyncActionActive.valid()
+              && _asyncActionActive.wait_for(std::chrono::seconds(0)) == std::future_status::ready)){
         _currentState = _requestedState;
         _requestedState = nullptr;
       }
+      (it->second).callbackAction();
     }
     else{
       _isEventUnknown = true;
     }
   }
 
-  void StateMachine::setRequestedState(){
+  void StateMachine::moveToRequestedState(){
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
     if(_requestedState != nullptr){
       _currentState = _requestedState;
       _requestedState = nullptr;
     }
   }
+
 
 //  Event StateMachine::getAndResetInternalEvent(){
 //    Event tempEvent = _internEvent;

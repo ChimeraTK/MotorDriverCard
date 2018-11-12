@@ -52,7 +52,7 @@ namespace ChimeraTK{
   };
 
 
-using TransitionTable = std::map<Event, TargetAndAction >;
+  using TransitionTable = std::map<Event, TargetAndAction >;
 
   //State class
   class State{
@@ -104,7 +104,7 @@ using TransitionTable = std::map<Event, TargetAndAction >;
     std::future<void> _asyncActionActive;
     bool _isEventUnknown; //FIXME This is not used anymore
     void performTransition(Event event);
-    void setRequestedState();
+    void moveToRequestedState();
 //    Event getAndResetInternalEvent();
 //    Event getInternalEvent();
   };

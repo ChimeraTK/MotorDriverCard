@@ -11,6 +11,7 @@
 #include <boost/thread.hpp>
 
 #include <memory>
+#include <future>
 
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 #define INCLUDE_STEPPERMOTORSTATEMACHINE_H_

@@ -68,14 +68,10 @@ namespace ChimeraTK{
     while(_motorControler->isMotorMoving()){
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    // Set the propagated state
-    setRequestedState();
-
-    // "Internal event"
-//    if(*_currentState == _moving){
-//      // Still moving, no propagated event
-//      _currentState = &_idle;
-//    }
+    // FIXME These must be atomic
+    // Set the propagated state or return to idle by stop event
+    // Either of them does not take effect
+    moveToRequestedState();
     setAndProcessUserEvent(stopEvent);
   }
 
