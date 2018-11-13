@@ -70,7 +70,8 @@ namespace ChimeraTK{
              //_propagatedEvent(noEvent),
              _stateMachineMutex(),
              _asyncActionActive(),
-             _isEventUnknown(false)
+             _isEventUnknown(false),
+             _boolAsyncActionActive(false)
              //_internEvent(noEvent),
   {}
 
@@ -83,7 +84,8 @@ namespace ChimeraTK{
       //_internEvent(noEvent),
       _stateMachineMutex(),
       _asyncActionActive(),
-      _isEventUnknown(false)
+      _isEventUnknown(false),
+      _boolAsyncActionActive(false)
   {}
 
 //  StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
@@ -115,8 +117,10 @@ namespace ChimeraTK{
 //  }
 
   void StateMachine::setAndProcessUserEvent(Event event){
-    std::lock_guard<std::mutex> lck(_stateMachineMutex);
-    _userEvent = event;
+    {
+      std::lock_guard<std::mutex> lck(_stateMachineMutex);
+      _userEvent = event;
+    }
    performTransition(_userEvent);
   }
 
@@ -135,21 +139,28 @@ namespace ChimeraTK{
 //  };
 
   void StateMachine::performTransition(Event event){
-    typename std::map< Event, TargetAndAction >::iterator it;
+    /*typename*/ std::map< Event, TargetAndAction >::iterator it;
 
     TransitionTable& transitionTable = _currentState->getTransitionTable();
     it = transitionTable.find(event);
     if(it != transitionTable.end()){
       _isEventUnknown = false;
-      _requestedState = ((it->second).targetState);
 
-      // Apply new state right away, if no async action active
-      if(!_asyncActionActive.valid()
-          || (_asyncActionActive.valid()
-              && _asyncActionActive.wait_for(std::chrono::seconds(0)) == std::future_status::ready)){
-        _currentState = _requestedState;
-        _requestedState = nullptr;
-      }
+      {/* guarded section begin */
+        std::lock_guard<std::mutex> lck(_stateMachineMutex);
+        _requestedState = ((it->second).targetState);
+
+        // Apply new state right away, if no async action active
+        // TODO Debug
+        std::cout << std::boolalpha << "  ** future valid: " << _asyncActionActive.valid() << std::endl;
+        if(!_asyncActionActive.valid()
+            || (_asyncActionActive.valid()
+                && _asyncActionActive.wait_for(std::chrono::seconds(0)) == std::future_status::ready)){
+        //if(!_boolAsyncActionActive){
+          _currentState = _requestedState;
+          _requestedState = nullptr;
+        }
+      }/* guarded section end */
       (it->second).callbackAction();
     }
     else{

@@ -15,6 +15,10 @@
 #include <map>
 #include <mutex>
 #include <future>
+#include <atomic>
+
+class TestStateMachine;
+
 
 namespace ChimeraTK{
 
@@ -54,6 +58,9 @@ namespace ChimeraTK{
 
   using TransitionTable = std::map<Event, TargetAndAction >;
 
+  class TestStateMachine;
+
+
   //State class
   class State{
   public:
@@ -65,7 +72,6 @@ namespace ChimeraTK{
     std::string getName() const;
     //bool isEventUnknown(){return _isEventUnknown;}
 
-    friend class TestStateMachine;
   protected:
     std::string _stateName;
     TransitionTable _transitionTable;
@@ -74,6 +80,11 @@ namespace ChimeraTK{
 
   // Base class for a state machine
   class StateMachine {
+
+    // FIXME Make state a nested class once this works
+    friend class State;
+    friend class ::TestStateMachine;
+
   public:
     StateMachine();
     StateMachine(const StateMachine& stateMachine);
@@ -89,9 +100,6 @@ namespace ChimeraTK{
     static Event noEvent;
     static Event undefinedEvent;
 
-  // FIXME Make state a nested class once this works
-  friend class State;
-  friend class TestStateMachine;
   protected:
     State _initState;
     State _endState;
@@ -103,6 +111,7 @@ namespace ChimeraTK{
     std::mutex _stateMachineMutex;
     std::future<void> _asyncActionActive;
     bool _isEventUnknown; //FIXME This is not used anymore
+    std::atomic<bool> _boolAsyncActionActive;
     void performTransition(Event event);
     void moveToRequestedState();
 //    Event getAndResetInternalEvent();

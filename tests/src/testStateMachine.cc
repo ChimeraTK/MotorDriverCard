@@ -10,17 +10,23 @@ using namespace boost::unit_test_framework;
 
 #include "StateMachine.h"
 #include <functional>
+#include <memory>
+#include <atomic>
+#include <mutex>
 
+//namespace ChimeraTK{
 
 class TestStateMachine;
 
 class DerivedStateMachine : public ChimeraTK::StateMachine{
+
+  friend class TestStateMachine;
+  friend class AsyncActionIdleToFirst;
+
 public:
   DerivedStateMachine();
   ~DerivedStateMachine();
 
-
-  friend class TestStateMachine;
 protected:
   ChimeraTK::State _firstState;
   ChimeraTK::State _secondState;
@@ -36,8 +42,11 @@ protected:
   void action31();
   void actionExtern1();
   void actionExtern2();
-  bool _transitionAllowed;
+  // This flag allows to emulate external events,
+  // in a real application, we would wait for e.g. halt of a motor
+  std::atomic<bool> _transitionAllowed;
 };
+
 
 //class StateMachineComplete : public DerivedStateMachine{
 //public:
@@ -63,20 +72,12 @@ public:
   static ChimeraTK::Event userEvent2;
 
 private:
-  ChimeraTK::StateMachine _baseStateMachine;
+  std::unique_ptr<ChimeraTK::StateMachine> _baseStateMachine;
   DerivedStateMachine _derivedStateMachine;
-  void assertRequestedState(ChimeraTK::StateMachine& stateMachine, ChimeraTK::State* state);
+  void assertRequestedState(ChimeraTK::StateMachine& stateMachine, ChimeraTK::State* referenceState);
   //StateMachineComplete _stateMachineComplete;
 };
 
-class StateMachineTestSuite : public test_suite{
-public:
-  StateMachineTestSuite() : test_suite("State Machine Suite"){
-    boost::shared_ptr<TestStateMachine> myTestStateMachine(new TestStateMachine());
-    add(BOOST_CLASS_TEST_CASE(&TestStateMachine::testBaseStateMachine, myTestStateMachine));
-    add(BOOST_CLASS_TEST_CASE(&TestStateMachine::testDerivedStateMachine, myTestStateMachine));
-  }
-};
 
 ChimeraTK::Event TestStateMachine::userEvent1("userEvent1");
 ChimeraTK::Event TestStateMachine::userEvent2("userEvent2");
@@ -92,7 +93,7 @@ DerivedStateMachine::DerivedStateMachine() :
     _transitionAllowed(false)
 {
 
-  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, actionIdleToFirstState);
+  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this));
 
   _firstState.setTransition(TestStateMachine::userEvent1, &_thirdState, std::bind(&DerivedStateMachine::actionExtern1, this));
   _firstState.setTransition(_state1to2Event, &_secondState, std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
@@ -105,24 +106,49 @@ DerivedStateMachine::DerivedStateMachine() :
 
 DerivedStateMachine::~DerivedStateMachine(){}
 
+
+class AsyncActionIdleToFirst {
+
+  DerivedStateMachine* __this;
+
+public:
+  AsyncActionIdleToFirst(DerivedStateMachine* _this): __this(_this){};
+
+  void operator ()() {
+    std::cout << "  ** Started async action from \"actionIdleToFirstState\"" << std::endl;
+    //__this->_boolAsyncActionActive = true;
+
+    // Trigger internal event
+    // this should not perform a transition, as the async action is running
+    __this->performTransition(__this->_state1to2Event);
+  }
+};
+
+
 void DerivedStateMachine::actionIdleToFirstState(){
 
   if(!_asyncActionActive.valid()
      || (_asyncActionActive.valid()
          && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-    std::async(std::launch::async, [this]{
-                                            _transitionAllowed = false;
-                                            // Trigger internal event
-                                            // this should not perform a transition, as the async action is running
-                                            performTransition(_state1to2Event);
-                                         });
+
+    _asyncActionActive = std::async(std::launch::async, AsyncActionIdleToFirst{this});
   }
+  std::cout << "  ** Returning from \"actionIdleToFirstState\"" << std::endl;
 }
 
 void DerivedStateMachine::actionFirstToSecondState(){
+  std::cout << "  ** Performing callback \"actionFristToSecondState\"" << std::endl;
+
+  // Wait for main test thread
+  _transitionAllowed = false;
   while(!_transitionAllowed){}
+
+  std::cout << "    **** Registered _transitionAllowed flag in \"actionIdleToFirstState\"" << std::endl;
   moveToRequestedState();
   _transitionAllowed = false;
+
+  //_boolAsyncActionActive = false;
+
 }
 
 void DerivedStateMachine::actionExtern1(){
@@ -137,7 +163,7 @@ void DerivedStateMachine::action22(){
     if(!_asyncActionActive.valid()
        || (_asyncActionActive.valid()
            && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-      std::async(std::launch::async, [this]{performTransition(_state2to3Event);});
+      _asyncActionActive = std::async(std::launch::async, [this]{performTransition(_state2to3Event);});
     }
   //}
   //_count++;
@@ -159,7 +185,7 @@ void DerivedStateMachine::action33(){
     if(!_asyncActionActive.valid()
        || (_asyncActionActive.valid()
            && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-      std::async(std::launch::async, [this]{performTransition(_state3to1Event);});
+      _asyncActionActive = std::async(std::launch::async, [this]{performTransition(_state3to1Event);});
     }
 //  }
 //  _count++;
@@ -191,20 +217,13 @@ void DerivedStateMachine::action31(){
 //
 //StateMachineComplete::~StateMachineComplete(){}
 
-test_suite*
-init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
-{
-  framework::master_test_suite().p_name.value = "State Machine Test Suite";
-  return new StateMachineTestSuite;
-}
-
 TestStateMachine::TestStateMachine() :
-    _baseStateMachine(),
+    _baseStateMachine(new ChimeraTK::StateMachine()),
     _derivedStateMachine(){}
     //_stateMachineComplete(){}
 
 // FIXME Move to DerivedStatemachine class so that we can lock access
-void TestStateMachine::assertRequestedState(ChimeraTK::StateMachine& stateMachine, ChimeraTK::State* state){
+void TestStateMachine::assertRequestedState(ChimeraTK::StateMachine& stateMachine, ChimeraTK::State* referenceState){
 
   ChimeraTK::State* reqState = nullptr;
   {
@@ -213,43 +232,57 @@ void TestStateMachine::assertRequestedState(ChimeraTK::StateMachine& stateMachin
   }
 
   if(reqState == nullptr){
-    BOOST_CHECK(state == nullptr);
+    BOOST_CHECK(referenceState == nullptr);
   }
   else{
-    BOOST_CHECK(state != nullptr);
-    BOOST_CHECK(reqState->getName() == state->getName());
+    BOOST_CHECK(referenceState != nullptr);
+    BOOST_CHECK(reqState->getName() == referenceState->getName());
   }
 }
 
 // Test of the base state machine provided by the StateMachine class
 void TestStateMachine::testBaseStateMachine(){
-  BOOST_CHECK(_baseStateMachine.getCurrentState()->getName()=="initState") ;
+  BOOST_CHECK(_baseStateMachine->getCurrentState()->getName()=="initState") ;
 
   // Default-constructed event should be undefined
   ChimeraTK::Event undefinedEvent;
   BOOST_CHECK(undefinedEvent == ChimeraTK::StateMachine::undefinedEvent);
-  BOOST_CHECK_NO_THROW(_baseStateMachine.setAndProcessUserEvent(undefinedEvent));
-  BOOST_CHECK(_baseStateMachine.getCurrentState()->getName()=="initState") ;
-  BOOST_CHECK(_baseStateMachine._isEventUnknown == true) ;
+  BOOST_CHECK_NO_THROW(_baseStateMachine->setAndProcessUserEvent(undefinedEvent));
+  BOOST_CHECK(_baseStateMachine->getCurrentState()->getName()=="initState") ;
+  BOOST_CHECK(_baseStateMachine->_isEventUnknown == true);
 }
 
 void TestStateMachine::testDerivedStateMachine(){
 
+  _derivedStateMachine._transitionAllowed = true;
+
   // noEvent triggers transition from idle to first state
   BOOST_CHECK(_derivedStateMachine.getCurrentState()->getName() == "initState");
   BOOST_CHECK_NO_THROW(_derivedStateMachine.setAndProcessUserEvent(ChimeraTK::StateMachine::noEvent));
-  BOOST_CHECK(_derivedStateMachine.getCurrentState()->getName() == "firstState");
 
-  // Transition to second state is triggered by an internal event
-  // in async task when entering the first state, but waits for _transitionAllowed
+  // Wait until the async task sets the flag to false,
+  // the SM should then be in firstState
+  while( _derivedStateMachine._transitionAllowed){}
+
+  std::cout << "  ** Returned from \"setAndProcessUserEvent\"" << std::endl;
+  BOOST_CHECK(_derivedStateMachine.getCurrentState()->getName() == "firstState");
+  std::cout << "  ** Detected " << _derivedStateMachine.getCurrentState()->getName()
+            << " in \"testDerivedStateMachine\" (should be first state)" << std::endl;
+
+  // Now, second sate should be requested
   assertRequestedState(_derivedStateMachine, &_derivedStateMachine._secondState);
+  std::cout << "  ** Asserted requested state == secondState in \"testDerivedStateMachine\"" << std::endl;
+
+  // Let async task transition to second state
   _derivedStateMachine._transitionAllowed = true;
 
-  while(_derivedStateMachine._asyncActionActive.valid()){}
+  // Wait for the async task to finish, we should then be in second state and
+  // the requested state pointer should be reset
+  _derivedStateMachine._asyncActionActive.get();
+  std::cout << "  ** Asserted finish of async task in \"testDerivedStateMachine\"" << std::endl;
   assertRequestedState(_derivedStateMachine, nullptr);
   BOOST_CHECK(_derivedStateMachine.getCurrentState()->getName() == "secondState");
 
-;
 
 //
 //  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.setAndProcessUserEvent(TestStateMachine::userEvent1));
@@ -355,6 +388,7 @@ void TestStateMachine::testDerivedStateMachine(){
 //  BOOST_CHECK(_stateMachineTransitionTable._userEvent == ChimeraTK::StateMachine::noEvent);
 //  BOOST_CHECK(_derivedStateMachine.getCurrentState()->getName() == "firstState");
 }
+//} // namespace ChimeraTK
 
 //void TestStateMachine::testSubStateMachine(){
 //  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "initState");
@@ -443,3 +477,31 @@ void TestStateMachine::testDerivedStateMachine(){
 //  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
 //  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "secondState");
 //}
+
+
+class StateMachineTestSuite : public test_suite{
+public:
+  StateMachineTestSuite() : test_suite("State Machine Suite"){
+    boost::shared_ptr</*ChimeraTK::*/TestStateMachine> myTestStateMachine(new /*ChimeraTK::*/TestStateMachine());
+    add(BOOST_CLASS_TEST_CASE(&/*ChimeraTK::*/TestStateMachine::testBaseStateMachine, myTestStateMachine));
+    add(BOOST_CLASS_TEST_CASE(&/*ChimeraTK::*/TestStateMachine::testDerivedStateMachine, myTestStateMachine));
+  }
+};
+
+test_suite*
+init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
+{
+  framework::master_test_suite().p_name.value = "State Machine Test Suite";
+  return new StateMachineTestSuite;
+}
+
+
+//_asyncActionActive = std::async(std::launch::async, [this]{
+//                                        std::cout << "  ** Started async action from \"actionIdleToFirstState\"" << std::endl;
+//                                        _boolAsyncActionActive = true;
+//
+//                                        _transitionAllowed = false;
+//                                        // Trigger internal event
+//                                        // this should not perform a transition, as the async action is running
+//                                        performTransition(_state1to2Event);
+//                                     });
