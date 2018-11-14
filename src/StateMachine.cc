@@ -109,6 +109,7 @@ namespace ChimeraTK{
 //  }
 
   State* StateMachine::getCurrentState(){
+    std::lock_guard<std::mutex> lck(_stateMachineMutex);
     return _currentState;
   }
 
@@ -131,6 +132,7 @@ namespace ChimeraTK{
 //  }
 
   Event StateMachine::getUserEvent(){
+    std::lock_guard<std::mutex> lck(_stateMachineMutex);
     return _userEvent;
   }
 
@@ -139,7 +141,7 @@ namespace ChimeraTK{
 //  };
 
   void StateMachine::performTransition(Event event){
-    /*typename*/ std::map< Event, TargetAndAction >::iterator it;
+    std::map< Event, TargetAndAction >::iterator it;
 
     TransitionTable& transitionTable = _currentState->getTransitionTable();
     it = transitionTable.find(event);
@@ -152,7 +154,7 @@ namespace ChimeraTK{
 
         // Apply new state right away, if no async action active
         // TODO Debug
-        std::cout << std::boolalpha << "  ** future valid: " << _asyncActionActive.valid() << std::endl;
+        //std::cout << std::boolalpha << "  ** future valid: " << _asyncActionActive.valid() << std::endl;
         if(!_asyncActionActive.valid()
             || (_asyncActionActive.valid()
                 && _asyncActionActive.wait_for(std::chrono::seconds(0)) == std::future_status::ready)){
@@ -160,8 +162,8 @@ namespace ChimeraTK{
           _currentState = _requestedState;
           _requestedState = nullptr;
         }
+        (it->second).callbackAction();
       }/* guarded section end */
-      (it->second).callbackAction();
     }
     else{
       _isEventUnknown = true;
@@ -169,7 +171,7 @@ namespace ChimeraTK{
   }
 
   void StateMachine::moveToRequestedState(){
-    std::lock_guard<std::mutex> lck(_stateMachineMutex);
+    //std::lock_guard<std::mutex> lck(_stateMachineMutex);
     if(_requestedState != nullptr){
       _currentState = _requestedState;
       _requestedState = nullptr;
