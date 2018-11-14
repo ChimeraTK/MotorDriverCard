@@ -140,10 +140,10 @@ target_link_libraries(${PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boos
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
-  get_filename_component(excutableName ${hardwareTestSourceFile} NAME_WE)
-  add_executable(${excutableName} ${hardwareTestSourceFile})
+  get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
+  add_executable(${executableName} ${hardwareTestSourceFile})
   set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
-  target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
+  target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
