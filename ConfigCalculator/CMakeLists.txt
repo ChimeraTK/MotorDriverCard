@@ -17,6 +17,7 @@ install(TARGETS MotorConfigCalculator
 
 add_executable(write_default_config executables/write_default_config.cpp)
 target_link_libraries(write_default_config ${PROJECT_NAME} mtca4u-MotorDriverCard)
+set_target_properties(write_default_config PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
 add_custom_target(MotorDriverCardDefaultConfig.xml ALL write_default_config
   DEPENDS write_default_config)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MotorDriverCardDefaultConfig.xml DESTINATION share/doc/mtca4u-MotorDriverCard-${mtca4u-MotorDriverCard_SOVERSION})
