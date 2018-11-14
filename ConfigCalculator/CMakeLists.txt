@@ -27,11 +27,11 @@ if(TESTING_IS_ENABLED)
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/tests/src calculatorTestSources)
   foreach( testSourceFile ${calculatorTestSources})
     #NAME_WE means the base name without path and (longest) extension
-    get_filename_component(excutableName ${testSourceFile} NAME_WE)
-    add_executable(${excutableName} ${testSourceFile})
+    get_filename_component(executableName ${testSourceFile} NAME_WE)
+    add_executable(${executableName} ${testSourceFile})
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
-    target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
-    add_test(${excutableName} ${excutableName})
+    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
+    add_test(${executableName} ${excutableName})
   endforeach( testSourceFile )
   
   # add a test for the CLI executable
