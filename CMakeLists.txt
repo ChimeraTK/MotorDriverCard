@@ -43,9 +43,10 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 #use -DSUPPRESS_AUTO_DOC_BUILD=true to suppress to create the doc with every
-#build. The 'make doc' target will still exist, but make install will fail if you don't run it.
+#build. The 'make doc' target will still exist
 if(SUPPRESS_AUTO_DOC_BUILD)
     unset(DOC_DEPENDENCY)
+    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/doc)  # otherwise make install might fail
 else(SUPPRESS_AUTO_DOC_BUILD)
     set(DOC_DEPENDENCY ALL)
 endif(SUPPRESS_AUTO_DOC_BUILD)
