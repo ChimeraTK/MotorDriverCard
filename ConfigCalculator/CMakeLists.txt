@@ -6,10 +6,11 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
 
 #not a shared library, just link it to all the executables statically
 add_library(${PROJECT_NAME} ${calculator_library_sources} )
- target_link_libraries(${PROJECT_NAME} mtca4u-MotorDriverCard)    
+target_link_libraries(${PROJECT_NAME} mtca4u-MotorDriverCard)    
 
 add_executable(MotorConfigCalculator executables/ConfigCalculatorCLI.cpp)
 target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})    
+set_target_properties(MotorConfigCalculator PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
 install(TARGETS MotorConfigCalculator
         RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
