@@ -32,7 +32,7 @@ if(TESTING_IS_ENABLED)
     add_executable(${executableName} ${testSourceFile})
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
-    add_test(${executableName} ${excutableName})
+    add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
   # add a test for the CLI executable
