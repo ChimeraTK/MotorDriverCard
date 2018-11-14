@@ -40,15 +40,18 @@ protected:
   ChimeraTK::State _firstState;
   ChimeraTK::State _secondState;
   ChimeraTK::State _thirdState;
+  ChimeraTK::State _fourthState;
+  ChimeraTK::State _fifthState;
   ChimeraTK::Event _state1to2Event;
   ChimeraTK::Event _state2to3Event;
   ChimeraTK::Event _state3to1Event;
+  ChimeraTK::Event _state1to4Event;
+  ChimeraTK::Event _state4to5Event;
   void actionIdleToFirstState();
   void actionFirstToSecondState();
-  void action22();
-  void actionSecondToThirdState();
-  void action33();
-  void action31();
+  void actionThirdToFirstState();
+  void actionFirstToFourthState();
+  void actionFourthToFifthState();
   void actionExtern1();
   void actionExtern2();
   // This flag allows to emulate external events,
@@ -59,6 +62,7 @@ protected:
   // and async task
   std::atomic<bool> _isCorrectCurrentState;
   std::atomic<bool> _isCorrectRequestedState;
+  std::atomic<int>  _counter;
 
 private:
   // To be used inside the callbacks which are guarded, so no locking here
@@ -105,23 +109,29 @@ DerivedStateMachine::DerivedStateMachine() :
     _firstState("firstState"),
     _secondState("secondState"),
     _thirdState("thirdState"),
+    _fourthState("fourthState"),
+    _fifthState("fifthState"),
     _state1to2Event("changeState1"),
     _state2to3Event("changeState2"),
     _state3to1Event("changeState3"),
+    _state1to4Event("changeState4"),
+    _state4to5Event("changeState5"),
     _transitionAllowed(false),
     _isCorrectCurrentState(false),
-    _isCorrectRequestedState(false)
+    _isCorrectRequestedState(false),
+    _counter(0)
 {
 
   _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this));
 
   _firstState.setTransition(TestStateMachine::userEvent1, &_thirdState, std::bind(&DerivedStateMachine::actionExtern1, this));
   _firstState.setTransition(_state1to2Event, &_secondState, std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
+  _firstState.setTransition(_state1to4Event, &_forthState, std::bind(&DerivedStateMachine::actionFirstToForthState, this));
+  _fourthState.setTransition(_state4to5Event, &_fifthState, std::bind(&DerivedStateMachine::actionFourthToFifthState, this));
 
   _secondState.setTransition(TestStateMachine::userEvent2, &_firstState, std::bind(&DerivedStateMachine::actionExtern2, this));
-  _secondState.setTransition(_state2to3Event, &_thirdState, std::bind(&DerivedStateMachine::actionSecondToThirdState, this));
 
-  _thirdState.setTransition(_state3to1Event, &_firstState, std::bind(&DerivedStateMachine::action31, this));
+  _thirdState.setTransition(_state3to1Event, &_firstState, std::bind(&DerivedStateMachine::actionThirdToFirstState, this));
 }
 
 DerivedStateMachine::~DerivedStateMachine(){}
@@ -144,9 +154,7 @@ void DerivedStateMachine::actionIdleToFirstState(){
          && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
 
     _asyncActionActive = std::async(std::launch::async, [this]{performTransition(_state1to2Event);});
-
   }
-  std::cout << "  ** Returning from \"actionIdleToFirstState\"" << std::endl;
 }
 
 void DerivedStateMachine::actionFirstToSecondState(){
@@ -179,47 +187,31 @@ void DerivedStateMachine::actionFirstToSecondState(){
 }
 
 void DerivedStateMachine::actionExtern1(){
-//  _int = 100;
-//  _count = 0;
-}
-
-void DerivedStateMachine::action22(){
-//  if (_count >= 3){
-//    _int = 3;
-
-    if(!_asyncActionActive.valid()
-       || (_asyncActionActive.valid()
-           && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-      _asyncActionActive = std::async(std::launch::async, [this]{performTransition(_state2to3Event);});
-    }
-  //}
-  //_count++;
-}
-
-void DerivedStateMachine::actionSecondToThirdState(){
-//  _count = 0;
+  _counter.fetch_add(1);
 }
 
 void DerivedStateMachine::actionExtern2(){
-//  _int = 200;
-//  _count = 0;
+  _counter.fetch_add(2);
 }
 
-void DerivedStateMachine::action33(){
-//  if (_count >= 2){
-//    _int = 1;
-
-    if(!_asyncActionActive.valid()
-       || (_asyncActionActive.valid()
-           && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-      _asyncActionActive = std::async(std::launch::async, [this]{performTransition(_state3to1Event);});
-    }
-//  }
-//  _count++;
+void DerivedStateMachine::actionThirdToFirstState(){
+  if(!_asyncActionActive.valid()
+     || (_asyncActionActive.valid()
+         && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+    _asyncActionActive = std::async(std::launch::async, [this]{performTransition(_state1to4Event);});
+  }
+  _counter.fetch_add(31);
 }
 
-void DerivedStateMachine::action31(){
-//  _count = 0;
+void DerivedStateMachine::actionFirstToFourthState(){
+  _counter.fetch_add(14);
+  moveToRequestedState();
+  performTransition(_state4to5Event);
+}
+
+void DerivedStateMachine::actionFourthToFifthState(){
+  _counter.fetch_add(45);
+  moveToRequestedState();
 }
 
 //bool DerivedStateMachine::propagateEvent(){
@@ -287,10 +279,23 @@ void TestStateMachine::testDerivedStateMachine(){
   // Wait for the async task to finish, we should then be in second state and
   // the requested state pointer should be reset
   _derivedStateMachine._asyncActionActive.get();
-
   BOOST_CHECK(_derivedStateMachine._isCorrectRequestedState.load());
   BOOST_CHECK_EQUAL(_derivedStateMachine.getCurrentState()->getName(), "secondState");
 
+
+  // Invoke event to move back to first state
+  _derivedStateMachine._counter.store(0);
+  BOOST_CHECK_NO_THROW(_derivedStateMachine.setAndProcessUserEvent(userEvent2));
+  BOOST_CHECK_EQUAL(_derivedStateMachine.getCurrentState()->getName(), "firstState");
+
+
+  BOOST_CHECK_NO_THROW(_derivedStateMachine.setAndProcessUserEvent(userEvent1));
+  BOOST_CHECK_EQUAL(_derivedStateMachine.getCurrentState()->getName(), "thirdState");
+  BOOST_CHECK_EQUAL(_derivedStateMachine._counter.load(), 3);
+
+  //TODO
+  _derivedStateMachine._counter.store(0);
+  BOOST_CHECK_NO_THROW(_derivedStateMachine.setAndProcessUserEvent(__state3to1Event));
 
 //
 //  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.setAndProcessUserEvent(TestStateMachine::userEvent1));
