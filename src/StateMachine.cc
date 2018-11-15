@@ -67,12 +67,11 @@ namespace ChimeraTK{
              _currentState(&_initState),
              _requestedState(nullptr),
              _userEvent(noEvent),
-             //_propagatedEvent(noEvent),
              _stateMachineMutex(),
              _asyncActionActive(),
              _isEventUnknown(false),
-             _boolAsyncActionActive(false)
-             //_internEvent(noEvent),
+             _boolAsyncActionActive(false),
+             _internalEventCallback([]{})
   {}
 
   StateMachine::StateMachine(const StateMachine &stateMachine) :
@@ -85,31 +84,17 @@ namespace ChimeraTK{
       _stateMachineMutex(),
       _asyncActionActive(),
       _isEventUnknown(false),
-      _boolAsyncActionActive(false)
+      _boolAsyncActionActive(false),
+      _internalEventCallback([]{})
   {}
-
-//  StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
-//    this->_initState = stateMachine._initState;
-//    this->_endState = stateMachine._endState;
-//    this->_currentState = stateMachine._currentState;
-//    this->_userEvent = stateMachine._userEvent;
-//    this->_internEvent = stateMachine._internEvent;
-//    return *this;
-//  }
 
   StateMachine::~StateMachine(){}
 
-//  void StateMachine::processEvent(){
-//    if (_userEvent == noEvent){
-//      //TODO Maybe initiate internal events only from the callbacks
-//      _currentState = _currentState->performTransition(getAndResetInternalEvent());
-//    }else{
-//      _currentState = _currentState->performTransition(getAndResetUserEvent());
-//    }
-//  }
 
   State* StateMachine::getCurrentState(){
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
+
+    _internalEventCallback();
     return _currentState;
   }
 
@@ -118,27 +103,19 @@ namespace ChimeraTK{
 //  }
 
   void StateMachine::setAndProcessUserEvent(Event event){
-    {
+    //{
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
       _userEvent = event;
-    }
+    //}
    performTransition(_userEvent);
   }
 
-//  Event StateMachine::getAndResetUserEvent(){
-//    Event tempEvent = _userEvent;
-//    _userEvent = StateMachine::noEvent;
-//    return tempEvent;
-//  }
 
   Event StateMachine::getUserEvent(){
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
     return _userEvent;
   }
 
-//  bool StateMachine::isEventPending(){
-//    return _userEvent != noEvent || _propagatedEvent != noEvent;
-//  };
 
   void StateMachine::performTransition(Event event){
     std::map< Event, TargetAndAction >::iterator it;
@@ -148,8 +125,8 @@ namespace ChimeraTK{
     if(it != transitionTable.end()){
       _isEventUnknown = false;
 
-      {/* guarded section begin */
-        std::lock_guard<std::mutex> lck(_stateMachineMutex);
+      //{/* guarded section begin */
+        //std::lock_guard<std::mutex> lck(_stateMachineMutex);
         _requestedState = ((it->second).targetState);
 
         // Apply new state right away, if no async action active
@@ -160,7 +137,7 @@ namespace ChimeraTK{
           _requestedState = nullptr;
         }
         (it->second).callbackAction();
-      }/* guarded section end */
+      //}/* guarded section end */
     }
     else{
       _isEventUnknown = true;
@@ -174,18 +151,6 @@ namespace ChimeraTK{
       _requestedState = nullptr;
     }
   }
-
-
-//  Event StateMachine::getAndResetInternalEvent(){
-//    Event tempEvent = _internEvent;
-//    _internEvent = StateMachine::noEvent;
-//    return tempEvent;
-//  }
-//
-//  Event StateMachine::getInternalEvent(){
-//    return _internEvent;
-//  }
-
 } /* namespace ChimeraTK */
 
 
