@@ -49,21 +49,6 @@ namespace ChimeraTK{
 
   StepperMotorStateMachine::~StepperMotorStateMachine(){}
 
-//  void StepperMotorStateMachine::getActionCompleteEvent(){
-//    if (!_motorControler->isMotorMoving()){
-//      _internEvent=StepperMotorStateMachine::actionCompleteEvent;
-//    }else{
-//      _internEvent=StateMachine::noEvent;
-//    }
-//  }
-//  void StepperMotorStateMachine::getActionCompletedEvent(){
-//    if (!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-//      _internEvent = StepperMotorStateMachine::actionCompleteEvent;
-//      return;
-//    }
-//    return;
-//  }
-
   void StepperMotorStateMachine::waitForStandstill(){
     while(_motorControler->isMotorMoving()){
       std::this_thread::sleep_for(std::chrono::seconds(1));

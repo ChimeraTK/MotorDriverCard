@@ -67,7 +67,6 @@ namespace ChimeraTK{
     State(std::string stateName = "");
     virtual ~State();
     virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
-    //virtual State* performTransition(Event event);
     TransitionTable& getTransitionTable();
     std::string getName() const;
     //bool isEventUnknown(){return _isEventUnknown;}
@@ -91,12 +90,8 @@ namespace ChimeraTK{
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
     State* getCurrentState();
-//    void setUserEvent(Event event);
-//    virtual void processEvent();
     void setAndProcessUserEvent(Event event);
-//    Event getAndResetUserEvent();
     Event getUserEvent();
-    //bool isEventPending();
     static Event noEvent;
     static Event undefinedEvent;
 

@@ -153,12 +153,9 @@ namespace ChimeraTK{
         _requestedState = ((it->second).targetState);
 
         // Apply new state right away, if no async action active
-        // TODO Debug
-        //std::cout << std::boolalpha << "  ** future valid: " << _asyncActionActive.valid() << std::endl;
         if(!_asyncActionActive.valid()
             || (_asyncActionActive.valid()
                 && _asyncActionActive.wait_for(std::chrono::seconds(0)) == std::future_status::ready)){
-        //if(!_boolAsyncActionActive){
           _currentState = _requestedState;
           _requestedState = nullptr;
         }
