@@ -100,7 +100,7 @@ namespace ChimeraTK{
     State _endState;
     State *_currentState; //FIXME Use references?
     State *_requestedState;
-    Event _userEvent;
+    Event _userEvent; /*FIXME user event is not required anymore */
     //Event _internEvent;
     //Event _propagatedEvent;
     std::mutex _stateMachineMutex;

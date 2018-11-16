@@ -168,11 +168,12 @@ void StepperMotorChimeraTKTest::testUnitsConverterInitialization(){
    = std::make_shared<ChimeraTK::StepperMotor>(stepperMotorDeviceName, moduleName, 1, stepperMotorDeviceConfigFile, _testUnitConverter);
 
   // Should convert according to the TestUnitConverter
-  BOOST_CHECK(motorWithCustomConverter->recalculateStepsInUnits(steps) == 100.f);
+  BOOST_CHECK_EQUAL(motorWithCustomConverter->recalculateStepsInUnits(steps), 100.f);
 }
 
 
 void StepperMotorChimeraTKTest::testSoftLimits(){
+
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == false);
   BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(-1000));
@@ -187,14 +188,19 @@ void StepperMotorChimeraTKTest::testSoftLimits(){
 }
 
 void StepperMotorChimeraTKTest::testEnable(){
-  BOOST_CHECK(_stepperMotor->getEnabled() == false);
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   _stepperMotor->setEnabled(true);
-  BOOST_CHECK(_stepperMotor->getEnabled() == true);
+  std::cout << "  ** test motor in state " << _stepperMotor->getState() << std::endl;
+
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
   _stepperMotor->setEnabled(false);
   _motorControlerDummy->moveTowardsTarget(1);
-  _stepperMotor->waitForIdle();
-  BOOST_CHECK(_stepperMotor->getEnabled() == false);
+
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabledState");
+
   _stepperMotor->setEnabled(true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idleState");
 }
 
 void StepperMotorChimeraTKTest::testSetActualPosition(){
@@ -239,18 +245,20 @@ void StepperMotorChimeraTKTest::testTranslateAxis(){
 void StepperMotorChimeraTKTest::testMove(){
   _stepperMotor->setSoftwareLimitsEnabled(true);
 
-  BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getSoftwareLimitsEnabled(), true);
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(100000), mtca4u::MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(-100000), mtca4u::MotorDriverException);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(10));
-  BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
-  //usleep(10000);
+  BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
+
+  std::cout << "  ** test motor in state " << _stepperMotor->getState() << std::endl;
+
   waitForMoveState();
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(20), mtca4u::MotorDriverException);
-  BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
+  BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
   BOOST_CHECK_THROW(_stepperMotor->moveRelativeInSteps(10), mtca4u::MotorDriverException);
-  BOOST_CHECK(_stepperMotor->isSystemIdle() == false);
+  BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 10);

@@ -930,7 +930,7 @@ namespace ChimeraTK{
 //    void stateMachineThreadFunction();
 //    void stateMachinePerformTransition();
     void resetPositionMotorController(int newPositionInStep);
-//    virtual void createStateMachine();
+    virtual void initStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
     void checkNewPosition(int newPositionInSteps);

@@ -438,7 +438,7 @@ namespace ChimeraTK{
                _converterMutex(),
                _stateMachine()
   {
-    _stateMachine.reset(new StepperMotorStateMachine(*this));
+    initStateMachine();
   }
 
   StepperMotor::StepperMotor() :
@@ -803,8 +803,7 @@ namespace ChimeraTK{
   void StepperMotor::setEnabled(bool enable){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (enable){
-      _motorControler->setMotorCurrentEnabled(enable);
-      _motorControler->setEndSwitchPowerEnabled(enable);
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::enableEvent);
     }else{
       _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::disableEvent);
     }
@@ -882,7 +881,7 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
-    if (_stateMachine->getUserEvent() == StateMachine::noEvent && _stateMachine->getCurrentState()->getName() == "idleState"){
+    if (/*_stateMachine->getUserEvent() == StateMachine::noEvent &&*/ _stateMachine->getCurrentState()->getName() == "idleState"){
       return true;
     }else{
       return false;
@@ -901,10 +900,13 @@ namespace ChimeraTK{
 //    _stateMachine->processEvent();
 //  }
 //
-//  void StepperMotor::createStateMachine(){
-//    _stateMachine.reset(new StepperMotorStateMachine(*this));
-//    _stateMachineThread = std::thread(&StepperMotor::stateMachineThreadFunction, this);
-//    waitForIdle();
-//  }
+  void StepperMotor::initStateMachine(){
+
+    _stateMachine.reset(new StepperMotorStateMachine(*this));
+    if(_stateMachine->getCurrentState()->getName() == "initState"){
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::initialEvent);
+      waitForIdle();
+    }
+  }
 }
 

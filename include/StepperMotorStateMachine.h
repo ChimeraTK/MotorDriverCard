@@ -23,6 +23,7 @@ namespace ChimeraTK{
   public:
     StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor);
     virtual ~StepperMotorStateMachine();
+    static Event initialEvent;
     static Event moveEvent;
     static Event stopEvent;
     static Event emergencyStopEvent;
@@ -44,7 +45,8 @@ namespace ChimeraTK{
     void actionIdleToMove();
     void actionMovetoStop();
     void actionMoveToFullStep();
-    void actionDisable();  // FIXME This can maybe be removed, what is done in StepperMotor::setEnabled(false)?
+    void actionEnable();
+    void actionDisable();
     void actionEmergencyStop();
   };
 }
