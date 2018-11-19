@@ -23,19 +23,21 @@ namespace ChimeraTK{
   public:
     StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor);
     virtual ~StepperMotorStateMachine();
-    static Event initialEvent;
-    static Event moveEvent;
-    static Event stopEvent;
-    static Event emergencyStopEvent;
-    static Event actionCompleteEvent;
-    static Event enableEvent;
-    static Event disableEvent;
+    static const Event initialEvent;
+    static const Event moveEvent;
+    static const Event stopEvent;
+    static const Event emergencyStopEvent;
+    static const Event actionCompleteEvent;
+    static const Event enableEvent;
+    static const Event disableEvent;
+    static const Event resetToIdleEvent;
+    static const Event resetToDisableEvent;
   protected:
     State _moving;
     State _idle;
 //    State _stop;
 //    State _emergencyStop;
-    State _disable;
+    State _disabled;
     State _error;
     StepperMotor &_stepperMotor;
     boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
@@ -48,6 +50,7 @@ namespace ChimeraTK{
     void actionEnable();
     void actionDisable();
     void actionEmergencyStop();
+    void actionResetError();
   };
 }
 #endif /* INCLUDE_STEPPERMOTORSTATEMACHINE_H_ */

@@ -279,7 +279,7 @@ namespace mtca4u {
     // for the old firmware version isEndSwitchPowerEnabled always returns
     // false (End switch power is not applicable in this scenario).
     return (_motorControler->isEndSwitchPowerEnabled() ||
-  _motorControler->isMotorCurrentEnabled());
+            _motorControler->isMotorCurrentEnabled());
   }
 
   void StepperMotor::setLogLevel(Logger::LogLevel newLevel) {
@@ -457,7 +457,7 @@ namespace ChimeraTK{
      _logger(),
      _mutex(),
      _converterMutex(),
-     _stateMachine(){}
+     _stateMachine(){std::cout << " ** Init state machine pointer in stepperMotor default ctor, addr is  " << _stateMachine.get();}
 
   StepperMotor::~StepperMotor(){}
 
@@ -542,6 +542,17 @@ namespace ChimeraTK{
   void StepperMotor::emergencyStop(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::emergencyStopEvent);
+  }
+
+  void StepperMotor::resetError(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+
+    if(!_motorControler->isMotorCurrentEnabled()){
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::resetToDisableEvent);
+    }
+    else{
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::resetToIdleEvent);
+    }
   }
 
   int StepperMotor::recalculateUnitsInSteps(float units){
@@ -782,6 +793,11 @@ namespace ChimeraTK{
     if (stateMachineInIdleAndNoEvent() && (_motorControler->getTargetPosition() != _motorControler->getActualPosition())){
       _motorError = ACTION_ERROR;
     }
+    //FIXME This is a temporary hack, currently only emergency stops sets error state
+    //TODO Change this, so that the StepperMotor has a error property
+    else if(_stateMachine->getCurrentState()->getName() == "errorState"){
+      _motorError = EMERGENCY_STOP;
+    }
     return _motorError;
   }
 
@@ -811,6 +827,8 @@ namespace ChimeraTK{
 
   bool StepperMotor::getEnabled(){
     boost::lock_guard<boost::mutex> guard(_mutex);
+    //Note:  For the old firmware version isEndSwitchPowerEnabled always returns
+    //       false (End switch power is not applicable in this scenario).
     return (_motorControler->isEndSwitchPowerEnabled() ||
       _motorControler->isMotorCurrentEnabled());
   }
@@ -881,31 +899,19 @@ namespace ChimeraTK{
   }
 
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
-    if (/*_stateMachine->getUserEvent() == StateMachine::noEvent &&*/ _stateMachine->getCurrentState()->getName() == "idleState"){
+    std::string stateName =  _stateMachine->getCurrentState()->getName();
+    if (stateName == "disabledState" || stateName == "idleState"){
       return true;
     }else{
       return false;
     }
   }
 
-//  void StepperMotor::stateMachineThreadFunction(){
-//    while(_runStateMachine){
-//      std::this_thread::sleep_for(std::chrono::microseconds(100));
-//      stateMachinePerformTransition();
-//    }
-//  }
-//
-//  void StepperMotor::stateMachinePerformTransition(){
-//    boost::lock_guard<boost::mutex> guard(_mutex);
-//    _stateMachine->processEvent();
-//  }
-//
   void StepperMotor::initStateMachine(){
 
     _stateMachine.reset(new StepperMotorStateMachine(*this));
     if(_stateMachine->getCurrentState()->getName() == "initState"){
       _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::initialEvent);
-      waitForIdle();
     }
   }
 }

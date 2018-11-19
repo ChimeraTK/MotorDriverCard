@@ -10,8 +10,8 @@
 
 namespace ChimeraTK{
 
-  Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
-  Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
+  const Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
+  const Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
 
   StepperMotorWithReferenceStateMachine::StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference) :
       StepperMotorStateMachine(stepperMotorWithReference),
@@ -22,7 +22,7 @@ namespace ChimeraTK{
       _stopAction(false),
       _moveInterrupted(false)
   {
-    _idle.setTransition(StepperMotorWithReferenceStateMachine::calibEvent,
+    _idle.setTransition(calibEvent,
                                     &_calibrating,
                                     std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this));
     _idle.setTransition(StepperMotorWithReferenceStateMachine::calcToleranceEvent,
@@ -54,6 +54,12 @@ namespace ChimeraTK{
 //    _interruptingAction.setTransition(StepperMotorStateMachine::actionCompleteEvent,
 //                                      &_idle, //_baseStateMachine,
 //                                      [](){});
+
+
+    TransitionTable tT = _idle.getTransitionTable();
+    auto tableSize = tT.size();
+    std::cout << "  In /wRefCtor, addr this " << this << ", addr idle  " << &_idle << std::endl;
+    std::cout << "  Table size " << tableSize << std::endl;
   }
 
   StepperMotorWithReferenceStateMachine::~StepperMotorWithReferenceStateMachine(){}
@@ -81,11 +87,11 @@ namespace ChimeraTK{
     _stopAction = false;
     _moveInterrupted = false;
 
-    // Both end switches active? -> Error, no calib possible TODO Set error code
+    // At least one end switch disabled -> calibration not possible
     if(!(_motor._positiveEndSwitchEnabled && _motor._negativeEndSwitchEnabled)){
       _motor._motorControler->setCalibrationTime(0);
-      _motor._calibrationFailed = true;
-      _motor. _calibrationMode.store(StepperMotorCalibrationMode::NONE);
+      _motor._calibrationFailed.store(true);
+      _motor._calibrationMode.store(StepperMotorCalibrationMode::NONE);
     }
     else{
       findEndSwitch(POSITIVE);
@@ -95,14 +101,14 @@ namespace ChimeraTK{
 
       if (_moveInterrupted || _stopAction){
         _motor._motorControler->setCalibrationTime(0);
-        _motor._calibrationFailed = true;
-        _motor. _calibrationMode.store(StepperMotorCalibrationMode::NONE);
+        _motor._calibrationFailed.store(true);
+        _motor._calibrationMode.store(StepperMotorCalibrationMode::NONE);
       }else{
         _motor._calibPositiveEndSwitchInSteps = _motor._calibPositiveEndSwitchInSteps -
         _motor._calibNegativeEndSwitchInSteps;
         _motor._calibNegativeEndSwitchInSteps = 0;
         _motor._motorControler->setCalibrationTime(time(NULL));
-        _motor. _calibrationMode.store(StepperMotorCalibrationMode::FULL);
+        _motor._calibrationMode.store(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
       }
     }

@@ -643,6 +643,15 @@ namespace ChimeraTK{
     virtual void emergencyStop();
 
     /**
+     * @brief Reset error state
+     *
+     * Depending on the event that caused the error, this will set the motor to disabled\n
+     * (if power supply is disabled, e.g. after emergency stop) or idle state (e.g. some \n
+     * action failed, but power supply is enabled).
+     */
+    virtual void resetError();
+
+    /**
      * @brief It transforms units in steps using the internal converter
      * @param units Value in unit to be converted in steps
      * @return Value in steps
@@ -926,6 +935,7 @@ namespace ChimeraTK{
     boost::mutex _converterMutex; //TODO Not used anymore!?
     std::shared_ptr<StateMachine> _stateMachine;
 
+    // FIXME Rename
     virtual bool stateMachineInIdleAndNoEvent();
 //    void stateMachineThreadFunction();
 //    void stateMachinePerformTransition();

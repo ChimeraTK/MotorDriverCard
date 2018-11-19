@@ -20,8 +20,9 @@ namespace ChimeraTK{
   public:
     StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference);
     virtual ~StepperMotorWithReferenceStateMachine();
-    static Event calibEvent;
-    static Event calcToleranceEvent;
+
+    static const Event calibEvent;
+    static const Event calcToleranceEvent;
 
     friend class StepperMotorWithReferenceTest;
   protected:

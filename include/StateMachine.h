@@ -107,7 +107,7 @@ namespace ChimeraTK{
     std::future<void> _asyncActionActive;
     bool _isEventUnknown; //FIXME This is not used anymore
     std::atomic<bool> _boolAsyncActionActive;
-    std::function<void(void)> _internalEventCallback;
+    std::function<void(void)> _internalEventCallback; //FIXME Change interface to this
     void performTransition(Event event);
     void moveToRequestedState();
 //    Event getAndResetInternalEvent();

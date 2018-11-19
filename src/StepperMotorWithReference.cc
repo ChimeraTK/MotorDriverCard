@@ -33,10 +33,20 @@ namespace ChimeraTK{
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
     _stepperMotorUnitsConverter = motorUnitsConverter,
     _encoderUnitToStepsRatio = encoderUnitsToStepsRatio,
+    std::cout << " ** Resetting state machine pointer in stepperMotorWithRef ctor, addr is  " << _stateMachine.get();
     _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
+    std::cout << ", after reset, addr is " << _stateMachine.get() << std::endl;
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
+    initStateMachine();
+
+    ChimeraTK::State* state = _stateMachine->getCurrentState();
+    TransitionTable tT = state->getTransitionTable();
+    auto tableSize = tT.size();
+
+    std::cout << "  Current state: " << state->getName() << ",  Table size " << tableSize << std::endl;
+
   }
 
   StepperMotorWithReference::~StepperMotorWithReference(){}
