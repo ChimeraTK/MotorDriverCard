@@ -18,13 +18,6 @@ using namespace boost::unit_test_framework;
 #include <atomic>
 #include <mutex>
 
-//#ifdef MOTORDRIVERCARD_HELGRIND_DEBUG
-//  #define HG_ANNOTATE_HAPPENS_BEFORE(VAR) ANNOTATE_HAPPENS_BEFORE(&VAR);
-//  #define HG_ANNOTATE_HAPPENS_AFTER(VAR)  ANNOTATE_HAPPENS_AFTER(&VAR);
-//#else
-//  #define HG_ANNOTATE_HAPPENS_BEFORE(VAR)
-//  #define HG_ANNOTATE_HAPPENS_AFTER(VAR)
-//#endif
 
 class TestStateMachine;
 
@@ -132,21 +125,22 @@ void DerivedStateMachine::assertRequestedState(ChimeraTK::State* referenceState)
 
 void DerivedStateMachine::actionIdleToFirstState(){
 
-  if(!_asyncActionActive.valid()
-     || (_asyncActionActive.valid()
-         && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-
+//  if(!_asyncActionActive.valid()
+//     || (_asyncActionActive.valid()
+//         && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+    _boolAsyncActionActive.store(true);
     _asyncActionActive = std::async(std::launch::async, [this]{
-                                                               std::lock_guard<std::mutex> lck(_stateMachineMutex);
-                                                               performTransition(_state1to2Event);});
-  }
+                                                                 std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                                                 performTransition(_state1to2Event);
+                                                                 _boolAsyncActionActive.store(false);
+                                                               }
+                                   );
+//  }
 }
 
 void DerivedStateMachine::actionFirstToSecondState(){
 
   // Wait for main test thread, check current and requested state
-  //TODO Remove HG_ANNOTATE_HAPPENS_BEFORE(_transitionAllowed)
-
   if(_currentState->getName() == "firstState"){
     _isCorrectCurrentState.exchange(true);
   }
@@ -157,7 +151,6 @@ void DerivedStateMachine::actionFirstToSecondState(){
 
   _transitionAllowed.exchange(false);
   while(!_transitionAllowed){}
-  // TODO remove HG_ANNOTATE_HAPPENS_AFTER(_transitionAllowed)
 
   // Will be executed on the next call getState
   _internalEventCallback = [this]{
@@ -183,13 +176,17 @@ void DerivedStateMachine::actionExtern2(){
 }
 
 void DerivedStateMachine::actionThirdToFirstState(){
-  if(!_asyncActionActive.valid()
-     || (_asyncActionActive.valid()
-         && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+//  if(!_asyncActionActive.valid()
+//     || (_asyncActionActive.valid()
+//         && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+    _boolAsyncActionActive.store(true);
     _asyncActionActive = std::async(std::launch::async, [this]{
-                                                               std::lock_guard<std::mutex> lck(_stateMachineMutex);
-                                                               performTransition(_state1to4Event);});
-  }
+                                                                 std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                                                 performTransition(_state1to4Event);
+                                                                 _boolAsyncActionActive.store(false);
+                                                               }
+                                   );
+  //}
   _counter.fetch_add(31);
 }
 
@@ -219,7 +216,6 @@ void TestStateMachine::testBaseStateMachine(){
 
 void TestStateMachine::testDerivedStateMachine(){
 
-  // TODO remove HG_ANNOTATE_HAPPENS_BEFORE(_derivedStateMachine._transitionAllowed)
   _derivedStateMachine._transitionAllowed.exchange(true);
 
   // noEvent triggers transition from idle to first state
@@ -228,7 +224,6 @@ void TestStateMachine::testDerivedStateMachine(){
 
   // Wait until the async task sets the flag to false
   while( _derivedStateMachine._transitionAllowed){}
-  // TODO remove HG_ANNOTATE_HAPPENS_AFTER(_derivedStateMachine._transitionAllowed)
 
   // Now, we should be in first state, second state should be requested
   // (the flags are computed in actionFirstToSecondState, before the waiting)
@@ -236,7 +231,6 @@ void TestStateMachine::testDerivedStateMachine(){
   BOOST_CHECK(_derivedStateMachine._isCorrectRequestedState.load());
 
   // Let async task transition to second state
-  // TODO remove HG_ANNOTATE_HAPPENS_BEFORE(_derivedStateMachine._transitionAllowed)
   _derivedStateMachine._transitionAllowed.exchange(true);
 
   // Wait for the async task to finish, we should then be in second state and

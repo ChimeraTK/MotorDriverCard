@@ -55,43 +55,54 @@ namespace ChimeraTK{
 //                                      &_idle, //_baseStateMachine,
 //                                      [](){});
 
-
-    TransitionTable tT = _idle.getTransitionTable();
-    auto tableSize = tT.size();
-    std::cout << "  In /wRefCtor, addr this " << this << ", addr idle  " << &_idle << std::endl;
-    std::cout << "  Table size " << tableSize << std::endl;
   }
 
   StepperMotorWithReferenceStateMachine::~StepperMotorWithReferenceStateMachine(){}
 
   void StepperMotorWithReferenceStateMachine::actionStop(){
-    _stopAction = true;
+    _stopAction.exchange(true);
     return;
   }
 
   void StepperMotorWithReferenceStateMachine::actionStartCalib(){
-    if(!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+    _boolAsyncActionActive.exchange(true);
+    _internalEventCallback = [this]{
+                                      if(!_boolAsyncActionActive.load()){
+                                        moveToRequestedState();
+                                        performTransition(stopEvent);
+                                        _internalEventCallback = []{};
+                                      }
+                                   };
+    //if(!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
       _asyncActionActive = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
-    }
+    //}
   }
 
   void StepperMotorWithReferenceStateMachine::actionStartCalcTolercance(){
-    if (!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
+    _boolAsyncActionActive.exchange(true);
+    _internalEventCallback = [this]{
+                                      if(!_boolAsyncActionActive.load()){
+                                        moveToRequestedState();
+                                        performTransition(stopEvent);
+                                        _internalEventCallback = []{};
+                                      }
+                                   };
+    //if (!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
       _asyncActionActive = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
-    }
+    //}
   }
 
 
   void StepperMotorWithReferenceStateMachine::calibrationThreadFunction(){
-    _motor._calibrationFailed = false;
-    _stopAction = false;
-    _moveInterrupted = false;
+    _motor._calibrationFailed.exchange(false);
+    _stopAction.exchange(false);
+    _moveInterrupted.exchange(false);
 
     // At least one end switch disabled -> calibration not possible
-    if(!(_motor._positiveEndSwitchEnabled && _motor._negativeEndSwitchEnabled)){
+    if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())){
       _motor._motorControler->setCalibrationTime(0);
-      _motor._calibrationFailed.store(true);
-      _motor._calibrationMode.store(StepperMotorCalibrationMode::NONE);
+      _motor._calibrationFailed.exchange(true);
+      _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
     }
     else{
       findEndSwitch(POSITIVE);
@@ -99,32 +110,33 @@ namespace ChimeraTK{
       findEndSwitch(NEGATIVE);
       _motor._calibNegativeEndSwitchInSteps = _motor._motorControler->getActualPosition();
 
-      if (_moveInterrupted || _stopAction){
+      if (_moveInterrupted.load() || _stopAction.load()){
         _motor._motorControler->setCalibrationTime(0);
-        _motor._calibrationFailed.store(true);
-        _motor._calibrationMode.store(StepperMotorCalibrationMode::NONE);
+        _motor._calibrationFailed.exchange(true);
+        _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
         _motor._calibPositiveEndSwitchInSteps = _motor._calibPositiveEndSwitchInSteps -
         _motor._calibNegativeEndSwitchInSteps;
         _motor._calibNegativeEndSwitchInSteps = 0;
         _motor._motorControler->setCalibrationTime(time(NULL));
-        _motor._calibrationMode.store(StepperMotorCalibrationMode::FULL);
+        _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
       }
     }
 
-    waitForStandstill();
+    //waitForStandstill();
+    _boolAsyncActionActive.exchange(false);
     return;
   }
 
   void StepperMotorWithReferenceStateMachine::findEndSwitch(Sign sign){
     while (!isEndSwitchActive(sign)){
-      if (_stopAction || _moveInterrupted){
+      if (_stopAction.load() || _moveInterrupted.load()){
         return;
       }else if (_motor._motorControler->getTargetPosition() != _motor._motorControler->getActualPosition() &&
                 !_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
                 !_motor._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
-        _moveInterrupted = true;
+        _moveInterrupted.exchange(true);
         return;
       }
       moveToEndSwitch(sign);
@@ -156,37 +168,38 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction(){
-    _motor._toleranceCalcFailed = false;
-    _motor._toleranceCalculated = false;
-    _stopAction = false;
-    _moveInterrupted = false;
+    _motor._toleranceCalcFailed.exchange(false);
+    _motor._toleranceCalculated.exchange(false);
+    _stopAction.exchange(false);
+    _moveInterrupted.exchange(false);
 
     // This makes only sense once the motor is calibrated
     if (_motor._motorControler->getCalibrationTime() == 0){ //FIXME Use the SW flag
-      _motor._toleranceCalculated = false;
-      _motor._toleranceCalcFailed = true;
+      _motor._toleranceCalculated.exchange(false);
+      _motor._toleranceCalcFailed.exchange(true);
     }
     else{
       _motor._tolerancePositiveEndSwitch = getToleranceEndSwitch(POSITIVE);
       _motor._toleranceNegativeEndSwitch = getToleranceEndSwitch(NEGATIVE);
 
-      if (_moveInterrupted || _stopAction){
-        _motor._toleranceCalculated = false;
-        _motor._toleranceCalcFailed = true;
+      if (_moveInterrupted.load() || _stopAction.load()){
+        _motor._toleranceCalculated.exchange(false);
+        _motor._toleranceCalcFailed.exchange(true);
       }
       else{
-        _motor._toleranceCalculated = true;
+        _motor._toleranceCalculated.exchange(true);
       }
     }
-    waitForStandstill();
+    //waitForStandstill();
+    _boolAsyncActionActive.exchange(false);
     return;
   }
 
   int StepperMotorWithReferenceStateMachine::getPositionEndSwitch(Sign sign){
     if (sign == POSITIVE){
-      return _motor._calibPositiveEndSwitchInSteps;
+      return _motor._calibPositiveEndSwitchInSteps.load();
     }else{
-      return _motor._calibNegativeEndSwitchInSteps;
+      return _motor._calibNegativeEndSwitchInSteps.load();
     }
   }
 
@@ -210,7 +223,7 @@ namespace ChimeraTK{
       if (_motor._motorControler->getTargetPosition() != _motor._motorControler->getActualPosition() &&
             !_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
             !_motor._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
-        _moveInterrupted = true;
+        _moveInterrupted.exchange(true);
         break;
       }
       _motor._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
@@ -218,7 +231,7 @@ namespace ChimeraTK{
         std::this_thread::sleep_for(std::chrono::microseconds(100));
       }
       if (!isEndSwitchActive(sign)){
-        _moveInterrupted = true;
+        _moveInterrupted.exchange(true);
         break;
       }
 
@@ -226,7 +239,7 @@ namespace ChimeraTK{
       measurements[_motor._index] = _motor._motorControler->getActualPosition();
     }
 
-    if (!(_stopAction || _moveInterrupted) ){
+    if (!(_stopAction.load() || _moveInterrupted.load()) ){
       for (unsigned int i=0; i<10; i++){
         stdMeasurement += ((measurements[i] - meanMeasurement) / 9) * (measurements[i] - meanMeasurement);
       }

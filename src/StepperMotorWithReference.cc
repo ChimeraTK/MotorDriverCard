@@ -33,26 +33,17 @@ namespace ChimeraTK{
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
     _stepperMotorUnitsConverter = motorUnitsConverter,
     _encoderUnitToStepsRatio = encoderUnitsToStepsRatio,
-    std::cout << " ** Resetting state machine pointer in stepperMotorWithRef ctor, addr is  " << _stateMachine.get();
     _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
-    std::cout << ", after reset, addr is " << _stateMachine.get() << std::endl;
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
     initStateMachine();
-
-    ChimeraTK::State* state = _stateMachine->getCurrentState();
-    TransitionTable tT = state->getTransitionTable();
-    auto tableSize = tT.size();
-
-    std::cout << "  Current state: " << state->getName() << ",  Table size " << tableSize << std::endl;
-
   }
 
   StepperMotorWithReference::~StepperMotorWithReference(){}
 
   bool StepperMotorWithReference::limitsOK(int newPositionInSteps){
-    if (newPositionInSteps >= _calibNegativeEndSwitchInSteps && newPositionInSteps <= _calibPositiveEndSwitchInSteps) {
+    if (newPositionInSteps >= _calibNegativeEndSwitchInSteps.load() && newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
       return StepperMotor::limitsOK(newPositionInSteps);
     }
     else{
@@ -68,9 +59,9 @@ namespace ChimeraTK{
     resetPositionMotorController(actualPositionInSteps);
 
     // Overwrite end switch calibration and reset calibration mode
-    _calibNegativeEndSwitchInSteps = -std::numeric_limits<int>::max();
-    _calibPositiveEndSwitchInSteps = std::numeric_limits<int>::max();
-    _calibrationMode.store(StepperMotorCalibrationMode::SIMPLE);
+    _calibNegativeEndSwitchInSteps.exchange(-std::numeric_limits<int>::max());
+    _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
+    _calibrationMode.exchange(StepperMotorCalibrationMode::SIMPLE);
   }
 
   void StepperMotorWithReference::setActualPosition(float actualPosition){
@@ -82,13 +73,13 @@ namespace ChimeraTK{
     StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
 
     if(_motorControler->getCalibrationTime() != 0){
-      if(checkIfOverflow(_calibPositiveEndSwitchInSteps, translationInSteps) ||
-         checkIfOverflow(_calibNegativeEndSwitchInSteps, translationInSteps))
+      if(checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
+         checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps))
       {
         throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
       }else{
-        _calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps + translationInSteps;
-        _calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps + translationInSteps;
+        _calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps.load() + translationInSteps;
+        _calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps.load() + translationInSteps;
       }
     }
   }
@@ -131,7 +122,7 @@ namespace ChimeraTK{
       return BOTH_END_SWITCHES_ON;
     }
     if (stateMachineInIdleAndNoEvent()){
-      if (_toleranceCalcFailed || _calibrationFailed){
+      if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
         return ACTION_ERROR;
       }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&
                 !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
@@ -141,10 +132,10 @@ namespace ChimeraTK{
     }
     if (_toleranceCalculated){
       if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-          std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps) > 3 * _tolerancePositiveEndSwitch){
+          std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps.load()) > 3 * _tolerancePositiveEndSwitch.load()){
         return CALIBRATION_LOST;
       }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() &&
-          std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps) > 3 * _toleranceNegativeEndSwitch){
+          std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps.load()) > 3 * _toleranceNegativeEndSwitch.load()){
         return CALIBRATION_LOST;
       }
     }
@@ -153,32 +144,32 @@ namespace ChimeraTK{
 
   int StepperMotorWithReference::getPositiveEndReferenceInSteps(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _calibPositiveEndSwitchInSteps;
+    return _calibPositiveEndSwitchInSteps.load();
   }
 
   float StepperMotorWithReference::getPositiveEndReference(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _stepperMotorUnitsConverter->stepsToUnits(_calibPositiveEndSwitchInSteps);
+    return _stepperMotorUnitsConverter->stepsToUnits(_calibPositiveEndSwitchInSteps.load());
   }
 
   int StepperMotorWithReference::getNegativeEndReferenceInSteps(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _calibNegativeEndSwitchInSteps;
+    return _calibNegativeEndSwitchInSteps.load();
   }
 
   float StepperMotorWithReference::getNegativeEndReference(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _stepperMotorUnitsConverter->stepsToUnits(_calibNegativeEndSwitchInSteps);
+    return _stepperMotorUnitsConverter->stepsToUnits(_calibNegativeEndSwitchInSteps.load());
   }
 
   float StepperMotorWithReference::getTolerancePositiveEndSwitch(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _tolerancePositiveEndSwitch;
+    return _tolerancePositiveEndSwitch.load();
   }
 
   float StepperMotorWithReference::getToleranceNegativeEndSwitch(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _toleranceNegativeEndSwitch;
+    return _toleranceNegativeEndSwitch.load();
   }
 
   bool StepperMotorWithReference::isPositiveReferenceActive(){
@@ -193,12 +184,12 @@ namespace ChimeraTK{
 
   bool StepperMotorWithReference::isPositiveEndSwitchEnabled(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _positiveEndSwitchEnabled;
+    return _positiveEndSwitchEnabled.load();
   }
 
   bool StepperMotorWithReference::isNegativeEndSwitchEnabled(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _negativeEndSwitchEnabled;
+    return _negativeEndSwitchEnabled.load();
   }
 
   StepperMotorCalibrationMode StepperMotorWithReference::getCalibrationMode(){

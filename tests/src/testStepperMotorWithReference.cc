@@ -87,10 +87,13 @@ StepperMotorWithReferenceTest::StepperMotorWithReferenceTest() :
 
 bool StepperMotorWithReferenceTest::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
 
+  unsigned sleepPeriodInUsec = 100000;
+  unsigned timeoutInSteps    = timeoutInSeconds*1000000/sleepPeriodInUsec;
   unsigned cnt = 0;
   bool isCorrectState = false;
   do{
-    usleep(1000);
+
+    usleep(sleepPeriodInUsec);
 
     if(_stepperMotor->getState() == stateName){
       isCorrectState = true;
@@ -99,7 +102,7 @@ bool StepperMotorWithReferenceTest::waitForState(std::string stateName, unsigned
     else{
       cnt++;
     }
-  }while(cnt <= timeoutInSeconds);
+  }while(cnt <= timeoutInSteps);
 
   return isCorrectState;
 }
@@ -213,18 +216,18 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
 
-  std::cout << " ** Resetting motor pointer in test, addr is  " << _stepperMotor.get() << std::endl;
+  //std::cout << " ** Resetting motor pointer in test, addr is  " << _stepperMotor.get() << std::endl;
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
-  std::cout << ", after reset, addr is " << _stepperMotor.get() << std::endl;
+//  std::cout << ", after reset, addr is " << _stepperMotor.get() << std::endl;
 
   _stepperMotor->setEnabled(true);
   BOOST_CHECK(waitForState("idleState"));
 
-  ChimeraTK::State* state =  _stepperMotor->_stateMachine->getCurrentState();
-  TransitionTable tT = state->getTransitionTable();
-  auto tableSize = tT.size();
-  std::cout << "  In test, addr stateMachine " << _stepperMotor->_stateMachine.get() << ",  addr idle " << state << std::endl;
-  std::cout << "  Table size " << tableSize << std::endl;
+//  ChimeraTK::State* state =  _stepperMotor->_stateMachine->getCurrentState();
+//  TransitionTable tT = state->getTransitionTable();
+//  auto tableSize = tT.size();
+//  std::cout << "  In test, addr stateMachine " << _stepperMotor->_stateMachine.get() << ",  addr idle " << state << std::endl;
+//  std::cout << "  Table size " << tableSize << std::endl;
 
 
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
@@ -290,6 +293,7 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   BOOST_CHECK_THROW(_stepperMotor->moveRelativeInSteps(-100), ChimeraTK::MotorDriverException);
   BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == 10000);
   _motorControlerDummy->moveTowardsTarget(1);
+
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK(_stepperMotor->_calibPositiveEndSwitchInSteps == 20000);
   BOOST_CHECK(_stepperMotor->_calibNegativeEndSwitchInSteps == 0);
