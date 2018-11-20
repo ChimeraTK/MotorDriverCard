@@ -295,20 +295,20 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   _motorControlerDummy->moveTowardsTarget(1);
 
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_calibPositiveEndSwitchInSteps == 20000);
-  BOOST_CHECK(_stepperMotor->_calibNegativeEndSwitchInSteps == 0);
-  BOOST_CHECK(_stepperMotor->isNegativeReferenceActive() == true);
-  BOOST_CHECK(_stepperMotor->isCalibrated() == true);
-  BOOST_CHECK(_stepperMotor->_calibrationFailed == false);
-  BOOST_CHECK(_stepperMotor->getError() == NO_ERROR);
-  BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == 0);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibPositiveEndSwitchInSteps.load(), 20000);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibNegativeEndSwitchInSteps.load(), 0);
+  BOOST_CHECK_EQUAL(_stepperMotor->isNegativeReferenceActive(), true);
+  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), true);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibrationFailed.load(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), NO_ERROR);
+  BOOST_CHECK_EQUAL(_stepperMotor->_motorControler->getActualPosition(), 0);
   while(!_stepperMotor->isSystemIdle()){}
   _stepperMotor->setTargetPositionInSteps(100);
   _stepperMotor->start();
   waitForMoveState();
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == 100);
+  BOOST_CHECK_EQUAL(_stepperMotor->_motorControler->getActualPosition(), 100);
 }
 
 void StepperMotorWithReferenceTest::testCalibrateError(){
@@ -327,12 +327,12 @@ void StepperMotorWithReferenceTest::testCalibrateError(){
   _motorControlerDummy->moveTowardsTarget(0.01);
   _motorControlerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_calibPositiveEndSwitchInSteps == 10000);
-  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted == true);
-  BOOST_CHECK(_stepperMotor->isCalibrated() == false);
-  BOOST_CHECK(_stepperMotor->_calibrationFailed == true);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibPositiveEndSwitchInSteps, 10000);
+  BOOST_CHECK_EQUAL((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted, true);
+  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibrationFailed.load(), true);
   _motorControlerDummy->simulateBlockedMotor(false);
-  BOOST_CHECK(_stepperMotor->getError() == ACTION_ERROR);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
   _motorControlerDummy->resetInternalStateToDefaults();
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
   waitForCalibState();
@@ -340,11 +340,11 @@ void StepperMotorWithReferenceTest::testCalibrateError(){
   _motorControlerDummy->moveTowardsTarget(0.01);
   _motorControlerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted == true);
-  BOOST_CHECK(_stepperMotor->isCalibrated() == false);
-  BOOST_CHECK(_stepperMotor->_calibrationFailed == true);
+  BOOST_CHECK_EQUAL((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted, true);
+  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibrationFailed.load(), true);
   _motorControlerDummy->simulateBlockedMotor(false);
-  BOOST_CHECK(_stepperMotor->getError() == ACTION_ERROR);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
 }
 
 void StepperMotorWithReferenceTest::testCalibrateStop(){
@@ -359,10 +359,10 @@ void StepperMotorWithReferenceTest::testCalibrateStop(){
   waitForStop();
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted == false);
-  BOOST_CHECK(_stepperMotor->isCalibrated() == false);
-  BOOST_CHECK(_stepperMotor->_calibrationFailed == true);
-  BOOST_CHECK(_stepperMotor->getError() == ACTION_ERROR);
+  BOOST_CHECK_EQUAL((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted, false);
+  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibrationFailed.load(), true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
 
   _motorControlerDummy->resetInternalStateToDefaults();
   while(!_stepperMotor->isSystemIdle()){}
@@ -375,10 +375,10 @@ void StepperMotorWithReferenceTest::testCalibrateStop(){
   waitForStop();
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted == false);
-  BOOST_CHECK(_stepperMotor->isCalibrated() == false);
-  BOOST_CHECK(_stepperMotor->_calibrationFailed == true);
-  BOOST_CHECK(_stepperMotor->getError() == ACTION_ERROR);
+  BOOST_CHECK_EQUAL((std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted, false);
+  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibrationFailed.load(), true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
 }
 
 void StepperMotorWithReferenceTest::testTranslation(){
@@ -388,27 +388,27 @@ void StepperMotorWithReferenceTest::testTranslation(){
   _stepperMotor->_mutex.unlock();
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
-  _stepperMotor->_calibNegativeEndSwitchInSteps = -10000;
-  _stepperMotor->_calibPositiveEndSwitchInSteps =  10000;
+  _stepperMotor->_calibNegativeEndSwitchInSteps.exchange(-10000);
+  _stepperMotor->_calibPositiveEndSwitchInSteps.exchange(10000);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_motorControler->getCalibrationTime() == 0);
+  BOOST_CHECK_EQUAL(_stepperMotor->_motorControler->getCalibrationTime(), 0);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
-  BOOST_CHECK(_stepperMotor->_maxPositionLimitInSteps == std::numeric_limits<int>::max());
-  BOOST_CHECK(_stepperMotor->_minPositionLimitInSteps == std::numeric_limits<int>::min() + 100);
-  BOOST_CHECK(_stepperMotor->_calibPositiveEndSwitchInSteps == 10000);
-  BOOST_CHECK(_stepperMotor->_calibNegativeEndSwitchInSteps == -10000);
+  BOOST_CHECK_EQUAL(_stepperMotor->_maxPositionLimitInSteps, std::numeric_limits<int>::max());
+  BOOST_CHECK_EQUAL(_stepperMotor->_minPositionLimitInSteps, std::numeric_limits<int>::min() + 100);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibPositiveEndSwitchInSteps, 10000);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibNegativeEndSwitchInSteps, -10000);
 
   _stepperMotor->_mutex.lock();
   _stepperMotor->_motorControler->setCalibrationTime(time(NULL));
-  _stepperMotor->_calibrationFailed = false;
+  _stepperMotor->_calibrationFailed.exchange(false);
   _stepperMotor->_mutex.unlock();
 
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
-  BOOST_CHECK(_stepperMotor->_maxPositionLimitInSteps == std::numeric_limits<int>::max());
-  BOOST_CHECK(_stepperMotor->_minPositionLimitInSteps == std::numeric_limits<int>::min() + 200);
-  BOOST_CHECK(_stepperMotor->_calibPositiveEndSwitchInSteps == 10100);
-  BOOST_CHECK(_stepperMotor->_calibNegativeEndSwitchInSteps == -9900);
+  BOOST_CHECK_EQUAL(_stepperMotor->_maxPositionLimitInSteps, std::numeric_limits<int>::max());
+  BOOST_CHECK_EQUAL(_stepperMotor->_minPositionLimitInSteps, std::numeric_limits<int>::min() + 200);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibPositiveEndSwitchInSteps, 10100);
+  BOOST_CHECK_EQUAL(_stepperMotor->_calibNegativeEndSwitchInSteps, -9900);
 
   BOOST_CHECK_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()), MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()), MotorDriverException);
@@ -422,18 +422,18 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_motorControler->getCalibrationTime() == 0);
+  BOOST_CHECK_EQUAL(_stepperMotor->_motorControler->getCalibrationTime(), 0);
   _stepperMotor->determineTolerance();
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_toleranceCalculated == false);
-  BOOST_CHECK(_stepperMotor->_toleranceCalcFailed == true);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalculated.load(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalcFailed.load(),  true);
 
   _stepperMotor->_mutex.lock();
   _stepperMotor->_motorControler->setCalibrationTime(time(NULL));
   _stepperMotor->_mutex.unlock();
-  _stepperMotor->_calibrationFailed = false;
-  _stepperMotor->_calibNegativeEndSwitchInSteps = -10000;
-  _stepperMotor->_calibPositiveEndSwitchInSteps =  10000;
+  _stepperMotor->_calibrationFailed.exchange(false);
+  _stepperMotor->_calibNegativeEndSwitchInSteps.exchange(-10000);
+  _stepperMotor->_calibPositiveEndSwitchInSteps.exchange(10000);
 
   _stepperMotor->determineTolerance();
   //FIXME This test is the only place where member _index is used. It syncs the test to every step of the tolerance calculation.
@@ -441,11 +441,11 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
   waitForDetTolerance();
   for (unsigned int i=0; i<10; i++){
     _motorControlerDummy->setPositiveEndSwitch(10000 + i);
-    waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps - 1000);
+    waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps.load() - 1000);
     _motorControlerDummy->moveTowardsTarget(1);
-    BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == _stepperMotor->_calibPositiveEndSwitchInSteps - 1000);
-    BOOST_CHECK(_stepperMotor->isPositiveReferenceActive() == false);
-    waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps + 1000);
+    BOOST_CHECK_EQUAL(_stepperMotor->_motorControler->getActualPosition(), _stepperMotor->_calibPositiveEndSwitchInSteps.load() - 1000);
+    BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), false);
+    waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps.load() + 1000);
     _motorControlerDummy->moveTowardsTarget(1);
     waitForPositiveEndSwitchActive();
     BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == _motorControlerDummy->getPositiveEndSwitch());
@@ -455,11 +455,11 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
   while (_stepperMotor->_index != 0){}
   for (unsigned int i=0; i<10; i++){
     _motorControlerDummy->setNegativeEndSwitch(-10000 - i*10);
-    waitToSetNegativeTargetPos(_stepperMotor->_calibNegativeEndSwitchInSteps + 1000);
+    waitToSetNegativeTargetPos(_stepperMotor->_calibNegativeEndSwitchInSteps.load() + 1000);
     _motorControlerDummy->moveTowardsTarget(1);
     BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == _stepperMotor->_calibNegativeEndSwitchInSteps + 1000);
     BOOST_CHECK(_stepperMotor->isNegativeReferenceActive() == false);
-    waitToSetNegativeTargetPos(_stepperMotor->_calibNegativeEndSwitchInSteps - 1000);
+    waitToSetNegativeTargetPos(_stepperMotor->_calibNegativeEndSwitchInSteps.load() - 1000);
     _motorControlerDummy->moveTowardsTarget(1);
     waitForNegativeEndSwitchActive();
     BOOST_CHECK(_stepperMotor->_motorControler->getActualPosition() == _motorControlerDummy->getNEgativeEndSwitch());
@@ -474,10 +474,10 @@ void StepperMotorWithReferenceTest::testDetermineTolerance(){
   waitToSetPositiveTargetPos(0);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine)->_moveInterrupted == false);
-  BOOST_CHECK(_stepperMotor->getError() == NO_ERROR);
-  BOOST_CHECK(_stepperMotor->_toleranceCalculated == true);
-  BOOST_CHECK(_stepperMotor->_toleranceCalcFailed == false);
+  BOOST_CHECK_EQUAL(std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine)->_moveInterrupted, false);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), NO_ERROR);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalculated, true);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalcFailed, false);
 }
 
 void StepperMotorWithReferenceTest::testDetermineToleranceError(){
@@ -489,35 +489,35 @@ void StepperMotorWithReferenceTest::testDetermineToleranceError(){
   _stepperMotor->_mutex.unlock();
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
-  _stepperMotor->_calibNegativeEndSwitchInSteps = -10000;
-  _stepperMotor->_calibPositiveEndSwitchInSteps =  10000;
+  _stepperMotor->_calibNegativeEndSwitchInSteps.exchange(-10000);
+  _stepperMotor->_calibPositiveEndSwitchInSteps.exchange(10000);
   while(!_stepperMotor->isSystemIdle()){}
   _stepperMotor->determineTolerance();
   waitForDetTolerance();
-  waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps - 1000);
+  waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps.load() - 1000);
   _motorControlerDummy->moveTowardsTarget(0.1);
   _motorControlerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->getError() == ACTION_ERROR);
-  BOOST_CHECK(_stepperMotor->_toleranceCalculated == false);
-  BOOST_CHECK(_stepperMotor->_toleranceCalcFailed == true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalculated.load(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalcFailed.load(), true);
   _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor->_tolerancePositiveEndSwitch = 100;
-  _stepperMotor->_toleranceNegativeEndSwitch = 100;
-  _stepperMotor->_calibNegativeEndSwitchInSteps = 0;
-  _stepperMotor->_calibPositiveEndSwitchInSteps =  20000;
-  _stepperMotor->_toleranceCalculated = true;
-  _stepperMotor->_toleranceCalcFailed = false;
+  _stepperMotor->_tolerancePositiveEndSwitch.exchange(100);
+  _stepperMotor->_toleranceNegativeEndSwitch.exchange(100);
+  _stepperMotor->_calibNegativeEndSwitchInSteps.exchange(0);
+  _stepperMotor->_calibPositiveEndSwitchInSteps.exchange(20000);
+  _stepperMotor->_toleranceCalculated.exchange(true);
+  _stepperMotor->_toleranceCalcFailed.exchange(false);
   _stepperMotor->_mutex.lock();
   _stepperMotor->_motorControler->setCalibrationTime(time(NULL));
   _stepperMotor->_mutex.unlock();
-  _stepperMotor->_calibrationFailed = false;
+  _stepperMotor->_calibrationFailed.exchange(false);
   _stepperMotor->setTargetPositionInSteps(10000);
   _stepperMotor->start();
   waitToSetPositiveTargetPos(10000);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->getError() == CALIBRATION_LOST);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), CALIBRATION_LOST);
 }
 
 void StepperMotorWithReferenceTest::testDetermineToleranceStop(){
@@ -541,7 +541,7 @@ void StepperMotorWithReferenceTest::testDetermineToleranceStop(){
   waitToSetPositiveTargetPos(_stepperMotor->_calibPositiveEndSwitchInSteps + 1000);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK(_stepperMotor->_toleranceCalculated == false);
-  BOOST_CHECK(_stepperMotor->_toleranceCalcFailed == true);
-  BOOST_CHECK(_stepperMotor->getError() == ACTION_ERROR);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalculated, false);
+  BOOST_CHECK_EQUAL(_stepperMotor->_toleranceCalcFailed, true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
 }

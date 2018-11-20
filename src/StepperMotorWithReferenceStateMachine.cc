@@ -28,33 +28,16 @@ namespace ChimeraTK{
     _idle.setTransition(StepperMotorWithReferenceStateMachine::calcToleranceEvent,
                                     &_calculatingTolerance,
                                     std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this));
-//    _calibrating.setTransition(StateMachine::noEvent,
-//                               &_calibrating,
-//                               std::bind(&StepperMotorWithReferenceStateMachine::actionWaitForStandstill, this));
-//    _calibrating.setTransition(StepperMotorStateMachine::actionCompleteEvent,
-//                               &_idle, //_baseStateMachine,
-//                               [](){});
+
     _calibrating.setTransition(StepperMotorStateMachine::stopEvent,
                                &_idle,
                                std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
-//    _calculatingTolerance.setTransition(StateMachine::noEvent,
-//                                        &_calculatingTolerance,
-//                                        std::bind(&StepperMotorWithReferenceStateMachine::actionWaitForStandstill, this));
-//    _calculatingTolerance.setTransition(StepperMotorStateMachine::actionCompleteEvent,
-//                                        &_idle, //_baseStateMachine,
-//                                        [](){});
+
+
+
     _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent,
                                         &_idle,
                                         std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
-    //TODO Introduce emergency stop transitions
-
-//    _interruptingAction.setTransition(StateMachine::noEvent,
-//                                      &_interruptingAction,
-//                                      std::bind(&StepperMotorWithReferenceStateMachine::actionWaitForStandstill, this));
-//    _interruptingAction.setTransition(StepperMotorStateMachine::actionCompleteEvent,
-//                                      &_idle, //_baseStateMachine,
-//                                      [](){});
-
   }
 
   StepperMotorWithReferenceStateMachine::~StepperMotorWithReferenceStateMachine(){}
@@ -106,18 +89,18 @@ namespace ChimeraTK{
     }
     else{
       findEndSwitch(POSITIVE);
-      _motor._calibPositiveEndSwitchInSteps = _motor._motorControler->getActualPosition();
+      _motor._calibPositiveEndSwitchInSteps.exchange(_motor._motorControler->getActualPosition());
       findEndSwitch(NEGATIVE);
-      _motor._calibNegativeEndSwitchInSteps = _motor._motorControler->getActualPosition();
+      _motor._calibNegativeEndSwitchInSteps.exchange(_motor._motorControler->getActualPosition());
 
       if (_moveInterrupted.load() || _stopAction.load()){
         _motor._motorControler->setCalibrationTime(0);
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
-        _motor._calibPositiveEndSwitchInSteps = _motor._calibPositiveEndSwitchInSteps -
-        _motor._calibNegativeEndSwitchInSteps;
-        _motor._calibNegativeEndSwitchInSteps = 0;
+        _motor._calibPositiveEndSwitchInSteps.exchange(_motor._calibPositiveEndSwitchInSteps.load() -
+                                                       _motor._calibNegativeEndSwitchInSteps.load());
+        _motor._calibNegativeEndSwitchInSteps.exchange(0);
         _motor._motorControler->setCalibrationTime(time(NULL));
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
@@ -179,8 +162,8 @@ namespace ChimeraTK{
       _motor._toleranceCalcFailed.exchange(true);
     }
     else{
-      _motor._tolerancePositiveEndSwitch = getToleranceEndSwitch(POSITIVE);
-      _motor._toleranceNegativeEndSwitch = getToleranceEndSwitch(NEGATIVE);
+      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(POSITIVE));
+      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(NEGATIVE));
 
       if (_moveInterrupted.load() || _stopAction.load()){
         _motor._toleranceCalculated.exchange(false);
