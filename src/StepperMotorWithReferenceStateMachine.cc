@@ -8,6 +8,8 @@
 #include "StepperMotorWithReferenceStateMachine.h"
 #include "StepperMotorWithReference.h"
 
+static const unsigned wakeupPeriodInUSec = 1000U;
+
 namespace ChimeraTK{
 
   const Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
@@ -128,7 +130,7 @@ namespace ChimeraTK{
   void StepperMotorWithReferenceStateMachine::moveToEndSwitch(Sign sign){
     _motor._motorControler->setTargetPosition(_motor._motorControler->getActualPosition() + sign*50000);
     while (_motor._motorControler->isMotorMoving()){
-      std::this_thread::sleep_for(std::chrono::microseconds(100));       // TODO Increase period
+      std::this_thread::sleep_for(std::chrono::microseconds(wakeupPeriodInUSec));       // TODO Increase period
     }
   }
 
@@ -171,7 +173,6 @@ namespace ChimeraTK{
         _motor._toleranceCalculated.exchange(true);
       }
     }
-    //waitForStandstill();
     _boolAsyncActionActive.exchange(false);
     return;
   }
@@ -199,7 +200,7 @@ namespace ChimeraTK{
       }
       _motor._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
       while (_motor._motorControler->isMotorMoving()){
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::sleep_for(std::chrono::microseconds(wakeupPeriodInUSec));
       }
       if (_motor._motorControler->getTargetPosition() != _motor._motorControler->getActualPosition() &&
             !_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
@@ -209,7 +210,7 @@ namespace ChimeraTK{
       }
       _motor._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
       while (_motor._motorControler->isMotorMoving()){
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::sleep_for(std::chrono::microseconds(wakeupPeriodInUSec));
       }
       if (!isEndSwitchActive(sign)){
         _moveInterrupted.exchange(true);
