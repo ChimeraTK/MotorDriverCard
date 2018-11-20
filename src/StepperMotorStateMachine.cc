@@ -27,8 +27,6 @@ namespace ChimeraTK{
       StateMachine(),
       _moving("movingState"),
       _idle("idleState"),
-//      _stop("stopState"),
-//      _emergencyStop("emergencyStop"),
       _disabled("disabledState"),
       _error("errorState"),
       _stepperMotor(stepperMotor),
@@ -37,19 +35,12 @@ namespace ChimeraTK{
     _initState.setTransition(initialEvent,        &_disabled,      []{});
     _idle.setTransition     (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this));
     _idle.setTransition     (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
-    //_moving.setTransition       (noEvent,             &_moving,        std::bind(&StepperMotorStateMachine::actionWaitForStandstill, this));  /* Reset to getActionCompleteEvent? */
-    //_moving.setTransition       (actionCompleteEvent, &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
     _moving.setTransition   (stopEvent,           &_idle,          std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
     _moving.setTransition   (emergencyStopEvent,  &_error,         std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
     _moving.setTransition   (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
-    //_disable.setTransition      (noEvent,             &_disable,       std::bind(&StepperMotorStateMachine::actionWaitForStandstill, this));  /* Reset to getActionCompleteEvent? */
     _disabled.setTransition (enableEvent,         &_idle,          std::bind(&StepperMotorStateMachine::actionEnable, this));
     _error.setTransition    (resetToIdleEvent,    &_idle,          std::bind(&StepperMotorStateMachine::actionResetError, this));
     _error.setTransition    (resetToDisableEvent, &_disabled,      std::bind(&StepperMotorStateMachine::actionResetError, this));
-    //_stop.setTransition         (noEvent,             &_stop,          std::bind(&StepperMotorStateMachine::actionWaitForStandstill, this));  /* Reset to getActionCompleteEvent? */
-    //_stop.setTransition         (actionCompleteEvent, &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
-    //_emergencyStop.setTransition(noEvent,             &_emergencyStop, std::bind(&StepperMotorStateMachine::actionWaitForStandstill, this));  /* Reset to getActionCompleteEvent? */
-    //_emergencyStop.setTransition(actionCompleteEvent, &_idle,          std::bind(&StepperMotorStateMachine::actionToIdle, this));
   }
 
   StepperMotorStateMachine::~StepperMotorStateMachine(){}

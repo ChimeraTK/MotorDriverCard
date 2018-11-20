@@ -17,7 +17,6 @@ namespace ChimeraTK{
       StepperMotorStateMachine(stepperMotorWithReference),
       _calibrating("calibrating"),
       _calculatingTolerance("calculatingTolerance"),
-      //_interruptingAction("interruptingAction"),
       _motor(stepperMotorWithReference),
       _stopAction(false),
       _moveInterrupted(false)
@@ -32,12 +31,11 @@ namespace ChimeraTK{
     _calibrating.setTransition(StepperMotorStateMachine::stopEvent,
                                &_idle,
                                std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
+    _calibrating.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{ actionEmergencyStop(); });
 
-
-
-    _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent,
-                                        &_idle,
-                                        std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
+    _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent, &_idle, [this]{ actionStop(); });
+    _calculatingTolerance.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{actionEmergencyStop();});
+                                        //std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
   }
 
   StepperMotorWithReferenceStateMachine::~StepperMotorWithReferenceStateMachine(){}

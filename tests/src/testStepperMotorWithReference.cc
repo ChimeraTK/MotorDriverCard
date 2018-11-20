@@ -216,19 +216,10 @@ void StepperMotorWithReferenceTest::testCalibrate(){
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
 
-  //std::cout << " ** Resetting motor pointer in test, addr is  " << _stepperMotor.get() << std::endl;
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
-//  std::cout << ", after reset, addr is " << _stepperMotor.get() << std::endl;
 
   _stepperMotor->setEnabled(true);
   BOOST_CHECK(waitForState("idleState"));
-
-//  ChimeraTK::State* state =  _stepperMotor->_stateMachine->getCurrentState();
-//  TransitionTable tT = state->getTransitionTable();
-//  auto tableSize = tT.size();
-//  std::cout << "  In test, addr stateMachine " << _stepperMotor->_stateMachine.get() << ",  addr idle " << state << std::endl;
-//  std::cout << "  Table size " << tableSize << std::endl;
-
 
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
 
