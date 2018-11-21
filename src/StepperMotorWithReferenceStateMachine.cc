@@ -37,7 +37,6 @@ namespace ChimeraTK{
 
     _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent, &_idle, [this]{ actionStop(); });
     _calculatingTolerance.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{actionEmergencyStop();});
-                                        //std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
   }
 
   StepperMotorWithReferenceStateMachine::~StepperMotorWithReferenceStateMachine(){}
@@ -56,9 +55,7 @@ namespace ChimeraTK{
                                         _internalEventCallback = []{};
                                       }
                                    };
-    //if(!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
       _asyncActionActive = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
-    //}
   }
 
   void StepperMotorWithReferenceStateMachine::actionStartCalcTolercance(){
@@ -70,9 +67,7 @@ namespace ChimeraTK{
                                         _internalEventCallback = []{};
                                       }
                                    };
-    //if (!_asyncActionActive.valid() || (_asyncActionActive.valid() && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
       _asyncActionActive = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
-    //}
   }
 
 
@@ -107,7 +102,6 @@ namespace ChimeraTK{
       }
     }
 
-    //waitForStandstill();
     _boolAsyncActionActive.exchange(false);
     return;
   }

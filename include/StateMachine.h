@@ -101,8 +101,7 @@ namespace ChimeraTK{
     State *_currentState; //FIXME Use references?
     State *_requestedState;
     Event _userEvent; /*FIXME user event is not required anymore */
-    //Event _internEvent;
-    //Event _propagatedEvent;
+
     std::mutex _stateMachineMutex;
     std::future<void> _asyncActionActive;
     bool _isEventUnknown; //FIXME This is not used anymore
@@ -110,8 +109,6 @@ namespace ChimeraTK{
     std::function<void(void)> _internalEventCallback; //FIXME Change interface to this
     void performTransition(Event event);
     void moveToRequestedState();
-//    Event getAndResetInternalEvent();
-//    Event getInternalEvent();
   };
 }
 
