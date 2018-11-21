@@ -17,7 +17,7 @@
 #include <future>
 #include <atomic>
 
-class TestStateMachine;
+class StateMachineTestFixture;
 
 
 namespace ChimeraTK{
@@ -82,7 +82,7 @@ namespace ChimeraTK{
 
     // FIXME Make state a nested class once this works
     friend class State;
-    friend class ::TestStateMachine;
+    friend struct ::StateMachineTestFixture;
 
   public:
     StateMachine();
