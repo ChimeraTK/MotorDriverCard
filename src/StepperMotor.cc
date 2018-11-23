@@ -653,7 +653,7 @@ namespace ChimeraTK{
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     resetPositionMotorController(actualPositionInSteps);
-    _motorControler->setCalibrationTime(time(NULL));
+    _motorControler->setCalibrationTime(time(nullptr));
   }
 
   void StepperMotor::setActualPosition(float actualPosition){
@@ -662,7 +662,7 @@ namespace ChimeraTK{
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     resetPositionMotorController(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
-    _motorControler->setCalibrationTime(time(NULL));
+    _motorControler->setCalibrationTime(time(nullptr));
   }
 
   void StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){

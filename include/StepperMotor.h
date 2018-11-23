@@ -562,6 +562,10 @@ namespace mtca4u{
   };
 } //namespace mtca4u
 
+
+// Forward-declare fixture used in the test
+class StepperMotorChimeraTKFixture;
+
 namespace ChimeraTK{
 
   /**
@@ -914,7 +918,7 @@ namespace ChimeraTK{
     bool isFullStepping();
 
     friend class StepperMotorStateMachine;
-    friend class StepperMotorChimeraTKTest;
+    friend class ::StepperMotorChimeraTKFixture;
 
   protected: // fields
     StepperMotor();

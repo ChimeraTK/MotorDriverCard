@@ -148,17 +148,15 @@ void DerivedStateMachine::actionExtern2(){
 }
 
 void DerivedStateMachine::actionThirdToFirstState(){
-//  if(!_asyncActionActive.valid()
-//     || (_asyncActionActive.valid()
-//         && _asyncActionActive.wait_for(std::chrono::microseconds(0)) == std::future_status::ready)){
-    _boolAsyncActionActive.store(true);
-    _asyncActionActive = std::async(std::launch::async, [this]{
-                                                                 std::lock_guard<std::mutex> lck(_stateMachineMutex);
-                                                                 performTransition(_state1to4Event);
-                                                                 _boolAsyncActionActive.store(false);
-                                                               }
-                                   );
-  //}
+
+  _boolAsyncActionActive.store(true);
+  _asyncActionActive = std::async(std::launch::async, [this]{
+                                                               std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                                               performTransition(_state1to4Event);
+                                                               _boolAsyncActionActive.store(false);
+                                                             }
+                                 );
+
   _counter.fetch_add(31);
 }
 

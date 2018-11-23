@@ -17,7 +17,7 @@
 #include <future>
 #include <atomic>
 
-class StateMachineTestFixture;
+struct StateMachineTestFixture;
 
 
 namespace ChimeraTK{
