@@ -184,9 +184,13 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
   // Allow autostart to save some lines in the tests
   _stepperMotor->setAutostart(true);
 
-  //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
+  // We test a motor /wo end switches
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
+
+  //Set common settings for all tests
+  _stepperMotor->setMaxPositionLimitInSteps(1000);
+  _stepperMotor->setMinPositionLimitInSteps(-1000);
 }
 
 
@@ -267,9 +271,12 @@ BOOST_AUTO_TEST_CASE( testSoftLimits ){
 
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == false);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(-1000));
+
+  // Limts have been set to [-1000, 1000] in fixture ctor, so this should throw
+  BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimitInSteps(-1000), mtca4u::MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(1000), mtca4u::MotorDriverException);
-  BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000), mtca4u::MotorDriverException);
+
+  //BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000), mtca4u::MotorDriverException);
   BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
   BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
   BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimitInSteps(-1000), mtca4u::MotorDriverException);
@@ -345,6 +352,7 @@ BOOST_AUTO_TEST_CASE(testTranslateAxis){
 BOOST_AUTO_TEST_CASE(testMove){
 
   _stepperMotor->setSoftwareLimitsEnabled(true);
+  _stepperMotor->setEnabled(true);
 
   BOOST_CHECK_EQUAL(_stepperMotor->getSoftwareLimitsEnabled(), true);
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(100000), mtca4u::MotorDriverException);
@@ -401,6 +409,8 @@ BOOST_AUTO_TEST_CASE(testMove){
 //void StepperMotorChimeraTKTest::testMoveRelative()
 BOOST_AUTO_TEST_CASE(testMoveRelative){
 
+  _stepperMotor->setEnabled(true);
+
   BOOST_CHECK_NO_THROW(_stepperMotor->moveRelativeInSteps(5));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
@@ -421,6 +431,7 @@ BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
   // Don't want to dig through relation of positions between test cases
   // just restore where we came from in the end
   int initialPosition = _stepperMotor->getCurrentPositionInSteps();
+  BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
   // Autostart should be true from test constructor
   BOOST_CHECK(_stepperMotor->getAutostart() == true);
@@ -457,6 +468,7 @@ BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
 //void StepperMotorChimeraTKTest::testStop()
 BOOST_AUTO_TEST_CASE( testStop ){
 
+  BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(50));
 
   waitForMoveState();
@@ -472,6 +484,7 @@ BOOST_AUTO_TEST_CASE( testStop ){
 //void StepperMotorChimeraTKTest::testEmergencyStop()
 BOOST_AUTO_TEST_CASE( testEmergencyStop ){
 
+  BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(56));
 
@@ -595,6 +608,7 @@ BOOST_AUTO_TEST_CASE( testLocking ){
 
   BOOST_CHECK(_stepperMotor->isSystemIdle());
   _stepperMotor->setSoftwareLimitsEnabled(false);
+  BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
   BOOST_CHECK_NO_THROW(
     for(unsigned i = 0; i<1000; i++){
@@ -619,8 +633,9 @@ BOOST_AUTO_TEST_CASE( testDisable ){
 
   _motorControlerDummy->resetInternalStateToDefaults();
   _motorControlerDummy->setCalibrationTime(32);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
+  BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
   BOOST_CHECK(waitForState("movingState"));
 
   _motorControlerDummy->moveTowardsTarget(0.5);
@@ -666,6 +681,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -900);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() ==  900);
 
+  BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(10));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
