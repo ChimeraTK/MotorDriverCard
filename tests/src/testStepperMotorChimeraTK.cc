@@ -52,7 +52,7 @@ static mtca4u::TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_pt
 
 
 static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md2){
-  auto motorId = 0;
+  auto motorId = 0U;
   return mtca4u::StallGuardControlData(dfmc_md2->readTMC260Register(
       motorId, mtca4u::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
 }
@@ -61,23 +61,6 @@ static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shar
 class StepperMotorChimeraTKFixture{
 public:
   StepperMotorChimeraTKFixture();
-//  void testUnitsConverterInitialization();
-//  void testSoftLimits();
-//  void testEnable();
-//  void testSetActualPosition();
-//  void testTranslateAxis();
-//  void testMove();
-//  void testMoveRelative();
-//  void testTargetPositionAndStart();
-//  void testStop();
-//  void testEmergencyStop();
-//  void testFullStepping();
-//  void testLocking();
-//  void testDisable();
-//  void testConverter();
-//  void testLogSettings();
-//  void testGetSetSpeedLimit();
-//  void testSetGetCurrent();
   void setCalibrationTime(uint32_t time);
   void waitForMoveState();
   void waitForDisable();
@@ -88,85 +71,12 @@ protected:
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
-//}
+
 
 using namespace ChimeraTK;
 
 
-//class StepperMotorChimeraTKTestSuite : public test_suite {
-//public:
-//
-//  StepperMotorChimeraTKTestSuite() : test_suite("Stepper Motor ChimeraTK suite") {
-//    // create an instance of the test class
-//    boost::shared_ptr<StepperMotorChimeraTKTest> stepperMotorChimeraTK(new StepperMotorChimeraTKTest);
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testUnitsConverterInitialization, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testSoftLimits, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testEnable, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testSetActualPosition, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testTranslateAxis, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testMove, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testMoveRelative, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testTargetPositionAndStart, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testStop, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testEmergencyStop, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&Stepclass TestUnitConverter : public ChimeraTK::StepperMotorUnitsConverter {
-//    public:
-//      TestUnitConverter() {
-//      };
-//
-//      virtual float stepsToUnits(int steps) {
-//        return float(steps/10.0);
-//      }
-//      virtual int unitsToSteps(float units) {
-//        return int(10.0*units);
-//      };
-//    };
-//
-//    class StepperMotorChimeraTKTest{
-//    public:
-//      StepperMotorChimeraTKTest();
-//      void testUnitsConverterInitialization();
-//      void testSoftLimits();
-//      void testEnable();
-//      void testSetActualPosition();
-//      void testTranslateAxis();
-//      void testMove();
-//      void testMoveRelative();
-//      void testTargetPositionAndStart();
-//      void testStop();
-//      void testEmergencyStop();
-//      void testFullStepping();
-//      void testLocking();
-//      void testDisable();
-//      void testConverter();
-//      void testLogSettings();
-//      void testGetSetSpeedLimit();
-//      void testSetGetCurrent();
-//      void waitForMoveState();
-//      void waitForDisable();
-//      bool waitForState(std::string stateName, unsigned timeoutInSeconds);
-//    private:
-//
-//      boost::shared_ptr<ChimeraTK::StepperMotor> _stepperMotor;
-//      boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
-//      std::shared_ptr<TestUnitConverter> _testUnitConverter;
-//    };_perMotorChimeraTKTest::testFullStepping, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testLocking, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testDisable, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testConverter, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testLogSettings, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testGetSetSpeedLimit, stepperMotorChimeraTK));
-//    add(BOOST_CLASS_TEST_CASE(&StepperMotorChimeraTKTest::testSetGetCurrent, stepperMotorChimeraTK));
-//  }
-//};
-//
-//test_suite*
-//init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
-//{
-//  framework::master_test_suite().p_name.value = "Stepper Motor ChimeraTK test suite";
-//  return new StepperMotorChimeraTKTestSuite;
-//}
-
+// Fixture for common setup
 StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
         _stepperMotor(),
         _motorControlerDummy(),
@@ -251,7 +161,6 @@ bool StepperMotorChimeraTKFixture::waitForState(std::string stateName, unsigned 
 BOOST_FIXTURE_TEST_SUITE(StepperMotorChimeraTKTest, StepperMotorChimeraTKFixture)
 
 
-/*void StepperMotorChimeraTKTest::testUnitsConverterInitialization()*/
 BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
 
   // _stepperMotor was constructed with default 1:1 converter
@@ -266,7 +175,6 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
 }
 
 
-//void StepperMotorChimeraTKTest::testSoftLimits()
 BOOST_AUTO_TEST_CASE( testSoftLimits ){
 
   _stepperMotor->waitForIdle();
@@ -285,7 +193,6 @@ BOOST_AUTO_TEST_CASE( testSoftLimits ){
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1000);
 }
 
-/*void StepperMotorChimeraTKTest::testEnable()*/
 BOOST_AUTO_TEST_CASE( testEnable ){
 
   BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabledState");
@@ -305,7 +212,6 @@ BOOST_AUTO_TEST_CASE( testEnable ){
   BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idleState");
 }
 
-//void StepperMotorChimeraTKTest::testSetActualPosition()
 BOOST_AUTO_TEST_CASE( testSetActualPosition){
 
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
@@ -323,7 +229,6 @@ BOOST_AUTO_TEST_CASE( testSetActualPosition){
   BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationTime(), timeEG);
 }
 
-//void StepperMotorChimeraTKTest::testTranslateAxis()
 BOOST_AUTO_TEST_CASE(testTranslateAxis){
 
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
@@ -348,7 +253,6 @@ BOOST_AUTO_TEST_CASE(testTranslateAxis){
   BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
 }
 
-//void StepperMotorChimeraTKTest::testMove()
 BOOST_AUTO_TEST_CASE(testMove){
 
   _stepperMotor->setSoftwareLimitsEnabled(true);
@@ -406,7 +310,6 @@ BOOST_AUTO_TEST_CASE(testMove){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
-//void StepperMotorChimeraTKTest::testMoveRelative()
 BOOST_AUTO_TEST_CASE(testMoveRelative){
 
   _stepperMotor->setEnabled(true);
@@ -425,7 +328,6 @@ BOOST_AUTO_TEST_CASE(testMoveRelative){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
-//void StepperMotorChimeraTKTest::testTargetPositionAndStart()
 BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
 
   // Don't want to dig through relation of positions between test cases
@@ -465,7 +367,6 @@ BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
-//void StepperMotorChimeraTKTest::testStop()
 BOOST_AUTO_TEST_CASE( testStop ){
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
@@ -481,7 +382,6 @@ BOOST_AUTO_TEST_CASE( testStop ){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
-//void StepperMotorChimeraTKTest::testEmergencyStop()
 BOOST_AUTO_TEST_CASE( testEmergencyStop ){
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
@@ -512,7 +412,6 @@ BOOST_AUTO_TEST_CASE( testEmergencyStop ){
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), true);
 }
 
-//void StepperMotorChimeraTKTest::testFullStepping()
 BOOST_AUTO_TEST_CASE( testFullStepping ){
 
   _motorControlerDummy->resetInternalStateToDefaults();
@@ -601,7 +500,6 @@ BOOST_AUTO_TEST_CASE( testFullStepping ){
   BOOST_CHECK_NO_THROW(_stepperMotor->enableFullStepping(false));
 }
 
-//void StepperMotorChimeraTKTest::testLocking()
 BOOST_AUTO_TEST_CASE( testLocking ){
 
   auto currentPosition = _stepperMotor->getCurrentPositionInSteps();
@@ -611,7 +509,7 @@ BOOST_AUTO_TEST_CASE( testLocking ){
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
   BOOST_CHECK_NO_THROW(
-    for(unsigned i = 0; i<1000; i++){
+    for(int i = 0; i<1000; i++){
 
       _stepperMotor->setTargetPositionInSteps(currentPosition + (i+1)*2);
 
@@ -628,7 +526,6 @@ BOOST_AUTO_TEST_CASE( testLocking ){
   _stepperMotor->setSoftwareLimitsEnabled(true);
 }
 
-//void StepperMotorChimeraTKTest::testDisable()
 BOOST_AUTO_TEST_CASE( testDisable ){
 
   _motorControlerDummy->resetInternalStateToDefaults();
@@ -655,7 +552,7 @@ BOOST_AUTO_TEST_CASE( testDisable ){
   BOOST_CHECK(_stepperMotor->getEnabled() == true);
 }
 
-//void StepperMotorChimeraTKTest::testConverter()
+
 BOOST_AUTO_TEST_CASE( testConverter ){
 
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 68);
@@ -669,7 +566,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK(_stepperMotor->getMinPositionLimit() == -100);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimit() ==  100);
 
-  _stepperMotor->setActualPosition(10.3);
+  _stepperMotor->setActualPosition(10.3f);
   BOOST_CHECK_CLOSE(_stepperMotor->getCurrentPosition(), 10.3, 1e-4);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 103);
   BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimit(-900), mtca4u::MotorDriverException);
@@ -737,7 +634,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() ==  900);
 }
 
-//void StepperMotorChimeraTKTest::testLogSettings()
+
 BOOST_AUTO_TEST_CASE( testLogSettings ){
 
   _stepperMotor->setLogLevel(Logger::NO_LOGGING);
@@ -761,7 +658,7 @@ BOOST_AUTO_TEST_CASE( testLogSettings ){
   _stepperMotor->setLogLevel(Logger::NO_LOGGING);
 }
 
-//void StepperMotorChimeraTKTest::testGetSetSpeedLimit()
+
 BOOST_AUTO_TEST_CASE( testGetSetSpeedLimit ){
 
   // setup
@@ -823,7 +720,7 @@ BOOST_AUTO_TEST_CASE( testGetSetSpeedLimit ){
     ChimeraTK::setDMapFilePath(dmapFile);
 }
 
-//void StepperMotorChimeraTKTest::testSetGetCurrent()
+
 BOOST_AUTO_TEST_CASE( testGetSetCurrent ){
 
   auto dmapFile = ChimeraTK::getDMapFilePath();
@@ -872,7 +769,7 @@ BOOST_AUTO_TEST_CASE( testGetSetCurrent ){
   // Verify that CS is 2 in the internal register ()
   auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
       BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
-  BOOST_ASSERT(md22_instance != NULL);
+  BOOST_ASSERT(md22_instance != nullptr);
   StallGuardControlData stallGuard = readDFMCDummyMotor0CurrentScale(md22_instance);
   BOOST_CHECK(stallGuard.getCurrentScale() == 2);
 
