@@ -794,7 +794,7 @@ namespace ChimeraTK{
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual void setStepperMotorUnitsConverter(std::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual void setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**

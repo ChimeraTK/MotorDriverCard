@@ -96,7 +96,7 @@ namespace ChimeraTK{
         _motor._calibPositiveEndSwitchInSteps.exchange(_motor._calibPositiveEndSwitchInSteps.load() -
                                                        _motor._calibNegativeEndSwitchInSteps.load());
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
-        _motor._motorControler->setCalibrationTime(time(NULL));
+        _motor._motorControler->setCalibrationTime(time(nullptr));
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
       }
@@ -182,26 +182,30 @@ namespace ChimeraTK{
   double StepperMotorWithReferenceStateMachine::getToleranceEndSwitch(Sign sign){
     double meanMeasurement = 0;
     double stdMeasurement = 0;
-    double measurements[10];
+    const int N_TOLERANCE_CALC_SAMPLES = 10;
+    double measurements[N_TOLERANCE_CALC_SAMPLES];
 
     int endSwitchPosition = getPositionEndSwitch(sign);
 
     //FIXME _index is only used in the test of the tolerance calculation
     //      -> Find a better way to write the test and remove _index
-    for (_motor._index=0; _motor._index<10; _motor._index++){
+    for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++){
       if (_stopAction || _moveInterrupted){
         break;
       }
+      //Move close to end switch
       _motor._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
       while (_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
+      //Check if in expected position
       if (_motor._motorControler->getTargetPosition() != _motor._motorControler->getActualPosition() &&
             !_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
             !_motor._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
         _moveInterrupted.exchange(true);
         break;
       }
+      // Try to move beyond end switch
       _motor._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
       while (_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
@@ -211,13 +215,15 @@ namespace ChimeraTK{
         break;
       }
 
-      meanMeasurement += _motor._motorControler->getActualPosition() / 10.;
+      // Mean calculation
+      meanMeasurement += _motor._motorControler->getActualPosition() / N_TOLERANCE_CALC_SAMPLES;
       measurements[_motor._index] = _motor._motorControler->getActualPosition();
-    }
+    } /* for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++) */
 
+    // Compute variance
     if (!(_stopAction.load() || _moveInterrupted.load()) ){
-      for (unsigned int i=0; i<10; i++){
-        stdMeasurement += ((measurements[i] - meanMeasurement) / 9) * (measurements[i] - meanMeasurement);
+      for (unsigned int i=0; i<N_TOLERANCE_CALC_SAMPLES; i++){
+        stdMeasurement += ((measurements[i] - meanMeasurement) / (N_TOLERANCE_CALC_SAMPLES-1)) * (measurements[i] - meanMeasurement);
       }
     }
 
