@@ -12,6 +12,8 @@
 #ifndef INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
 #define INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
 
+class StepperMotorWithReferenceTestFixture;
+
 namespace ChimeraTK{
 
   class StepperMotorWithReference;
@@ -24,7 +26,7 @@ namespace ChimeraTK{
     static const Event calibEvent;
     static const Event calcToleranceEvent;
 
-    friend class StepperMotorWithReferenceTest;
+    friend class ::StepperMotorWithReferenceTestFixture;
   protected:
     State _calibrating;
     State _calculatingTolerance;

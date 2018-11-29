@@ -72,12 +72,16 @@ namespace ChimeraTK{
 
     StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
 
-    if(_motorControler->getCalibrationTime() != 0){
+    // If motor has been calibrated, translate also end switch positions
+    if(this->_calibrationMode.load() == StepperMotorCalibrationMode::FULL){
       if(checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
          checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps))
       {
         throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
-      }else{
+      }
+      else{
+        // FIXME Use fetch_add
+        //_calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
         _calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps.load() + translationInSteps;
         _calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps.load() + translationInSteps;
       }

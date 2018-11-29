@@ -65,8 +65,8 @@ public:
   void waitForMoveState();
   void waitForDisable();
   bool waitForState(std::string stateName, unsigned timeoutInSeconds);
-protected:
 
+protected:
   boost::shared_ptr<ChimeraTK::StepperMotor> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;

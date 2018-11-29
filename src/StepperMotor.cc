@@ -667,15 +667,22 @@ namespace ChimeraTK{
 
   void StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
     int actualPosition = _motorControler->getActualPosition();
+
+    // See target & actual position of the motor controller to the
+    // translated value
     resetPositionMotorController(actualPosition+translationInSteps);
+
+    // Translate positions limits, if not in numerical range
     if (checkIfOverflow(_maxPositionLimitInSteps, translationInSteps)){
       _maxPositionLimitInSteps = std::numeric_limits<int>::max();
-    }else{
+    }
+    else{
       _maxPositionLimitInSteps = _maxPositionLimitInSteps + translationInSteps;
     }
     if (checkIfOverflow(_minPositionLimitInSteps, translationInSteps)){
       _minPositionLimitInSteps = std::numeric_limits<int>::min();
-    }else{
+    }
+    else{
       _minPositionLimitInSteps = _minPositionLimitInSteps + translationInSteps;
     }
   }
@@ -701,17 +708,21 @@ namespace ChimeraTK{
     int signTermB = (termB > 0) - (termB < 0);
     if (signTermA*signTermB <= 0){
       return false;
-    }else if (signTermA > 0){
+    }
+    else if (signTermA > 0){
       if (termB > std::numeric_limits<int>::max() - termA){
-  return true;
-      }else{
-  return false;
+        return true;
       }
-    }else{
+      else{
+        return false;
+      }
+    }
+    else{
       if (termB < std::numeric_limits<int>::min() - termA){
-  return true;
-      }else{
-  return false;
+        return true;
+      }
+      else{
+        return false;
       }
     }
   }

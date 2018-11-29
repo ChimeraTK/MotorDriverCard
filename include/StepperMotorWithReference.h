@@ -15,6 +15,8 @@
 
 #include <memory>
 
+class StepperMotorWithReferenceTestFixture;
+
 namespace ChimeraTK{
 
   /**
@@ -65,13 +67,26 @@ namespace ChimeraTK{
 
     /**
      *  @brief Simple calibration of the linear stage by defining the actual position in user-defined units.
-     *
-     *  See: setActualPositionInSteps()
+     *  @see: setActualPositionInSteps()
      */
     virtual void setActualPosition(float actualPosition);
 
+
+    /**
+     * @brief Translate axis of the linear stage by offset translationInSteps
+     *
+     * The actual position and calibrated values of the end switch positions are shifted by
+     * the given offset. The resulting new position will be truncated if the calculated value
+     * exceeds the numeric limits of an int.
+     *
+     */
     virtual void translateAxisInSteps(int translationInSteps);
 
+    /**
+     * @brief Translate axis of the linear stage by offset translationInUnits
+     * @see ranslateAxisInSteps(int translationInSteps)
+     *
+     */
     virtual void translateAxis(float translationInUnits);
 
     /**
@@ -135,10 +150,19 @@ namespace ChimeraTK{
     virtual StepperMotorCalibrationMode getCalibrationMode();
 
     friend class StepperMotorWithReferenceStateMachine;
-    friend class StepperMotorWithReferenceTest;
+    friend class ::StepperMotorWithReferenceTestFixture;
 
   protected:
     virtual bool limitsOK(int newPositionInSteps);
+
+    /**
+     * @brief Perform translation of position values by an offset in steps.
+     * @param translationInSteps
+     *
+     * FIXME Give this an appropriate name
+     * Shifts controller position, numerical limits and, if calibrated,
+     * end switch positions.
+     */
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
     std::atomic<bool> _positiveEndSwitchEnabled;
     std::atomic<bool> _negativeEndSwitchEnabled;
