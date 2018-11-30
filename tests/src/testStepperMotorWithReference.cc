@@ -219,6 +219,7 @@ void StepperMotorWithReferenceTestFixture::performCalibrationForTest(){
   waitForPositiveEndSwitchActive();
   waitToSetNegativeTargetPos();
   _motorControlerDummy->moveTowardsTarget(1);
+  waitForNegativeEndSwitchActive();
 }
 
 
@@ -263,7 +264,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
 
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::NONE);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
 
 
   // Test calibration w/ disabled negative end switch
@@ -278,7 +279,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   BOOST_CHECK(waitForState("idleState"));
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::NONE);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
 
 
   // Test calibration w/ end switches enabled
@@ -309,7 +310,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeReferenceActive(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), true);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), false);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::FULL);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
   BOOST_CHECK_EQUAL(_stepperMotor->getError(), NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 0);
   while(!_stepperMotor->isSystemIdle()){}
@@ -364,6 +365,8 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
   _motorControlerDummy->setPositiveEndSwitch(60000);
   _motorControlerDummy->setNegativeEndSwitch(-60000);
+  _stepperMotor->setEnabled(true);
+
 
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
@@ -376,7 +379,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
   BOOST_CHECK_EQUAL(getMoveInterrupted(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::NONE);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
   BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
 
   _motorControlerDummy->resetInternalStateToDefaults();
@@ -393,7 +396,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
   BOOST_CHECK_EQUAL(getMoveInterrupted(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::NONE);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
   BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
 }
 
@@ -401,17 +404,19 @@ BOOST_AUTO_TEST_CASE(testTranslation){
 
   // Reset the dummy motor, it is then in an uncalibrated state
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
 
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
 
   // Make sure we are in simple calibration mode
   _stepperMotor->setActualPosition(0.f);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::SIMPLE);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::SIMPLE);
 
   //FIXME What for?
   while(!_stepperMotor->isSystemIdle()){}
 
+  _stepperMotor->setEnabled(true);
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
 
   // Check if position limits have been shifted
@@ -423,14 +428,15 @@ BOOST_AUTO_TEST_CASE(testTranslation){
   BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), std::numeric_limits<int>::min());
 
 
-  // Bring the motor into calibrated state
+  // Test calibrated motor now
+  _motorControlerDummy->resetInternalStateToDefaults();
   performCalibrationForTest();
 
   // Check that endswitches are detected at positions defined
   // by the MotorControlerDummy and calibration mode is FULL
   BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 10000);
   BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), -10000);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::FULL);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), std::numeric_limits<int>::max());
@@ -449,12 +455,14 @@ BOOST_AUTO_TEST_CASE(testTranslation){
 BOOST_AUTO_TEST_CASE(testDetermineTolerance){
 
   _motorControlerDummy->resetInternalStateToDefaults();
+  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
   while(!_stepperMotor->isSystemIdle()){}
 
   // Try determine tolerance on an uncalibrated motor, should fail
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::NONE);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
   _stepperMotor->determineTolerance();
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_EQUAL(getToleranceCalculated(), false);
@@ -463,7 +471,7 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
 
   // Bring the motor into calibrated state
   performCalibrationForTest();
-  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationMode(), StepperMotorCalibrationMode::FULL);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   _stepperMotor->determineTolerance();
 

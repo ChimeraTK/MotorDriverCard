@@ -59,7 +59,7 @@ namespace ChimeraTK{
     resetPositionMotorController(actualPositionInSteps);
 
     // Overwrite end switch calibration and reset calibration mode
-    _calibNegativeEndSwitchInSteps.exchange(-std::numeric_limits<int>::max());
+    _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
     _calibrationMode.exchange(StepperMotorCalibrationMode::SIMPLE);
   }
