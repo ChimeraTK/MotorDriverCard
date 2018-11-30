@@ -220,6 +220,7 @@ void StepperMotorWithReferenceTestFixture::performCalibrationForTest(){
   waitToSetNegativeTargetPos();
   _motorControlerDummy->moveTowardsTarget(1);
   waitForNegativeEndSwitchActive();
+  BOOST_CHECK(waitForState("idleState"));
 }
 
 
@@ -434,8 +435,8 @@ BOOST_AUTO_TEST_CASE(testTranslation){
 
   // Check that endswitches are detected at positions defined
   // by the MotorControlerDummy and calibration mode is FULL
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 10000);
-  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), -10000);
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 20000);
+  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), 0);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
@@ -443,10 +444,13 @@ BOOST_AUTO_TEST_CASE(testTranslation){
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), std::numeric_limits<int>::min() + 200);
 
   // In full calibration mode, also end switch positions have to be shifted
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 10100);
-  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), -9900);
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 20100);
+  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), 100);
 
-  // Translation by full numeric range must fail
+  // Translation beyond full numeric range must fail
+  // Set back to center of int limits
+  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(-200));
+
   BOOST_CHECK_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()), MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()), MotorDriverException);
 }

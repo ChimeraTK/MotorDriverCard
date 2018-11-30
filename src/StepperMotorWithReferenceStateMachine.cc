@@ -93,6 +93,7 @@ namespace ChimeraTK{
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
+        // Define positive axis with negative end switch as zero
         _motor._calibPositiveEndSwitchInSteps.exchange(_motor._calibPositiveEndSwitchInSteps.load() -
                                                        _motor._calibNegativeEndSwitchInSteps.load());
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
@@ -150,8 +151,8 @@ namespace ChimeraTK{
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
-    // This makes only sense once the motor is calibrated
-    if (_motor._motorControler->getCalibrationTime() == 0){ //FIXME Use the SW flag
+    // This makes only sense once the motor is fully calibrated
+    if (_motor._calibrationMode != StepperMotorCalibrationMode::FULL){
       _motor._toleranceCalculated.exchange(false);
       _motor._toleranceCalcFailed.exchange(true);
     }
