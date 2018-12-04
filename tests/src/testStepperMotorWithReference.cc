@@ -460,6 +460,7 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
 
   _motorControlerDummy->resetInternalStateToDefaults();
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor->setEnabled(true);
 
   _motorControlerDummy->setPositiveEndSwitch(10000);
   _motorControlerDummy->setNegativeEndSwitch(-10000);
@@ -477,46 +478,91 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
   performCalibrationForTest();
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
+  _stepperMotor->translateAxisInSteps(-10000);
+
   _stepperMotor->determineTolerance();
 
   //FIXME This test is the only place where member _index is used. It syncs the test to every step of the tolerance calculation.
   //      -> Modify test and remove _index. Based on implementation of the dummy, can this even fail?
   waitForDetTolerance();
+
   // Tolerance calulation determines std deviation of end switch position
   // over 10 iterations
   const int N_TOLERANCE_CALC_SAMPLES = 10;
-  // Positive end switch detection step
-  for(int i=0; i<N_TOLERANCE_CALC_SAMPLES; i++){
-    _motorControlerDummy->setPositiveEndSwitch(10000 + i);
-    waitToSetPositiveTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
-    _motorControlerDummy->moveTowardsTarget(1);
-    BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(),_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
-    BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), false);
-    waitToSetPositiveTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() + 1000);
-    _motorControlerDummy->moveTowardsTarget(1);
-    waitForPositiveEndSwitchActive();
-    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getPositiveEndSwitch());
-    BOOST_CHECK(_stepperMotor->isPositiveReferenceActive() == true);
+  const int MOVE_INFRONTOF_ES = 0, MOVE_ONTO_ES = 1;
+  int moveState = MOVE_INFRONTOF_ES;
+  int i = 0;
+  bool isInitialStep = true;
 
-    //  Wait until algorithm enters next iteration
-    //while (_stepperMotor->_index != i+1 && i != N_TOLERANCE_CALC_SAMPLES-1){}
+  // Positive end switch detection step
+  while(i<N_TOLERANCE_CALC_SAMPLES){
+
+    switch(moveState){
+      case MOVE_INFRONTOF_ES:
+
+        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()
+           || isInitialStep){
+          isInitialStep = false;
+          // Motor on end switch, move backwards
+          _motorControlerDummy->moveTowardsTarget(1);
+          std::cout << "  Iteration " << i << " Moved in front of end switch. p = "
+                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
+          moveState = MOVE_ONTO_ES;
+
+        }
+        break;
+
+      case MOVE_ONTO_ES:
+        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()){
+          // Motor shortly before end switch, modify it and attempt to move beyond
+          _motorControlerDummy->setPositiveEndSwitch(10000 + i);
+          _motorControlerDummy->moveTowardsTarget(1);
+          std::cout << "  Iteration " << i << " Moved onto ES. p = "
+                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
+          moveState = MOVE_INFRONTOF_ES;
+          i++;
+        }
+        break;
+    }
   }
 
   // Negative end switch detection step
-  //while (_stepperMotor->_index != 0){}
-  for(int i=0; i<N_TOLERANCE_CALC_SAMPLES; i++){
-    _motorControlerDummy->setNegativeEndSwitch(-10000 - i*10);
-    waitToSetNegativeTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
-    _motorControlerDummy->moveTowardsTarget(1);
-    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _stepperMotor->getNegativeEndReferenceInSteps() + 1000);
-    BOOST_CHECK(_stepperMotor->isNegativeReferenceActive() == false);
-    waitToSetNegativeTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() - 1000);
-    _motorControlerDummy->moveTowardsTarget(1);
-    waitForNegativeEndSwitchActive();
-    BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == _motorControlerDummy->getNEgativeEndSwitch());
-    BOOST_CHECK(_stepperMotor->isNegativeReferenceActive() == true);
-    //while (_stepperMotor->_index != i+1 && i != N_TOLERANCE_CALC_SAMPLES-1){}
+  waitToSetNegativeTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
+
+  i = 0;
+  isInitialStep = true;
+
+  while(i<N_TOLERANCE_CALC_SAMPLES){
+
+    switch(moveState){
+      case MOVE_INFRONTOF_ES:
+
+        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()
+           || isInitialStep){
+          isInitialStep = false;
+          // Motor on end switch, move backwards
+          _motorControlerDummy->moveTowardsTarget(1);
+          std::cout << "  Iteration " << i << " Moved in front of end switch. p = "
+                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
+          moveState = MOVE_ONTO_ES;
+
+        }
+        break;
+
+      case MOVE_ONTO_ES:
+        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()){
+          // Motor shortly before end switch, modify it and attempt to move beyond
+          _motorControlerDummy->setNegativeEndSwitch(-10000 - i*10);
+          _motorControlerDummy->moveTowardsTarget(1);
+          std::cout << "  Iteration " << i << " Moved onto ES. p = "
+                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
+          moveState = MOVE_INFRONTOF_ES;
+          i++;
+        }
+        break;
+    }
   }
+
   while(!_stepperMotor->isSystemIdle()){}
 
   // The following should result as std deviation of the 10 samples

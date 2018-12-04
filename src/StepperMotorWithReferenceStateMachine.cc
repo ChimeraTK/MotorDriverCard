@@ -188,8 +188,7 @@ namespace ChimeraTK{
 
     int endSwitchPosition = getPositionEndSwitch(sign);
 
-    //FIXME _index is only used in the test of the tolerance calculation
-    //      -> Find a better way to write the test and remove _index
+    // Get 10 samples for tolerance calculation
     for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++){
       if (_stopAction || _moveInterrupted){
         break;
@@ -217,7 +216,8 @@ namespace ChimeraTK{
       }
 
       // Mean calculation
-      meanMeasurement += _motor._motorControler->getActualPosition() / N_TOLERANCE_CALC_SAMPLES;
+      meanMeasurement += static_cast<double>(_motor._motorControler->getActualPosition())
+                         / N_TOLERANCE_CALC_SAMPLES;
       measurements[_motor._index] = _motor._motorControler->getActualPosition();
     } /* for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++) */
 
