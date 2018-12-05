@@ -58,8 +58,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-DeviceAccess_CXX_FLAGS}")
 #pugixml now comes with the MotorDriverCard source code
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src)
 aux_source_directory(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src pugixml_sources)
-#turn off effc++ for the pugixml library. It's not our code.
-set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -Wno-effc++)
+#turn off all warnings for the pugixml library. It's not our code.
+set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -w)
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
