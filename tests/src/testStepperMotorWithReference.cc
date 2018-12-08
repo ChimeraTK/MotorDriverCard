@@ -38,6 +38,7 @@ public:
   bool waitForState(std::string stateName, unsigned timeoutInSeconds);
 
   void performCalibrationForTest();
+  void performToleranceCalculationForTest();
 
   // Helper functions to check protected members in test
   bool getCalibrationFailed();
@@ -221,6 +222,79 @@ void StepperMotorWithReferenceTestFixture::performCalibrationForTest(){
   _motorControlerDummy->moveTowardsTarget(1);
   waitForNegativeEndSwitchActive();
   BOOST_CHECK(waitForState("idleState"));
+}
+
+void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest(){
+  // Tolerance calulation determines std deviation of end switch position
+  // over 10 iterations
+  const int N_TOLERANCE_CALC_SAMPLES = 10;
+  const int MOVE_INFRONTOF_ES = 0, MOVE_ONTO_ES = 1;
+  int moveState = MOVE_INFRONTOF_ES;
+  int i = 0;
+  bool isInitialStep = true;
+
+  // Positive end switch detection step
+  while(i<N_TOLERANCE_CALC_SAMPLES){
+
+    switch(moveState){
+      case MOVE_INFRONTOF_ES:
+
+        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()
+           || isInitialStep){
+          isInitialStep = false;
+          // Motor on end switch, move backwards
+          _motorControlerDummy->moveTowardsTarget(1);
+          moveState = MOVE_ONTO_ES;
+
+        }
+        break;
+
+      case MOVE_ONTO_ES:
+        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()){
+          // Motor shortly before end switch, modify it and attempt to move beyond
+          _motorControlerDummy->setPositiveEndSwitch(10000 + i);
+          _motorControlerDummy->moveTowardsTarget(1);
+          moveState = MOVE_INFRONTOF_ES;
+          i++;
+        }
+        break;
+    }
+  }
+
+  // Negative end switch detection step
+  waitToSetNegativeTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
+
+  i = 0;
+  isInitialStep = true;
+
+  while(i<N_TOLERANCE_CALC_SAMPLES){
+
+    switch(moveState){
+      case MOVE_INFRONTOF_ES:
+
+        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()
+           || isInitialStep){
+          isInitialStep = false;
+          // Motor on end switch, move backwards
+          _motorControlerDummy->moveTowardsTarget(1);
+          moveState = MOVE_ONTO_ES;
+
+        }
+        break;
+
+      case MOVE_ONTO_ES:
+        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()){
+          // Motor shortly before end switch, modify it and attempt to move beyond
+          _motorControlerDummy->setNegativeEndSwitch(-10000 - i*10);
+          _motorControlerDummy->moveTowardsTarget(1);
+          moveState = MOVE_INFRONTOF_ES;
+          i++;
+        }
+        break;
+    }
+  }
+
+  waitForState("idleState");
 }
 
 
@@ -414,7 +488,6 @@ BOOST_AUTO_TEST_CASE(testTranslation){
   _stepperMotor->setActualPosition(0.f);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::SIMPLE);
 
-  //FIXME What for?
   while(!_stepperMotor->isSystemIdle()){}
 
   _stepperMotor->setEnabled(true);
@@ -478,92 +551,10 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
   performCalibrationForTest();
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
-  _stepperMotor->translateAxisInSteps(-10000);
-
+  // Determine tolerance
   _stepperMotor->determineTolerance();
-
-  //FIXME This test is the only place where member _index is used. It syncs the test to every step of the tolerance calculation.
-  //      -> Modify test and remove _index. Based on implementation of the dummy, can this even fail?
   waitForDetTolerance();
-
-  // Tolerance calulation determines std deviation of end switch position
-  // over 10 iterations
-  const int N_TOLERANCE_CALC_SAMPLES = 10;
-  const int MOVE_INFRONTOF_ES = 0, MOVE_ONTO_ES = 1;
-  int moveState = MOVE_INFRONTOF_ES;
-  int i = 0;
-  bool isInitialStep = true;
-
-  // Positive end switch detection step
-  while(i<N_TOLERANCE_CALC_SAMPLES){
-
-    switch(moveState){
-      case MOVE_INFRONTOF_ES:
-
-        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()
-           || isInitialStep){
-          isInitialStep = false;
-          // Motor on end switch, move backwards
-          _motorControlerDummy->moveTowardsTarget(1);
-          std::cout << "  Iteration " << i << " Moved in front of end switch. p = "
-                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
-          moveState = MOVE_ONTO_ES;
-
-        }
-        break;
-
-      case MOVE_ONTO_ES:
-        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()){
-          // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControlerDummy->setPositiveEndSwitch(10000 + i);
-          _motorControlerDummy->moveTowardsTarget(1);
-          std::cout << "  Iteration " << i << " Moved onto ES. p = "
-                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
-          moveState = MOVE_INFRONTOF_ES;
-          i++;
-        }
-        break;
-    }
-  }
-
-  // Negative end switch detection step
-  waitToSetNegativeTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
-
-  i = 0;
-  isInitialStep = true;
-
-  while(i<N_TOLERANCE_CALC_SAMPLES){
-
-    switch(moveState){
-      case MOVE_INFRONTOF_ES:
-
-        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()
-           || isInitialStep){
-          isInitialStep = false;
-          // Motor on end switch, move backwards
-          _motorControlerDummy->moveTowardsTarget(1);
-          std::cout << "  Iteration " << i << " Moved in front of end switch. p = "
-                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
-          moveState = MOVE_ONTO_ES;
-
-        }
-        break;
-
-      case MOVE_ONTO_ES:
-        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()){
-          // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControlerDummy->setNegativeEndSwitch(-10000 - i*10);
-          _motorControlerDummy->moveTowardsTarget(1);
-          std::cout << "  Iteration " << i << " Moved onto ES. p = "
-                    << _stepperMotor->getCurrentPositionInSteps() << std::endl;
-          moveState = MOVE_INFRONTOF_ES;
-          i++;
-        }
-        break;
-    }
-  }
-
-  while(!_stepperMotor->isSystemIdle()){}
+  performToleranceCalculationForTest();
 
   // The following should result as std deviation of the 10 samples
   BOOST_CHECK_CLOSE(_stepperMotor->getTolerancePositiveEndSwitch(), 3.02765, 0.001);
@@ -598,13 +589,8 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceError){
   _motorControlerDummy->setNegativeEndSwitch(-10000);
 
   _stepperMotor->setEnabled(true);
-//  _stepperMotor->_mutex.lock();
-//  _stepperMotor->_motorControler->setCalibrationTime(15);
-//  _stepperMotor->_mutex.unlock();
-//  _stepperMotor->_calibNegativeEndSwitchInSteps.exchange(-10000);
-//  _stepperMotor->_calibPositiveEndSwitchInSteps.exchange(10000);
   performCalibrationForTest();
-  while(!_stepperMotor->isSystemIdle()){}
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   // Start tolerance calculation
   _stepperMotor->determineTolerance();
@@ -623,21 +609,21 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceError){
 
   // Fake out-of-tolerance end switches
   _motorControlerDummy->resetInternalStateToDefaults();
-  _motorControlerDummy->setPositiveEndSwitch(9000);
-//  _stepperMotor->_tolerancePositiveEndSwitch.exchange(100);
-//  _stepperMotor->_toleranceNegativeEndSwitch.exchange(100);
-//  _stepperMotor->_calibNegativeEndSwitchInSteps.exchange(0);
-//  _stepperMotor->_calibPositiveEndSwitchInSteps.exchange(20000);
-//  _stepperMotor->_toleranceCalculated.exchange(true);
-//  _stepperMotor->_toleranceCalcFailed.exchange(false);
-//  _stepperMotor->_mutex.lock();
-//  _stepperMotor->_motorControler->setCalibrationTime(time(NULL));
-//  _stepperMotor->_mutex.unlock();
-//  _stepperMotor->_calibrationFailed.exchange(false);
 
-  _stepperMotor->setTargetPositionInSteps(10000);
+  performCalibrationForTest();
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
+
+  _stepperMotor->determineTolerance();
+  waitForDetTolerance();
+  performToleranceCalculationForTest();
+
+  // Dummy axis> [-10000, 10000], stepperMotor axis: [0, 20000],
+  // stepperMotor should hit end switch at 19000 and flag an error
+  _motorControlerDummy->setPositiveEndSwitch(9000);
+  _stepperMotor->setTargetPositionInSteps(20000);
+
   _stepperMotor->start();
-  waitToSetPositiveTargetPos(10000);
+  waitToSetPositiveTargetPos(20000);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), true);
@@ -649,18 +635,14 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceStop){
   // TODO Can be removed (?) when using the TEST_CASE macros, each case becomes its own object
   _motorControlerDummy->resetInternalStateToDefaults();
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+
+  // Define dummy end switches and calibrate motor
+  _motorControlerDummy->setPositiveEndSwitch(10000);
+  _motorControlerDummy->setNegativeEndSwitch(-10000);
   _stepperMotor->setEnabled(true);
 
   performCalibrationForTest();
-//  _motorControlerDummy->setPositiveEndSwitch(10000);
-//  _motorControlerDummy->setNegativeEndSwitch(-10000);
-//  _stepperMotor->_calibNegativeEndSwitchInSteps = -10000;
-//  _stepperMotor->_calibPositiveEndSwitchInSteps =  10000;
-//  while(!_stepperMotor->isSystemIdle()){}
-//  _stepperMotor->_mutex.lock();
-//  _stepperMotor->_motorControler->setCalibrationTime(15);
-//  _stepperMotor->_mutex.unlock();
-//  _motorControlerDummy->simulateBlockedMotor(false);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   _stepperMotor->determineTolerance();
 
