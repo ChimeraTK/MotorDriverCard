@@ -8,6 +8,8 @@
 #include "StepperMotorWithReferenceStateMachine.h"
 #include "StepperMotorWithReference.h"
 
+#include <mutex>
+
 static const unsigned wakeupPeriodInMilliseconds = 500U;
 
 namespace ChimeraTK{
@@ -78,18 +80,24 @@ namespace ChimeraTK{
 
     // At least one end switch disabled -> calibration not possible
     if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())){
-      _motor._motorControler->setCalibrationTime(0);
+      {
+        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        _motor._motorControler->setCalibrationTime(0);
+      }
       _motor._calibrationFailed.exchange(true);
       _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
     }
     else{
       findEndSwitch(POSITIVE);
-      _motor._calibPositiveEndSwitchInSteps.exchange(_motor._motorControler->getActualPosition());
+      _motor._calibPositiveEndSwitchInSteps.exchange(_motor.getCurrentPositionInSteps());
       findEndSwitch(NEGATIVE);
-      _motor._calibNegativeEndSwitchInSteps.exchange(_motor._motorControler->getActualPosition());
+      _motor._calibNegativeEndSwitchInSteps.exchange(_motor.getCurrentPositionInSteps());
 
       if (_moveInterrupted.load() || _stopAction.load()){
-        _motor._motorControler->setCalibrationTime(0);
+        {
+          boost::lock_guard<boost::mutex> lck(_motor._mutex);
+          _motor._motorControler->setCalibrationTime(0);
+        }
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
@@ -97,7 +105,10 @@ namespace ChimeraTK{
         _motor._calibPositiveEndSwitchInSteps.exchange(_motor._calibPositiveEndSwitchInSteps.load() -
                                                        _motor._calibNegativeEndSwitchInSteps.load());
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
-        _motor._motorControler->setCalibrationTime(time(nullptr));
+        {
+          boost::lock_guard<boost::mutex> lck(_motor._mutex);
+          _motor._motorControler->setCalibrationTime(time(nullptr));
+        }
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
       }
@@ -111,9 +122,8 @@ namespace ChimeraTK{
     while (!isEndSwitchActive(sign)){
       if (_stopAction.load() || _moveInterrupted.load()){
         return;
-      }else if (_motor._motorControler->getTargetPosition() != _motor._motorControler->getActualPosition() &&
-                !_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-                !_motor._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+      }else if (_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
+                !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()){
         _moveInterrupted.exchange(true);
         return;
       }
@@ -123,7 +133,11 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReferenceStateMachine::moveToEndSwitch(Sign sign){
-    _motor._motorControler->setTargetPosition(_motor._motorControler->getActualPosition() + sign*50000);
+
+    {
+      boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+      _motor._motorControler->setTargetPosition(_motor._motorControler->getActualPosition() + sign*50000);
+    }
     while (_motor._motorControler->isMotorMoving()){
       std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
     }
@@ -131,13 +145,13 @@ namespace ChimeraTK{
 
   bool StepperMotorWithReferenceStateMachine::isEndSwitchActive(Sign sign){
     if (sign == POSITIVE){
-      if (_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive()){
+      if (_motor.isPositiveReferenceActive()){
         return true;
       }else{
         return false;
       }
     }else{
-      if (_motor._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+      if (_motor.isNegativeReferenceActive()){
         return true;
       }else{
         return false;
@@ -193,21 +207,30 @@ namespace ChimeraTK{
       if (_stopAction || _moveInterrupted){
         break;
       }
+
       //Move close to end switch
-      _motor._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
-      while (_motor._motorControler->isMotorMoving()){
+      {
+        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        _motor._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
+      }
+      while(_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
+
       //Check if in expected position
-      if (_motor._motorControler->getTargetPosition() != _motor._motorControler->getActualPosition() &&
-            !_motor._motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-            !_motor._motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+      if (_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
+            !_motor.isPositiveReferenceActive() &&
+            !_motor.isNegativeReferenceActive()){
         _moveInterrupted.exchange(true);
         break;
       }
+
       // Try to move beyond end switch
-      _motor._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
-      while (_motor._motorControler->isMotorMoving()){
+      {
+        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        _motor._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
+      }
+      while(_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
       if (!isEndSwitchActive(sign)){
@@ -216,9 +239,9 @@ namespace ChimeraTK{
       }
 
       // Mean calculation
-      meanMeasurement += static_cast<double>(_motor._motorControler->getActualPosition())
+      meanMeasurement += static_cast<double>(_motor.getCurrentPositionInSteps())
                          / N_TOLERANCE_CALC_SAMPLES;
-      measurements[_motor._index] = _motor._motorControler->getActualPosition();
+      measurements[_motor._index] = _motor.getCurrentPositionInSteps();
     } /* for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++) */
 
     // Compute variance

@@ -905,6 +905,14 @@ namespace ChimeraTK{
      */
     virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
 
+
+    /**
+     * @brief Returns True if the motor is moving and false if at
+     * standstill. This command is reliable as long as the motor is not
+     * stalled.
+     */
+    bool isMoving();
+
     /**
      * @brief enabling full stepping movement.
      * The target position is rounded to the next full step value before it is written to the register of the controller chip.
@@ -941,8 +949,6 @@ namespace ChimeraTK{
 
     // FIXME Rename
     virtual bool stateMachineInIdleAndNoEvent();
-//    void stateMachineThreadFunction();
-//    void stateMachinePerformTransition();
     void resetPositionMotorController(int newPositionInStep);
     virtual void initStateMachine();
     virtual bool limitsOK(int newPositionInSteps);

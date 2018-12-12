@@ -900,6 +900,11 @@ namespace ChimeraTK{
     return (_motorControler->getUserSpeedLimit());
   }
 
+  bool StepperMotor::isMoving() {
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    return (_motorControler->isMotorMoving());
+  }
+
   void StepperMotor::enableFullStepping(bool enable){
     boost::lock_guard<boost::mutex> guard(_mutex);
     _motorControler->enableFullStepping(enable);

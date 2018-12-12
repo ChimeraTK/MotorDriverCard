@@ -3,6 +3,7 @@
 
 #include <boost/test/included/unit_test.hpp>
 #include <boost/shared_ptr.hpp>
+#include <thread>
 #include <boost/pointer_cast.hpp>
 using namespace boost::unit_test_framework;
 
@@ -68,13 +69,13 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture() :
 
 bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
 
-  unsigned sleepPeriodInUsec = 100000;
-  unsigned timeoutInSteps    = timeoutInSeconds*1000000/sleepPeriodInUsec;
+  unsigned sleepPeriodInMilliSec = 100;
+  unsigned timeoutInSteps    = timeoutInSeconds*1000/sleepPeriodInMilliSec;
   unsigned cnt = 0;
   bool isCorrectState = false;
   do{
 
-    usleep(sleepPeriodInUsec);
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleepPeriodInMilliSec));
 
     if(_stepperMotor->getState() == stateName){
       isCorrectState = true;
@@ -92,7 +93,7 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, u
 //FIXME Remove these
 void StepperMotorWithReferenceTestFixture::waitForCalibState(){
   while (1){
-    usleep(10);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     _stepperMotor->_mutex.lock();
     if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "calibrating"){
       _stepperMotor->_mutex.unlock();
@@ -105,7 +106,7 @@ void StepperMotorWithReferenceTestFixture::waitForCalibState(){
 
 void StepperMotorWithReferenceTestFixture::waitForDetTolerance(){
   while (1){
-    usleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "calculatingTolerance"){
       _stepperMotor->_mutex.unlock();
@@ -117,34 +118,36 @@ void StepperMotorWithReferenceTestFixture::waitForDetTolerance(){
 }
 
 void StepperMotorWithReferenceTestFixture::waitToSetPositiveTargetPos(int targetPos){
+  int i = 0;
   while (1){
-    usleep(1000);
-    _stepperMotor->_mutex.lock();
-    if (_stepperMotor->_motorControler->getTargetPosition() != targetPos){
-      _stepperMotor->_mutex.unlock();
-    }else{
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (_stepperMotor->getTargetPositionInSteps() == targetPos){
       break;
     }
+    else{
+      i++;
+    }
   }
-  _stepperMotor->_mutex.unlock();
+  std::cout << "   gOT pos end switch after " << i << " iterations" << std::endl;
 }
 
 void StepperMotorWithReferenceTestFixture::waitToSetNegativeTargetPos(int targetPos){
+  int i = 0;
   while (1){
-    usleep(1000);
-    _stepperMotor->_mutex.lock();
-    if (_stepperMotor->_motorControler->getTargetPosition() != targetPos){
-      _stepperMotor->_mutex.unlock();
-    }else{
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (_stepperMotor->getTargetPositionInSteps() == targetPos){
       break;
     }
+    else{
+      i++;
+    }
   }
-  _stepperMotor->_mutex.unlock();
+  std::cout << "   gOT neg end switch after " << i << " iterations" << std::endl;
 }
 
 void StepperMotorWithReferenceTestFixture::waitForMoveState(){
   while (1){
-    usleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if (_stepperMotor->_stateMachine->getCurrentState()->getName() == "movingState"){
       break;
@@ -156,7 +159,7 @@ void StepperMotorWithReferenceTestFixture::waitForMoveState(){
 
 void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive(){
   while (1){
-    usleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if (!_stepperMotor->_motorControler->getReferenceSwitchData().getPositiveSwitchActive()){
       _stepperMotor->_mutex.unlock();
@@ -169,7 +172,7 @@ void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive(){
 
 void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive(){
   while (1){
-    usleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if (!_stepperMotor->_motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
       _stepperMotor->_mutex.unlock();
@@ -182,7 +185,7 @@ void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive(){
 
 void StepperMotorWithReferenceTestFixture::waitForStop(){
   while (1){
-    usleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if (std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine)->_stopAction != true){
       _stepperMotor->_mutex.unlock();
