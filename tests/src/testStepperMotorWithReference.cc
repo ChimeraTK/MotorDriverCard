@@ -128,7 +128,6 @@ void StepperMotorWithReferenceTestFixture::waitToSetPositiveTargetPos(int target
       i++;
     }
   }
-  std::cout << "   gOT pos end switch after " << i << " iterations" << std::endl;
 }
 
 void StepperMotorWithReferenceTestFixture::waitToSetNegativeTargetPos(int targetPos){
@@ -142,7 +141,6 @@ void StepperMotorWithReferenceTestFixture::waitToSetNegativeTargetPos(int target
       i++;
     }
   }
-  std::cout << "   gOT neg end switch after " << i << " iterations" << std::endl;
 }
 
 void StepperMotorWithReferenceTestFixture::waitForMoveState(){
