@@ -184,7 +184,6 @@ BOOST_FIXTURE_TEST_CASE( testBaseStateMachine, ChimeraTK::StateMachine ){
   BOOST_CHECK(undefinedEvent == ChimeraTK::StateMachine::undefinedEvent);
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(undefinedEvent));
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState") ;
-  BOOST_CHECK(_isEventUnknown);
 }
 
 

@@ -36,19 +36,6 @@ namespace ChimeraTK{
     _transitionTable.insert(std::pair< Event, TargetAndAction >(event, targetAndAction));
   }
 
-//  State* State::performTransition(Event event){
-//    typename std::map< Event, TargetAndAction >::iterator it;
-//    it = _transitionTable.find(event);
-//    if(it !=_transitionTable.end()){
-//      (it->second).callbackAction();
-//      _isEventUnknown = false;
-//      return ((it->second).targetState);
-//    }
-//    else{
-//      _isEventUnknown = true;
-//      return this;
-//    }
-//  }
 
   TransitionTable& State::getTransitionTable(){
     return _transitionTable;
@@ -69,7 +56,6 @@ namespace ChimeraTK{
              _userEvent(noEvent),
              _stateMachineMutex(),
              _asyncActionActive(),
-             _isEventUnknown(false),
              _boolAsyncActionActive(false),
              _internalEventCallback([]{})
   {}
@@ -82,7 +68,6 @@ namespace ChimeraTK{
       _userEvent(noEvent),
       _stateMachineMutex(),
       _asyncActionActive(),
-      _isEventUnknown(false),
       _boolAsyncActionActive(false),
       _internalEventCallback([]{})
   {}
@@ -119,7 +104,6 @@ namespace ChimeraTK{
     TransitionTable& transitionTable = _currentState->getTransitionTable();
     it = transitionTable.find(event);
     if(it != transitionTable.end()){
-      _isEventUnknown = false;
 
       _requestedState = ((it->second).targetState);
 
@@ -129,9 +113,6 @@ namespace ChimeraTK{
         _requestedState = nullptr;
       }
       (it->second).callbackAction();
-    }
-    else{
-      _isEventUnknown = true;
     }
   }
 

@@ -69,7 +69,6 @@ namespace ChimeraTK{
     virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
     TransitionTable& getTransitionTable();
     std::string getName() const;
-    //bool isEventUnknown(){return _isEventUnknown;}
 
   protected:
     std::string _stateName;
@@ -104,7 +103,6 @@ namespace ChimeraTK{
 
     std::mutex _stateMachineMutex;
     std::future<void> _asyncActionActive;
-    bool _isEventUnknown; //FIXME This is not used anymore
     std::atomic<bool> _boolAsyncActionActive;         //FIXME Rename
     std::function<void(void)> _internalEventCallback; //FIXME Change interface to this
     void performTransition(Event event);
