@@ -2,8 +2,9 @@
 #define BOOST_TEST_MODULE StepperMotorWithReferenceTest
 
 #include <boost/test/included/unit_test.hpp>
-#include <boost/shared_ptr.hpp>
 #include <thread>
+#include <memory>
+#include <boost/shared_ptr.hpp>
 #include <boost/pointer_cast.hpp>
 using namespace boost::unit_test_framework;
 
@@ -24,18 +25,26 @@ static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfi
 static const std::string dmapPath(".");
 static const std::string moduleName("");
 
+// Position of end switches
+// Calibration routine defines zero at negative endswitch
+static const int POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER = 10000;
+static const int POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER = -10000;
+static const int POS_POSITIVE_ENDSWITCH_STEPPERMOTOR    = 20000;
+static const int POS_NEGATIVE_ENDSWITCH_STEPPERMOTOR    = 0;
+
+// Calibration routine iterates in steps of 50000 relative to the current
+// position (in MotorController coordinates), so these should be the target
+// positions set by the routine.
+static const int POS_BEYOND_POSITVE_ENDSWITCH  = 50000;
+static const int POS_BEYOND_NEGATIVE_ENDSWITCH = -40000;
+
 
 class StepperMotorWithReferenceTestFixture{
 public:
   StepperMotorWithReferenceTestFixture();
-  void waitForCalibState();
-  void waitForDetTolerance();
-  void waitToSetPositiveTargetPos(int targetPos = 50000);
-  void waitToSetNegativeTargetPos(int targetPos = -40000);
-  void waitForMoveState();
+  void waitToSetTargetPos(int);
   void waitForPositiveEndSwitchActive();
   void waitForNegativeEndSwitchActive();
-  void waitForStop();
   bool waitForState(std::string stateName, unsigned timeoutInSeconds);
 
   void performCalibrationForTest();
@@ -49,7 +58,7 @@ public:
 
 
 protected:
-  boost::shared_ptr<ChimeraTK::StepperMotorWithReference> _stepperMotor;
+  std::shared_ptr<ChimeraTK::StepperMotorWithReference> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
 };
 
@@ -61,10 +70,16 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture() :
                     _stepperMotor(),
                     _motorControlerDummy()
 {
-  std::string deviceFileName(mtca4u::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
-  std::string mapFileName(mtca4u::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
+  std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
+  std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();
+  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile);
   _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,  moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
+
+  // Define dummy end switches and reset the dummy
+  _motorControlerDummy->setPositiveEndSwitch(POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);
+  _motorControlerDummy->setNegativeEndSwitch(POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER);
+  _motorControlerDummy->resetInternalStateToDefaults();
 }
 
 bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
@@ -74,7 +89,6 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, u
   unsigned cnt = 0;
   bool isCorrectState = false;
   do{
-
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepPeriodInMilliSec));
 
     if(_stepperMotor->getState() == stateName){
@@ -90,34 +104,7 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, u
 }
 
 
-//FIXME Remove these
-void StepperMotorWithReferenceTestFixture::waitForCalibState(){
-  while (1){
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    _stepperMotor->_mutex.lock();
-    if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "calibrating"){
-      _stepperMotor->_mutex.unlock();
-    }else{
-      break;
-    }
-  }
-  _stepperMotor->_mutex.unlock();
-}
-
-void StepperMotorWithReferenceTestFixture::waitForDetTolerance(){
-  while (1){
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    _stepperMotor->_mutex.lock();
-    if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "calculatingTolerance"){
-      _stepperMotor->_mutex.unlock();
-    }else{
-      break;
-    }
-  }
-  _stepperMotor->_mutex.unlock();
-}
-
-void StepperMotorWithReferenceTestFixture::waitToSetPositiveTargetPos(int targetPos){
+void StepperMotorWithReferenceTestFixture::waitToSetTargetPos(int targetPos){
   int i = 0;
   while (1){
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -128,31 +115,6 @@ void StepperMotorWithReferenceTestFixture::waitToSetPositiveTargetPos(int target
       i++;
     }
   }
-}
-
-void StepperMotorWithReferenceTestFixture::waitToSetNegativeTargetPos(int targetPos){
-  int i = 0;
-  while (1){
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (_stepperMotor->getTargetPositionInSteps() == targetPos){
-      break;
-    }
-    else{
-      i++;
-    }
-  }
-}
-
-void StepperMotorWithReferenceTestFixture::waitForMoveState(){
-  while (1){
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    _stepperMotor->_mutex.lock();
-    if (_stepperMotor->_stateMachine->getCurrentState()->getName() == "movingState"){
-      break;
-    }
-    _stepperMotor->_mutex.unlock();
-  }
-  _stepperMotor->_mutex.unlock();
 }
 
 void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive(){
@@ -181,19 +143,6 @@ void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive(){
   _stepperMotor->_mutex.unlock();
 }
 
-void StepperMotorWithReferenceTestFixture::waitForStop(){
-  while (1){
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    _stepperMotor->_mutex.lock();
-    if (std::dynamic_pointer_cast<StepperMotorWithReferenceStateMachine>(_stepperMotor->_stateMachine)->_stopAction != true){
-      _stepperMotor->_mutex.unlock();
-    }else{
-      break;
-    }
-  }
-  _stepperMotor->_mutex.unlock();
-}
-
 
 bool StepperMotorWithReferenceTestFixture::getCalibrationFailed(){
   return _stepperMotor->_calibrationFailed.load();
@@ -211,20 +160,41 @@ bool StepperMotorWithReferenceTestFixture::getToleranceCalculated(){
   return _stepperMotor->_toleranceCalculated.load();
 }
 
+
+/**
+ * Perfroms calibration which requires moving the motor up to the positive
+ * and back to the negative end switch
+ *
+ * Notes:
+ *   - This becomes obsolete once there is a proper dummy which reacts on writes
+ *     to the registers instead of requiring an explicit call to moveTowwardsTarget()
+ */
 void StepperMotorWithReferenceTestFixture::performCalibrationForTest(){
 
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
   BOOST_CHECK(waitForState("calibrating"));
-  waitToSetPositiveTargetPos();
+
+  // Attempt to move beyond end swtich
+  waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(1);
   waitForPositiveEndSwitchActive();
-  waitToSetNegativeTargetPos();
+  waitToSetTargetPos(POS_BEYOND_NEGATIVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(1);
   waitForNegativeEndSwitchActive();
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
 }
 
+/**
+ * Performs tolerance calculation which requires moving the dummy on and off the
+ * end switches several times.
+ *
+ * Notes:
+ *   - This becomes obsolete once there is a proper dummy which reacts on writes
+ *     to the registers instead of requiring an explicit call to moveTowwardsTarget()
+ *   - For a test, this is lengthy because the sleep intervals in the tolerance calculation
+ *     sum up to 40*Tsleep
+ */
 void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest(){
   // Tolerance calulation determines std deviation of end switch position
   // over 10 iterations
@@ -263,7 +233,7 @@ void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest(){
   }
 
   // Negative end switch detection step
-  waitToSetNegativeTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
+  waitToSetTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
 
   i = 0;
   isInitialStep = true;
@@ -286,7 +256,7 @@ void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest(){
       case MOVE_ONTO_ES:
         if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()){
           // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControlerDummy->setNegativeEndSwitch(-10000 - i*10);
+          _motorControlerDummy->setNegativeEndSwitch(POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER - i*10);
           _motorControlerDummy->moveTowardsTarget(1);
           moveState = MOVE_INFRONTOF_ES;
           i++;
@@ -295,24 +265,22 @@ void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest(){
     }
   }
 
-  waitForState("idleState");
+  waitForState("idle");
 }
 
 
 BOOST_FIXTURE_TEST_SUITE(StepperMotorWithReferenceTest, StepperMotorWithReferenceTestFixture)
-
-
 
 BOOST_AUTO_TEST_CASE(testCalibrate){
 
   // Test calibration w/ disabled end switches
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
-
+  // End swtich enabled for StepperMotorWithReference gets only determined in ctor, so reconstruct here
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
 
   _stepperMotor->setEnabled(true);
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
 
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
 
@@ -321,7 +289,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
 
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
 
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
 
@@ -330,13 +298,14 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeEndSwitchEnabled(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveEndSwitchEnabled(), false);
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
 
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
 
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
@@ -350,9 +319,9 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeEndSwitchEnabled(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveEndSwitchEnabled(), true);
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
@@ -365,24 +334,24 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeEndSwitchEnabled(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveEndSwitchEnabled(), true);
-  BOOST_CHECK(waitForState("idleState"));
+  BOOST_CHECK(waitForState("idle"));
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
   BOOST_CHECK(waitForState("calibrating"));
-  waitToSetPositiveTargetPos();
+  waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(1);
   waitForPositiveEndSwitchActive();
-  waitToSetNegativeTargetPos();
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 10000);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 10000);
+  waitToSetTargetPos(POS_BEYOND_NEGATIVE_ENDSWITCH);
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);
+  BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(),  true);
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(0), ChimeraTK::MotorDriverException);
   BOOST_CHECK_THROW(_stepperMotor->moveRelativeInSteps(-100), ChimeraTK::MotorDriverException);
-  BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 10000);
+  BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);
   _motorControlerDummy->moveTowardsTarget(1);
 
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 20000);
-  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), 0);
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), POS_POSITIVE_ENDSWITCH_STEPPERMOTOR);
+  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), POS_NEGATIVE_ENDSWITCH_STEPPERMOTOR);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeReferenceActive(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), true);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), false);
@@ -392,7 +361,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   while(!_stepperMotor->isSystemIdle()){}
   _stepperMotor->setTargetPositionInSteps(100);
   _stepperMotor->start();
-  waitForMoveState();
+  BOOST_CHECK(waitForState("moving"));
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 100);
@@ -400,22 +369,19 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
 
 BOOST_AUTO_TEST_CASE(testCalibrateError){
 
-  _motorControlerDummy->setPositiveEndSwitch(10000);
-  _motorControlerDummy->setNegativeEndSwitch(-10000);
-  _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
   _stepperMotor->setEnabled(true);
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
-  waitForCalibState();
-  waitToSetPositiveTargetPos();
+  BOOST_CHECK(waitForState("calibrating"));
+  waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(1);
   waitForPositiveEndSwitchActive();
-  waitToSetNegativeTargetPos();
+  waitToSetTargetPos(POS_BEYOND_NEGATIVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(0.01f);
   _motorControlerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()){}
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 10000);
+
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);
   BOOST_CHECK_EQUAL(getMoveInterrupted(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
@@ -423,8 +389,8 @@ BOOST_AUTO_TEST_CASE(testCalibrateError){
   BOOST_CHECK_EQUAL(_stepperMotor->getError(), ACTION_ERROR);
   _motorControlerDummy->resetInternalStateToDefaults();
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
-  waitForCalibState();
-  waitToSetPositiveTargetPos();
+  BOOST_CHECK(waitForState("calibrating"));
+  waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(0.01f);
   _motorControlerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()){}
@@ -437,21 +403,20 @@ BOOST_AUTO_TEST_CASE(testCalibrateError){
 
 BOOST_AUTO_TEST_CASE(testCalibrateStop){
 
-  _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
   _motorControlerDummy->setPositiveEndSwitch(60000);
   _motorControlerDummy->setNegativeEndSwitch(-60000);
-  _stepperMotor->setEnabled(true);
 
+  _stepperMotor->setEnabled(true);
 
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
-  waitForCalibState();
-  waitToSetPositiveTargetPos();
+  BOOST_CHECK(waitForState("calibrating"));
+  waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
   _stepperMotor->stop();
-  waitForStop();
+
   _motorControlerDummy->moveTowardsTarget(1);
-  while(!_stepperMotor->isSystemIdle()){}
+  BOOST_CHECK(waitForState("idle"));
+
   BOOST_CHECK_EQUAL(getMoveInterrupted(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
@@ -461,14 +426,15 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
   _motorControlerDummy->resetInternalStateToDefaults();
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
-  waitForCalibState();
-  waitToSetPositiveTargetPos();
+  waitForState("calibrating");
+  waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
   _motorControlerDummy->moveTowardsTarget(1);
-  waitToSetPositiveTargetPos(100000);
+  waitToSetTargetPos(100000);
+
   _stepperMotor->stop();
-  waitForStop();
   _motorControlerDummy->moveTowardsTarget(1);
-  while(!_stepperMotor->isSystemIdle()){}
+  BOOST_CHECK(waitForState("idle"));
+
   BOOST_CHECK_EQUAL(getMoveInterrupted(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
@@ -477,13 +443,6 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
 }
 
 BOOST_AUTO_TEST_CASE(testTranslation){
-
-  // Reset the dummy motor, it is then in an uncalibrated state
-  _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
-
-  _motorControlerDummy->setPositiveEndSwitch(10000);
-  _motorControlerDummy->setNegativeEndSwitch(-10000);
 
   // Make sure we are in simple calibration mode
   _stepperMotor->setActualPosition(0.f);
@@ -509,8 +468,8 @@ BOOST_AUTO_TEST_CASE(testTranslation){
 
   // Check that endswitches are detected at positions defined
   // by the MotorControlerDummy and calibration mode is FULL
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), 20000);
-  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), 0);
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), POS_POSITIVE_ENDSWITCH_STEPPERMOTOR);
+  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), POS_NEGATIVE_ENDSWITCH_STEPPERMOTOR);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
@@ -532,12 +491,8 @@ BOOST_AUTO_TEST_CASE(testTranslation){
 
 BOOST_AUTO_TEST_CASE(testDetermineTolerance){
 
-  _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
   _stepperMotor->setEnabled(true);
 
-  _motorControlerDummy->setPositiveEndSwitch(10000);
-  _motorControlerDummy->setNegativeEndSwitch(-10000);
   while(!_stepperMotor->isSystemIdle()){}
 
   // Try determine tolerance on an uncalibrated motor, should fail
@@ -554,7 +509,7 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
 
   // Determine tolerance
   _stepperMotor->determineTolerance();
-  waitForDetTolerance();
+  BOOST_CHECK(waitForState("calculatingTolerance"));
   performToleranceCalculationForTest();
 
   // The following should result as std deviation of the 10 samples
@@ -564,7 +519,7 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
   // Return to home position
   _stepperMotor->setTargetPositionInSteps(0);
   _stepperMotor->start();
-  waitToSetPositiveTargetPos(0);
+  waitToSetTargetPos(0);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_EQUAL(getMoveInterrupted(), false);
@@ -581,24 +536,16 @@ BOOST_AUTO_TEST_CASE(testDetermineTolerance){
  */
 BOOST_AUTO_TEST_CASE(testDetermineToleranceError){
 
-  // TODO Can be removed (?) when using the TEST_CASE macros, each case becomes its own object
-  _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
-
-  // Define dummy end switches and calibrate motor
-  _motorControlerDummy->setPositiveEndSwitch(10000);
-  _motorControlerDummy->setNegativeEndSwitch(-10000);
-
   _stepperMotor->setEnabled(true);
   performCalibrationForTest();
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   // Start tolerance calculation
   _stepperMotor->determineTolerance();
-  waitForDetTolerance();
+  BOOST_CHECK(waitForState("calculatingTolerance"));
 
   // Interrupt on first iteration of tolerance calculation
-  waitToSetPositiveTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
+  waitToSetTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
   _motorControlerDummy->moveTowardsTarget(0.1f);
   _motorControlerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()){}
@@ -615,16 +562,16 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceError){
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
   _stepperMotor->determineTolerance();
-  waitForDetTolerance();
+  BOOST_CHECK(waitForState("calculatingTolerance"));
   performToleranceCalculationForTest();
 
   // Dummy axis> [-10000, 10000], stepperMotor axis: [0, 20000],
   // stepperMotor should hit end switch at 19000 and flag an error
   _motorControlerDummy->setPositiveEndSwitch(9000);
-  _stepperMotor->setTargetPositionInSteps(20000);
+  _stepperMotor->setTargetPositionInSteps(POS_POSITIVE_ENDSWITCH_STEPPERMOTOR);
 
   _stepperMotor->start();
-  waitToSetPositiveTargetPos(20000);
+  waitToSetTargetPos(POS_POSITIVE_ENDSWITCH_STEPPERMOTOR);
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), true);
@@ -633,13 +580,6 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceError){
 
 BOOST_AUTO_TEST_CASE(testDetermineToleranceStop){
 
-  // TODO Can be removed (?) when using the TEST_CASE macros, each case becomes its own object
-  _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
-
-  // Define dummy end switches and calibrate motor
-  _motorControlerDummy->setPositiveEndSwitch(10000);
-  _motorControlerDummy->setNegativeEndSwitch(-10000);
   _stepperMotor->setEnabled(true);
 
   performCalibrationForTest();
@@ -647,14 +587,15 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceStop){
 
   _stepperMotor->determineTolerance();
 
-  //Trigger stop during tolerance calc
-  waitToSetPositiveTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
+  // Trigger stop during tolerance calc, the current iteration of the algorithm will
+  // still attempt to move in front of and beyond the end switch, so we need to initiate
+  // movement of the dummy motor twice
+  waitToSetTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
   _stepperMotor->stop();
-  waitForStop();
   _motorControlerDummy->moveTowardsTarget(1);
-  waitToSetPositiveTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() + 1000);
+  waitToSetTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() + 1000);
   _motorControlerDummy->moveTowardsTarget(1);
-  while(!_stepperMotor->isSystemIdle()){}
+  BOOST_CHECK(waitForState("idle"));
 
   // Stop should have led to an error, no tolerance calculation
   BOOST_CHECK_EQUAL(getToleranceCalculated(), false);

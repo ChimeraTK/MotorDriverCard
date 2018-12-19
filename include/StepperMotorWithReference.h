@@ -173,7 +173,6 @@ namespace ChimeraTK{
     std::atomic<StepperMotorCalibrationMode> _calibrationMode;
     std::atomic<float> _tolerancePositiveEndSwitch;
     std::atomic<float> _toleranceNegativeEndSwitch;
-    std::atomic<uint32_t> _index; //variable used only in tests. to be removed?
   };
 }
 #endif /* CHIMERATK_STEPPER_MOTOR_H */

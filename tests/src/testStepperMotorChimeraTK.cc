@@ -114,7 +114,7 @@ void StepperMotorChimeraTKFixture::waitForMoveState(){
   while (1){
     usleep(1000);
     _stepperMotor->_mutex.lock();
-    if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "movingState"){
+    if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "moving"){
       _stepperMotor->_mutex.unlock();
     }
     else{
@@ -195,21 +195,21 @@ BOOST_AUTO_TEST_CASE( testSoftLimits ){
 
 BOOST_AUTO_TEST_CASE( testEnable ){
 
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabledState");
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabled");
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   _stepperMotor->setEnabled(true);
 
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idleState");
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
   _stepperMotor->setEnabled(false);
   _motorControlerDummy->moveTowardsTarget(1);
 
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabledState");
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabled");
 
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idleState");
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
 }
 
 BOOST_AUTO_TEST_CASE( testSetActualPosition){
@@ -394,13 +394,13 @@ BOOST_AUTO_TEST_CASE( testEmergencyStop ){
 
   // After emergencyStop system should be in errorState,
   // power be disabled and calibration reset
-  BOOST_CHECK(waitForState("errorState"));
+  BOOST_CHECK(waitForState("error"));
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
 
   // Reset should bring the motor to disabled state
   _stepperMotor->resetError();
-  BOOST_CHECK(waitForState("disabledState"));
+  BOOST_CHECK(waitForState("disabled"));
 
   // Set some new reference position, calibrated should become true,
   // and enable motor again
@@ -533,11 +533,11 @@ BOOST_AUTO_TEST_CASE( testDisable ){
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
-  BOOST_CHECK(waitForState("movingState"));
+  BOOST_CHECK(waitForState("moving"));
 
   _motorControlerDummy->moveTowardsTarget(0.5);
   _stepperMotor->setEnabled(false);
-  BOOST_CHECK(waitForState("disabledState"));
+  BOOST_CHECK(waitForState("disabled"));
 
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();

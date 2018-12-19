@@ -807,7 +807,7 @@ namespace ChimeraTK{
     }
     //FIXME This is a temporary hack, currently only emergency stops sets error state
     //TODO Change this, so that the StepperMotor has a error property
-    else if(_stateMachine->getCurrentState()->getName() == "errorState"){
+    else if(_stateMachine->getCurrentState()->getName() == "error"){
       _motorError = EMERGENCY_STOP;
     }
     return _motorError;
@@ -917,7 +917,7 @@ namespace ChimeraTK{
 
   bool StepperMotor::stateMachineInIdleAndNoEvent(){
     std::string stateName =  _stateMachine->getCurrentState()->getName();
-    if (stateName == "disabledState" || stateName == "idleState"){
+    if (stateName == "disabled" || stateName == "idle"){
       return true;
     }else{
       return false;

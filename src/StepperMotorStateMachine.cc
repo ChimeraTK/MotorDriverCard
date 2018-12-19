@@ -25,10 +25,10 @@ namespace ChimeraTK{
 
   StepperMotorStateMachine::StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor) :
       StateMachine(),
-      _moving("movingState"),
-      _idle("idleState"),
-      _disabled("disabledState"),
-      _error("errorState"),
+      _moving("moving"),
+      _idle("idle"),
+      _disabled("disabled"),
+      _error("error"),
       _stepperMotor(stepperMotor),
       _motorControler(stepperMotor._motorControler)
   {

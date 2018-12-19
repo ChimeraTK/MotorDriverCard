@@ -203,8 +203,8 @@ namespace ChimeraTK{
     int endSwitchPosition = getPositionEndSwitch(sign);
 
     // Get 10 samples for tolerance calculation
-    for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++){
-      if (_stopAction || _moveInterrupted){
+    for (unsigned i=0; i<N_TOLERANCE_CALC_SAMPLES; i++){
+      if (_stopAction.load() || _moveInterrupted.load()){
         break;
       }
 
@@ -241,8 +241,8 @@ namespace ChimeraTK{
       // Mean calculation
       meanMeasurement += static_cast<double>(_motor.getCurrentPositionInSteps())
                          / N_TOLERANCE_CALC_SAMPLES;
-      measurements[_motor._index] = _motor.getCurrentPositionInSteps();
-    } /* for (_motor._index=0; _motor._index<N_TOLERANCE_CALC_SAMPLES; _motor._index++) */
+      measurements[i] = _motor.getCurrentPositionInSteps();
+    } /* for (i in [0,9]) */
 
     // Compute variance
     if (!(_stopAction.load() || _moveInterrupted.load()) ){
