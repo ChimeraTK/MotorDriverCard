@@ -13,17 +13,11 @@ namespace ChimeraTK{
     return event1._eventName < event2._eventName;
   }
 
-  TargetAndAction::TargetAndAction(State *target, std::function<void(void)> callback) : targetState(target), callbackAction(callback){}
+  TransitionData::TransitionData(State *target, std::function<void(void)> callback) : targetState(target), callbackAction(callback){}
 
-  TargetAndAction::TargetAndAction(const TargetAndAction& targetAndAction) :
+  TransitionData::TransitionData(const TransitionData& targetAndAction) :
       targetState(targetAndAction.targetState),
       callbackAction(targetAndAction.callbackAction){}
-
-  TargetAndAction& TargetAndAction::operator=(const TargetAndAction& targetAndAction){
-    this->targetState = targetAndAction.targetState;
-    this->callbackAction = targetAndAction.callbackAction;
-    return *this;
-  }
 
   State::State(std::string stateName) :
       _stateName(stateName),
@@ -32,12 +26,12 @@ namespace ChimeraTK{
   State::~State(){}
 
   void State::setTransition(Event event, State *target, std::function<void(void)> callbackAction){
-    TargetAndAction targetAndAction(target, callbackAction);
-    _transitionTable.insert(std::pair< Event, TargetAndAction >(event, targetAndAction));
+    TransitionData transitionData(target, callbackAction);
+    _transitionTable.insert(std::pair< Event, TransitionData >(event, transitionData));
   }
 
 
-  TransitionTable& State::getTransitionTable(){
+  const TransitionTable& State::getTransitionTable() const{
     return _transitionTable;
   }
 
@@ -58,16 +52,6 @@ namespace ChimeraTK{
              _internalEventCallback([]{})
   {}
 
-  StateMachine::StateMachine(const StateMachine &stateMachine) :
-      _initState(stateMachine._initState),
-      _endState("endState"),
-      _currentState(&_initState),
-      _requestedState(nullptr),
-      _stateMachineMutex(),
-      _asyncActionActive(false),
-      _internalEventCallback([]{})
-  {}
-
   StateMachine::~StateMachine(){}
 
 
@@ -86,9 +70,9 @@ namespace ChimeraTK{
 
 
   void StateMachine::performTransition(Event event){
-    std::map< Event, TargetAndAction >::iterator it;
+    std::map< Event, TransitionData >::const_iterator it;
 
-    TransitionTable& transitionTable = _currentState->getTransitionTable();
+    const TransitionTable& transitionTable = _currentState->getTransitionTable();
     it = transitionTable.find(event);
     if(it != transitionTable.end()){
 

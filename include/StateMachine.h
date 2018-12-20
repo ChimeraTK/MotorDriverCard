@@ -47,16 +47,16 @@ namespace ChimeraTK{
   class State;
 
   //structure for target and action
-  struct TargetAndAction{
-    TargetAndAction(State *target, std::function<void(void)> callback);
-    TargetAndAction(const TargetAndAction& targetAndAction);
-    TargetAndAction& operator=(const TargetAndAction& targetAndAction);
+  struct TransitionData{
+    TransitionData(State *target, std::function<void(void)> callback);
+    TransitionData(const TransitionData& data);
+    TransitionData& operator=(const TransitionData& data) = delete;
     State *targetState;
     std::function<void(void)> callbackAction;
   };
 
 
-  using TransitionTable = std::map<Event, TargetAndAction >;
+  using TransitionTable = std::map<Event, TransitionData >;
 
   class TestStateMachine;
 
@@ -67,7 +67,7 @@ namespace ChimeraTK{
     State(std::string stateName = "");
     virtual ~State();
     virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
-    TransitionTable& getTransitionTable();
+    const TransitionTable& getTransitionTable() const;
     std::string getName() const;
 
   protected:
@@ -85,7 +85,7 @@ namespace ChimeraTK{
 
   public:
     StateMachine();
-    StateMachine(const StateMachine& stateMachine);
+    StateMachine(const StateMachine& stateMachine) = delete;
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
     State* getCurrentState();
