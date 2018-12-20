@@ -49,27 +49,29 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReferenceStateMachine::actionStartCalib(){
-    _boolAsyncActionActive.exchange(true);
+    _asyncActionActive.exchange(true);
     _internalEventCallback = [this]{
-                                      if(!_boolAsyncActionActive.load()){
+                                      if(!_asyncActionActive.load()){
                                         moveToRequestedState();
                                         performTransition(stopEvent);
                                         _internalEventCallback = []{};
                                       }
                                    };
-      _asyncActionActive = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
+      std::thread calibrationThread(&StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
+      calibrationThread.detach();
   }
 
   void StepperMotorWithReferenceStateMachine::actionStartCalcTolercance(){
-    _boolAsyncActionActive.exchange(true);
+    _asyncActionActive.exchange(true);
     _internalEventCallback = [this]{
-                                      if(!_boolAsyncActionActive.load()){
+                                      if(!_asyncActionActive.load()){
                                         moveToRequestedState();
                                         performTransition(stopEvent);
                                         _internalEventCallback = []{};
                                       }
                                    };
-      _asyncActionActive = std::async(std::launch::async, &StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
+      std::thread toleranceCalcThread(&StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
+      toleranceCalcThread.detach();
   }
 
 
@@ -114,7 +116,7 @@ namespace ChimeraTK{
       }
     }
 
-    _boolAsyncActionActive.exchange(false);
+    _asyncActionActive.exchange(false);
     return;
   }
 
@@ -182,7 +184,7 @@ namespace ChimeraTK{
         _motor._toleranceCalculated.exchange(true);
       }
     }
-    _boolAsyncActionActive.exchange(false);
+    _asyncActionActive.exchange(false);
     return;
   }
 

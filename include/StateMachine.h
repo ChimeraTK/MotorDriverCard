@@ -14,7 +14,7 @@
 #include <string>
 #include <map>
 #include <mutex>
-#include <future>
+#include <thread>
 #include <atomic>
 
 struct StateMachineTestFixture;
@@ -97,14 +97,12 @@ namespace ChimeraTK{
   protected:
     State _initState;
     State _endState;
-    State *_currentState; //FIXME Use references?
+    State *_currentState;
     State *_requestedState;
-    Event _userEvent; /*FIXME user event is not required anymore */
 
     std::mutex _stateMachineMutex;
-    std::future<void> _asyncActionActive;
-    std::atomic<bool> _boolAsyncActionActive;         //FIXME Rename
-    std::function<void(void)> _internalEventCallback; //FIXME Change interface to this
+    std::atomic<bool> _asyncActionActive;
+    std::function<void(void)> _internalEventCallback;
     void performTransition(Event event);
     void moveToRequestedState();
   };

@@ -53,10 +53,8 @@ namespace ChimeraTK{
              _endState("endState"),
              _currentState(&_initState),
              _requestedState(nullptr),
-             _userEvent(noEvent),
              _stateMachineMutex(),
-             _asyncActionActive(),
-             _boolAsyncActionActive(false),
+             _asyncActionActive(false),
              _internalEventCallback([]{})
   {}
 
@@ -65,10 +63,8 @@ namespace ChimeraTK{
       _endState("endState"),
       _currentState(&_initState),
       _requestedState(nullptr),
-      _userEvent(noEvent),
       _stateMachineMutex(),
-      _asyncActionActive(),
-      _boolAsyncActionActive(false),
+      _asyncActionActive(false),
       _internalEventCallback([]{})
   {}
 
@@ -84,17 +80,8 @@ namespace ChimeraTK{
 
 
   void StateMachine::setAndProcessUserEvent(Event event){
-    //{
-      std::lock_guard<std::mutex> lck(_stateMachineMutex);
-      _userEvent = event;
-    //}
-   performTransition(_userEvent);
-  }
-
-
-  Event StateMachine::getUserEvent(){
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
-    return _userEvent;
+   performTransition(event);
   }
 
 
@@ -108,7 +95,7 @@ namespace ChimeraTK{
       _requestedState = ((it->second).targetState);
 
       // Apply new state right away, if no async action active
-      if(!_boolAsyncActionActive.load()){
+      if(!_asyncActionActive.load()){
         _currentState = _requestedState;
         _requestedState = nullptr;
       }

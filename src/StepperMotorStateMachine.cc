@@ -51,7 +51,7 @@ namespace ChimeraTK{
 
       // Set the propagated state or return to idle by stop event
       // Either of them does not take effect
-      _boolAsyncActionActive.exchange(false);
+      _asyncActionActive.exchange(false);
       moveToRequestedState();
       //TODO Perform error checking (setpoint = actual position) here?
       performTransition(stopEvent);
@@ -60,7 +60,7 @@ namespace ChimeraTK{
   }
 
   void StepperMotorStateMachine::actionIdleToMove(){
-    _boolAsyncActionActive.exchange(true);
+    _asyncActionActive.exchange(true);
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
     _internalEventCallback = std::bind(&StepperMotorStateMachine::waitForStandstill, this);
   }

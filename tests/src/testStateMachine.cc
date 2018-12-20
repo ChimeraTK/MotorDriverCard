@@ -101,12 +101,12 @@ void DerivedStateMachine::assertRequestedState(ChimeraTK::State* referenceState)
 
 void DerivedStateMachine::actionIdleToFirstState(){
 
-    _boolAsyncActionActive.exchange(true);
-    /*_asyncActionActive = std::async*/std::thread asyncActionIdleToFirst(/*std::launch::async,*/[this]{
-                                                                 std::lock_guard<std::mutex> lck(_stateMachineMutex);
-                                                                 performTransition(_state1to2Event);
-                                                                 _boolAsyncActionActive.exchange(false);
-                                                               }
+    _asyncActionActive.exchange(true);
+    std::thread asyncActionIdleToFirst([this]{
+                                              std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                              performTransition(_state1to2Event);
+                                              _asyncActionActive.exchange(false);
+                                             }
                                    );
     asyncActionIdleToFirst.detach();
 }
@@ -133,12 +133,8 @@ void DerivedStateMachine::actionFirstToSecondState(){
                                    assertRequestedState(nullptr);
                                    _internalEventCallback = []{};
                                  };
-  //moveToRequestedState();
 
   _transitionAllowed.exchange(false);
-
-//  // Requested state should now be reset
-//  assertRequestedState(nullptr);
 }
 
 void DerivedStateMachine::actionExtern1(){
@@ -151,12 +147,12 @@ void DerivedStateMachine::actionExtern2(){
 
 void DerivedStateMachine::actionThirdToFirstState(){
 
-  _boolAsyncActionActive.exchange(true);
-  /*_asyncActionActive = std::async*/std::thread asyncAction3rdTo1st(/*std::launch::async, */[this]{
-                                                               std::lock_guard<std::mutex> lck(_stateMachineMutex);
-                                                               performTransition(_state1to4Event);
-                                                               _boolAsyncActionActive.exchange(false);
-                                                             }
+  _asyncActionActive.exchange(true);
+  std::thread asyncAction3rdTo1st([this]{
+                                         std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                         performTransition(_state1to4Event);
+                                         _asyncActionActive.exchange(false);
+                                        }
                                  );
   asyncAction3rdTo1st.detach();
 
@@ -208,9 +204,7 @@ BOOST_FIXTURE_TEST_CASE( testDerivedStateMachine, DerivedStateMachine ){
 
   // Wait for the async task to finish, we should then be in second state and
   // the requested state pointer should be reset
-
-  //_asyncActionActive.get();
-  while(_boolAsyncActionActive.load() == true){}
+  while(_asyncActionActive.load() == true){}
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "secondState");
   BOOST_CHECK(_isCorrectRequestedState.load());
 
@@ -231,8 +225,7 @@ BOOST_FIXTURE_TEST_CASE( testDerivedStateMachine, DerivedStateMachine ){
   _counter.store(0);
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(DerivedStateMachine::userEvent3));
 
-  //_asyncActionActive.get();
-  while(_boolAsyncActionActive.load() == true){}
+  while(_asyncActionActive.load() == true){}
 
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "fourthState");
   BOOST_CHECK_EQUAL(_counter.load(), 45);
