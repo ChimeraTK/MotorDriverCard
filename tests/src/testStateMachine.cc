@@ -33,6 +33,7 @@ protected:
   ChimeraTK::Event _state1to4Event;
   void actionIdleToFirstState();
   void actionFirstToSecondState();
+  void actionFirstStateExit();
   void actionThirdToFirstState();
   void actionFirstToFourthState();
   void actionExtern1();
@@ -77,8 +78,8 @@ DerivedStateMachine::DerivedStateMachine() :
     _counter(0)
 {
 
-  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this));
-
+  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this),
+                                                                           std::bind(&DerivedStateMachine::actionFirstStateExit, this));
   _firstState.setTransition(DerivedStateMachine::userEvent1, &_thirdState, std::bind(&DerivedStateMachine::actionExtern1, this));
   _firstState.setTransition(_state1to2Event, &_secondState, std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
   _firstState.setTransition(_state1to4Event, &_fourthState, std::bind(&DerivedStateMachine::actionFirstToFourthState, this));
@@ -126,15 +127,13 @@ void DerivedStateMachine::actionFirstToSecondState(){
   _transitionAllowed.exchange(false);
   while(!_transitionAllowed.load()){}
 
-  // Will be executed on the next call getState
-  _internalEventCallback = [this]{
-                                   moveToRequestedState();
-                                   // Requested state should now be reset
-                                   assertRequestedState(nullptr);
-                                   _internalEventCallback = []{};
-                                 };
-
   _transitionAllowed.exchange(false);
+}
+
+void DerivedStateMachine::actionFirstStateExit(){
+  moveToRequestedState();
+  // Requested state should now be reset
+  assertRequestedState(nullptr);
 }
 
 void DerivedStateMachine::actionExtern1(){
@@ -176,8 +175,7 @@ BOOST_FIXTURE_TEST_CASE( testBaseStateMachine, ChimeraTK::StateMachine ){
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
 
   // Default-constructed event should be undefined
-  ChimeraTK::Event undefinedEvent;
-  BOOST_CHECK(undefinedEvent == ChimeraTK::StateMachine::undefinedEvent);
+  ChimeraTK::Event undefinedEvent("undefinedEvent");
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(undefinedEvent));
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState") ;
 }

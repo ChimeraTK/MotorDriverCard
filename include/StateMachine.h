@@ -25,18 +25,9 @@ namespace ChimeraTK{
   class Event{
   public:
     Event(std::string eventName) :  _eventName(eventName){}
-    Event() : _eventName("undefinedEvent"){}
+    Event() = delete;
 
-    bool operator==(Event &event) const{
-      if (this->_eventName == event._eventName){
-        return true;
-      }
-      else{
-        return false;
-      }
-    }
-
-    operator std::string() const {return _eventName;}
+    //operator std::string() const {return _eventName;}
     friend bool operator<(const Event &event1, const Event &event2);
   private:
     std::string _eventName;
@@ -48,11 +39,12 @@ namespace ChimeraTK{
 
   //structure for target and action
   struct TransitionData{
-    TransitionData(State *target, std::function<void(void)> callback);
+    TransitionData(State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback);
     TransitionData(const TransitionData& data);
     TransitionData& operator=(const TransitionData& data) = delete;
     State *targetState;
-    std::function<void(void)> callbackAction;
+    std::function<void(void)> entryCallbackAction;
+    std::function<void(void)> internalCallbackAction;
   };
 
 
@@ -66,7 +58,7 @@ namespace ChimeraTK{
   public:
     State(std::string stateName = "");
     virtual ~State();
-    virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
+    virtual void setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback = []{});
     const TransitionTable& getTransitionTable() const;
     std::string getName() const;
 
@@ -103,6 +95,7 @@ namespace ChimeraTK{
     std::mutex _stateMachineMutex;
     std::atomic<bool> _asyncActionActive;
     std::function<void(void)> _internalEventCallback;
+    std::function<void(void)> _requestedInternalCallback;
     void performTransition(Event event);
     void moveToRequestedState();
   };

@@ -33,7 +33,8 @@ namespace ChimeraTK{
       _motorControler(stepperMotor._motorControler)
   {
     _initState.setTransition(initialEvent,        &_disabled,      []{});
-    _idle.setTransition     (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this));
+    _idle.setTransition     (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this),
+                                                                   std::bind(&StepperMotorStateMachine::waitForStandstill, this));
     _idle.setTransition     (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
     _moving.setTransition   (stopEvent,           &_idle,          std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
     _moving.setTransition   (emergencyStopEvent,  &_error,         std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
@@ -55,14 +56,14 @@ namespace ChimeraTK{
       moveToRequestedState();
       //TODO Perform error checking (setpoint = actual position) here?
       performTransition(stopEvent);
-      _internalEventCallback = []{};
+      //_internalEventCallback = []{};
     }
   }
 
   void StepperMotorStateMachine::actionIdleToMove(){
     _asyncActionActive.exchange(true);
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
-    _internalEventCallback = std::bind(&StepperMotorStateMachine::waitForStandstill, this);
+    //_internalEventCallback = std::bind(&StepperMotorStateMachine::waitForStandstill, this);
   }
 
   void StepperMotorStateMachine::actionMovetoStop(){

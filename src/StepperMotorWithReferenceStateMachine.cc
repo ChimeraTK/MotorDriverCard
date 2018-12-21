@@ -27,10 +27,12 @@ namespace ChimeraTK{
   {
     _idle.setTransition(calibEvent,
                                     &_calibrating,
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this));
+                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this),
+                                    std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
     _idle.setTransition(StepperMotorWithReferenceStateMachine::calcToleranceEvent,
                                     &_calculatingTolerance,
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this));
+                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this),
+                                    std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
 
     _calibrating.setTransition(StepperMotorStateMachine::stopEvent,
                                &_idle,
@@ -50,26 +52,33 @@ namespace ChimeraTK{
 
   void StepperMotorWithReferenceStateMachine::actionStartCalib(){
     _asyncActionActive.exchange(true);
-    _internalEventCallback = [this]{
-                                      if(!_asyncActionActive.load()){
-                                        moveToRequestedState();
-                                        performTransition(stopEvent);
-                                        _internalEventCallback = []{};
-                                      }
-                                   };
+//    _internalEventCallback = [this]{
+//                                      if(!_asyncActionActive.load()){
+//                                        moveToRequestedState();
+//                                        performTransition(stopEvent);
+//                                        _internalEventCallback = []{};
+//                                      }
+//                                   };
       std::thread calibrationThread(&StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
       calibrationThread.detach();
   }
 
+  void StepperMotorWithReferenceStateMachine::actionEndCallback(){
+    if(!_asyncActionActive.load()){
+      moveToRequestedState();
+      performTransition(stopEvent);
+    }
+  }
+
   void StepperMotorWithReferenceStateMachine::actionStartCalcTolercance(){
     _asyncActionActive.exchange(true);
-    _internalEventCallback = [this]{
-                                      if(!_asyncActionActive.load()){
-                                        moveToRequestedState();
-                                        performTransition(stopEvent);
-                                        _internalEventCallback = []{};
-                                      }
-                                   };
+//    _internalEventCallback = [this]{
+//                                      if(!_asyncActionActive.load()){
+//                                        moveToRequestedState();
+//                                        performTransition(stopEvent);
+//                                        _internalEventCallback = []{};
+//                                      }
+//                                   };
       std::thread toleranceCalcThread(&StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
       toleranceCalcThread.detach();
   }
