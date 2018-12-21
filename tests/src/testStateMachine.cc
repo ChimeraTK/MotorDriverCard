@@ -18,19 +18,19 @@ public:
   ~DerivedStateMachine();
 
 protected:
-  static ChimeraTK::Event userEvent1;
-  static ChimeraTK::Event userEvent2;
-  static ChimeraTK::Event userEvent3;
+  static ChimeraTK::StateMachine::Event userEvent1;
+  static ChimeraTK::StateMachine::Event userEvent2;
+  static ChimeraTK::StateMachine::Event userEvent3;
 
-  ChimeraTK::State _firstState;
-  ChimeraTK::State _secondState;
-  ChimeraTK::State _thirdState;
-  ChimeraTK::State _fourthState;
-  ChimeraTK::State _fifthState;
-  ChimeraTK::Event _state1to2Event;
-  ChimeraTK::Event _state2to3Event;
-  ChimeraTK::Event _state3to1Event;
-  ChimeraTK::Event _state1to4Event;
+  ChimeraTK::StateMachine::State _firstState;
+  ChimeraTK::StateMachine::State _secondState;
+  ChimeraTK::StateMachine::State _thirdState;
+  ChimeraTK::StateMachine::State _fourthState;
+  ChimeraTK::StateMachine::State _fifthState;
+  ChimeraTK::StateMachine::Event _state1to2Event;
+  ChimeraTK::StateMachine::Event _state2to3Event;
+  ChimeraTK::StateMachine::Event _state3to1Event;
+  ChimeraTK::StateMachine::Event _state1to4Event;
   void actionIdleToFirstState();
   void actionFirstToSecondState();
   void actionFirstStateExit();
@@ -51,15 +51,15 @@ protected:
 
 private:
   // To be used inside the callbacks which are guarded, so no locking here
-  void assertRequestedState(ChimeraTK::State* referenceState);
+  void assertRequestedState(ChimeraTK::StateMachine::State* referenceState);
 
 };
 
 
 
-ChimeraTK::Event DerivedStateMachine::userEvent1("userEvent1");
-ChimeraTK::Event DerivedStateMachine::userEvent2("userEvent2");
-ChimeraTK::Event DerivedStateMachine::userEvent3("userEvent3");
+ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent1("userEvent1");
+ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent2("userEvent2");
+ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent3("userEvent3");
 
 DerivedStateMachine::DerivedStateMachine() :
     StateMachine(),
@@ -89,7 +89,7 @@ DerivedStateMachine::DerivedStateMachine() :
 
 DerivedStateMachine::~DerivedStateMachine(){}
 
-void DerivedStateMachine::assertRequestedState(ChimeraTK::State* referenceState){
+void DerivedStateMachine::assertRequestedState(ChimeraTK::StateMachine::State* referenceState){
 
   if(_requestedState == nullptr){
     _isCorrectRequestedState.exchange(referenceState == nullptr);
@@ -175,7 +175,7 @@ BOOST_FIXTURE_TEST_CASE( testBaseStateMachine, ChimeraTK::StateMachine ){
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
 
   // Default-constructed event should be undefined
-  ChimeraTK::Event undefinedEvent("undefinedEvent");
+  ChimeraTK::StateMachine::Event undefinedEvent("undefinedEvent");
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(undefinedEvent));
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState") ;
 }

@@ -9,40 +9,39 @@
 
 namespace ChimeraTK{
 
-  bool operator<(const Event &event1, const Event &event2){
+  bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2){
     return event1._eventName < event2._eventName;
   }
 
-  TransitionData::TransitionData(State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback)
+  StateMachine::State::TransitionData::TransitionData(State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback)
     : targetState(target), entryCallbackAction(entryCallback), internalCallbackAction(internalCallback){}
 
-  TransitionData::TransitionData(const TransitionData& targetAndAction) :
+  StateMachine::State::TransitionData::TransitionData(const State::TransitionData& targetAndAction) :
       targetState(targetAndAction.targetState),
       entryCallbackAction(targetAndAction.entryCallbackAction),
       internalCallbackAction(targetAndAction.internalCallbackAction){}
 
-  State::State(std::string stateName) :
+  StateMachine::State::State(std::string stateName) :
       _stateName(stateName),
       _transitionTable(){}
 
-  State::~State(){}
+  StateMachine::State::~State(){}
 
-  void State::setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback){
+  void StateMachine::State::setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback){
     TransitionData transitionData(target, entryCallback, internalCallback);
     _transitionTable.insert(std::pair< Event, TransitionData >(event, transitionData));
   }
 
 
-  const TransitionTable& State::getTransitionTable() const{
+  const StateMachine::State::TransitionTable& StateMachine::State::getTransitionTable() const{
     return _transitionTable;
   }
 
-  std::string State::getName() const{
+  std::string StateMachine::State::getName() const{
     return _stateName;
   }
 
-  Event StateMachine::noEvent("noEvent");
-  //Event StateMachine::undefinedEvent("undefinedEvent");
+  StateMachine::Event StateMachine::noEvent("noEvent");
 
   StateMachine::StateMachine() :
              _initState("initState"),
@@ -58,7 +57,7 @@ namespace ChimeraTK{
   StateMachine::~StateMachine(){}
 
 
-  State* StateMachine::getCurrentState(){
+  StateMachine::State* StateMachine::getCurrentState(){
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
 
     _internalEventCallback();
@@ -73,9 +72,9 @@ namespace ChimeraTK{
 
 
   void StateMachine::performTransition(Event event){
-    std::map< Event, TransitionData >::const_iterator it;
+    std::map< Event, State::TransitionData >::const_iterator it;
 
-    const TransitionTable& transitionTable = _currentState->getTransitionTable();
+    const State::TransitionTable& transitionTable = _currentState->getTransitionTable();
     it = transitionTable.find(event);
     if(it != transitionTable.end()){
 

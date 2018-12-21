@@ -14,8 +14,8 @@ static const unsigned wakeupPeriodInMilliseconds = 500U;
 
 namespace ChimeraTK{
 
-  const Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
-  const Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
+  const StateMachine::Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
+  const StateMachine::Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
 
   StepperMotorWithReferenceStateMachine::StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference) :
       StepperMotorStateMachine(stepperMotorWithReference),

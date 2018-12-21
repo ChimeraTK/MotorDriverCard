@@ -13,15 +13,15 @@
 
 namespace ChimeraTK{
 
-  const Event StepperMotorStateMachine::initialEvent("initialEvent");
-  const Event StepperMotorStateMachine::moveEvent("moveEvent");
-  const Event StepperMotorStateMachine::stopEvent("stopEvent");
-  const Event StepperMotorStateMachine::emergencyStopEvent("emergencyStopEvent");
-  const Event StepperMotorStateMachine::actionCompleteEvent("actionCompletedEvent");
-  const Event StepperMotorStateMachine::enableEvent("enableEvent");
-  const Event StepperMotorStateMachine::disableEvent("disableEvent");
-  const Event StepperMotorStateMachine::resetToIdleEvent("resetToIdleEvent");
-  const Event StepperMotorStateMachine::resetToDisableEvent("resetToDisableEvent");
+  const StateMachine::Event StepperMotorStateMachine::initialEvent("initialEvent");
+  const StateMachine::Event StepperMotorStateMachine::moveEvent("moveEvent");
+  const StateMachine::Event StepperMotorStateMachine::stopEvent("stopEvent");
+  const StateMachine::Event StepperMotorStateMachine::emergencyStopEvent("emergencyStopEvent");
+  const StateMachine::Event StepperMotorStateMachine::actionCompleteEvent("actionCompletedEvent");
+  const StateMachine::Event StepperMotorStateMachine::enableEvent("enableEvent");
+  const StateMachine::Event StepperMotorStateMachine::disableEvent("disableEvent");
+  const StateMachine::Event StepperMotorStateMachine::resetToIdleEvent("resetToIdleEvent");
+  const StateMachine::Event StepperMotorStateMachine::resetToDisableEvent("resetToDisableEvent");
 
   StepperMotorStateMachine::StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor) :
       StateMachine(),

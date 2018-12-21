@@ -35,8 +35,6 @@ namespace ChimeraTK{
   protected:
     State _moving;
     State _idle;
-//    State _stop;
-//    State _emergencyStop;
     State _disabled;
     State _error;
     StepperMotor &_stepperMotor;
