@@ -52,13 +52,6 @@ namespace ChimeraTK{
 
   void StepperMotorWithReferenceStateMachine::actionStartCalib(){
     _asyncActionActive.exchange(true);
-//    _internalEventCallback = [this]{
-//                                      if(!_asyncActionActive.load()){
-//                                        moveToRequestedState();
-//                                        performTransition(stopEvent);
-//                                        _internalEventCallback = []{};
-//                                      }
-//                                   };
       std::thread calibrationThread(&StepperMotorWithReferenceStateMachine::calibrationThreadFunction, this);
       calibrationThread.detach();
   }
@@ -72,13 +65,6 @@ namespace ChimeraTK{
 
   void StepperMotorWithReferenceStateMachine::actionStartCalcTolercance(){
     _asyncActionActive.exchange(true);
-//    _internalEventCallback = [this]{
-//                                      if(!_asyncActionActive.load()){
-//                                        moveToRequestedState();
-//                                        performTransition(stopEvent);
-//                                        _internalEventCallback = []{};
-//                                      }
-//                                   };
       std::thread toleranceCalcThread(&StepperMotorWithReferenceStateMachine::toleranceCalcThreadFunction, this);
       toleranceCalcThread.detach();
   }
@@ -91,10 +77,10 @@ namespace ChimeraTK{
 
     // At least one end switch disabled -> calibration not possible
     if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())){
-      {
-        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+//      {
+//        boost::lock_guard<boost::mutex> lck(_motor._mutex);
         _motor._motorControler->setCalibrationTime(0);
-      }
+//      }
       _motor._calibrationFailed.exchange(true);
       _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
     }
@@ -105,10 +91,10 @@ namespace ChimeraTK{
       _motor._calibNegativeEndSwitchInSteps.exchange(_motor.getCurrentPositionInSteps());
 
       if (_moveInterrupted.load() || _stopAction.load()){
-        {
-          boost::lock_guard<boost::mutex> lck(_motor._mutex);
+//        {
+//          boost::lock_guard<boost::mutex> lck(_motor._mutex);
           _motor._motorControler->setCalibrationTime(0);
-        }
+//        }
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
@@ -116,10 +102,10 @@ namespace ChimeraTK{
         _motor._calibPositiveEndSwitchInSteps.exchange(_motor._calibPositiveEndSwitchInSteps.load() -
                                                        _motor._calibNegativeEndSwitchInSteps.load());
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
-        {
-          boost::lock_guard<boost::mutex> lck(_motor._mutex);
+//        {
+//          boost::lock_guard<boost::mutex> lck(_motor._mutex);
           _motor._motorControler->setCalibrationTime(time(nullptr));
-        }
+//        }
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
       }

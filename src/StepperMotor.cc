@@ -925,8 +925,7 @@ namespace ChimeraTK{
   }
 
   void StepperMotor::initStateMachine(){
-
-//    _stateMachine.reset(new StepperMotorStateMachine(*this));
+    boost::lock_guard<boost::mutex> guard(_mutex);
     if(_stateMachine->getCurrentState()->getName() == "initState"){
       _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::initialEvent);
     }
