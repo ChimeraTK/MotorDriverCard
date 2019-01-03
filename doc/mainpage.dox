@@ -1,12 +1,25 @@
 /**
-\mainpage
+\mainpage MotorDriverCard
+
+The MotorDriverCard library provides an interface to the MD22 motor driver card FMC. It offers facilities for low-level communication as well as high-level functionality to operate the motor.
+
+For communication to the motor driver and motor controller of the MD22, SPI commands are handled and sent via PCIe. 
+Hence, the corresponding firmware on the FMC carrier only has to adapt between PCIe and SPI interfaces. For operation of a motor,
+a state machine representing the basic operation modes and error checking are implemented. All position values can be entered and retrieved in a user-defined unit.
+The main user interface is provided by the \c StepperMotor and \c LinearStepperMotor classes.
+
+
+\section getting_started Getting Started
 
 FIXME: Put documentation how to use the library
 
-\li StepperMotor and LinearStepperMotor classes as the main user interfave
+NOTE: Currently, the interface classes are implemented in the mtca4u and ChimeraTK namespaces. The information below is valid for the ChimeraTK implementation, the mtca4u version will be deprecated in the future.
+
+\li \ref stepper_motor - A basic interface for a generic stepper motor
+\li \ref linear_stepper_motor - An interface for a linear stepper motor with end switches
 \li \ref motor_driver_card_config_docu
 
-\page motor_driver_card_config_docu Why you need a motor driver card config and how create it
+\page motor_driver_card_config_docu Why you need a motor driver card config and how to create it
 
 The driver and controller chips on the MD22 need to be configured for each motor. The parameters are stored in
  an XML file. There is one file per MD22 MotorDriverCard, so one config for two motors. The reason is that there

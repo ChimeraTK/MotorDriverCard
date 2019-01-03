@@ -46,13 +46,24 @@ namespace ChimeraTK{
     };
 
 
-    //State class
+    /**
+     * @brief Class describing state of the StateMachine
+     *
+     * This object holds the state name and a TransitionTable describing transitions from an
+     * instance to any target states.
+     */
     class State{
 
       friend class StateMachine;
 
-      // Structure for target and callbacks of a transition
-      // FIXME Defining the internal callback here is a hack, it belongs to the state rather than the transition
+      /**
+       * @brief TransitionData struct
+       *
+       * This object holds the target state and two callbacks. The entryCallback is performed when the target state is entered.
+       * The internalCallback can be used to describe internal events of the StateMachine.
+       *
+       * FIXME Defining the internal callback here is a hack, it belongs to the state rather than the transition
+       */
       struct TransitionData{
         TransitionData(State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback);
         TransitionData(const TransitionData& data);
@@ -62,21 +73,38 @@ namespace ChimeraTK{
         std::function<void(void)> internalCallbackAction;
       };
 
+      /**
+       * TransitionTable type, maps TranssitionData to an event.
+       */
       using TransitionTable = std::map<Event, TransitionData >;
 
     public:
       State(std::string stateName = "");
       virtual ~State();
-      virtual void setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback = []{});
+
+      /**
+       * This function will append a new state the the TransitionTable of this state.
+       *
+       * @param event - Event causing the transition
+       * @param target - Pointer to the target state
+       * @param entryCallback - A callback function that will be executed when entering the target state
+       * @param internalCallback - An optional internal callback that can be used to implement internal events.
+       *                           To achieve this, the callback function must check the condition for a state transition
+       *                           and might then call StateMachine::performTransition. This callback is performed on each call
+       *                           to StateMachine::getCurrentState.
+       */
+      void setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback = []{});
       const TransitionTable& getTransitionTable() const;
+      /**
+       * @brief getName
+       * @return
+       */
       std::string getName() const;
 
     protected:
       std::string _stateName;
       TransitionTable _transitionTable;
     };
-
-
 
     StateMachine();
     StateMachine(const StateMachine& stateMachine) = delete;
