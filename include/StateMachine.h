@@ -39,7 +39,6 @@ namespace ChimeraTK{
       Event(std::string eventName) :  _eventName(eventName){}
       Event() = delete;
 
-      //operator std::string() const {return _eventName;}
       friend bool operator<(const Event &event1, const Event &event2);
     private:
       std::string _eventName;

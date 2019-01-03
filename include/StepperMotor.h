@@ -26,10 +26,11 @@
 #include "StepperMotorError.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
-#include "StateMachine.h"
+#include "StepperMotorStateMachine.h"
 #include "Logger.h"
 
 namespace ChimeraTK {
+
   using namespace mtca4u;
   /**
    * @class StepperMotorUnitsConverter
@@ -567,6 +568,9 @@ namespace mtca4u{
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK{
+
+  // Forward declarations
+  class StateMachine;
 
   /**
    *  @class StepperMotor

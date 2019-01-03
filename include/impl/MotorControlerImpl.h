@@ -107,6 +107,26 @@ namespace mtca4u
     virtual void setCalibrationTime(uint32_t calibrationTime);
     virtual uint32_t getCalibrationTime();
 
+    /**
+     * @brief Writes a calibrated position for the positive end switch to the firmware
+     */
+    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
+
+    /**
+     * @brief Read a calibrated position for the positive end switch from the firmware
+     */
+    virtual int  getPositiveReferenceSwitchCalibration();
+
+    /**
+     * @brief Writes a calibrated position for the negative end switch to the firmware
+     */
+    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
+
+    /**
+     * @brief Read a calibrated position for the negative end switch from the firmware
+     */
+    virtual int  getNegativeReferenceSwitchCalibration();
+
     bool isEnabled();
 
     virtual void setMotorCurrentEnabled(bool enable = true);
@@ -208,7 +228,6 @@ namespace mtca4u
      StallGuardControlData _stallGuardControlData;
      DriverConfigData _driverConfigData;
 
-     //boost::shared_ptr< ChimeraTK::RegisterAccessor > _controlerStatus;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _controlerStatus;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _actualPosition;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _actualVelocity;

@@ -412,6 +412,22 @@ namespace mtca4u
     return static_cast<uint32_t>(_calibrationTime);
   }
 
+  void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
+    //TODO
+  }
+
+  int  MotorControlerImpl::getPositiveReferenceSwitchCalibration(){
+    return 0; //TODO
+  }
+
+  void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition){
+    //TODO
+  }
+
+  int  MotorControlerImpl::getNegativeReferenceSwitchCalibration(){
+    return 0; //TODO
+  }
+
   bool MotorControlerImpl::targetPositionReached(){
     lock_guard guard(_mutex);
     _controlerStatus.read();
