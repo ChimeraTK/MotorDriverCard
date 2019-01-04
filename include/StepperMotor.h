@@ -1,4 +1,4 @@
-/* 
+/**
  * File:   StepperMotor.h
  * Author: tkozak
  *
@@ -31,40 +31,101 @@
 
 namespace ChimeraTK {
 
-  using namespace mtca4u;
-  /**
-   * @class StepperMotorUnitsConverter
-   * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class. \n
-   *          Methods allows to recalculate steps to arbitrary units and arbitrary units into steps.
-   */
-  class StepperMotorUnitsConverter {
-  public:
-    virtual float stepsToUnits(int steps) = 0;
-    virtual int unitsToSteps(float units) = 0;
-    virtual ~StepperMotorUnitsConverter(){}
-  };
-  /**
-   * @class StepperMotorUnitsConveterTrivia
-   * @details Trivial implementation of StepperMotorUnitsConverter. 1:1 conversion between units and steps
-   *          Used as default conversion if nothing else is specified
-   */
-  class StepperMotorUnitsConverterTrivia : public StepperMotorUnitsConverter{
-  public:
-    StepperMotorUnitsConverterTrivia(){
+  using mtca4u::MotorDriverException;
 
+  /**
+   * @brief Namespace for utility classes related to the StepperMotor
+   */
+  namespace StepperMotorUtility{
+
+    /**
+     * @brief A generic abstract units converter between an integer value (steps)\n
+     *        and a user-defined unit.
+     * @tparam T Type of the user-unit
+     */
+    template<typename T>
+    class UnitsConverter{
+    public:
+      virtual T stepsToUnits(int steps) = 0;
+      virtual int unitsToSteps(T units) = 0;
+      virtual ~UnitsConverter(){}
     };
-    virtual float stepsToUnits(int steps){
-      return static_cast<float> (steps);
+
+    /**
+     * @brief A 1:1 units converter between an integer value (steps) and a user-defined unit.
+     * @tparam T Type of the user-unit
+     */
+    template<typename T>
+    class UnitsConverterTrivia : public UnitsConverter<T>{
+    public:
+      UnitsConverterTrivia(){}
+
+      virtual T stepsToUnits(int steps){
+        return static_cast<T> (steps);
+      }
+      virtual int unitsToSteps(T units){
+        return static_cast<int> (units);
+      }
     };
-    virtual int unitsToSteps(float units){
-      return static_cast<int> (units);
-    }
-  };
+
+    /**
+     * @brief Implementation of scaling UnitsConverter.\n
+     *        Provides simple mapping: steps = ratio * userUnit.
+     * @tparam T Type of the user-defined unit
+     */
+    template<typename T>
+    class ScalingUnitsConverter : public UnitsConverter<T>{
+      T _userUnitToStepsRatio;
+    public:
+      ScalingUnitsConverter(const T userUnitToStepsRatio)
+        : _userUnitToStepsRatio(userUnitToStepsRatio){}
+      virtual T stepsToUnits(int steps){
+        return _userUnitToStepsRatio * steps;
+      }
+      virtual int unitsToSteps(T units){
+       return units/_userUnitToStepsRatio;
+      }
+    };
+
+    /**
+     * @class StepperMotorUnitsConverter
+     * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class. \n
+     *          Methods allows to recalculate steps to arbitrary units and arbitrary units into steps.
+     */
+    using StepperMotorUnitsConverter = UnitsConverter<float>;
+
+    /**
+     * @class StepperMotorUnitsScalingConverter
+     * @details A convienience implementation for a scaling units converter
+     */
+    using StepperMotorUnitsScalingConverter = ScalingUnitsConverter<float>;
+
+
+    /**
+     * @class StepperMotorUnitsConveterTrivia
+     * @details Trivial implementation of StepperMotorUnitsConverter. 1:1 conversion between units and steps
+     *          Used as default conversion if nothing else is specified
+     */
+    using StepperMotorUnitsConverterTrivia = UnitsConverterTrivia<float>;
+
+    /**
+     * @class EncoderUnitsConverter
+     * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class.
+     */
+    using EncoderUnitsConverter        = UnitsConverter<double>;
+    using EncoderUnitsScalingConverter = ScalingUnitsConverter<double>;
+    using EncoderUnitsConverterTrivia  = UnitsConverterTrivia<double>;
+  }
+
+  // Make available in parent namespace for compatiblity to mtca4u interface
+  using StepperMotorUtility::StepperMotorUnitsConverter;
+  using StepperMotorUtility::StepperMotorUnitsConverterTrivia;
 }
 
 namespace mtca4u{
 
   using namespace ChimeraTK;
+
   /**
    * @class StepperMotorStatusAndError
    * @details Container class for status and error of StepperMotor. These two object describes the state of motor and create a pair.
@@ -570,7 +631,7 @@ class StepperMotorChimeraTKFixture;
 namespace ChimeraTK{
 
   // Forward declarations
-  class StateMachine;
+  //class StateMachine;
 
   /**
    *  @class StepperMotor
@@ -585,15 +646,16 @@ namespace ChimeraTK{
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
      * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  encoderUnitToStepsRatio Ratio between user position unit and encoder steps. Defaults to 1.
+     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
      * @return
      */
-    StepperMotor(std::string const & motorDriverCardDeviceName,
-                 std::string const & moduleName,
-                 unsigned int motorDriverId,
-                 std::string motorDriverCardConfigFileName,
-                 std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_shared<StepperMotorUnitsConverterTrivia>(),
-                 double encoderUnitToStepsRatio = 1.0);
+    StepperMotor(
+        std::string const & motorDriverCardDeviceName,
+        std::string const & moduleName,
+        unsigned int motorDriverId,
+        std::string motorDriverCardConfigFileName,
+        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>(),
+        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter = std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()/*double encoderUnitToStepsRatio = 1.0*/);
 
     /**
      * @brief  Destructor of the class object
@@ -798,7 +860,7 @@ namespace ChimeraTK{
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual void setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual void setStepperMotorUnitsConverter(std::unique_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
@@ -938,8 +1000,9 @@ namespace ChimeraTK{
     unsigned int _motorDriverId;
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
-    std::shared_ptr<ChimeraTK::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    double _encoderUnitToStepsRatio;
+    std::unique_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> _encoderUnitsConverter;
+    //double _encoderUnitToStepsRatio;
     int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
     int  _maxPositionLimitInSteps;

@@ -69,7 +69,7 @@ public:
 protected:
   boost::shared_ptr<ChimeraTK::StepperMotor> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
-  std::shared_ptr<TestUnitConverter> _testUnitConverter;
+  std::unique_ptr<TestUnitConverter> _testUnitConverter;
 };
 
 
@@ -84,7 +84,7 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
   std::string deviceFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
   std::string mapFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
 
-  _testUnitConverter.reset(new TestUnitConverter);
+  _testUnitConverter = std::make_unique<TestUnitConverter>();
 
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();
   _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,  moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
   BOOST_CHECK_EQUAL(_stepperMotor->recalculateStepsInUnits(steps), steps);
 
  std::shared_ptr<ChimeraTK::StepperMotor>  motorWithCustomConverter
-   = std::make_shared<ChimeraTK::StepperMotor>(stepperMotorDeviceName, moduleName, 1, stepperMotorDeviceConfigFile, _testUnitConverter);
+   = std::make_shared<ChimeraTK::StepperMotor>(stepperMotorDeviceName, moduleName, 1, stepperMotorDeviceConfigFile, std::move(_testUnitConverter));
 
   // Should convert according to the TestUnitConverter
   BOOST_CHECK_EQUAL(motorWithCustomConverter->recalculateStepsInUnits(steps), 100.f);
@@ -558,10 +558,14 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 68);
   BOOST_CHECK(_stepperMotor->getMinPositionLimit() == -1000);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimit() ==  1000);
+
+  // Should throw because we attempt to set to nullptr
   _testUnitConverter.reset();
-  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter), mtca4u::MotorDriverException);
-  _testUnitConverter.reset(new TestUnitConverter);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter));
+  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)), mtca4u::MotorDriverException);
+
+  // Now set to a proper converter (1:10)
+  _testUnitConverter = std::make_unique<TestUnitConverter>();
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)));
   BOOST_CHECK_CLOSE(_stepperMotor->getCurrentPosition(), 6.8, 1e-4);
   BOOST_CHECK(_stepperMotor->getMinPositionLimit() == -100);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimit() ==  100);
@@ -594,6 +598,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
   waitForMoveState();
+  // Attempt to set unitsConverter while moving, should throw
   BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverterToDefault(), mtca4u::MotorDriverException);
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
@@ -602,7 +607,9 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter));
+  // Now, it should be safe to set the converter
+  _testUnitConverter = std::make_unique<TestUnitConverter>();
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)));
   _stepperMotor->waitForIdle();
   _stepperMotor->setTargetPositionInSteps(100);
 
@@ -616,13 +623,16 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPosition(), 12.5);
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 125);
+  // In idle, resetting should be fine now
   _stepperMotor->setStepperMotorUnitsConverterToDefault();
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(100));
- BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
   waitForMoveState();
-  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter), mtca4u::MotorDriverException);
+  // Again, this should throw because motor is moving
+  _testUnitConverter = std::make_unique<TestUnitConverter>();
+  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)), mtca4u::MotorDriverException);
   _motorControlerDummy->moveTowardsTarget(1);
    _stepperMotor->waitForIdle();
 
@@ -664,8 +674,8 @@ BOOST_AUTO_TEST_CASE( testGetSetSpeedLimit ){
   // setup
   auto dmapFile = ChimeraTK::getDMapFilePath();
   ChimeraTK::setDMapFilePath("./dummies.dmap");
-  auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
-  MotorDriverCardFactory::instance().setDummyMode(false);
+  auto dummyModeStatus = mtca4u::MotorDriverCardFactory::instance().getDummyMode();
+  mtca4u::MotorDriverCardFactory::instance().setDummyMode(false);
   mtca4u::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
 
 
@@ -708,15 +718,15 @@ BOOST_AUTO_TEST_CASE( testGetSetSpeedLimit ){
 
   // Verify that Vmax is 1048 in the internal register (which is the
   // VMax corresponding to expectedSetSpeed)
-  auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
+  auto md22_instance = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
       BackendFactory::getInstance().createBackend(
           "DFMC_MD22_PERSISTENT_BACKEND"));
   BOOST_ASSERT(md22_instance != NULL);
-  TMC429OutputWord vMaxRegister = readDFMCDummyMotor0VMaxRegister(md22_instance);
+  mtca4u::TMC429OutputWord vMaxRegister = readDFMCDummyMotor0VMaxRegister(md22_instance);
  BOOST_CHECK(vMaxRegister.getDATA() == 1048);
 
   //teardown
-    MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
+    mtca4u::MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
     ChimeraTK::setDMapFilePath(dmapFile);
 }
 
@@ -725,8 +735,8 @@ BOOST_AUTO_TEST_CASE( testGetSetCurrent ){
 
   auto dmapFile = ChimeraTK::getDMapFilePath();
   ChimeraTK::setDMapFilePath("./dummies.dmap");
-  auto dummyModeStatus = MotorDriverCardFactory::instance().getDummyMode();
-  MotorDriverCardFactory::instance().setDummyMode(false);
+  auto dummyModeStatus = mtca4u::MotorDriverCardFactory::instance().getDummyMode();
+  mtca4u::MotorDriverCardFactory::instance().setDummyMode(false);
   mtca4u::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0, "custom_speed_and_curruent_limits.xml");
 
   // The motor has been configured for a maximum current of .24 Amps, with 1.8A
@@ -767,14 +777,14 @@ BOOST_AUTO_TEST_CASE( testGetSetCurrent ){
   BOOST_CHECK(motor.setUserCurrentLimit(.2) == expectedCurrent);
   BOOST_CHECK(motor.getUserCurrentLimit() == expectedCurrent);
   // Verify that CS is 2 in the internal register ()
-  auto md22_instance = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
+  auto md22_instance = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
       BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
   BOOST_ASSERT(md22_instance != nullptr);
-  StallGuardControlData stallGuard = readDFMCDummyMotor0CurrentScale(md22_instance);
+  mtca4u::StallGuardControlData stallGuard = readDFMCDummyMotor0CurrentScale(md22_instance);
   BOOST_CHECK(stallGuard.getCurrentScale() == 2);
 
   //teardown
-    MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
+    mtca4u::MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
     ChimeraTK::setDMapFilePath(dmapFile);
 }
 

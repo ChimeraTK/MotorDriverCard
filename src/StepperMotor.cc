@@ -19,7 +19,7 @@ namespace mtca4u {
   _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
   //_currentPostionsInSteps(0),// position - don't know so set to 0
   //_currentPostionsInUnits(0),
-  _stepperMotorUnitsConverter(new StepperMotorUnitsConverterTrivia()),
+  _stepperMotorUnitsConverter(std::make_unique<StepperMotorUnitsConverterTrivia>()),
   _targetPositionInSteps(_motorControler->getTargetPosition()),
   //_targetPositionInUnits(0),
   //_maxPositionLimit(std::numeric_limits<float>::max()),
@@ -414,29 +414,31 @@ bool mtca4u::StepperMotor::isMoving() {
 
 namespace ChimeraTK{
 
-  StepperMotor::StepperMotor(std::string const & motorDriverCardDeviceName,
-                             std::string const & moduleName,
-                             unsigned int motorDriverId,
-                             std::string motorDriverCardConfigFileName,
-                             std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
-                             double encoderUnitToStepsRatio):
-               _motorDriverCardDeviceName(motorDriverCardDeviceName),
-               _motorDriverId(motorDriverId),
-               _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-               motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
-               _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
-               _stepperMotorUnitsConverter(motorUnitsConverter),
-               _encoderUnitToStepsRatio(encoderUnitToStepsRatio),
-               _encoderPositionOffset(0),
-               _targetPositionInSteps(_motorControler->getTargetPosition()),
-               _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
-               _minPositionLimitInSteps(std::numeric_limits<int>::min()),
-               _autostart(false),
-               _softwareLimitsEnabled(false),
-               _logger(),
-               _mutex(),
-               _converterMutex(),
-               _stateMachine()
+  StepperMotor::StepperMotor(
+        std::string const & motorDriverCardDeviceName,
+        std::string const & moduleName,
+        unsigned int motorDriverId,
+        std::string motorDriverCardConfigFileName,
+        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
+        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter/*double encoderUnitToStepsRatio*/)
+    : _motorDriverCardDeviceName(motorDriverCardDeviceName),
+      _motorDriverId(motorDriverId),
+      _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+                            motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
+      _motorControler(_motorDriverCard->getMotorControler(_motorDriverId)),
+      _stepperMotorUnitsConverter(std::move(motorUnitsConverter)),
+      //_encoderUnitToStepsRatio(encoderUnitToStepsRatio),
+      _encoderUnitsConverter(std::move(encoderUnitsConverter)),
+      _encoderPositionOffset(0),
+      _targetPositionInSteps(_motorControler->getTargetPosition()),
+      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
+      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
+      _autostart(false),
+      _softwareLimitsEnabled(false),
+      _logger(),
+      _mutex(),
+      _converterMutex(),
+      _stateMachine()
   {
     _stateMachine.reset(new StepperMotorStateMachine(*this));
     initStateMachine();
@@ -447,8 +449,9 @@ namespace ChimeraTK{
      _motorDriverId(0),
      _motorDriverCard(),
      _motorControler(),
-     _stepperMotorUnitsConverter(new mtca4u::StepperMotorUnitsConverterTrivia()),
-     _encoderUnitToStepsRatio(1.0),
+     _stepperMotorUnitsConverter(std::make_unique<StepperMotorUnitsConverterTrivia>()),
+     _encoderUnitsConverter(std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()),
+//     _encoderUnitToStepsRatio(1.0),
      _encoderPositionOffset(0),
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
@@ -739,7 +742,8 @@ namespace ChimeraTK{
 
   double StepperMotor::getEncoderPosition(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return _encoderUnitToStepsRatio * (static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
+    //return _encoderUnitToStepsRatio * (static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
+    return _encoderUnitsConverter->stepsToUnits(static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
   }
 
   void StepperMotor::setActualEncoderPosition(double referencePosition){
@@ -747,7 +751,9 @@ namespace ChimeraTK{
     if(!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _encoderPositionOffset = static_cast<int>(referencePosition/_encoderUnitToStepsRatio)
+//    _encoderPositionOffset = static_cast<int>(referencePosition/_encoderUnitToStepsRatio)
+//                             - static_cast<int>(_motorControler->getDecoderPosition());
+    _encoderPositionOffset = _encoderUnitsConverter->unitsToSteps(referencePosition)
                              - static_cast<int>(_motorControler->getDecoderPosition());
   }
 
@@ -761,7 +767,7 @@ namespace ChimeraTK{
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
   }
 
-  void StepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
+  void StepperMotor::setStepperMotorUnitsConverter(std::unique_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
@@ -769,7 +775,7 @@ namespace ChimeraTK{
     if (stepperMotorUnitsConverter == nullptr){
       throw MotorDriverException("unit converter shared pointer not valid", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
+    _stepperMotorUnitsConverter = std::move(stepperMotorUnitsConverter);
   }
 
   void StepperMotor::setStepperMotorUnitsConverterToDefault(){
@@ -777,7 +783,7 @@ namespace ChimeraTK{
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    _stepperMotorUnitsConverter.reset(new StepperMotorUnitsConverterTrivia());
+    _stepperMotorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>();
   }
 
   std::string StepperMotor::getState(){
