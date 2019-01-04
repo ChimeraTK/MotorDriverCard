@@ -167,11 +167,20 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
   int steps = 1000;
   BOOST_CHECK_EQUAL(_stepperMotor->recalculateStepsInUnits(steps), steps);
 
+ //StepperMotorUtility::EncoderUnitsScalingConverter scalingEncoderConverter(10.);
+ std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter
+     = std::make_unique<StepperMotorUtility::EncoderUnitsScalingConverter>(10.);
+
  std::shared_ptr<ChimeraTK::StepperMotor>  motorWithCustomConverter
-   = std::make_shared<ChimeraTK::StepperMotor>(stepperMotorDeviceName, moduleName, 1, stepperMotorDeviceConfigFile, std::move(_testUnitConverter));
+   = std::make_shared<ChimeraTK::StepperMotor>(
+       stepperMotorDeviceName, moduleName, 1, stepperMotorDeviceConfigFile, std::move(_testUnitConverter), std::move(encoderUnitsConverter));
 
   // Should convert according to the TestUnitConverter
   BOOST_CHECK_EQUAL(motorWithCustomConverter->recalculateStepsInUnits(steps), 100.f);
+
+  // The raw encoder position is 10000 from the implementation of
+  // the underlying MotorControlerDummy, so we should end up at 100000
+  BOOST_CHECK_EQUAL(motorWithCustomConverter->getEncoderPosition(), 100000.);
 }
 
 
