@@ -11,10 +11,10 @@
 
 #include <string>
 #include <atomic>
-#include <thread>
-#include <boost/shared_ptr.hpp> // TODO Move to std lib
 #include <memory>
 #include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
+
 
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
@@ -630,9 +630,6 @@ class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK{
 
-  // Forward declarations
-  //class StateMachine;
-
   /**
    *  @class StepperMotor
    *  @brief This class provides the user interface for a basic stepper motor.
@@ -1011,7 +1008,6 @@ namespace ChimeraTK{
     bool _softwareLimitsEnabled;
     Logger _logger;
     mutable boost::mutex _mutex;
-    boost::mutex _converterMutex; //TODO Not used anymore!?
     std::shared_ptr<StateMachine> _stateMachine;
 
     // FIXME Rename

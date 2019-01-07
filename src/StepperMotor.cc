@@ -437,7 +437,6 @@ namespace ChimeraTK{
       _softwareLimitsEnabled(false),
       _logger(),
       _mutex(),
-      _converterMutex(),
       _stateMachine()
   {
     _stateMachine.reset(new StepperMotorStateMachine(*this));
@@ -460,8 +459,7 @@ namespace ChimeraTK{
      _softwareLimitsEnabled(false),
      _logger(),
      _mutex(),
-     _converterMutex(),
-     _stateMachine(){/*std::cout << " ** Init state machine pointer in stepperMotor default ctor, addr is  " << _stateMachine.get();*/}
+     _stateMachine(){}
 
   StepperMotor::~StepperMotor(){}
 
