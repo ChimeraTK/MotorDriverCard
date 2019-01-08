@@ -7,7 +7,7 @@
 
 #include "StateMachine.h"
 #include "MotorControler.h"
-#include <boost/shared_ptr.hpp> //TODO Move to stdlib
+#include <boost/shared_ptr.hpp> //Kept for compatibilty with lower layers
 #include <boost/thread.hpp>
 
 #include <memory>
