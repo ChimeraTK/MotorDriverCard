@@ -529,7 +529,7 @@ BOOST_AUTO_TEST_CASE( testLocking ){
       _motorControlerDummy->moveTowardsTarget(1.0f);
       _stepperMotor->waitForIdle();
     }
-  )
+  );
 
   _stepperMotor->setActualPositionInSteps(currentPosition);
   _stepperMotor->setSoftwareLimitsEnabled(true);
