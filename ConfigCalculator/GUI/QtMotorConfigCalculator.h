@@ -3,6 +3,7 @@
 
 #include "MotorConfigWidget.h"
 #include <QTabWidget>
+#include <QScrollArea>
 #include <QPushButton>
 
 #include "ParametersPanel.h"

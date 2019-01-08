@@ -9,136 +9,95 @@
 
 namespace ChimeraTK{
 
-  bool operator<(const Event &event1, const Event &event2){
+  bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2){
     return event1._eventName < event2._eventName;
   }
 
-  TargetAndAction::TargetAndAction(State *target, std::function<void(void)> callback) : targetState(target), callbackAction(callback){}
+  StateMachine::State::TransitionData::TransitionData(State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback)
+    : targetState(target), entryCallbackAction(entryCallback), internalCallbackAction(internalCallback){}
 
-  TargetAndAction::TargetAndAction(const TargetAndAction& targetAndAction) :
+  StateMachine::State::TransitionData::TransitionData(const State::TransitionData& targetAndAction) :
       targetState(targetAndAction.targetState),
-      callbackAction(targetAndAction.callbackAction){}
+      entryCallbackAction(targetAndAction.entryCallbackAction),
+      internalCallbackAction(targetAndAction.internalCallbackAction){}
 
-  TargetAndAction& TargetAndAction::operator=(const TargetAndAction& targetAndAction){
-    this->targetState = targetAndAction.targetState;
-    this->callbackAction = targetAndAction.callbackAction;
-    return *this;
-  }
-
-  State::State(std::string stateName) :
+  StateMachine::State::State(std::string stateName) :
       _stateName(stateName),
-      _transitionTable(),
-      _unknownEvent(false){}
+      _transitionTable(){}
 
-  State::~State(){}
+  StateMachine::State::~State(){}
 
-  void State::setTransition(Event event, State *target, std::function<void(void)> callbackAction){
-    TargetAndAction targetAndAction(target, callbackAction);
-    _transitionTable.insert(std::pair< Event, TargetAndAction >(event, targetAndAction));
+  void StateMachine::State::setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback){
+    TransitionData transitionData(target, entryCallback, internalCallback);
+    _transitionTable.insert(std::pair< Event, TransitionData >(event, transitionData));
   }
 
-  State* State::performTransition(Event event){
-    typename std::map< Event, TargetAndAction >::iterator it;
-    it = _transitionTable.find(event);
-    if (it !=_transitionTable.end()){
-      (it->second).callbackAction();
-      _unknownEvent = false;
-      return ((it->second).targetState);
-    }else{
-      _unknownEvent = true;
-      return this;
-    }
+
+  const StateMachine::State::TransitionTable& StateMachine::State::getTransitionTable() const{
+    return _transitionTable;
   }
 
-  std::string State::getName() const{
+  std::string StateMachine::State::getName() const{
     return _stateName;
   }
 
-  Event StateMachine::noEvent("noEvent");
-  Event StateMachine::undefinedEvent("undefinedEvent");
+  StateMachine::Event StateMachine::noEvent("noEvent");
 
-  StateMachine::StateMachine(std::string name) :
-             State(name),
+  StateMachine::StateMachine() :
              _initState("initState"),
              _endState("endState"),
              _currentState(&_initState),
-             _userEvent(noEvent),
-             _internEvent(noEvent)
+             _requestedState(nullptr),
+             _stateMachineMutex(),
+             _asyncActionActive(false),
+             _internalEventCallback([]{}),
+             _requestedInternalCallback([]{})
   {}
-
-  StateMachine::StateMachine(const StateMachine &stateMachine) :
-      State(stateMachine.getName()),
-      _initState(stateMachine._initState),
-      _endState("endState"),
-      _currentState(&_initState),
-      _userEvent(noEvent),
-      _internEvent(noEvent){
-  }
-
-  StateMachine& StateMachine::operator =(const StateMachine &stateMachine){
-    this->_stateName = stateMachine._stateName;
-    this->_transitionTable = stateMachine._transitionTable;
-    this->_unknownEvent = stateMachine._unknownEvent;
-    this->_initState = stateMachine._initState;
-    this->_endState = stateMachine._endState;
-    this->_currentState = stateMachine._currentState;
-    this->_userEvent = stateMachine._userEvent;
-    this->_internEvent = stateMachine._internEvent;
-    return *this;
-  }
 
   StateMachine::~StateMachine(){}
 
-  void StateMachine::processEvent(){
-    _unknownEvent = false;
-    if (_userEvent == noEvent){
-      _currentState = _currentState->performTransition(getAndResetInternalEvent());
-    }else{
-      _currentState = _currentState->performTransition(getAndResetUserEvent());
-    }
-  }
 
-  State* StateMachine::getCurrentState(){
+  StateMachine::State* StateMachine::getCurrentState(){
+    std::lock_guard<std::mutex> lck(_stateMachineMutex);
+
+    _internalEventCallback();
     return _currentState;
   }
 
-  State* StateMachine::performTransition(Event event){
-    setUserEvent(event);
-    processEvent();
-    if (propagateEvent()){
-      return State::performTransition(event);
-    }else{
-      return this;
+
+  void StateMachine::setAndProcessUserEvent(Event event){
+    std::lock_guard<std::mutex> lck(_stateMachineMutex);
+   performTransition(event);
+  }
+
+
+  void StateMachine::performTransition(Event event){
+    std::map< Event, State::TransitionData >::const_iterator it;
+
+    const State::TransitionTable& transitionTable = _currentState->getTransitionTable();
+    it = transitionTable.find(event);
+    if(it != transitionTable.end()){
+
+      _requestedState = ((it->second).targetState);
+      _requestedInternalCallback = (it->second).internalCallbackAction;
+
+      // Apply new state right away, if no async action active
+      if(!_asyncActionActive.load()){
+        _currentState = _requestedState;
+        _requestedState = nullptr;
+        _internalEventCallback = _requestedInternalCallback;
+      }
+      (it->second).entryCallbackAction();
     }
   }
 
-  void StateMachine::setUserEvent(Event event){
-    _userEvent = event;
+  void StateMachine::moveToRequestedState(){
+    if(_requestedState != nullptr){
+      _currentState = _requestedState;
+      _internalEventCallback = _requestedInternalCallback;
+      _requestedState = nullptr;
+    }
   }
-
-  Event StateMachine::getAndResetUserEvent(){
-    Event tempEvent = _userEvent;
-    _userEvent = StateMachine::noEvent;
-    return tempEvent;
-  }
-
-  Event StateMachine::getUserEvent(){
-    return _userEvent;
-  }
-
-  Event StateMachine::getAndResetInternalEvent(){
-    Event tempEvent = _internEvent;
-    _internEvent = StateMachine::noEvent;
-    return tempEvent;
-  }
-
-  Event StateMachine::getInternalEvent(){
-    return _internEvent;
-  }
-
-  bool StateMachine::propagateEvent(){
-    return _currentState->isEventUnknown();
-  }
-}
+} /* namespace ChimeraTK */
 
 

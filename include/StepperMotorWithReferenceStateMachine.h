@@ -7,36 +7,37 @@
 
 #include "StepperMotorStateMachine.h"
 #include <atomic>
-#include <future>
+
 
 #ifndef INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
 #define INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
+
+class StepperMotorWithReferenceTestFixture;
 
 namespace ChimeraTK{
 
   class StepperMotorWithReference;
 
-  class StepperMotorWithReferenceStateMachine : public StateMachine{
+  class StepperMotorWithReferenceStateMachine : public StepperMotorStateMachine{
   public:
     StepperMotorWithReferenceStateMachine(StepperMotorWithReference &stepperMotorWithReference);
     virtual ~StepperMotorWithReferenceStateMachine();
-    static Event calibEvent;
-    static Event calcToleranceEvent;
 
-    friend class StepperMotorWithReferenceTest;
+    static const Event calibEvent;
+    static const Event calcToleranceEvent;
+
+    friend class ::StepperMotorWithReferenceTestFixture;
   protected:
     State _calibrating;
     State _calculatingTolerance;
-    State _interruptingAction;
-    StepperMotorStateMachine _baseStateMachine;
-    StepperMotorWithReference &_stepperMotorWithReference;
-    std::future<void> _future;
+    StepperMotorWithReference& _motor;
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
     enum Sign{NEGATIVE = -1, POSITIVE = 1};
     void actionStop();
-    void getActionCompletedEvent();
+    //void getActionCompletedEvent();
     void actionStartCalib();
+    void actionEndCallback();
     void actionStartCalcTolercance();
     void calibrationThreadFunction();
     void toleranceCalcThreadFunction();
@@ -48,6 +49,4 @@ namespace ChimeraTK{
   };
 
 }
-
-
 #endif /* INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_ */

@@ -13,88 +13,125 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <mutex>
+#include <thread>
+#include <atomic>
+
+struct StateMachineTestFixture;
+
 
 namespace ChimeraTK{
 
-  class Event{
+  /**
+   * @brief Base class for a state machine
+   */
+  class StateMachine {
+
+    friend struct ::StateMachineTestFixture;
+
   public:
-    Event(std::string eventName) :  _eventName(eventName){}
-    Event() : _eventName("undefinedEvent"){}
-    bool operator==(Event &event) const{
-      if (this->_eventName == event._eventName){
-	return true;
-      }else{
-	return false;
-      }
-    }
-    operator std::string() const {return _eventName;}
-    friend bool operator<(const Event &event1, const Event &event2);
-  private:
-    std::string _eventName;
-  };
 
-  bool operator<(const Event &event1, const Event &event2);
+    /**
+     * @brief Class describing events triggering the StateMachine
+     */
+    class Event{
+    public:
+      Event(std::string eventName) :  _eventName(eventName){}
+      Event() = delete;
 
-  class State;
+      friend bool operator<(const Event &event1, const Event &event2);
+    private:
+      std::string _eventName;
+    };
 
-  //structure for target and action
 
-  struct TargetAndAction{
-    TargetAndAction(State *target, std::function<void(void)> callback);
-    TargetAndAction(const TargetAndAction& targetAndAction);
-    TargetAndAction& operator=(const TargetAndAction& targetAndAction);
-    State *targetState;
-    std::function<void(void)> callbackAction;
-  };
+    /**
+     * @brief Class describing state of the StateMachine
+     *
+     * This object holds the state name and a TransitionTable describing transitions from an
+     * instance to any target states.
+     */
+    class State{
 
-  //Declaration machine state class
+      friend class StateMachine;
 
-  class State{
-  public:
-    State(std::string stateName = "");
-    virtual ~State();
-    virtual void setTransition(Event event, State *target, std::function<void(void)> callbackAction);
-    virtual State* performTransition(Event event);
-    std::string getName() const;
-    bool isEventUnknown(){return _unknownEvent;}
+      /**
+       * @brief TransitionData struct
+       *
+       * This object holds the target state and two callbacks. The entryCallback is performed when the target state is entered.
+       * The internalCallback can be used to describe internal events of the StateMachine.
+       *
+       * FIXME Defining the internal callback here is a hack, it belongs to the state rather than the transition
+       */
+      struct TransitionData{
+        TransitionData(State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback);
+        TransitionData(const TransitionData& data);
+        TransitionData& operator=(const TransitionData& data) = delete;
+        State *targetState;
+        std::function<void(void)> entryCallbackAction;
+        std::function<void(void)> internalCallbackAction;
+      };
 
-    friend class TestStateMachine;
-  protected:
-    std::string _stateName;
-    std::map<Event, TargetAndAction > _transitionTable;
-    bool _unknownEvent;
-  };
+      /**
+       * TransitionTable type, maps TranssitionData to an event.
+       */
+      using TransitionTable = std::map<Event, TransitionData >;
 
-  //base class for a state machine
+    public:
+      State(std::string stateName = "");
+      virtual ~State();
 
-  class StateMachine : public State{
-  public:
-    StateMachine(std::string name);
-    StateMachine(const StateMachine& stateMachine);
+      /**
+       * This function will append a new state the the TransitionTable of this state.
+       *
+       * @param event - Event causing the transition
+       * @param target - Pointer to the target state
+       * @param entryCallback - A callback function that will be executed when entering the target state
+       * @param internalCallback - An optional internal callback that can be used to implement internal events.
+       *                           To achieve this, the callback function must check the condition for a state transition
+       *                           and might then call StateMachine::performTransition. This callback is performed on each call
+       *                           to StateMachine::getCurrentState.
+       */
+      void setTransition(Event event, State *target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback = []{});
+      const TransitionTable& getTransitionTable() const;
+      /**
+       * @brief getName
+       * @return
+       */
+      std::string getName() const;
+
+    protected:
+      std::string _stateName;
+      TransitionTable _transitionTable;
+    };
+
+    StateMachine();
+    StateMachine(const StateMachine& stateMachine) = delete;
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
-    virtual void processEvent();
-    virtual State* performTransition(Event event);
     State* getCurrentState();
-    void setUserEvent(Event event);
-    Event getAndResetUserEvent();
+    void setAndProcessUserEvent(Event event);
     Event getUserEvent();
     static Event noEvent;
     static Event undefinedEvent;
 
-    friend class TestStateMachine;
   protected:
     State _initState;
     State _endState;
     State *_currentState;
-    Event _userEvent;
-    Event _internEvent;
-    Event getAndResetInternalEvent();
-    Event getInternalEvent();
-    virtual bool propagateEvent();
+    State *_requestedState;
+
+    std::mutex _stateMachineMutex;
+    std::atomic<bool> _asyncActionActive;
+    std::function<void(void)> _internalEventCallback;
+    std::function<void(void)> _requestedInternalCallback;
+    void performTransition(Event event);
+    void moveToRequestedState();
   };
+
+  bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2);
+
+
 }
-
-
 
 #endif /* INCLUDE_STATEMACHINE_H_ */

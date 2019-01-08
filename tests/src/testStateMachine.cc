@@ -1,418 +1,234 @@
-/*
- * testStateMachine.cc
- *
- *  Created on: Feb 22, 2017
- *      Author: vitimic
- */
 
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE StateMachineTest
+#include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "StateMachine.h"
 #include <functional>
+#include <memory>
+#include <atomic>
+#include <mutex>
 
-class TestStateMachine;
 
-class StateMachineSubStateMachine : public ChimeraTK::StateMachine{
+class DerivedStateMachine : public ChimeraTK::StateMachine{
+
 public:
-  StateMachineSubStateMachine();
-  ~StateMachineSubStateMachine();
-  int getInt(){return _int;}
-  int getCount(){return _count;}
+  DerivedStateMachine();
+  ~DerivedStateMachine();
 
-  friend class TestStateMachine;
-private:
-  State _firstState;
-  State _secondState;
-  State _thirdState;
-  ChimeraTK::Event _changeState1;
-  ChimeraTK::Event _changeState2;
-  ChimeraTK::Event _changeState3;
-  void action11();
-  void action12();
-  void action22();
-  void action23();
-  void action33();
-  void action31();
+protected:
+  static ChimeraTK::StateMachine::Event userEvent1;
+  static ChimeraTK::StateMachine::Event userEvent2;
+  static ChimeraTK::StateMachine::Event userEvent3;
+
+  ChimeraTK::StateMachine::State _firstState;
+  ChimeraTK::StateMachine::State _secondState;
+  ChimeraTK::StateMachine::State _thirdState;
+  ChimeraTK::StateMachine::State _fourthState;
+  ChimeraTK::StateMachine::State _fifthState;
+  ChimeraTK::StateMachine::Event _state1to2Event;
+  ChimeraTK::StateMachine::Event _state2to3Event;
+  ChimeraTK::StateMachine::Event _state3to1Event;
+  ChimeraTK::StateMachine::Event _state1to4Event;
+  void actionIdleToFirstState();
+  void actionFirstToSecondState();
+  void actionFirstStateExit();
+  void actionThirdToFirstState();
+  void actionFirstToFourthState();
   void actionExtern1();
   void actionExtern2();
-  int _int;
-  uint32_t _count;
-  bool propagateEvent();
-};
 
-class StateMachineComplete : public ChimeraTK::StateMachine{
-public:
-  StateMachineComplete();
-  ~StateMachineComplete();
+  // This flag allows to emulate external events,
+  // in a real application, we would wait for e.g. halt of a motor
+  std::atomic<bool> _transitionAllowed;
 
-  friend class TestStateMachine;
-private:
-  State _firstUp;
-  State _secondUp;
-  StateMachineSubStateMachine _subStateMachine;
-  ChimeraTK::Event _fromSubStateMachineToFirstUp;
-  ChimeraTK::Event _fromFirstUpToSecondUp;
-  ChimeraTK::Event _fromSecondUpToSubStateMachine;
-};
-
-class TestStateMachine{
-public:
-  TestStateMachine();
-  void testBaseStateMachine();
-  void testTransitionTable();
-  void testSubStateMachine();
-  static ChimeraTK::Event userEvent1;
-  static ChimeraTK::Event userEvent2;
+  // Atomic variables to report properties between main thread
+  // and async task
+  std::atomic<bool> _isCorrectCurrentState;
+  std::atomic<bool> _isCorrectRequestedState;
+  std::atomic<int>  _counter;
 
 private:
-  ChimeraTK::StateMachine _baseStateMachine;
-  StateMachineSubStateMachine _stateMachineTransitionTable;
-  StateMachineComplete _stateMachineComplete;
+  // To be used inside the callbacks which are guarded, so no locking here
+  void assertRequestedState(ChimeraTK::StateMachine::State* referenceState);
+
 };
 
-class StateMachineTestSuite : public test_suite{
-public:
-  StateMachineTestSuite() : test_suite("State Machine Suite"){
-    boost::shared_ptr<TestStateMachine> myTestStateMachine(new TestStateMachine());
-    add(BOOST_CLASS_TEST_CASE(&TestStateMachine::testBaseStateMachine, myTestStateMachine));
-    add(BOOST_CLASS_TEST_CASE(&TestStateMachine::testTransitionTable, myTestStateMachine));
-    add(BOOST_CLASS_TEST_CASE(&TestStateMachine::testSubStateMachine, myTestStateMachine));
-  }
-};
 
-ChimeraTK::Event TestStateMachine::userEvent1("userEvent1");
-ChimeraTK::Event TestStateMachine::userEvent2("userEvent2");
 
-StateMachineSubStateMachine::StateMachineSubStateMachine() :
-	    StateMachine("StateMachineSubStateMachine"),
-	    _firstState("firstState"),
-	    _secondState("secondState"),
-	    _thirdState("thirdState"),
-	    _changeState1("changeState1"),
-	    _changeState2("changeState2"),
-	    _changeState3("changeState3"),
-	    _int(1),
-	    _count(0){
-  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, [](){});
+ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent1("userEvent1");
+ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent2("userEvent2");
+ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent3("userEvent3");
 
-  _firstState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&StateMachineSubStateMachine::action11, this));
-  _firstState.setTransition(TestStateMachine::userEvent1, &_thirdState, std::bind(&StateMachineSubStateMachine::actionExtern1, this));
-  _firstState.setTransition(_changeState1, &_secondState, std::bind(&StateMachineSubStateMachine::action12, this));
-
-  _secondState.setTransition(ChimeraTK::StateMachine::noEvent, &_secondState, std::bind(&StateMachineSubStateMachine::action22, this));
-  _secondState.setTransition(TestStateMachine::userEvent2, &_firstState, std::bind(&StateMachineSubStateMachine::actionExtern2, this));
-  _secondState.setTransition(_changeState2, &_thirdState, std::bind(&StateMachineSubStateMachine::action23, this));
-
-  _thirdState.setTransition(ChimeraTK::StateMachine::noEvent, &_thirdState, std::bind(&StateMachineSubStateMachine::action33, this));
-  _thirdState.setTransition(_changeState3, &_firstState, std::bind(&StateMachineSubStateMachine::action31, this));
-}
-
-StateMachineSubStateMachine::~StateMachineSubStateMachine(){}
-
-void StateMachineSubStateMachine::action11(){
-  if (_count >= 1){
-    _int = 2;
-    _internEvent = _changeState1;
-  }
-  _count++;
-}
-
-void StateMachineSubStateMachine::action12(){
-  _count = 0;
-}
-
-void StateMachineSubStateMachine::actionExtern1(){
-  _int = 100;
-  _count = 0;
-}
-
-void StateMachineSubStateMachine::action22(){
-  if (_count >= 3){
-    _int = 3;
-    _internEvent = _changeState2;
-  }
-  _count++;
-}
-
-void StateMachineSubStateMachine::action23(){
-  _count = 0;
-}
-
-void StateMachineSubStateMachine::actionExtern2(){
-  _int = 200;
-  _count = 0;
-}
-
-void StateMachineSubStateMachine::action33(){
-  if (_count >= 2){
-    _int = 1;
-    _internEvent = _changeState3;
-  }
-  _count++;
-}
-
-void StateMachineSubStateMachine::action31(){
-  _count = 0;
-}
-
-bool StateMachineSubStateMachine::propagateEvent(){
-  if (_currentState->getName() == "firstState" && _currentState->isEventUnknown() == true){
-    return true;
-  }else{
-    return false;
-  }
-}
-
-StateMachineComplete::StateMachineComplete() : StateMachine("StateMachineComplete"),
-    _firstUp("firstUp"),
-    _secondUp("secondUp"),
-    _subStateMachine(),
-    _fromSubStateMachineToFirstUp("fromSubStateMachineToFirstUp"),
-    _fromFirstUpToSecondUp("fromFirstUpToSecondUp"),
-    _fromSecondUpToSubStateMachine("fromSecondUpToSubStateMachine"){
-  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_subStateMachine, [](){});
-  _subStateMachine.setTransition(_fromSubStateMachineToFirstUp, &_firstUp, [](){});
-  _firstUp.setTransition(_fromFirstUpToSecondUp, &_secondUp, [](){});
-  _secondUp.setTransition(_fromSecondUpToSubStateMachine, &_subStateMachine, [](){});
-}
-
-StateMachineComplete::~StateMachineComplete(){}
-
-test_suite*
-init_unit_test_suite( int /*argc*/, char* /*argv*/ [] )
+DerivedStateMachine::DerivedStateMachine() :
+    StateMachine(),
+    _firstState("firstState"),
+    _secondState("secondState"),
+    _thirdState("thirdState"),
+    _fourthState("fourthState"),
+    _fifthState("fifthState"),
+    _state1to2Event("changeState1"),
+    _state2to3Event("changeState2"),
+    _state3to1Event("changeState3"),
+    _state1to4Event("changeState4"),
+    _transitionAllowed(false),
+    _isCorrectCurrentState(false),
+    _isCorrectRequestedState(false),
+    _counter(0)
 {
-  framework::master_test_suite().p_name.value = "State Machine Test Suite";
-  return new StateMachineTestSuite;
+
+  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this),
+                                                                           std::bind(&DerivedStateMachine::actionFirstStateExit, this));
+  _firstState.setTransition(DerivedStateMachine::userEvent1, &_thirdState, std::bind(&DerivedStateMachine::actionExtern1, this));
+  _firstState.setTransition(_state1to2Event, &_secondState, std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
+  _firstState.setTransition(_state1to4Event, &_fourthState, std::bind(&DerivedStateMachine::actionFirstToFourthState, this));
+  _secondState.setTransition(DerivedStateMachine::userEvent2, &_firstState, std::bind(&DerivedStateMachine::actionExtern2, this));
+  _thirdState.setTransition(DerivedStateMachine::userEvent3, &_firstState, std::bind(&DerivedStateMachine::actionThirdToFirstState, this));
 }
 
-TestStateMachine::TestStateMachine() :
-	    _baseStateMachine("baseStateMachine"),
-	    _stateMachineTransitionTable(),
-	    _stateMachineComplete(){}
+DerivedStateMachine::~DerivedStateMachine(){}
 
-void TestStateMachine::testBaseStateMachine(){
-  BOOST_CHECK(_baseStateMachine.getCurrentState()->getName()=="initState") ;
-  BOOST_CHECK_NO_THROW(_baseStateMachine.processEvent());
-  BOOST_CHECK(_baseStateMachine.getCurrentState()->getName()=="initState") ;
-  BOOST_CHECK(_baseStateMachine.getCurrentState()->isEventUnknown()==true) ;
+void DerivedStateMachine::assertRequestedState(ChimeraTK::StateMachine::State* referenceState){
+
+  if(_requestedState == nullptr){
+    _isCorrectRequestedState.exchange(referenceState == nullptr);
+  }
+  else{
+    _isCorrectRequestedState.exchange(referenceState != nullptr &&
+                                      referenceState->getName() == _requestedState->getName());
+  }
 }
 
-void TestStateMachine::testTransitionTable(){
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "initState");
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
+void DerivedStateMachine::actionIdleToFirstState(){
 
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
-  _stateMachineTransitionTable.setUserEvent(TestStateMachine::userEvent1);
-  BOOST_CHECK(_stateMachineTransitionTable._userEvent == TestStateMachine::userEvent1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->isEventUnknown() == true);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 3);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == _stateMachineTransitionTable._changeState2);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 3);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 4);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 3);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 3);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 3);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
-  _stateMachineTransitionTable.setUserEvent(TestStateMachine::userEvent1);
-  BOOST_CHECK(_stateMachineTransitionTable._userEvent == TestStateMachine::userEvent1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._userEvent == ChimeraTK::StateMachine::noEvent);
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->isEventUnknown() == true);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 3);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == _stateMachineTransitionTable._changeState3);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 3);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  _stateMachineTransitionTable.setUserEvent(TestStateMachine::userEvent1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._userEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 100);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 100);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 100);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._internEvent == _stateMachineTransitionTable._changeState3);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 3);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 1);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 1);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 2);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK(_stateMachineTransitionTable.getInt() == 2);
-  BOOST_CHECK(_stateMachineTransitionTable.getCount() == 0);
-  _stateMachineTransitionTable.setUserEvent(TestStateMachine::userEvent2);
-  BOOST_CHECK_NO_THROW(_stateMachineTransitionTable.processEvent());
-  BOOST_CHECK(_stateMachineTransitionTable._userEvent == ChimeraTK::StateMachine::noEvent);
-
-  BOOST_CHECK(_stateMachineTransitionTable.getCurrentState()->getName() == "firstState");
+    _asyncActionActive.exchange(true);
+    std::thread asyncActionIdleToFirst([this]{
+                                              std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                              performTransition(_state1to2Event);
+                                              _asyncActionActive.exchange(false);
+                                             }
+                                   );
+    asyncActionIdleToFirst.detach();
 }
 
-void TestStateMachine::testSubStateMachine(){
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "initState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "initState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  _stateMachineComplete.setUserEvent(TestStateMachine::userEvent2);
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getInt() == 2);
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCount() == 0);
-  _stateMachineComplete.setUserEvent(_stateMachineComplete._fromSubStateMachineToFirstUp);
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->isEventUnknown() == true);
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.isEventUnknown() == false);
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getInt() == 2);
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCount() == 0);
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "thirdState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  _stateMachineComplete.setUserEvent(_stateMachineComplete._fromSubStateMachineToFirstUp);
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "firstUp");
-  _stateMachineComplete.setUserEvent(_stateMachineComplete._fromFirstUpToSecondUp);
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "secondUp");
-  _stateMachineComplete.setUserEvent(_stateMachineComplete._fromSecondUpToSubStateMachine);
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "firstState");
-  BOOST_CHECK_NO_THROW(_stateMachineComplete.processEvent());
-  BOOST_CHECK(_stateMachineComplete.getCurrentState()->getName() == "StateMachineSubStateMachine");
-  BOOST_CHECK(_stateMachineComplete._subStateMachine.getCurrentState()->getName() == "secondState");
+
+void DerivedStateMachine::actionFirstToSecondState(){
+
+  // Wait for main test thread, check current and requested state
+  if(_currentState->getName() == "firstState"){
+    _isCorrectCurrentState.exchange(true);
+  }
+  else{
+    _isCorrectCurrentState.exchange(false);
+  }
+  assertRequestedState(&_secondState);
+
+  _transitionAllowed.exchange(false);
+  while(!_transitionAllowed.load()){}
+
+  _transitionAllowed.exchange(false);
 }
+
+void DerivedStateMachine::actionFirstStateExit(){
+  moveToRequestedState();
+  // Requested state should now be reset
+  assertRequestedState(nullptr);
+}
+
+void DerivedStateMachine::actionExtern1(){
+  _counter.fetch_add(1);
+}
+
+void DerivedStateMachine::actionExtern2(){
+  _counter.fetch_add(2);
+}
+
+void DerivedStateMachine::actionThirdToFirstState(){
+
+  _asyncActionActive.exchange(true);
+  std::thread asyncAction3rdTo1st([this]{
+                                         std::lock_guard<std::mutex> lck(_stateMachineMutex);
+                                         performTransition(_state1to4Event);
+                                         _asyncActionActive.exchange(false);
+                                        }
+                                 );
+  asyncAction3rdTo1st.detach();
+
+  _counter.fetch_add(31);
+}
+
+void DerivedStateMachine::actionFirstToFourthState(){
+
+  _counter.fetch_add(14);
+  moveToRequestedState();
+}
+
+
+
+
+BOOST_AUTO_TEST_SUITE(StateMachineTestSuite)
+
+// Test of the base state machine provided by the StateMachine class
+BOOST_FIXTURE_TEST_CASE( testBaseStateMachine, ChimeraTK::StateMachine ){
+
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
+
+  // Default-constructed event should be undefined
+  ChimeraTK::StateMachine::Event undefinedEvent("undefinedEvent");
+  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(undefinedEvent));
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState") ;
+}
+
+
+BOOST_FIXTURE_TEST_CASE( testDerivedStateMachine, DerivedStateMachine ){
+
+  _transitionAllowed.exchange(true);
+
+  // noEvent triggers transition from idle to first state
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
+  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(ChimeraTK::StateMachine::noEvent));
+
+  // Wait until the async task sets the flag to false
+  while(_transitionAllowed.load()){}
+
+  // Now, we should be in first state, second state should be requested
+  // (the flags are computed in actionFirstToSecondState, before the waiting)
+  BOOST_CHECK(_isCorrectCurrentState.load());
+  BOOST_CHECK(_isCorrectRequestedState.load());
+
+  // Let async task transition to second state
+  _transitionAllowed.exchange(true);
+
+  // Wait for the async task to finish, we should then be in second state and
+  // the requested state pointer should be reset
+  while(_asyncActionActive.load() == true){}
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "secondState");
+  BOOST_CHECK(_isCorrectRequestedState.load());
+
+
+  // Invoke event to move back to 1st state
+  _counter.store(0);
+  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(userEvent2));
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "firstState");
+
+  // Transition from 1st to 3rd state
+  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(userEvent1));
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "thirdState");
+  BOOST_CHECK_EQUAL(_counter.load(), 3);
+
+  // Start transition from 3rd, via 1st, to 4th state
+  // In contrast to the sequence idle->1st->2nd above, this processes
+  // the internal event without interruption
+  _counter.store(0);
+  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(DerivedStateMachine::userEvent3));
+
+  while(_asyncActionActive.load() == true){}
+
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "fourthState");
+  BOOST_CHECK_EQUAL(_counter.load(), 45);
+
+} //BOOST_FIXTURE_TEST_CASE( testDerivedStateMachine, DerivedStateMachine )
+
+
+BOOST_AUTO_TEST_SUITE_END()

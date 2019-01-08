@@ -75,6 +75,11 @@ namespace mtca4u
     virtual void setCalibrationTime(uint32_t calibrationTime) = 0;
     virtual uint32_t getCalibrationTime() = 0;
 
+    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition) = 0;
+    virtual int  getPositiveReferenceSwitchCalibration() = 0;
+    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition) = 0;
+    virtual int  getNegativeReferenceSwitchCalibration() = 0;
+
     virtual bool isEnabled()=0; ///< @deprecated Use isMotorCurrentEnabled instead.
     
     virtual bool isMotorMoving()=0; ///< check if the motor is moving.

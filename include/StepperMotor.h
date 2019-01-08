@@ -1,4 +1,4 @@
-/* 
+/**
  * File:   StepperMotor.h
  * Author: tkozak
  *
@@ -11,9 +11,10 @@
 
 #include <string>
 #include <atomic>
-#include <thread>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
+
 
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
@@ -25,44 +26,106 @@
 #include "StepperMotorError.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
-#include "StateMachine.h"
+#include "StepperMotorStateMachine.h"
 #include "Logger.h"
 
 namespace ChimeraTK {
-  using namespace mtca4u;
-  /**
-   * @class StepperMotorUnitsConverter
-   * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class. \n
-   *          Methods allows to recalculate steps to arbitrary units and arbitrary units into steps.
-   */
-  class StepperMotorUnitsConverter {
-  public:
-    virtual float stepsToUnits(int steps) = 0;
-    virtual int unitsToSteps(float units) = 0;
-    virtual ~StepperMotorUnitsConverter(){}
-  };
-  /**
-   * @class StepperMotorUnitsConveterTrivia
-   * @details Trivial implementation of StepperMotorUnitsConverter. 1:1 conversion between units and steps
-   *          Used as default conversion if nothing else is specified
-   */
-  class StepperMotorUnitsConverterTrivia : public StepperMotorUnitsConverter{
-  public:
-    StepperMotorUnitsConverterTrivia(){
 
+  using mtca4u::MotorDriverException;
+
+  /**
+   * @brief Namespace for utility classes related to the StepperMotor
+   */
+  namespace StepperMotorUtility{
+
+    /**
+     * @brief A generic abstract units converter between an integer value (steps)\n
+     *        and a user-defined unit.
+     * @tparam T Type of the user-unit
+     */
+    template<typename T>
+    class UnitsConverter{
+    public:
+      virtual T stepsToUnits(int steps) = 0;
+      virtual int unitsToSteps(T units) = 0;
+      virtual ~UnitsConverter(){}
     };
-    virtual float stepsToUnits(int steps){
-      return static_cast<float> (steps);
+
+    /**
+     * @brief A 1:1 units converter between an integer value (steps) and a user-defined unit.
+     * @tparam T Type of the user-unit
+     */
+    template<typename T>
+    class UnitsConverterTrivia : public UnitsConverter<T>{
+    public:
+      UnitsConverterTrivia(){}
+
+      virtual T stepsToUnits(int steps){
+        return static_cast<T> (steps);
+      }
+      virtual int unitsToSteps(T units){
+        return static_cast<int> (units);
+      }
     };
-    virtual int unitsToSteps(float units){
-      return static_cast<int> (units);
-    }
-  };
+
+    /**
+     * @brief Implementation of scaling UnitsConverter.\n
+     *        Provides simple mapping: steps = ratio * userUnit.
+     * @tparam T Type of the user-defined unit
+     */
+    template<typename T>
+    class ScalingUnitsConverter : public UnitsConverter<T>{
+      T _userUnitToStepsRatio;
+    public:
+      ScalingUnitsConverter(const T userUnitToStepsRatio)
+        : _userUnitToStepsRatio(userUnitToStepsRatio){}
+      virtual T stepsToUnits(int steps){
+        return _userUnitToStepsRatio * steps;
+      }
+      virtual int unitsToSteps(T units){
+       return units/_userUnitToStepsRatio;
+      }
+    };
+
+    /**
+     * @class StepperMotorUnitsConverter
+     * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class. \n
+     *          Methods allows to recalculate steps to arbitrary units and arbitrary units into steps.
+     */
+    using StepperMotorUnitsConverter = UnitsConverter<float>;
+
+    /**
+     * @class StepperMotorUnitsScalingConverter
+     * @details A convenience implementation for a scaling units converter
+     */
+    using StepperMotorUnitsScalingConverter = ScalingUnitsConverter<float>;
+
+
+    /**
+     * @class StepperMotorUnitsConveterTrivia
+     * @details Trivial implementation of StepperMotorUnitsConverter. 1:1 conversion between units and steps
+     *          Used as default conversion if nothing else is specified
+     */
+    using StepperMotorUnitsConverterTrivia = UnitsConverterTrivia<float>;
+
+    /**
+     * @class EncoderUnitsConverter
+     * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class.
+     */
+    using EncoderUnitsConverter        = UnitsConverter<double>;
+    using EncoderUnitsScalingConverter = ScalingUnitsConverter<double>;
+    using EncoderUnitsConverterTrivia  = UnitsConverterTrivia<double>;
+  }
+
+  // Make available in parent namespace for compatiblity to mtca4u interface
+  using StepperMotorUtility::StepperMotorUnitsConverter;
+  using StepperMotorUtility::StepperMotorUnitsConverterTrivia;
 }
 
 namespace mtca4u{
 
   using namespace ChimeraTK;
+
   /**
    * @class StepperMotorStatusAndError
    * @details Container class for status and error of StepperMotor. These two object describes the state of motor and create a pair.
@@ -561,8 +624,16 @@ namespace mtca4u{
   };
 } //namespace mtca4u
 
+
+// Forward-declare fixture used in the test
+class StepperMotorChimeraTKFixture;
+
 namespace ChimeraTK{
 
+  /**
+   *  @class StepperMotor
+   *  @brief This class provides the user interface for a basic stepper motor.
+   */
   class StepperMotor{
   public:
     /**
@@ -571,25 +642,22 @@ namespace ChimeraTK{
      * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
      * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
      * @param  motorDriverCardConfigFileName Name of configuration file
+     * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
+     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
      * @return
      */
-    StepperMotor(std::string const & motorDriverCardDeviceName, std::string const & moduleName, unsigned int motorDriverId, std::string motorDriverCardConfigFileName);
+    StepperMotor(
+        std::string const & motorDriverCardDeviceName,
+        std::string const & moduleName,
+        unsigned int motorDriverId,
+        std::string motorDriverCardConfigFileName,
+        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>(),
+        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter = std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()/*double encoderUnitToStepsRatio = 1.0*/);
 
     /**
      * @brief  Destructor of the class object
      */
     virtual ~StepperMotor();
-
-    /**
-     * @brief in unit
-     */
-    virtual void moveToPosition(float newPosition);
-
-    /**
-     * @brief in steps
-     */
-
-    virtual void moveToPositionInSteps(int newPositionInSteps);
 
     /**
      * @ brief move the motor a delta from the current position
@@ -604,15 +672,51 @@ namespace ChimeraTK{
     virtual void moveRelativeInSteps(int delta);
 
     /**
+     * @brief Sets the target position in arbitrary units (according to the scaling).
+     *
+     *        If the autostart flag is set to true, this will initiate movement,
+     *        otherwise movement needs to be triggered by calling start().
+     */
+    virtual void setTargetPosition(float newPosition);
+
+    /**
+     * @brief Sets the target position in steps.
+     *
+     *        If the autostart flag is set to true, this will initiate movement,
+     *        otherwise movement needs to be triggered by calling start().
+     */
+    virtual void setTargetPositionInSteps(int newPositionInSteps);
+
+    /**
+     * @brief Initiates movement of the motor.
+     *
+     *  This command is called implicitly if autostart mode is enabled.
+     *  @see setAutostart()
+     */
+    virtual void start();
+
+    /**
      * @brief interrupt the current action and return the motor to idle
      *
      */
     virtual void stop();
 
     /**
-     * @brief interrupt the current action, return the motor to idle and disable it
+     * @brief Immediately interrupt the current action, return the motor to idle and disable it.
+     *
+     * Note: As an effect of stopping the motor as fast as possible, the real motor position and the controller's step counter
+     *       will lose synchronization. Hence, calibration will be lost after calling this method.
      */
     virtual void emergencyStop();
+
+    /**
+     * @brief Reset error state
+     *
+     * Depending on the event that caused the error, this will set the motor to disabled\n
+     * (if power supply is disabled, e.g. after emergency stop) or idle state (e.g. some \n
+     * action failed, but power supply is enabled).
+     */
+    virtual void resetError();
 
     /**
      * @brief It transforms units in steps using the internal converter
@@ -623,7 +727,7 @@ namespace ChimeraTK{
 
     /**
      * @brief it transforms steps in units using the internal converter
-     * @param steps Value in steps to be coverted in units
+     * @param steps Value in steps to be converted in units
      * @return Value in units
      */
     virtual float recalculateStepsInUnits(int steps);
@@ -685,7 +789,8 @@ namespace ChimeraTK{
     /**
      * @brief set actual position in units of the motor respect to some reference
      * @param actualPositionInUnits In order to use the motor an absolute scale must be defined.
-     * This can be done defining the position of the motor respect to an external reference (actual position).
+     *
+     * This can be done defining the position of the motor respect to an external reference (actual position).\n
      * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
      */
     virtual void setActualPosition(float actualPositionInUnits);
@@ -693,6 +798,7 @@ namespace ChimeraTK{
     /**
      * @brief set actual position in steps of the motor respect to some reference
      * @param actualPositionInSteps In order to use the motor an absolute scale must be defined.
+     *
      * This can be done defining the position of the motor respect to an external reference (actual position).
      */
     virtual void setActualPositionInSteps(int actualPositionInSteps);
@@ -720,6 +826,21 @@ namespace ChimeraTK{
     virtual int getCurrentPositionInSteps();
 
     /**
+     * @brief Get the current position from encoder in user-defined units,
+     *        according to the encoderUnitsConverter defined for the instance.
+     */
+    virtual double getEncoderPosition();
+
+    /**
+     *  @brief Set the actual encoder position to a reference value.
+     *
+     *  Analogous to setActualPosition() which sets the motor driver's internal\n
+     *  step counter to a reference value, this function can be used to define a reference\n
+     *  for the encoder output.
+     */
+    virtual void setActualEncoderPosition(double referencePosition);
+
+    /**
      * Return target motor position in the arbitrary units.
      * @return float - target position of motor in arbitrary units.
      */
@@ -732,15 +853,16 @@ namespace ChimeraTK{
 
     int getTargetPositionInSteps();
 
+    // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual void setStepperMotorUnitsConverter(boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual void setStepperMotorUnitsConverter(std::unique_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
+    // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter to the default one
      */
-
     virtual void setStepperMotorUnitsConverterToDefault();
 
     /**
@@ -755,12 +877,18 @@ namespace ChimeraTK{
      */
     virtual void waitForIdle();
 
+
     /**
-     * @brief return error code for the motor. The error code is not a bit-field
-     * 0 - NO_ERROR
-     * 1 - ACTION_ERROR if any of the action started by the user was not successful
-     * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.
-     * 3 - CALIBRATION_LOST if calibration is lost.
+     * @brief Returns the state of the stepper motor's state machine
+     */
+    virtual std::string getState();
+
+    /**
+     * @brief Return error code for the motor. The error code is not a bit-field.\n
+     * 0 - NO_ERROR\n
+     * 1 - ACTION_ERROR if any of the action started by the user was not successful\n
+     * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.\n
+     * 3 - CALIBRATION_LOST if calibration is lost.\n
      */
     virtual StepperMotorError getError();
 
@@ -776,13 +904,13 @@ namespace ChimeraTK{
     virtual uint32_t getCalibrationTime();
 
     /**
-     * @brief enable/disable the motor
-     * @param enable if true motor is enabled
+     * @brief Enable/disable the motor.
+     * @param enable If true, motor is enabled.
      */
     virtual void setEnabled(bool enable);
 
     /**
-     * @brief get motor enalbed flag
+     * @brief get motor enabled flag
      */
     virtual bool getEnabled();
 
@@ -790,6 +918,19 @@ namespace ChimeraTK{
      * @brief set logger level
      */
     virtual void setLogLevel(ChimeraTK::Logger::LogLevel newLevel);
+
+
+    /**
+     * @brief Sets the autostart flag.
+     *        Allows automatic start of movement on change of target position if set to true.
+     */
+    virtual void setAutostart(bool autostart);
+
+    /**
+     * @brief Returns the value of the autostart flag.
+     *        If true, movement is initiated automatically on change of the target position.
+     */
+    virtual bool getAutostart();
 
     /**
      * @brief get logger level
@@ -827,6 +968,14 @@ namespace ChimeraTK{
      */
     virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
 
+
+    /**
+     * @brief Returns True if the motor is moving and false if at
+     * standstill. This command is reliable as long as the motor is not
+     * stalled.
+     */
+    bool isMoving();
+
     /**
      * @brief enabling full stepping movement.
      * The target position is rounded to the next full step value before it is written to the register of the controller chip.
@@ -840,8 +989,7 @@ namespace ChimeraTK{
     bool isFullStepping();
 
     friend class StepperMotorStateMachine;
-    friend class StepperMotorChimeraTKTest;
-    //boost::shared_ptr<mtca4u::MotorControler> getController(){return _motorControler;}
+    friend class ::StepperMotorChimeraTKFixture;
 
   protected: // fields
     StepperMotor();
@@ -849,27 +997,27 @@ namespace ChimeraTK{
     unsigned int _motorDriverId;
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
-    boost::shared_ptr<mtca4u::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::unique_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> _encoderUnitsConverter;
+    //double _encoderUnitToStepsRatio;
+    int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
-    int   _maxPositionLimitInSteps;
-    int   _minPositionLimitInSteps;
+    int  _maxPositionLimitInSteps;
+    int  _minPositionLimitInSteps;
+    bool _autostart;
     bool _softwareLimitsEnabled;
-    volatile std::atomic<bool> _runStateMachine;
     Logger _logger;
     mutable boost::mutex _mutex;
-    boost::mutex _converterMutex;
-    std::thread _stateMachineThread;
     std::shared_ptr<StateMachine> _stateMachine;
-    //std::atomic<bool> _calibrated;
+
+    // FIXME Rename
     virtual bool stateMachineInIdleAndNoEvent();
-    void stateMachineThreadFunction();
-    void stateMachinePerformTransition();
     void resetPositionMotorController(int newPositionInStep);
-    virtual void createStateMachine();
+    virtual void initStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
-    void checkConditionsSetTargetPosAndEmitMoveEvent(int newPositionInSteps);
+    void checkNewPosition(int newPositionInSteps);
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
-  };
-}// namespace
+  }; // class StepperMotor
+}// namespace ChimeraTK
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

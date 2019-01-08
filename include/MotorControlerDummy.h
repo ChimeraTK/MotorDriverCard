@@ -57,6 +57,11 @@ namespace mtca4u{
     virtual void setCalibrationTime(uint32_t calibrationTime);
     virtual uint32_t getCalibrationTime();
 
+    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
+    virtual int  getPositiveReferenceSwitchCalibration();
+    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
+    virtual int  getNegativeReferenceSwitchCalibration();
+
     bool isEnabled();
     
     MotorReferenceSwitchData getReferenceSwitchData();
@@ -84,7 +89,7 @@ namespace mtca4u{
      *   Valid range [0..1]. 1 moves all the way to the target, 0.5 only half the way etc.
      *  @param blockMotor Block the motor and do not move if true.
      *  @param bothEndSwitchesAlwaysOn Emulate that no motor is connected (both end switches are active)
-     *  @param zeroPositions FIXME: what exactly does this do?
+     *  @param zeroPositions FIXME: what exactly does this do? TODO Find out
      *
      *  @attention The 'actual' position is where the step counter currently is.
      *  it is not the hardware positon (absolute position). If the motor is disabled
@@ -121,6 +126,7 @@ namespace mtca4u{
      * - Current, target and absolute positions reset to zero.
      * - Both positive and negative end switches are enabled.
      * - Sets the internal state _bothEndSwitchesAlwaysOn to false.
+     * - Sets calibration time to zero (i.e. not calibrated)
      * - blockMotor status set to false.
      */
     void resetInternalStateToDefaults();
@@ -132,8 +138,6 @@ namespace mtca4u{
     void setNegativeEndSwitch(int endSwitchNeg);
     int  getNEgativeEndSwitch();
 
-//    static std::atomic<int> _positiveEndSwitchPosition; ///< Like the real position of the positive end switch in steps // TSK - make it public, needed for test
-//    static std::atomic<int> _negativeEndSwitchPosition; ///< Like the real position of the negative end switch in steps // TSK - make it public, needed for test
   private:
     mutable std::mutex _motorControllerDummyMutex;
     int _absolutePosition; ///< Like the real absolute position of a motor, in steps

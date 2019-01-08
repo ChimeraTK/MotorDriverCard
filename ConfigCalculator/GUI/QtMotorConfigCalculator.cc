@@ -28,6 +28,9 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
       motorConfigWidgets[motorID]->setMotorEnabled(false);
     }
   }
+
+
+
   // next: create the expert tab
   expertTabWidget = new QTabWidget(this);
 
@@ -38,13 +41,20 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget * parent_)
 
   // add the motor expert widgets
   for (size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID){
+
+    // Define the expert widget
     ParametersPanel * thisMotorExpertWidget = new ParametersPanel(this);
     motorExpertWidgets.push_back(thisMotorExpertWidget);
     populateMotorExpertPanel(thisMotorExpertWidget);
     QString tabLabel("Motor ");
     tabLabel += QString::number(motorID);
 
-    expertTabWidget->addTab(thisMotorExpertWidget, tabLabel);
+    // Define a scroll area to hold the expert widget
+    QScrollArea* thisScrollArea = new QScrollArea;
+    thisScrollArea->setWidget(thisMotorExpertWidget);
+
+    // Add scroll area with expert widget to the tab
+    expertTabWidget->addTab(thisScrollArea, tabLabel);
 
     // make the expert widgets known to the motor config widgets
     motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget, expertTabWidget, motorID+1);

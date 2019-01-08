@@ -172,6 +172,22 @@ namespace mtca4u {
       return static_cast<time_t>(_calibrationTime);
     }
 
+    void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition){
+      //TODO
+    }
+
+    int  MotorControlerDummy::getPositiveReferenceSwitchCalibration(){
+      return 0; //TODO
+    }
+
+    void MotorControlerDummy::setNegativeReferenceSwitchCalibration(int calibratedPosition){
+      //TODO
+    }
+
+    int  MotorControlerDummy::getNegativeReferenceSwitchCalibration(){
+      return 0; //TODO
+    }
+
     MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {
       lock_guard guard(_motorControllerDummyMutex);
       MotorReferenceSwitchData motorReferenceSwitchData;
