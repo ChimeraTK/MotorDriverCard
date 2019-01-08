@@ -108,9 +108,9 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
     add_executable(${executableName} ${testSourceFile})
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
-    target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-    add_test(${excutableName} ${excutableName})
+    add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
   add_test(compareXmlOutput ${PROJECT_BINARY_DIR}/compareXmlOutput.sh)
