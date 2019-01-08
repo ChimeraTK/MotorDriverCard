@@ -108,9 +108,9 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
     add_executable(${executableName} ${testSourceFile})
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
-    target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-    add_test(${excutableName} ${excutableName})
+    add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
   add_test(compareXmlOutput ${PROJECT_BINARY_DIR}/compareXmlOutput.sh)
@@ -151,9 +151,7 @@ FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    ost_UNIT_TEST_FRAMEWORK_LIBRARY
-  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory
-                 prefix" FORCE)
+  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 #Install the library and the executables
