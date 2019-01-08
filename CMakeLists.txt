@@ -151,9 +151,7 @@ FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    ost_UNIT_TEST_FRAMEWORK_LIBRARY
-  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory
-                 prefix" FORCE)
+  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 #Install the library and the executables
