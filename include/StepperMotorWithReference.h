@@ -163,6 +163,14 @@ namespace ChimeraTK{
      * end switch positions.
      */
     virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
+
+    /**
+     * @brief loadEndSwitchCalibration
+     *
+     * Loads end switch calibration from the HW and sets the calibration mode accordingly.
+     */
+    virtual void loadEndSwitchCalibration();
+
     std::atomic<bool> _positiveEndSwitchEnabled;
     std::atomic<bool> _negativeEndSwitchEnabled;
     std::atomic<bool> _calibrationFailed;

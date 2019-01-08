@@ -75,37 +75,41 @@ namespace ChimeraTK{
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
+    // Local variables for calibrated position
+    int calibPositiveEndSwitchInSteps = 0;
+    int calibNegativeEndSwitchInSteps = 0;
+
     // At least one end switch disabled -> calibration not possible
     if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())){
-//      {
-//        boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setCalibrationTime(0);
-//      }
+
+      _motor._motorControler->setCalibrationTime(0);
+
       _motor._calibrationFailed.exchange(true);
       _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
     }
     else{
       findEndSwitch(POSITIVE);
-      _motor._calibPositiveEndSwitchInSteps.exchange(_motor.getCurrentPositionInSteps());
+      calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
       findEndSwitch(NEGATIVE);
-      _motor._calibNegativeEndSwitchInSteps.exchange(_motor.getCurrentPositionInSteps());
+      calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
 
       if (_moveInterrupted.load() || _stopAction.load()){
-//        {
-//          boost::lock_guard<boost::mutex> lck(_motor._mutex);
-          _motor._motorControler->setCalibrationTime(0);
-//        }
+
+        _motor._motorControler->setCalibrationTime(0);
+
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
         // Define positive axis with negative end switch as zero
-        _motor._calibPositiveEndSwitchInSteps.exchange(_motor._calibPositiveEndSwitchInSteps.load() -
-                                                       _motor._calibNegativeEndSwitchInSteps.load());
+        calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
+        calibNegativeEndSwitchInSteps = 0;
+
+        _motor._motorControler->setCalibrationTime(time(nullptr));
+        _motor._motorControler->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
+        _motor._motorControler->setNegativeReferenceSwitchCalibration(0);
+        _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
-//        {
-//          boost::lock_guard<boost::mutex> lck(_motor._mutex);
-          _motor._motorControler->setCalibrationTime(time(nullptr));
-//        }
+
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
         _motor.resetPositionMotorController(0);
       }
