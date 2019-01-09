@@ -40,6 +40,7 @@ namespace ChimeraTK{
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
     initStateMachine();
+    loadEndSwitchCalibration();
   }
 
   StepperMotorWithReference::~StepperMotorWithReference(){}
@@ -63,6 +64,10 @@ namespace ChimeraTK{
     // Overwrite end switch calibration and reset calibration mode
     _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
+
+    // FIXME Refactor so that the following lines are provided by the StepperMotor base class
+    _motorControler->setPositiveReferenceSwitchCalibration(std::numeric_limits<int>::max());
+    _motorControler->setNegativeReferenceSwitchCalibration(std::numeric_limits<int>::min());
     _calibrationMode.exchange(StepperMotorCalibrationMode::SIMPLE);
   }
 
@@ -200,6 +205,26 @@ namespace ChimeraTK{
 
   StepperMotorCalibrationMode StepperMotorWithReference::getCalibrationMode(){
     return _calibrationMode.load();
+  }
+
+  void StepperMotorWithReference::loadEndSwitchCalibration(){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+
+    if(_motorControler->getCalibrationTime() != 0){
+
+      int calibPositiveEndSwitchInSteps = _motorControler->getPositiveReferenceSwitchCalibration();
+      int calibNegativeEndSwitchInSteps = _motorControler->getNegativeReferenceSwitchCalibration();
+      _calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+      _calibNegativeEndSwitchInSteps.exchange(calibNegativeEndSwitchInSteps);
+
+      if(calibPositiveEndSwitchInSteps == std::numeric_limits<int>::max()
+         && calibNegativeEndSwitchInSteps == std::numeric_limits<int>::min()){
+        _calibrationMode.exchange(StepperMotorCalibrationMode::SIMPLE);
+      }
+      else{
+        _calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
+      }
+    }
   }
 }
 

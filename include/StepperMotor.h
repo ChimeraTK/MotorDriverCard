@@ -106,7 +106,7 @@ namespace ChimeraTK {
 
     /**
      * @class StepperMotorUnitsScalingConverter
-     * @details A convienience implementation for a scaling units converter
+     * @details A convenience implementation for a scaling units converter
      */
     using StepperMotorUnitsScalingConverter = ScalingUnitsConverter<float>;
 

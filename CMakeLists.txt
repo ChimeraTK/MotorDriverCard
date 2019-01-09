@@ -43,9 +43,10 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 #use -DSUPPRESS_AUTO_DOC_BUILD=true to suppress to create the doc with every
-#build. The 'make doc' target will still exist, but make install will fail if you don't run it.
+#build. The 'make doc' target will still exist
 if(SUPPRESS_AUTO_DOC_BUILD)
     unset(DOC_DEPENDENCY)
+    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/doc)  # otherwise make install might fail
 else(SUPPRESS_AUTO_DOC_BUILD)
     set(DOC_DEPENDENCY ALL)
 endif(SUPPRESS_AUTO_DOC_BUILD)
@@ -57,8 +58,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-DeviceAccess_CXX_FLAGS}")
 #pugixml now comes with the MotorDriverCard source code
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src)
 aux_source_directory(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src pugixml_sources)
-#turn off effc++ for the pugixml library. It's not our code.
-set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -Wno-effc++)
+#turn off all warnings for the pugixml library. It's not our code.
+set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -w)
 
 FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
 
@@ -104,11 +105,12 @@ if(TESTING_IS_ENABLED)
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testSources)
   foreach( testSourceFile ${testSources})
     #NAME_WE means the base name without path and (longest) extension
-    get_filename_component(excutableName ${testSourceFile} NAME_WE)
-    add_executable(${excutableName} ${testSourceFile})
-    target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
-        ${Boost_FILESYSTEM_LIBRARY}  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-    add_test(${excutableName} ${excutableName})
+    get_filename_component(executableName ${testSourceFile} NAME_WE)
+    add_executable(${executableName} ${testSourceFile})
+    set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+                          ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
   add_test(compareXmlOutput ${PROJECT_BINARY_DIR}/compareXmlOutput.sh)
@@ -134,22 +136,22 @@ endif(TESTING_IS_ENABLED)
 
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${pugixml_sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY} pthread)
+target_link_libraries(${PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} pthread)
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
-  get_filename_component(excutableName ${hardwareTestSourceFile} NAME_WE)
-  add_executable(${excutableName} ${hardwareTestSourceFile})
-  target_link_libraries(${excutableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
+  get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
+  add_executable(${executableName} ${hardwareTestSourceFile})
+  set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+  target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
 #change the install prefix to the source directory in case the user has not specified a destination 
 #i. e. CMAKE_INSTALL_PREFIX is not set manually
 IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory
-                 prefix" FORCE)
+  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 #Install the library and the executables

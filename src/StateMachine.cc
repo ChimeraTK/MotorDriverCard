@@ -41,8 +41,6 @@ namespace ChimeraTK{
     return _stateName;
   }
 
-  StateMachine::Event StateMachine::noEvent("noEvent");
-
   StateMachine::StateMachine() :
              _initState("initState"),
              _endState("endState"),
