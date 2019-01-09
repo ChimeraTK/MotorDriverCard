@@ -9,15 +9,8 @@
 #include "StepperMotorWithReferenceStateMachine.h"
 
 namespace ChimeraTK{
-  StepperMotorWithReference::StepperMotorWithReference(
-        std::string const & motorDriverCardDeviceName,
-        std::string const & moduleName,
-        unsigned int motorDriverId,
-        std::string motorDriverCardConfigFileName,
-        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
-        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter)
+  StepperMotorWithReference::StepperMotorWithReference(StepperMotorParameters & parameters)
     : BasicStepperMotor(),
-      _hasHWReferenceSwitches(true),
       _positiveEndSwitchEnabled(false),
       _negativeEndSwitchEnabled(false),
       _calibrationFailed(false),
@@ -25,16 +18,15 @@ namespace ChimeraTK{
       _toleranceCalculated(false),
       _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
       _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()),
-      _calibrationMode(StepperMotorCalibrationMode::NONE),
       _tolerancePositiveEndSwitch(0),
       _toleranceNegativeEndSwitch(0)
   {
-    _motorDriverCardDeviceName = motorDriverCardDeviceName;
-    _motorDriverId = motorDriverId;
-    _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName);
-    _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
-    _stepperMotorUnitsConverter = std::move(motorUnitsConverter);
-    _encoderUnitsConverter = std::move(encoderUnitsConverter);
+    _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+          parameters.motorDriverCardDeviceName,
+          parameters.moduleName, parameters. motorDriverCardConfigFileName);
+    _motorControler = _motorDriverCard->getMotorControler(parameters.motorDriverId);
+    _stepperMotorUnitsConverter = std::move(parameters.motorUnitsConverter);
+    _encoderUnitsConverter = std::move(parameters.encoderUnitsConverter);
     _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
@@ -59,25 +51,24 @@ namespace ChimeraTK{
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
-    resetPositionMotorController(actualPositionInSteps);
+    setActualPositionActions(actualPositionInSteps);
 
     // Overwrite end switch calibration and reset calibration mode
     _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
-
-    // FIXME Refactor so that the following lines are provided by the StepperMotor base class
-    _motorControler->setPositiveReferenceSwitchCalibration(std::numeric_limits<int>::max());
-    _motorControler->setNegativeReferenceSwitchCalibration(std::numeric_limits<int>::min());
-    _calibrationMode.exchange(StepperMotorCalibrationMode::SIMPLE);
   }
 
+  //FIXME Already provided by base class
   void StepperMotorWithReference::setActualPosition(float actualPosition){
     setActualPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
   }
 
-  void StepperMotorWithReference::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
-
-    BasicStepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
+  void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
+    boost::lock_guard<boost::mutex> guard(_mutex);
+    if (!stateMachineInIdleAndNoEvent()){
+      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    }
+    translateAxisActions(translationInSteps);
 
     // If motor has been calibrated, translate also end switch positions
     if(this->_calibrationMode.load() == StepperMotorCalibrationMode::FULL){
@@ -95,20 +86,9 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
-    }
-    resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
-  }
-
+  //FIXME Already provided by base class
   void StepperMotorWithReference::translateAxis(float translationInUnits){
-    boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
-    }
-    resetMotorControlerAndCheckOverFlowSoftLimits(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
+    translateAxisInSteps(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
   }
 
   void StepperMotorWithReference::calibrate(){
@@ -127,6 +107,7 @@ namespace ChimeraTK{
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calcToleranceEvent);
   }
 
+  // TODO Combine this with getError from base class
   StepperMotorError StepperMotorWithReference::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() && _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
@@ -151,6 +132,10 @@ namespace ChimeraTK{
       }
     }
     return NO_ERROR;
+  }
+
+  bool StepperMotorWithReference::hasHWReferenceSwitches(){
+    return true;
   }
 
   int StepperMotorWithReference::getPositiveEndReferenceInSteps(){

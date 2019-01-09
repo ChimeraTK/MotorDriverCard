@@ -111,7 +111,7 @@ namespace ChimeraTK{
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
 
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
-        _motor.resetPositionMotorController(0);
+        _motor.resetMotorControllerPositions(0);
       }
     }
 

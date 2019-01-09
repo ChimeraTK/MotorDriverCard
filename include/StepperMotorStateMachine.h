@@ -5,23 +5,26 @@
  *      Author: vitimic
  */
 
+#ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
+#define INCLUDE_STEPPERMOTORSTATEMACHINE_H_
+
+//#include "BasicStepperMotor.h"
 #include "StateMachine.h"
 #include "MotorControler.h"
 #include <boost/shared_ptr.hpp> //Kept for compatibilty with lower layers
 #include <boost/thread.hpp>
-
 #include <memory>
-#include <future>
-
-#ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
-#define INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 
 
 namespace ChimeraTK{
-  class StepperMotor;
+
+  class BasicStepperMotor;
+
+
   class  StepperMotorStateMachine : public StateMachine{
+
   public:
-    StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor);
+    StepperMotorStateMachine(BasicStepperMotor &stepperMotor);
     virtual ~StepperMotorStateMachine();
     static const Event initialEvent;
     static const Event moveEvent;
@@ -37,7 +40,7 @@ namespace ChimeraTK{
     State _idle;
     State _disabled;
     State _error;
-    StepperMotor &_stepperMotor;
+    BasicStepperMotor &_stepperMotor;
     boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
     void getActionCompleteEvent();
     void actionWaitForStandstill();

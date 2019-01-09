@@ -33,13 +33,7 @@ namespace ChimeraTK{
      * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
      * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
      */
-    StepperMotorWithReference(
-        std::string const & motorDriverCardDeviceName,
-        std::string const & moduleName,
-        unsigned int motorDriverId,
-        std::string motorDriverCardConfigFileName,
-        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>(),
-        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter = std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()/*double encoderUnitToStepsRatio = 1.0*/);
+    StepperMotorWithReference(StepperMotorParameters &);
 
     /**
      * @brief  Destructor of the class object
@@ -78,6 +72,8 @@ namespace ChimeraTK{
      *
      */
     virtual void translateAxis(float translationInUnits);
+
+    virtual bool hasHWReferenceSwitches();
 
     /**
      *  @brief Calibration of the linear stage.
@@ -146,16 +142,6 @@ namespace ChimeraTK{
     virtual bool limitsOK(int newPositionInSteps);
 
     /**
-     * @brief Perform translation of position values by an offset in steps.
-     * @param translationInSteps
-     *
-     * FIXME Give this an appropriate name
-     * Shifts controller position, numerical limits and, if calibrated,
-     * end switch positions.
-     */
-    virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
-
-    /**
      * @brief loadEndSwitchCalibration
      *
      * Loads end switch calibration from the HW and sets the calibration mode accordingly.
@@ -169,7 +155,6 @@ namespace ChimeraTK{
     std::atomic<bool> _toleranceCalculated;
     std::atomic<int> _calibNegativeEndSwitchInSteps;
     std::atomic<int> _calibPositiveEndSwitchInSteps;
-    std::atomic<StepperMotorCalibrationMode> _calibrationMode;
     std::atomic<float> _tolerancePositiveEndSwitch;
     std::atomic<float> _toleranceNegativeEndSwitch;
   };

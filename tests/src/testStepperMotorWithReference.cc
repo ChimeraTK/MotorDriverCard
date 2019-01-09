@@ -8,6 +8,7 @@
 #include <boost/pointer_cast.hpp>
 using namespace boost::unit_test_framework;
 
+#include "StepperMotor.h"
 #include "StepperMotorWithReference.h"
 #include "StepperMotorWithReferenceStateMachine.h"
 #include "TMC429Constants.h"
@@ -58,6 +59,7 @@ public:
 
 
 protected:
+  ChimeraTK::StepperMotorParameters _stepperMotorParameters;
   std::shared_ptr<ChimeraTK::StepperMotorWithReference> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
 };
@@ -66,9 +68,10 @@ protected:
 using namespace ChimeraTK;
 
 
-StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture() :
-                    _stepperMotor(),
-                    _motorControlerDummy()
+StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
+  : _stepperMotorParameters(),
+    _stepperMotor(),
+    _motorControlerDummy()
 {
   std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
   std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
@@ -80,7 +83,11 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture() :
   _motorControlerDummy->setNegativeEndSwitch(POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER);
   _motorControlerDummy->resetInternalStateToDefaults();
 
-  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile);
+  // Create the StepperMotor object
+  _stepperMotorParameters.motorDriverCardDeviceName = stepperMotorDeviceName;
+  _stepperMotorParameters.moduleName = moduleName;
+  _stepperMotorParameters.motorDriverCardConfigFileName = stepperMotorDeviceConfigFile;
+  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
 }
 
 bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
@@ -278,7 +285,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
   // End swtich enabled for StepperMotorWithReference gets only determined in ctor, so reconstruct here
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
 
   _stepperMotor->setEnabled(true);
   BOOST_CHECK(waitForState("idle"));
@@ -298,7 +305,8 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   // Test calibration w/ disabled positive end switch
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
+
 
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeEndSwitchEnabled(), true);
@@ -316,7 +324,8 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   // Test calibration w/ disabled negative end switch
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(true);
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
+
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeEndSwitchEnabled(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveEndSwitchEnabled(), true);
@@ -331,7 +340,8 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   // Test calibration w/ end switches enabled
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(true);
-  _stepperMotor.reset(new ChimeraTK::StepperMotorWithReference(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
+
   _stepperMotor->setEnabled(true);
   BOOST_CHECK_EQUAL(_stepperMotor->isNegativeEndSwitchEnabled(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveEndSwitchEnabled(), true);

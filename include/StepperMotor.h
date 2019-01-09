@@ -678,7 +678,7 @@ namespace ChimeraTK{
     /**
      * @brief  Destructor of the class object
      */
-    virtual ~StepperMotor();
+    virtual ~StepperMotor(){};
 
     /**
      * @ brief move the motor a delta from the current position

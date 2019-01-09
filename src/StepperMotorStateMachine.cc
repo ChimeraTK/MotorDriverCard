@@ -6,7 +6,7 @@
  */
 
 #include "StepperMotorStateMachine.h"
-#include "StepperMotor.h"
+#include "BasicStepperMotor.h"
 #include <memory>
 #include <thread>
 #include <chrono>
@@ -23,7 +23,7 @@ namespace ChimeraTK{
   const StateMachine::Event StepperMotorStateMachine::resetToIdleEvent("resetToIdleEvent");
   const StateMachine::Event StepperMotorStateMachine::resetToDisableEvent("resetToDisableEvent");
 
-  StepperMotorStateMachine::StepperMotorStateMachine(ChimeraTK::StepperMotor &stepperMotor) :
+  StepperMotorStateMachine::StepperMotorStateMachine(BasicStepperMotor &stepperMotor) :
       StateMachine(),
       _moving("moving"),
       _idle("idle"),

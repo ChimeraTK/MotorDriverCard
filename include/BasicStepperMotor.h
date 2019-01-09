@@ -58,13 +58,7 @@ namespace ChimeraTK {
      * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
      * @return
      */
-    BasicStepperMotor(
-        std::string const & motorDriverCardDeviceName,
-        std::string const & moduleName,
-        unsigned int motorDriverId,
-        std::string motorDriverCardConfigFileName,
-        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>(),
-        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter = std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()/*double encoderUnitToStepsRatio = 1.0*/);
+    BasicStepperMotor(StepperMotorParameters &);
 
     /**
      * @brief  Destructor of the class object
@@ -433,10 +427,29 @@ namespace ChimeraTK {
     friend class StepperMotorStateMachine;
     friend class ::StepperMotorChimeraTKFixture;
 
-  protected: // fields
+  protected:
     BasicStepperMotor();
-    std::string _motorDriverCardDeviceName;
-    unsigned int _motorDriverId;
+
+    // FIXME Rename
+    virtual bool stateMachineInIdleAndNoEvent();
+
+    /// Common actions for setActualPosition for this and derived classes
+    void setActualPositionActions(int actualPositionInSteps);
+
+    /// Resets target and actual postions of the MotorControler
+    void resetMotorControllerPositions(int newPositionInStep);
+
+    /// Translate positions limits, if in numerical range
+    void translateLimits(int translationInSteps);
+
+    virtual void initStateMachine();
+    virtual bool limitsOK(int newPositionInSteps);
+    bool checkIfOverflow(int termA, int termB);
+    void checkNewPosition(int newPositionInSteps);
+
+    /// Common actions for translateAxis for this and derived classes
+    void translateAxisActions(int translationInSteps);
+
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
 
@@ -449,19 +462,12 @@ namespace ChimeraTK {
     int  _minPositionLimitInSteps;
     bool _autostart;
     bool _softwareLimitsEnabled;
-    const bool _hasHWReferenceSwitches;
     Logger _logger;
     mutable boost::mutex _mutex;
     std::shared_ptr<StateMachine> _stateMachine;
+    std::atomic<StepperMotorCalibrationMode> _calibrationMode;
 
-    // FIXME Rename
-    virtual bool stateMachineInIdleAndNoEvent();
-    void resetPositionMotorController(int newPositionInStep);
-    virtual void initStateMachine();
-    virtual bool limitsOK(int newPositionInSteps);
-    bool checkIfOverflow(int termA, int termB);
-    void checkNewPosition(int newPositionInSteps);
-    virtual void resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps);
   }; // class BasicStepperMotor
 }// namespace ChimeraTK
+
 #endif	/* CHIMERATK_BASIC_STEPPER_MOTOR_H */
