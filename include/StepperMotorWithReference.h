@@ -8,7 +8,7 @@
 #ifndef CHIMERATK_STEPPER_MOTOR_H
 #define CHIMERATK_STEPPER_MOTOR_H
 
-#include "StepperMotor.h"
+#include "BasicStepperMotor.h"
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
@@ -20,18 +20,9 @@ class StepperMotorWithReferenceTestFixture;
 namespace ChimeraTK{
 
   /**
-   *  @brief Enum type describing how the system is calibrated:
-   *
-   *  0 - NONE:   No calibration has been determined or it has been lost.\n
-   *  1 - SIMPLE: The motor position has been defined by setActualPosition().\n
-   *              No valid position for the end switches can be determined. Useful if driving in full range between the end switches is possible.\n
-   *  2 - FULL:   The motor has been calibrated by calling calibrate(). The end switch position has been determined.\n
-   */
-  enum class StepperMotorCalibrationMode : int {NONE, SIMPLE, FULL};
-  /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
    */
-  class StepperMotorWithReference : public StepperMotor{
+  class StepperMotorWithReference : public BasicStepperMotor{
   public:
     /**
      * @brief  Constructor of the class object

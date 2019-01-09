@@ -16,7 +16,8 @@ namespace ChimeraTK{
         std::string motorDriverCardConfigFileName,
         std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
         std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter)
-    : StepperMotor(),
+    : BasicStepperMotor(),
+      _hasHWReferenceSwitches(true),
       _positiveEndSwitchEnabled(false),
       _negativeEndSwitchEnabled(false),
       _calibrationFailed(false),
@@ -34,7 +35,6 @@ namespace ChimeraTK{
     _motorControler = _motorDriverCard->getMotorControler(_motorDriverId);
     _stepperMotorUnitsConverter = std::move(motorUnitsConverter);
     _encoderUnitsConverter = std::move(encoderUnitsConverter);
-    //_encoderUnitToStepsRatio = encoderUnitsToStepsRatio;
     _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
@@ -46,7 +46,7 @@ namespace ChimeraTK{
 
   bool StepperMotorWithReference::limitsOK(int newPositionInSteps){
     if (newPositionInSteps >= _calibNegativeEndSwitchInSteps.load() && newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
-      return StepperMotor::limitsOK(newPositionInSteps);
+      return BasicStepperMotor::limitsOK(newPositionInSteps);
     }
     else{
       return false;
@@ -72,7 +72,7 @@ namespace ChimeraTK{
 
   void StepperMotorWithReference::resetMotorControlerAndCheckOverFlowSoftLimits(int translationInSteps){
 
-    StepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
+    BasicStepperMotor::resetMotorControlerAndCheckOverFlowSoftLimits(translationInSteps);
 
     // If motor has been calibrated, translate also end switch positions
     if(this->_calibrationMode.load() == StepperMotorCalibrationMode::FULL){
