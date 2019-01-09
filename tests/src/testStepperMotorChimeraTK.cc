@@ -9,6 +9,7 @@
 using namespace boost::unit_test_framework;
 
 #include "StepperMotor.h"
+#include "BasicStepperMotor.h"
 #include "TMC429Constants.h"
 #include "DFMC_MD22Dummy.h"
 #include "MotorControlerDummy.h"
@@ -61,13 +62,11 @@ static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shar
 class StepperMotorChimeraTKFixture{
 public:
   StepperMotorChimeraTKFixture();
-  void setCalibrationTime(uint32_t time);
-  void waitForMoveState();
-  void waitForDisable();
+  // Helper functions
   bool waitForState(std::string stateName, unsigned timeoutInSeconds);
 
 protected:
-  boost::shared_ptr<ChimeraTK::StepperMotor> _stepperMotor;
+  std::unique_ptr<ChimeraTK::StepperMotor> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
   std::unique_ptr<TestUnitConverter> _testUnitConverter;
 };
@@ -90,7 +89,12 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
   _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,  moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
 
   // Omit the optional 5th argument for the units converter here so we get the default 1:1 converter for the encoder readout
-  _stepperMotor.reset(new ChimeraTK::StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  ChimeraTK::StepperMotorParameters parameters;
+  parameters.motorDriverCardDeviceName = stepperMotorDeviceName;
+  parameters.moduleName = moduleName;
+  parameters.motorDriverCardConfigFileName = stepperMotorDeviceConfigFile;
+  _stepperMotor = std::make_unique<BasicStepperMotor>(parameters);
+
   // Allow autostart to save some lines in the tests
   _stepperMotor->setAutostart(true);
 
@@ -103,39 +107,6 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
   _stepperMotor->setMinPositionLimitInSteps(-1000);
 }
 
-
-void StepperMotorChimeraTKFixture::setCalibrationTime(uint32_t time){
-  std::lock_guard<boost::mutex> lck(_stepperMotor->_mutex);
-  _stepperMotor->_motorControler->setCalibrationTime(time);
-}
-
-// FIXME remove these
-void StepperMotorChimeraTKFixture::waitForMoveState(){
-  while (1){
-    usleep(1000);
-    _stepperMotor->_mutex.lock();
-    if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "moving"){
-      _stepperMotor->_mutex.unlock();
-    }
-    else{
-      break;
-    }
-  }
-  _stepperMotor->_mutex.unlock();
-}
-
-void StepperMotorChimeraTKFixture::waitForDisable(){
-  while (1){
-    usleep(1000);
-    _stepperMotor->_mutex.lock();
-    if ((_stepperMotor->_stateMachine->getCurrentState())->getName() != "disable"){
-      _stepperMotor->_mutex.unlock();
-    }else{
-      break;
-    }
-  }
-  _stepperMotor->_mutex.unlock();
-}
 
 bool StepperMotorChimeraTKFixture::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
 
@@ -171,9 +142,16 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
  std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter
      = std::make_unique<StepperMotorUtility::EncoderUnitsScalingConverter>(10.);
 
- std::shared_ptr<ChimeraTK::StepperMotor>  motorWithCustomConverter
-   = std::make_shared<ChimeraTK::StepperMotor>(
-       stepperMotorDeviceName, moduleName, 1, stepperMotorDeviceConfigFile, std::move(_testUnitConverter), std::move(encoderUnitsConverter));
+ StepperMotorParameters parameters;
+ parameters.motorDriverCardDeviceName = stepperMotorDeviceName;
+ parameters.moduleName = moduleName;
+ parameters.motorDriverId = 1U;
+ parameters.motorDriverCardConfigFileName = stepperMotorDeviceConfigFile;
+ parameters.motorUnitsConverter = std::move(_testUnitConverter);
+ parameters.encoderUnitsConverter = std::move(encoderUnitsConverter);
+
+ std::unique_ptr<ChimeraTK::StepperMotor>  motorWithCustomConverter
+   = std::make_unique<ChimeraTK::BasicStepperMotor>(parameters);
 
   // Should convert according to the TestUnitConverter
   BOOST_CHECK_EQUAL(motorWithCustomConverter->recalculateStepsInUnits(steps), 100.f);
@@ -234,7 +212,7 @@ BOOST_AUTO_TEST_CASE( testSetActualPosition){
 
   uint32_t timeEG = static_cast<uint32_t>(time(nullptr));
 
-  setCalibrationTime(timeEG);
+  _motorControlerDummy->setCalibrationTime(timeEG);
   BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationTime(), timeEG);
 }
 
@@ -274,7 +252,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(10));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForMoveState();
+  waitForState("moving");
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(20), mtca4u::MotorDriverException);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
   BOOST_CHECK_THROW(_stepperMotor->moveRelativeInSteps(10), mtca4u::MotorDriverException);
@@ -286,7 +264,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(20));
 
-  waitForMoveState();
+  waitForState("moving");
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(20), mtca4u::MotorDriverException);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
@@ -311,7 +289,7 @@ BOOST_AUTO_TEST_CASE(testMove){
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(30));
 
-  waitForMoveState();
+  waitForState("moving");
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 30);
@@ -326,7 +304,7 @@ BOOST_AUTO_TEST_CASE(testMoveRelative){
   BOOST_CHECK_NO_THROW(_stepperMotor->moveRelativeInSteps(5));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForMoveState();
+  waitForState("moving");
   double firstEncoderPosition = _stepperMotor->getEncoderPosition();
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
@@ -348,7 +326,7 @@ BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
   BOOST_CHECK(_stepperMotor->getAutostart() == true);
   int targetPosSteps = 350;
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(targetPosSteps));
-  waitForMoveState();
+  waitForState("moving");
   _motorControlerDummy->moveTowardsTarget(1.f);
   BOOST_CHECK(_stepperMotor->getTargetPositionInSteps() == targetPosSteps);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == targetPosSteps);
@@ -362,7 +340,7 @@ BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
   BOOST_CHECK(_stepperMotor->getAutostart() == false);
   BOOST_CHECK_NO_THROW(_stepperMotor->start());
 
-  waitForMoveState();
+  waitForState("moving");
   _motorControlerDummy->moveTowardsTarget(1.f);
   _stepperMotor->waitForIdle();
 
@@ -381,7 +359,7 @@ BOOST_AUTO_TEST_CASE( testStop ){
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(50));
 
-  waitForMoveState();
+  waitForState("moving");
   _motorControlerDummy->moveTowardsTarget(0.4);
   _stepperMotor->stop();
   _stepperMotor->waitForIdle();
@@ -459,7 +437,7 @@ BOOST_AUTO_TEST_CASE( testFullStepping ){
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 1023);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(-33));
-  waitForMoveState();
+  waitForState("moving");
 
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
@@ -475,7 +453,7 @@ BOOST_AUTO_TEST_CASE( testFullStepping ){
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 767);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(48));
-  waitForMoveState();
+  waitForState("moving");
 
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
@@ -499,7 +477,7 @@ BOOST_AUTO_TEST_CASE( testFullStepping ){
   BOOST_CHECK(_motorControlerDummy->getMicroStepCount() == 255);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
-  waitForMoveState();
+  waitForState("moving");
 
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
@@ -525,7 +503,7 @@ BOOST_AUTO_TEST_CASE( testLocking ){
       if(_stepperMotor->isSystemIdle()){
         _stepperMotor->setUserSpeedLimit(10000);
       }
-      waitForMoveState();
+      waitForState("moving");
       _motorControlerDummy->moveTowardsTarget(1.0f);
       _stepperMotor->waitForIdle();
     }
@@ -595,7 +573,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(10));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForMoveState();
+  waitForState("moving");
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 10);
@@ -606,7 +584,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK_NO_THROW(_stepperMotor->moveRelative(5));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForMoveState();
+  waitForState("moving");
   // Attempt to set unitsConverter while moving, should throw
   BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverterToDefault(), mtca4u::MotorDriverException);
   _motorControlerDummy->moveTowardsTarget(1);
@@ -624,7 +602,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
 
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForMoveState();
+  waitForState("moving");
   _motorControlerDummy->moveTowardsTarget(0.5);
   _stepperMotor->stop();
 
@@ -638,7 +616,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPosition(100));
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForMoveState();
+  waitForState("moving");
   // Again, this should throw because motor is moving
   _testUnitConverter = std::make_unique<TestUnitConverter>();
   BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)), mtca4u::MotorDriverException);
