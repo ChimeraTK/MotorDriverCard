@@ -44,6 +44,15 @@ namespace ChimeraTK {
   enum class StepperMotorCalibrationMode : int {NONE, SIMPLE, FULL};
 
   /**
+   * Enum type to select the StepperMotor variant when
+   * created by the StepperMotorFactory
+   *
+   * BASIC:  A basic stepper motor
+   * LINEAR: A linear stage, supports hardware end switches
+   */
+  enum class StepperMotorType : int {BASIC, LINEAR};
+
+  /**
    * @brief Namespace for utility classes related to the StepperMotor
    */
   namespace StepperMotorUtility{
@@ -130,6 +139,7 @@ namespace ChimeraTK {
   // Make available in parent namespace for compatiblity to mtca4u interface
   using StepperMotorUtility::StepperMotorUnitsConverter;
   using StepperMotorUtility::StepperMotorUnitsConverterTrivia;
+
 }
 
 namespace mtca4u{
@@ -668,6 +678,14 @@ namespace ChimeraTK{
 //        motorUnitsConverter{std::move(motorUnitsConverter)},
 //        encoderUnitsConverter{std::move(encoderUnitsConverter)}{}
 
+//    StepperMotorParameters(const StepperMotorParameters& p)
+//      : deviceName{p.deviceName},
+//        moduleName{p.moduleName},
+//        driverId{p.driverId},
+//        configFileName{p.configFileName},
+//        motorUnitsConverter{*p.motorUnitsConverter},
+//        motorUnitsConverter{*p.motorUnitsConverter},
+
     /// Name of the device in DMAP file
     std::string deviceName{""};
     /// Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
@@ -1065,5 +1083,45 @@ namespace ChimeraTK{
     friend class ::StepperMotorChimeraTKFixture;
 
   }; // class StepperMotor
+
+
+  /**
+   * @brief The StepperMotorFactory is used to create StepperMotor instances.
+   *
+   * This assures that for each pysical device, only one instance is created
+   * and it manages creation of the different implementations.
+   */
+  class StepperMotorFactory{
+
+  public:
+    StepperMotorFactory(const StepperMotorFactory&) = delete;
+    StepperMotorFactory(const StepperMotorFactory&&) = delete;
+    StepperMotorFactory& operator=(const StepperMotorFactory&) = delete;
+    StepperMotorFactory& operator=(const StepperMotorFactory&&) = delete;
+
+    /// Returns a reference to the StepperMotorFactory
+    static StepperMotorFactory& instance();
+
+    /// Creates an StepperMotor instance according to the specifed type and configuration parameters
+    std::shared_ptr<StepperMotor> create(const StepperMotorType type, StepperMotorParameters&& parameters);
+
+
+  private:
+    /// This is a singleton and can only be retrieved by the instance() method
+    StepperMotorFactory();
+
+    /// Allow thread-safe usage of create() function
+    std::mutex _factoryMutex;
+
+    /**
+     * Used to identify created motors
+     * Must take into account device and module names and the id
+     * of a motor.
+     */
+    using MotorIdentifier = std::tuple<std::string, std::string, unsigned>;
+    /// A map holding all existing instances
+    std::map<MotorIdentifier, std::weak_ptr<StepperMotor>> _existingMotors;
+  }; // class StepperMotorFactory
+
 }// namespace ChimeraTK
 #endif	/* MTCA4U_STEPPER_MOTOR_H */

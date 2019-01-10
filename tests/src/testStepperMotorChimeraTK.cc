@@ -131,6 +131,20 @@ bool StepperMotorChimeraTKFixture::waitForState(std::string stateName, unsigned 
 
 BOOST_FIXTURE_TEST_SUITE(StepperMotorChimeraTKTest, StepperMotorChimeraTKFixture)
 
+BOOST_AUTO_TEST_CASE(  testStepperMotorFactory ){
+
+  StepperMotorFactory& inst = StepperMotorFactory::instance();
+
+  ChimeraTK::StepperMotorParameters parameters;
+  parameters.deviceName = stepperMotorDeviceName;
+  parameters.moduleName = moduleName;
+  parameters.configFileName = stepperMotorDeviceConfigFile;
+
+  auto _motor = inst.create(StepperMotorType::BASIC, parameters);
+
+  BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), false);
+}
+
 
 BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
 
