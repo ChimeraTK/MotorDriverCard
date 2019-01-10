@@ -13,9 +13,9 @@ namespace ChimeraTK{
   BasicStepperMotor::BasicStepperMotor(StepperMotorParameters & parameters)
     :
       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-                            parameters.motorDriverCardDeviceName, parameters.moduleName,
-                            parameters.motorDriverCardConfigFileName)),
-      _motorControler(_motorDriverCard->getMotorControler(parameters.motorDriverId)),
+                            parameters.deviceName, parameters.moduleName,
+                            parameters.configFileName)),
+      _motorControler(_motorDriverCard->getMotorControler(parameters.driverId)),
       _stepperMotorUnitsConverter(std::move(parameters.motorUnitsConverter)),
       _encoderUnitsConverter(std::move(parameters.encoderUnitsConverter)),
       _encoderPositionOffset(0),

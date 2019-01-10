@@ -84,9 +84,9 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
   _motorControlerDummy->resetInternalStateToDefaults();
 
   // Create the StepperMotor object
-  _stepperMotorParameters.motorDriverCardDeviceName = stepperMotorDeviceName;
+  _stepperMotorParameters.deviceName = stepperMotorDeviceName;
   _stepperMotorParameters.moduleName = moduleName;
-  _stepperMotorParameters.motorDriverCardConfigFileName = stepperMotorDeviceConfigFile;
+  _stepperMotorParameters.configFileName = stepperMotorDeviceConfigFile;
   _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
 }
 

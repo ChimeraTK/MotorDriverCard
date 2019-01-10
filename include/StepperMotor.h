@@ -641,12 +641,44 @@ class StepperMotorChimeraTKFixture;
 namespace ChimeraTK{
 
 
+
+  //* @param  motorDriverCardDeviceName Name of the device in DMAP file
+  //* @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
+  //* @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
+  //* @param  motorDriverCardConfigFileName Name of configuration file
+  //* @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
+  //* @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
+
+  /**
+   * @brief Contains parameters for initialization of a StepperMotor object
+   */
   struct StepperMotorParameters{
-    std::string motorDriverCardDeviceName;
-    std::string moduleName;
-    unsigned int motorDriverId{0U};
-    std::string motorDriverCardConfigFileName;
+
+//    StepperMotorParameters(
+//          const std::string &deviceName,
+//          const std::string &moduleName,
+//          const unsigned driverId,
+//          const std::string &configFileName,
+//          std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
+//          std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter)
+//      : deviceName{deviceName},
+//        moduleName{moduleName},
+//        driverId{driverId},
+//        configFileName{configFileName},
+//        motorUnitsConverter{std::move(motorUnitsConverter)},
+//        encoderUnitsConverter{std::move(encoderUnitsConverter)}{}
+
+    /// Name of the device in DMAP file
+    std::string deviceName{""};
+    /// Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
+    std::string moduleName{""};
+    /// Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
+    unsigned int driverId{0U};
+    /// Name of configuration file
+    std::string configFileName{""};
+    /// A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
     std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter{std::make_unique<StepperMotorUnitsConverterTrivia>()};
+    /// A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
     std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter{std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()};
   };
 
@@ -657,23 +689,6 @@ namespace ChimeraTK{
    */
   class StepperMotor{
   public:
-    /**
-     * @brief  Constructor of the class object
-     * @param  motorDriverCardDeviceName Name of the device in DMAP file
-     * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
-     * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
-     * @param  motorDriverCardConfigFileName Name of configuration file
-     * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @return
-     */
-//    StepperMotor(
-//        std::string const & motorDriverCardDeviceName,
-//        std::string const & moduleName,
-//        unsigned int motorDriverId,
-//        std::string motorDriverCardConfigFileName,
-//        std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>(),
-//        std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter = std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>());
 
     /**
      * @brief  Destructor of the class object
@@ -1008,6 +1023,15 @@ namespace ChimeraTK{
      * @brief returns true if motor is moving per full step, false otherwise
      */
     virtual bool isFullStepping() = 0;
+
+    /**
+     * @brief Returns true if the object supports HW reference switches
+     *
+     * This function should be called before accessing functions specific to HW
+     * reference switches which throw if no support is provided by the concrete
+     * object.
+     */
+    virtual bool hasHWReferenceSwitches() = 0;
 
 
     virtual void calibrate() = 0;

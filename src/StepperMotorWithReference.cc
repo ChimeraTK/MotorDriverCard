@@ -22,9 +22,9 @@ namespace ChimeraTK{
       _toleranceNegativeEndSwitch(0)
   {
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-          parameters.motorDriverCardDeviceName,
-          parameters.moduleName, parameters. motorDriverCardConfigFileName);
-    _motorControler = _motorDriverCard->getMotorControler(parameters.motorDriverId);
+          parameters.deviceName,
+          parameters.moduleName, parameters. configFileName);
+    _motorControler = _motorDriverCard->getMotorControler(parameters.driverId);
     _stepperMotorUnitsConverter = std::move(parameters.motorUnitsConverter);
     _encoderUnitsConverter = std::move(parameters.encoderUnitsConverter);
     _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
@@ -58,16 +58,12 @@ namespace ChimeraTK{
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
   }
 
-  //FIXME Already provided by base class
-  void StepperMotorWithReference::setActualPosition(float actualPosition){
-    setActualPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
-  }
-
   void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
+
     translateAxisActions(translationInSteps);
 
     // If motor has been calibrated, translate also end switch positions
@@ -78,17 +74,10 @@ namespace ChimeraTK{
         throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
       }
       else{
-        // FIXME Use fetch_add
-        //_calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
-        _calibPositiveEndSwitchInSteps = _calibPositiveEndSwitchInSteps.load() + translationInSteps;
-        _calibNegativeEndSwitchInSteps = _calibNegativeEndSwitchInSteps.load() + translationInSteps;
+        _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
+        _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
       }
     }
-  }
-
-  //FIXME Already provided by base class
-  void StepperMotorWithReference::translateAxis(float translationInUnits){
-    translateAxisInSteps(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
   }
 
   void StepperMotorWithReference::calibrate(){

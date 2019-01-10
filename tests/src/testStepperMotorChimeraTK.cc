@@ -90,9 +90,9 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
 
   // Omit the optional 5th argument for the units converter here so we get the default 1:1 converter for the encoder readout
   ChimeraTK::StepperMotorParameters parameters;
-  parameters.motorDriverCardDeviceName = stepperMotorDeviceName;
+  parameters.deviceName = stepperMotorDeviceName;
   parameters.moduleName = moduleName;
-  parameters.motorDriverCardConfigFileName = stepperMotorDeviceConfigFile;
+  parameters.configFileName = stepperMotorDeviceConfigFile;
   _stepperMotor = std::make_unique<BasicStepperMotor>(parameters);
 
   // Allow autostart to save some lines in the tests
@@ -143,10 +143,10 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
      = std::make_unique<StepperMotorUtility::EncoderUnitsScalingConverter>(10.);
 
  StepperMotorParameters parameters;
- parameters.motorDriverCardDeviceName = stepperMotorDeviceName;
+ parameters.deviceName = stepperMotorDeviceName;
  parameters.moduleName = moduleName;
- parameters.motorDriverId = 1U;
- parameters.motorDriverCardConfigFileName = stepperMotorDeviceConfigFile;
+ parameters.driverId = 1U;
+ parameters.configFileName = stepperMotorDeviceConfigFile;
  parameters.motorUnitsConverter = std::move(_testUnitConverter);
  parameters.encoderUnitsConverter = std::move(encoderUnitsConverter);
 

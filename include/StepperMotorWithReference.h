@@ -26,12 +26,7 @@ namespace ChimeraTK{
   public:
     /**
      * @brief  Constructor of the class object
-     * @param  motorDriverCardDeviceName Name of the device in DMAP file
-     * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
-     * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
-     * @param  motorDriverCardConfigFileName Name of configuration file
-     * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
+     * @param  parameters Configuration parameters of type StepperMotorParameters
      */
     StepperMotorWithReference(StepperMotorParameters &);
 
@@ -49,12 +44,6 @@ namespace ChimeraTK{
      */
     virtual void setActualPositionInSteps(int actualPositionInSteps);
 
-    /**
-     *  @brief Simple calibration of the linear stage by defining the actual position in user-defined units.
-     *  @see: setActualPositionInSteps()
-     */
-    virtual void setActualPosition(float actualPosition);
-
 
     /**
      * @brief Translate axis of the linear stage by offset translationInSteps
@@ -62,16 +51,9 @@ namespace ChimeraTK{
      * The actual position and calibrated values of the end switch positions are shifted by
      * the given offset. The resulting new position will be truncated if the calculated value
      * exceeds the numeric limits of an int.
-     *
      */
     virtual void translateAxisInSteps(int translationInSteps);
 
-    /**
-     * @brief Translate axis of the linear stage by offset translationInUnits
-     * @see ranslateAxisInSteps(int translationInSteps)
-     *
-     */
-    virtual void translateAxis(float translationInUnits);
 
     virtual bool hasHWReferenceSwitches();
 

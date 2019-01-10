@@ -50,15 +50,9 @@ namespace ChimeraTK {
   public:
     /**
      * @brief  Constructor of the class object
-     * @param  motorDriverCardDeviceName Name of the device in DMAP file
-     * @param  moduleName Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
-     * @param  motorDriverId Each Motor Card Driver has two independent Motor Drivers (can drive two physical motors). ID defines which motor should be represented by this class instantiation
-     * @param  motorDriverCardConfigFileName Name of configuration file
-     * @param  motorUnitsConverter A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @param  encoderUnitsConverter A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
-     * @return
+     * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    BasicStepperMotor(StepperMotorParameters &);
+    BasicStepperMotor(StepperMotorParameters & parameters);
 
     /**
      * @brief  Destructor of the class object
