@@ -664,28 +664,6 @@ namespace ChimeraTK{
    */
   struct StepperMotorParameters{
 
-//    StepperMotorParameters(
-//          const std::string &deviceName,
-//          const std::string &moduleName,
-//          const unsigned driverId,
-//          const std::string &configFileName,
-//          std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter,
-//          std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter)
-//      : deviceName{deviceName},
-//        moduleName{moduleName},
-//        driverId{driverId},
-//        configFileName{configFileName},
-//        motorUnitsConverter{std::move(motorUnitsConverter)},
-//        encoderUnitsConverter{std::move(encoderUnitsConverter)}{}
-
-//    StepperMotorParameters(const StepperMotorParameters& p)
-//      : deviceName{p.deviceName},
-//        moduleName{p.moduleName},
-//        driverId{p.driverId},
-//        configFileName{p.configFileName},
-//        motorUnitsConverter{*p.motorUnitsConverter},
-//        motorUnitsConverter{*p.motorUnitsConverter},
-
     /// Name of the device in DMAP file
     std::string deviceName{""};
     /// Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
@@ -698,6 +676,15 @@ namespace ChimeraTK{
     std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter{std::make_unique<StepperMotorUnitsConverterTrivia>()};
     /// A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
     std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter{std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()};
+
+    StepperMotorParameters() = default;
+    StepperMotorParameters(StepperMotorParameters&& p)
+      : deviceName{std::move(p.deviceName)},
+        moduleName{std::move(p.moduleName)},
+        driverId{std::move(p.driverId)},
+        configFileName{std::move(p.configFileName)},
+        motorUnitsConverter{std::move(p.motorUnitsConverter)},
+        encoderUnitsConverter{std::move(p.encoderUnitsConverter)}{};
   };
 
 

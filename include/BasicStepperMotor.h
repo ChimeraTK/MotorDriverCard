@@ -404,15 +404,15 @@ namespace ChimeraTK {
 
     virtual float getTolerancePositiveEndSwitch() ;
 
-    virtual float getToleranceNegativeEndSwitch() ;
+    virtual float getToleranceNegativeEndSwitch();
 
-    virtual bool isPositiveReferenceActive() ;
+    virtual bool isPositiveReferenceActive();
 
-    virtual bool isNegativeReferenceActive() ;
+    virtual bool isNegativeReferenceActive();
 
-    virtual bool isPositiveEndSwitchEnabled() ;
+    virtual bool isPositiveEndSwitchEnabled();
 
-    virtual bool isNegativeEndSwitchEnabled() ;
+    virtual bool isNegativeEndSwitchEnabled();
 
     virtual StepperMotorCalibrationMode getCalibrationMode() ;
 

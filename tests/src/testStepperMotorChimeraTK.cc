@@ -135,14 +135,28 @@ BOOST_AUTO_TEST_CASE(  testStepperMotorFactory ){
 
   StepperMotorFactory& inst = StepperMotorFactory::instance();
 
-  ChimeraTK::StepperMotorParameters parameters;
-  parameters.deviceName = stepperMotorDeviceName;
-  parameters.moduleName = moduleName;
-  parameters.configFileName = stepperMotorDeviceConfigFile;
+  StepperMotorParameters parametersBasicMotor;
+  parametersBasicMotor.deviceName = stepperMotorDeviceName;
+  parametersBasicMotor.moduleName = moduleName;
+  parametersBasicMotor.configFileName = stepperMotorDeviceConfigFile;
+  parametersBasicMotor.motorUnitsConverter = std::move(_testUnitConverter);
 
-  auto _motor = inst.create(StepperMotorType::BASIC, parameters);
+  auto _motor = inst.create(StepperMotorType::BASIC, std::move(parametersBasicMotor));
 
   BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), false);
+  BOOST_CHECK_THROW(_motor->isNegativeEndSwitchEnabled(), mtca4u::MotorDriverException);
+
+  StepperMotorParameters parametersLinearMotor;
+  parametersLinearMotor.deviceName = stepperMotorDeviceName;
+  parametersLinearMotor.moduleName = moduleName;
+  parametersLinearMotor.driverId = 1U; /* Motor with ID 0 already exists */
+  parametersLinearMotor.configFileName = stepperMotorDeviceConfigFile;
+  parametersLinearMotor.motorUnitsConverter = std::move(_testUnitConverter);
+
+ _motor = inst.create(StepperMotorType::LINEAR, std::move(parametersLinearMotor));
+
+  BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), true);
+  BOOST_CHECK_NO_THROW(_motor->isNegativeEndSwitchEnabled());
 }
 
 
@@ -152,7 +166,6 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
   int steps = 1000;
   BOOST_CHECK_EQUAL(_stepperMotor->recalculateStepsInUnits(steps), steps);
 
- //StepperMotorUtility::EncoderUnitsScalingConverter scalingEncoderConverter(10.);
  std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter
      = std::make_unique<StepperMotorUtility::EncoderUnitsScalingConverter>(10.);
 

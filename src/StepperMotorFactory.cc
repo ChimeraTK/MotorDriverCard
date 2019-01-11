@@ -7,6 +7,10 @@
 
 namespace ChimeraTK{
 
+  StepperMotorFactory::StepperMotorFactory()
+    : _factoryMutex{},
+      _existingMotors{}{}
+
   StepperMotorFactory& StepperMotorFactory::instance(){
     static StepperMotorFactory instance;
     return instance;
@@ -26,6 +30,8 @@ namespace ChimeraTK{
     auto iterator = _existingMotors.find(id);
     if(iterator != _existingMotors.end()){
       auto ptr = iterator->second.lock();
+      //FIXME: This should catch the case that
+      //  motor exists but additional parameters differ
       if(ptr){
         return ptr;
       }
