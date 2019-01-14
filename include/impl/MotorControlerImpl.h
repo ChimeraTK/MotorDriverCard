@@ -240,6 +240,8 @@ namespace mtca4u
      ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderReadoutMode;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderPosition;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _calibrationTime;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedPositiveEndSwitchPos;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedNegativeEndSwitchPos;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwithPowerIndicator;
      
      mtca4u::SPIviaPCIe _driverSPI;

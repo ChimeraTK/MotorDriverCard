@@ -10,6 +10,7 @@ namespace mtca4u{
 namespace dfmc_md22{
 
   int32_t const MINIMAL_FIRMWARE_VERSION = 0x02020000;
+  int32_t const MIN_FW_VERSION_WITH_CALIB_BACKUP = 0x02030000;
   int32_t const PROJECT_ID = 0x0;
   int32_t const PROJECT_MAGIC_NUMBER = 0x50524F4A;
 
@@ -48,6 +49,7 @@ namespace dfmc_md22{
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
   std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME"; // Added as support for newer FW > r2261
+  //TODO Add cstants for new registers
 
   uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 

@@ -91,8 +91,9 @@ namespace mtca4u
       _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
       _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
       _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
-      _calibrationTime{device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
-      //_calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)}, // Might use this with newer FW
+      _calibrationTime(),
+      _calibratedPositiveEndSwitchPos(),
+      _calibratedNegativeEndSwitchPos(),
       _endSwithPowerIndicator{},
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
@@ -125,6 +126,19 @@ namespace mtca4u
 
     _localTargetPosition = retrieveTargetPositonAndConvert();
     _userMicroStepSize = pow(2, motorControlerConfig.driverControlData.getMicroStepResolution());
+
+
+    ChimeraTK::ScalarRegisterAccessor<int32_t> firmwareVersion
+      = _device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_VERSION_ADDRESS_STRING);
+    firmwareVersion.read();
+
+    if(firmwareVersion >= MIN_FW_VERSION_WITH_CALIB_BACKUP){
+      _calibrationTime.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX));
+    }
+    else{
+      _calibrationTime.replace(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw}));
+      _calibratedPositiveEndSwitchPos(/*TODO*/);
+    }
 
     // enabling the motor is the last step after setting all registers
     setEnabled( motorControlerConfig.enabled );
@@ -413,7 +427,11 @@ namespace mtca4u
   }
 
   void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
-    //TODO
+
+     if(_calibratedPositiveEndSwitchPos.isInitialised()){
+       lock_guard guard(_mutex);
+       _calibratedPositiveEndSwitchPos.write(static_cast<int32_t>(calibratedPosition));
+     }
   }
 
   int  MotorControlerImpl::getPositiveReferenceSwitchCalibration(){
