@@ -96,7 +96,7 @@ namespace ChimeraTK{
   void BasicStepperMotor::setTargetPosition(float newPosition){
     boost::lock_guard<boost::mutex> guard(_mutex);
 
-    float newPositionInSteps = _stepperMotorUnitsConverter->unitsToSteps(newPosition);
+    int newPositionInSteps = _stepperMotorUnitsConverter->unitsToSteps(newPosition);
     checkNewPosition( newPositionInSteps);
     _targetPositionInSteps =  newPositionInSteps;
 
@@ -242,7 +242,7 @@ namespace ChimeraTK{
     _motorControler->setPositiveReferenceSwitchCalibration(std::numeric_limits<int>::max());
     _motorControler->setNegativeReferenceSwitchCalibration(std::numeric_limits<int>::min());
     _calibrationMode.exchange(StepperMotorCalibrationMode::SIMPLE);
-    _motorControler->setCalibrationTime(time(nullptr));
+    _motorControler->setCalibrationTime(static_cast<uint32_t>(time(nullptr)));
   }
 
   void BasicStepperMotor::setActualPositionInSteps(int actualPositionInSteps){
