@@ -1002,7 +1002,7 @@ namespace ChimeraTK{
     /**
      * @brief set user speed limit
      */
-    virtual double setUserSpeedLimit(double newSpeed) = 0;//todo newSpeed unit!?!?
+    virtual bool setUserSpeedLimit(double newSpeed) = 0;//todo newSpeed unit!?!?
 
     /**
      * @brief return user speed limit

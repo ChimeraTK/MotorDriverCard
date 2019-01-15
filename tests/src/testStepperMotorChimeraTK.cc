@@ -5,6 +5,7 @@
 #include <boost/shared_ptr.hpp>
 #include <memory>
 #include <mutex>
+#include <thread>
 #include <utility>
 using namespace boost::unit_test_framework;
 
@@ -63,7 +64,9 @@ class StepperMotorChimeraTKFixture{
 public:
   StepperMotorChimeraTKFixture();
   // Helper functions
-  bool waitForState(std::string stateName, unsigned timeoutInSeconds);
+  bool waitForState(std::string stateName, unsigned timeoutInSeconds = 10);
+  void moveThreadFcn();
+  void configThreadFcn();
 
 protected:
   std::unique_ptr<ChimeraTK::StepperMotor> _stepperMotor;
@@ -108,7 +111,30 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
 }
 
 
-bool StepperMotorChimeraTKFixture::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
+void StepperMotorChimeraTKFixture::moveThreadFcn(){
+
+  for(int i = 0; i<1000; i++){
+
+    _stepperMotor->moveRelativeInSteps((i+1)*2);
+
+    waitForState("moving");
+    //std::cout << "    **** State: " << _stepperMotor->getState() << std::endl;
+    _motorControlerDummy->moveTowardsTarget(1.0f);
+    _stepperMotor->waitForIdle();
+  }
+
+}
+
+void StepperMotorChimeraTKFixture::configThreadFcn(){
+  for(int i = 0; i<1000; i++){
+    if(_stepperMotor->isSystemIdle()){
+       std::cout << "    **** State: " << _stepperMotor->getState() << std::endl;
+      _stepperMotor->setUserSpeedLimit(10000);
+    }
+  }
+}
+
+bool StepperMotorChimeraTKFixture::waitForState(std::string stateName, unsigned timeoutInSeconds){
 
   unsigned cnt = 0;
   bool isCorrectState = false;
@@ -307,7 +333,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   BOOST_CHECK_THROW(_stepperMotor->setActualPositionInSteps(10000), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 10);
   BOOST_CHECK_THROW(_stepperMotor->setUserCurrentLimit(100), mtca4u::MotorDriverException);
-  BOOST_CHECK_THROW(_stepperMotor->setUserSpeedLimit(100), mtca4u::MotorDriverException);
+  BOOST_CHECK_EQUAL(_stepperMotor->setUserSpeedLimit(100), false);
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 20);
@@ -516,25 +542,21 @@ BOOST_AUTO_TEST_CASE( testFullStepping ){
 
 BOOST_AUTO_TEST_CASE( testLocking ){
 
+  std::cout << "  ** Performing testLocking" << std::endl;
+
   auto currentPosition = _stepperMotor->getCurrentPositionInSteps();
 
   BOOST_CHECK(_stepperMotor->isSystemIdle());
   _stepperMotor->setSoftwareLimitsEnabled(false);
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
-  BOOST_CHECK_NO_THROW(
-    for(int i = 0; i<1000; i++){
+//  BOOST_CHECK_NO_THROW(
+//  );
+  std::thread moveThread(&StepperMotorChimeraTKFixture::moveThreadFcn, this);
+  std::thread configThread(&StepperMotorChimeraTKFixture::configThreadFcn, this);
 
-      _stepperMotor->setTargetPositionInSteps(currentPosition + (i+1)*2);
-
-      if(_stepperMotor->isSystemIdle()){
-        _stepperMotor->setUserSpeedLimit(10000);
-      }
-      waitForState("moving");
-      _motorControlerDummy->moveTowardsTarget(1.0f);
-      _stepperMotor->waitForIdle();
-    }
-  );
+  moveThread.join();
+  configThread.join();
 
   _stepperMotor->setActualPositionInSteps(currentPosition);
   _stepperMotor->setSoftwareLimitsEnabled(true);

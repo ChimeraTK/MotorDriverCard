@@ -479,22 +479,25 @@ namespace ChimeraTK{
     return (_motorControler->getUserCurrentLimit());
   }
 
-  double BasicStepperMotor::setUserSpeedLimit(double newSpeed) {
+  bool BasicStepperMotor::setUserSpeedLimit(double newSpeed) {
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      return false;
     }
-    return _motorControler->setUserSpeedLimit(newSpeed);
+    else{
+      _motorControler->setUserSpeedLimit(newSpeed);
+      return true;
+    }
   }
 
   double BasicStepperMotor::getUserSpeedLimit() {
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return (_motorControler->getUserSpeedLimit());
+    return _motorControler->getUserSpeedLimit();
   }
 
   bool BasicStepperMotor::isMoving() {
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return (_motorControler->isMotorMoving());
+    return _motorControler->isMotorMoving();
   }
 
   void BasicStepperMotor::enableFullStepping(bool enable){
