@@ -257,7 +257,7 @@ namespace ChimeraTK {
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual void setStepperMotorUnitsConverter(std::unique_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual StepperMotorConfigurationResult setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
@@ -447,8 +447,8 @@ namespace ChimeraTK {
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
 
-    std::unique_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> _encoderUnitsConverter;
+    std::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<StepperMotorUtility::EncoderUnitsConverter> _encoderUnitsConverter;
 
     int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;

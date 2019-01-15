@@ -25,8 +25,8 @@ namespace ChimeraTK{
           parameters.deviceName,
           parameters.moduleName, parameters. configFileName);
     _motorControler = _motorDriverCard->getMotorControler(parameters.driverId);
-    _stepperMotorUnitsConverter = std::move(parameters.motorUnitsConverter);
-    _encoderUnitsConverter = std::move(parameters.encoderUnitsConverter);
+    _stepperMotorUnitsConverter = parameters.motorUnitsConverter;
+    _encoderUnitsConverter = parameters.encoderUnitsConverter;
     _stateMachine.reset(new StepperMotorWithReferenceStateMachine(*this));
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();

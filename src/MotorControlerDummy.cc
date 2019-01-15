@@ -316,10 +316,11 @@ namespace mtca4u {
     double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {
       lock_guard guard(_motorControllerDummyMutex);
       _userSpeedLimit = microStepsPerSecond;
+      return _userSpeedLimit;
     }
 
     double MotorControlerDummy::getUserSpeedLimit() {
-      throw MotorDriverException("MotorControlerDummy::getUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+      return _userSpeedLimit;
     }
 
     double MotorControlerDummy::setUserCurrentLimit(double currentLimit){

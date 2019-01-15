@@ -71,7 +71,7 @@ public:
 protected:
   std::unique_ptr<ChimeraTK::StepperMotor> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
-  std::unique_ptr<TestUnitConverter> _testUnitConverter;
+  std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
 
 
@@ -597,11 +597,13 @@ BOOST_AUTO_TEST_CASE( testConverter ){
 
   // Should throw because we attempt to set to nullptr
   _testUnitConverter.reset();
-  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)), mtca4u::MotorDriverException);
+  BOOST_CHECK(
+        _stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter)
+        == StepperMotorConfigurationResult::ERROR_INVALID_PARAMETER);
 
   // Now set to a proper converter (1:10)
-  _testUnitConverter = std::make_unique<TestUnitConverter>();
-  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)));
+  _testUnitConverter = std::make_shared<TestUnitConverter>();
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter));
   BOOST_CHECK_CLOSE(_stepperMotor->getCurrentPosition(), 6.8, 1e-4);
   BOOST_CHECK(_stepperMotor->getMinPositionLimit() == -100);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimit() ==  100);
@@ -644,8 +646,8 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 
   // Now, it should be safe to set the converter
-  _testUnitConverter = std::make_unique<TestUnitConverter>();
-  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)));
+  _testUnitConverter = std::make_shared<TestUnitConverter>();
+  BOOST_CHECK_NO_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter));
   _stepperMotor->waitForIdle();
   _stepperMotor->setTargetPositionInSteps(100);
 
@@ -667,8 +669,11 @@ BOOST_AUTO_TEST_CASE( testConverter ){
 
   waitForState("moving");
   // Again, this should throw because motor is moving
-  _testUnitConverter = std::make_unique<TestUnitConverter>();
-  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(std::move(_testUnitConverter)), mtca4u::MotorDriverException);
+  _testUnitConverter = std::make_shared<TestUnitConverter>();
+  BOOST_CHECK(
+        _stepperMotor->setStepperMotorUnitsConverter(_testUnitConverter)
+        == StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION);
+
   _motorControlerDummy->moveTowardsTarget(1);
    _stepperMotor->waitForIdle();
 

@@ -16,8 +16,8 @@ namespace ChimeraTK{
                             parameters.deviceName, parameters.moduleName,
                             parameters.configFileName)),
       _motorControler(_motorDriverCard->getMotorControler(parameters.driverId)),
-      _stepperMotorUnitsConverter(std::move(parameters.motorUnitsConverter)),
-      _encoderUnitsConverter(std::move(parameters.encoderUnitsConverter)),
+      _stepperMotorUnitsConverter(parameters.motorUnitsConverter),
+      _encoderUnitsConverter(parameters.encoderUnitsConverter),
       _encoderPositionOffset(0),
       _targetPositionInSteps(_motorControler->getTargetPosition()),
       _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
@@ -36,8 +36,8 @@ namespace ChimeraTK{
   BasicStepperMotor::BasicStepperMotor() :
      _motorDriverCard(),
      _motorControler(),
-     _stepperMotorUnitsConverter(std::make_unique<StepperMotorUnitsConverterTrivia>()),
-     _encoderUnitsConverter(std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()),
+     _stepperMotorUnitsConverter(std::make_shared<StepperMotorUnitsConverterTrivia>()),
+     _encoderUnitsConverter(std::make_shared<StepperMotorUtility::EncoderUnitsConverterTrivia>()),
      _encoderPositionOffset(0),
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
@@ -353,15 +353,18 @@ namespace ChimeraTK{
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
   }
 
-  void BasicStepperMotor::setStepperMotorUnitsConverter(std::unique_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
+  StepperMotorConfigurationResult BasicStepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
-    if (stepperMotorUnitsConverter == nullptr){
-      throw MotorDriverException("unit converter shared pointer not valid", MotorDriverException::NOT_IMPLEMENTED);
+    else{
+      if (stepperMotorUnitsConverter == nullptr){
+        return StepperMotorConfigurationResult::ERROR_INVALID_PARAMETER;
+      }
+      _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
+      return StepperMotorConfigurationResult::SUCCESS;
     }
-    _stepperMotorUnitsConverter = std::move(stepperMotorUnitsConverter);
   }
 
   void BasicStepperMotor::setStepperMotorUnitsConverterToDefault(){

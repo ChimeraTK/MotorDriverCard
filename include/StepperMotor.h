@@ -41,7 +41,7 @@ namespace ChimeraTK {
    *              No valid position for the end switches can be determined. Useful if driving in full range between the end switches is possible.\n
    *  2 - FULL:   The motor has been calibrated by calling calibrate(). The end switch position has been determined.\n
    */
-  enum class StepperMotorCalibrationMode : int {NONE, SIMPLE, FULL};
+  enum class StepperMotorCalibrationMode{NONE, SIMPLE, FULL};
 
   /**
    * Enum type to select the StepperMotor variant when
@@ -50,7 +50,10 @@ namespace ChimeraTK {
    * BASIC:  A basic stepper motor
    * LINEAR: A linear stage, supports hardware end switches
    */
-  enum class StepperMotorType : int {BASIC, LINEAR};
+  enum class StepperMotorType{BASIC, LINEAR};
+
+
+  enum class StepperMotorConfigurationResult{SUCCESS, ERROR_SYSTEM_IN_ACTION, ERROR_INVALID_PARAMETER};
 
   /**
    * @brief Namespace for utility classes related to the StepperMotor
@@ -673,18 +676,18 @@ namespace ChimeraTK{
     /// Name of configuration file
     std::string configFileName{""};
     /// A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-    std::unique_ptr<StepperMotorUnitsConverter> motorUnitsConverter{std::make_unique<StepperMotorUnitsConverterTrivia>()};
+    std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter{std::make_shared<StepperMotorUnitsConverterTrivia>()};
     /// A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
-    std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter{std::make_unique<StepperMotorUtility::EncoderUnitsConverterTrivia>()};
+    std::shared_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter{std::make_shared<StepperMotorUtility::EncoderUnitsConverterTrivia>()};
 
-    StepperMotorParameters() = default;
-    StepperMotorParameters(StepperMotorParameters&& p)
-      : deviceName{std::move(p.deviceName)},
-        moduleName{std::move(p.moduleName)},
-        driverId{std::move(p.driverId)},
-        configFileName{std::move(p.configFileName)},
-        motorUnitsConverter{std::move(p.motorUnitsConverter)},
-        encoderUnitsConverter{std::move(p.encoderUnitsConverter)}{};
+//    StepperMotorParameters() = default;
+//    StepperMotorParameters(StepperMotorParameters&& p)
+//      : deviceName{std::move(p.deviceName)},
+//        moduleName{std::move(p.moduleName)},
+//        driverId{std::move(p.driverId)},
+//        configFileName{std::move(p.configFileName)},
+//        motorUnitsConverter{std::move(p.motorUnitsConverter)},
+//        encoderUnitsConverter{std::move(p.encoderUnitsConverter)}{};
   };
 
 
@@ -698,7 +701,7 @@ namespace ChimeraTK{
     /**
      * @brief  Destructor of the class object
      */
-    virtual ~StepperMotor(){};
+    virtual ~StepperMotor(){}
 
     /**
      * @ brief move the motor a delta from the current position
@@ -898,7 +901,7 @@ namespace ChimeraTK{
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual void setStepperMotorUnitsConverter(std::unique_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) = 0;
+    virtual StepperMotorConfigurationResult setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) = 0;
 
     // FIXME This can be constant after construction?
     /**
