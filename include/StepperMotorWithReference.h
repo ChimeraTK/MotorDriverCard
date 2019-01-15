@@ -28,7 +28,7 @@ namespace ChimeraTK{
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    StepperMotorWithReference(StepperMotorParameters &);
+    StepperMotorWithReference(const StepperMotorParameters &);
 
     /**
      * @brief  Destructor of the class object

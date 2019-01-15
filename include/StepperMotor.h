@@ -1093,7 +1093,7 @@ namespace ChimeraTK{
     static StepperMotorFactory& instance();
 
     /// Creates an StepperMotor instance according to the specifed type and configuration parameters
-    std::shared_ptr<StepperMotor> create(const StepperMotorType type, StepperMotorParameters&& parameters);
+    std::shared_ptr<StepperMotor> create(const StepperMotorType type, const StepperMotorParameters& parameters);
 
 
   private:

@@ -10,7 +10,7 @@
 
 namespace ChimeraTK{
 
-  BasicStepperMotor::BasicStepperMotor(StepperMotorParameters & parameters)
+  BasicStepperMotor::BasicStepperMotor(const StepperMotorParameters & parameters)
     :
       _motorDriverCard( mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
                             parameters.deviceName, parameters.moduleName,

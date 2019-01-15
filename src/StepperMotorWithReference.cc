@@ -9,7 +9,7 @@
 #include "StepperMotorWithReferenceStateMachine.h"
 
 namespace ChimeraTK{
-  StepperMotorWithReference::StepperMotorWithReference(StepperMotorParameters & parameters)
+  StepperMotorWithReference::StepperMotorWithReference(const StepperMotorParameters & parameters)
     : BasicStepperMotor(),
       _positiveEndSwitchEnabled(false),
       _negativeEndSwitchEnabled(false),
