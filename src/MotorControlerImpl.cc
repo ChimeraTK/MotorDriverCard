@@ -136,7 +136,9 @@ namespace mtca4u
       _calibrationTime.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX));
     }
     else{
-      _calibrationTime.replace(device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw}));
+      _calibrationTime.replace(
+        device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_USER_REGISTER_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw}));
+
       _calibratedPositiveEndSwitchPos(/*TODO*/);
     }
 
