@@ -667,6 +667,7 @@ namespace ChimeraTK{
    */
   struct StepperMotorParameters{
 
+    StepperMotorType motorType{StepperMotorType::BASIC};
     /// Name of the device in DMAP file
     std::string deviceName{""};
     /// Name of the module in the map file (there might be more than one MD22 per device/ FMC carrier).
@@ -1093,7 +1094,7 @@ namespace ChimeraTK{
     static StepperMotorFactory& instance();
 
     /// Creates an StepperMotor instance according to the specifed type and configuration parameters
-    std::shared_ptr<StepperMotor> create(const StepperMotorType type, const StepperMotorParameters& parameters);
+    std::shared_ptr<StepperMotor> create(const StepperMotorParameters& parameters);
 
 
   private:

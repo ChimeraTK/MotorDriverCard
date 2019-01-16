@@ -167,19 +167,20 @@ BOOST_AUTO_TEST_CASE(  testStepperMotorFactory ){
   parametersBasicMotor.configFileName = stepperMotorDeviceConfigFile;
   parametersBasicMotor.motorUnitsConverter = std::move(_testUnitConverter);
 
-  auto _motor = inst.create(StepperMotorType::BASIC, std::move(parametersBasicMotor));
+  auto _motor = inst.create(parametersBasicMotor);
 
   BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), false);
   BOOST_CHECK_THROW(_motor->isNegativeEndSwitchEnabled(), mtca4u::MotorDriverException);
 
   StepperMotorParameters parametersLinearMotor;
+  parametersLinearMotor.motorType  = StepperMotorType::LINEAR;
   parametersLinearMotor.deviceName = stepperMotorDeviceName;
   parametersLinearMotor.moduleName = moduleName;
   parametersLinearMotor.driverId = 1U; /* Motor with ID 0 already exists */
   parametersLinearMotor.configFileName = stepperMotorDeviceConfigFile;
   parametersLinearMotor.motorUnitsConverter = std::move(_testUnitConverter);
 
- _motor = inst.create(StepperMotorType::LINEAR, std::move(parametersLinearMotor));
+ _motor = inst.create(parametersLinearMotor);
 
   BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), true);
   BOOST_CHECK_NO_THROW(_motor->isNegativeEndSwitchEnabled());

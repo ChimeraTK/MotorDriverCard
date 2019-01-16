@@ -17,7 +17,6 @@ namespace ChimeraTK{
   }
 
   std::shared_ptr<StepperMotor> StepperMotorFactory::create(
-        const StepperMotorType type,
         const StepperMotorParameters& parameters)
   {
     std::lock_guard<std::mutex> lck(_factoryMutex);
@@ -39,7 +38,7 @@ namespace ChimeraTK{
 
     // Else, create a new instance as requested
     std::shared_ptr<StepperMotor> ptr;
-    switch(type){
+    switch(parameters.motorType){
       case StepperMotorType::BASIC:
         ptr = std::make_shared<BasicStepperMotor>(parameters);
         break;
