@@ -837,7 +837,7 @@ namespace ChimeraTK{
      * This can be done defining the position of the motor respect to an external reference (actual position).\n
      * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
      */
-    virtual void setActualPosition(float actualPositionInUnits) = 0;
+    virtual StepperMotorConfigurationResult setActualPosition(float actualPositionInUnits) = 0;
 
     /**
      * @brief set actual position in steps of the motor respect to some reference
@@ -845,19 +845,19 @@ namespace ChimeraTK{
      *
      * This can be done defining the position of the motor respect to an external reference (actual position).
      */
-    virtual void setActualPositionInSteps(int actualPositionInSteps) = 0;
+    virtual StepperMotorConfigurationResult setActualPositionInSteps(int actualPositionInSteps) = 0;
 
     /**
      * @brief translate the reference axis of the motor. This operation will translate also the software limits
      * @param translationInSteps translation value in steps
      */
-    virtual void translateAxisInSteps(int translationInSteps) = 0;
+    virtual StepperMotorConfigurationResult translateAxisInSteps(int translationInSteps) = 0;
 
     /**
      * @brief translate the reference axis of the motor. This operation will translate also the software limits
      * @param translationInUnits translation value in unit
      */
-    virtual void translateAxis(float translationInUnits) = 0;
+    virtual StepperMotorConfigurationResult translateAxis(float translationInUnits) = 0;
 
     /**
      * @brief get current position of the motor in units

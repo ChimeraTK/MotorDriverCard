@@ -245,16 +245,17 @@ namespace ChimeraTK{
     _motorControler->setCalibrationTime(static_cast<uint32_t>(time(nullptr)));
   }
 
-  void BasicStepperMotor::setActualPositionInSteps(int actualPositionInSteps){
+  StepperMotorConfigurationResult BasicStepperMotor::setActualPositionInSteps(int actualPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
+    return StepperMotorConfigurationResult::SUCCESS;
   }
 
-  void BasicStepperMotor::setActualPosition(float actualPosition){
-    setActualPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
+  StepperMotorConfigurationResult BasicStepperMotor::setActualPosition(float actualPosition){
+    return setActualPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(actualPosition));
   }
 
   void BasicStepperMotor::translateAxisActions(int translationInSteps){
@@ -280,16 +281,17 @@ namespace ChimeraTK{
     }
   }
 
-  void BasicStepperMotor::translateAxisInSteps(int translationInSteps){
+  StepperMotorConfigurationResult BasicStepperMotor::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     translateAxisActions(translationInSteps);
+    return StepperMotorConfigurationResult::SUCCESS;
   }
 
-  void BasicStepperMotor::translateAxis(float translationInUnits){
-    translateAxisInSteps(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
+  StepperMotorConfigurationResult BasicStepperMotor::translateAxis(float translationInUnits){
+    return translateAxisInSteps(_stepperMotorUnitsConverter->unitsToSteps(translationInUnits));
   }
 
   bool BasicStepperMotor::checkIfOverflow(int termA, int termB){

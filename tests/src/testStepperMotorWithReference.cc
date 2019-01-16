@@ -462,7 +462,7 @@ BOOST_AUTO_TEST_CASE(testTranslation){
   while(!_stepperMotor->isSystemIdle()){}
 
   _stepperMotor->setEnabled(true);
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(100) == StepperMotorConfigurationResult::SUCCESS);
 
   // Check if position limits have been shifted
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), std::numeric_limits<int>::max());
@@ -483,7 +483,7 @@ BOOST_AUTO_TEST_CASE(testTranslation){
   BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), POS_NEGATIVE_ENDSWITCH_STEPPERMOTOR);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::FULL);
 
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(100) == StepperMotorConfigurationResult::SUCCESS);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), std::numeric_limits<int>::max());
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), std::numeric_limits<int>::min() + 200);
 
@@ -493,10 +493,10 @@ BOOST_AUTO_TEST_CASE(testTranslation){
 
   // Translation beyond full numeric range must fail
   // Set back to center of int limits
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(-200));
+  _stepperMotor->translateAxisInSteps(-200);
 
-  BOOST_CHECK_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()), MotorDriverException);
-  BOOST_CHECK_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()), MotorDriverException);
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()) == StepperMotorConfigurationResult::ERROR_INVALID_PARAMETER);
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()) == StepperMotorConfigurationResult::ERROR_INVALID_PARAMETER);
 }
 
 

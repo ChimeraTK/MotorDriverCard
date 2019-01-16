@@ -258,7 +258,7 @@ BOOST_AUTO_TEST_CASE( testSetActualPosition){
   BOOST_CHECK(_stepperMotor->isCalibrated() == false);
   BOOST_CHECK(_stepperMotor->getCalibrationTime() == 0);
   BOOST_CHECK_THROW(_stepperMotor->setTargetPositionInSteps(10), mtca4u::MotorDriverException);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
+  _stepperMotor->setActualPositionInSteps(0);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
   BOOST_CHECK(_stepperMotor->isCalibrated() == true);
   BOOST_CHECK(_stepperMotor->getCalibrationTime() != 0);
@@ -274,23 +274,23 @@ BOOST_AUTO_TEST_CASE(testTranslateAxis){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), 1000);
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), -1000);
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(100));
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(100) == StepperMotorConfigurationResult::SUCCESS);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), 1100);
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), -900);
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(-300));
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(-300) == StepperMotorConfigurationResult::SUCCESS);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), 800);
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), -1200);
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()));
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::max()) == StepperMotorConfigurationResult::SUCCESS);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), std::numeric_limits<int>::max());
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), -1200 + std::numeric_limits<int>::max());
   BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
   BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
-  BOOST_CHECK_NO_THROW(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()));
+  BOOST_CHECK(_stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()) == StepperMotorConfigurationResult::SUCCESS);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), std::numeric_limits<int>::min() + 1000);
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), std::numeric_limits<int>::min());
   BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
   BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
-  BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(0));
+  _stepperMotor->setActualPositionInSteps(0);
 }
 
 BOOST_AUTO_TEST_CASE(testMove){
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   BOOST_CHECK_THROW(_stepperMotor->setMaxPositionLimitInSteps(40000), mtca4u::MotorDriverException);
   BOOST_CHECK(_stepperMotor->getMaxPositionLimitInSteps() == 1000);
   BOOST_CHECK(_stepperMotor->getMinPositionLimitInSteps() == -1000);
-  BOOST_CHECK_THROW(_stepperMotor->setActualPositionInSteps(10000), mtca4u::MotorDriverException);
+  BOOST_CHECK(_stepperMotor->setActualPositionInSteps(10000) == StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION);
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 10);
   BOOST_CHECK_THROW(_stepperMotor->setUserCurrentLimit(100), mtca4u::MotorDriverException);
   BOOST_CHECK_EQUAL(_stepperMotor->setUserSpeedLimit(100), false);
@@ -444,7 +444,7 @@ BOOST_AUTO_TEST_CASE( testEmergencyStop ){
 
   // Set some new reference position, calibrated should become true,
   // and enable motor again
-  BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(53));
+  _stepperMotor->setActualPositionInSteps(53);
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
 
   _stepperMotor->setEnabled(true);
@@ -582,7 +582,7 @@ BOOST_AUTO_TEST_CASE( testDisable ){
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   BOOST_CHECK(_stepperMotor->isCalibrated() == true);
-  BOOST_CHECK_NO_THROW(_stepperMotor->setActualPositionInSteps(68));
+  _stepperMotor->setActualPositionInSteps(68);
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   _stepperMotor->setEnabled(true);
   BOOST_CHECK(_stepperMotor->getEnabled() == true);

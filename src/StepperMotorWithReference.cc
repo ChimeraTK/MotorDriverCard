@@ -46,22 +46,24 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
+  StepperMotorConfigurationResult StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
 
     // Overwrite end switch calibration and reset calibration mode
     _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
+
+    return StepperMotorConfigurationResult::SUCCESS;
   }
 
-  void StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
+  StepperMotorConfigurationResult StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (!stateMachineInIdleAndNoEvent()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
 
     translateAxisActions(translationInSteps);
@@ -71,13 +73,14 @@ namespace ChimeraTK{
       if(checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
          checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps))
       {
-        throw MotorDriverException("overflow for positive and/or negative reference", MotorDriverException::NOT_IMPLEMENTED);
+        return StepperMotorConfigurationResult::ERROR_INVALID_PARAMETER;
       }
       else{
         _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
         _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
       }
     }
+    return StepperMotorConfigurationResult::SUCCESS;
   }
 
   void StepperMotorWithReference::calibrate(){
