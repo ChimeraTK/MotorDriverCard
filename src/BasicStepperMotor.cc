@@ -52,7 +52,7 @@ namespace ChimeraTK{
   BasicStepperMotor::~BasicStepperMotor(){}
 
   void BasicStepperMotor::checkNewPosition(int newPositionInSteps){
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     if (_motorControler->getCalibrationTime() == 0){
@@ -118,7 +118,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::start(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
@@ -157,7 +157,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setSoftwareLimitsEnabled(bool enabled){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     _softwareLimitsEnabled = enabled;
@@ -170,7 +170,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setMaxPositionLimitInSteps(int maxPos){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }else if(maxPos <= _minPositionLimitInSteps){
       throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
@@ -180,7 +180,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setMaxPositionLimit(float maxPos){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }else if(_stepperMotorUnitsConverter->unitsToSteps(maxPos) <= _minPositionLimitInSteps){
       throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
@@ -190,7 +190,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setMinPositionLimitInSteps(int minPos){
       boost::lock_guard<boost::mutex> guard(_mutex);
-      if (!stateMachineInIdleAndNoEvent()){
+      if (!motorNotActive()){
         throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
       }else if(minPos >= _maxPositionLimitInSteps){
         throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
@@ -200,7 +200,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setMinPositionLimit(float minPos){
       boost::lock_guard<boost::mutex> guard(_mutex);
-      if (!stateMachineInIdleAndNoEvent()){
+      if (!motorNotActive()){
         throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
       }else if(_stepperMotorUnitsConverter->unitsToSteps(minPos) >= _maxPositionLimitInSteps){
         throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
@@ -247,7 +247,7 @@ namespace ChimeraTK{
 
   StepperMotorConfigurationResult BasicStepperMotor::setActualPositionInSteps(int actualPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
@@ -283,7 +283,7 @@ namespace ChimeraTK{
 
   StepperMotorConfigurationResult BasicStepperMotor::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     translateAxisActions(translationInSteps);
@@ -336,7 +336,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setActualEncoderPosition(double referencePosition){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if(!stateMachineInIdleAndNoEvent()){
+    if(!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
 //    _encoderPositionOffset = static_cast<int>(referencePosition/_encoderUnitToStepsRatio)
@@ -357,7 +357,7 @@ namespace ChimeraTK{
 
   StepperMotorConfigurationResult BasicStepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     else{
@@ -371,7 +371,7 @@ namespace ChimeraTK{
 
   void BasicStepperMotor::setStepperMotorUnitsConverterToDefault(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     _stepperMotorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>();
@@ -384,7 +384,7 @@ namespace ChimeraTK{
 
   bool BasicStepperMotor::isSystemIdle(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    return stateMachineInIdleAndNoEvent();
+    return motorNotActive();
   }
 
   void BasicStepperMotor::waitForIdle(){
@@ -399,7 +399,7 @@ namespace ChimeraTK{
   StepperMotorError BasicStepperMotor::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     StepperMotorError _motorError = NO_ERROR;
-    if (stateMachineInIdleAndNoEvent() && (_motorControler->getTargetPosition() != _motorControler->getActualPosition())){
+    if (motorNotActive() && (_motorControler->getTargetPosition() != _motorControler->getActualPosition())){
       _motorError = ACTION_ERROR;
     }
     //FIXME This is a temporary hack, currently only emergency stops sets error state
@@ -473,7 +473,7 @@ namespace ChimeraTK{
 
   double BasicStepperMotor::setUserCurrentLimit(double currentInAmps) {
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     return (_motorControler->setUserCurrentLimit(currentInAmps));
@@ -486,7 +486,7 @@ namespace ChimeraTK{
 
   bool BasicStepperMotor::setUserSpeedLimit(double newSpeed) {
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       return false;
     }
     else{
@@ -515,7 +515,7 @@ namespace ChimeraTK{
     return _motorControler->isFullStepping();
   }
 
-  bool BasicStepperMotor::stateMachineInIdleAndNoEvent(){
+  bool BasicStepperMotor::motorNotActive(){
     std::string stateName =  _stateMachine->getCurrentState()->getName();
     if (stateName == "disabled" || stateName == "idle"){
       return true;

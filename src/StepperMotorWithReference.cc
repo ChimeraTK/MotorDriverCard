@@ -48,7 +48,7 @@ namespace ChimeraTK{
 
   StepperMotorConfigurationResult StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
@@ -62,7 +62,7 @@ namespace ChimeraTK{
 
   StepperMotorConfigurationResult StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
     }
 
@@ -85,7 +85,7 @@ namespace ChimeraTK{
 
   void StepperMotorWithReference::calibrate(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calibEvent);
@@ -93,19 +93,21 @@ namespace ChimeraTK{
 
   void StepperMotorWithReference::determineTolerance(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!stateMachineInIdleAndNoEvent()){
+    if (!motorNotActive()){
       throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calcToleranceEvent);
   }
 
-  // TODO Combine this with getError from base class
+  // FIXME Combine this with getError from base class
   StepperMotorError StepperMotorWithReference::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() && _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+    if (!motorNotActive() &&
+        _motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+        _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
       return BOTH_END_SWITCHES_ON;
     }
-    if (stateMachineInIdleAndNoEvent()){
+    if (motorNotActive()){
       if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
         return ACTION_ERROR;
       }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&

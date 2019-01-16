@@ -424,8 +424,11 @@ namespace ChimeraTK {
   protected:
     BasicStepperMotor();
 
-    // FIXME Rename
-    virtual bool stateMachineInIdleAndNoEvent();
+    /**
+     * Returns true if the motor is not active,
+     * i.e. in disabled or idle state
+     */
+    virtual bool motorNotActive();
 
     /// Common actions for setActualPosition for this and derived classes
     void setActualPositionActions(int actualPositionInSteps);
