@@ -53,7 +53,12 @@ namespace ChimeraTK {
   enum class StepperMotorType{BASIC, LINEAR};
 
 
-  enum class StepperMotorRet{SUCCESS, ERROR_SYSTEM_IN_ACTION, ERROR_INVALID_PARAMETER};
+  enum class StepperMotorRet{
+    SUCCESS,
+    ERR_SYSTEM_IN_ACTION,
+    ERR_INVALID_PARAMETER,
+    ERR_SYSTEM_NOT_CALIBRATED
+  };
 
   /**
    * @brief Namespace for utility classes related to the StepperMotor
@@ -713,7 +718,7 @@ namespace ChimeraTK{
      *        If the autostart flag is set to true, this will initiate movement,
      *        otherwise movement needs to be triggered by calling start().
      */
-    virtual void setTargetPosition(float newPosition) = 0;
+    virtual StepperMotorRet setTargetPosition(float newPosition) = 0;
 
     /**
      * @brief Sets the target position in steps.
@@ -721,7 +726,7 @@ namespace ChimeraTK{
      *        If the autostart flag is set to true, this will initiate movement,
      *        otherwise movement needs to be triggered by calling start().
      */
-    virtual void setTargetPositionInSteps(int newPositionInSteps) = 0;
+    virtual StepperMotorRet setTargetPositionInSteps(int newPositionInSteps) = 0;
 
     /**
      * @brief Initiates movement of the motor.

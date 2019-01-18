@@ -77,7 +77,7 @@ namespace ChimeraTK {
      *        If the autostart flag is set to true, this will initiate movement,
      *        otherwise movement needs to be triggered by calling start().
      */
-    virtual void setTargetPosition(float newPosition);
+    virtual StepperMotorRet setTargetPosition(float newPosition);
 
     /**
      * @brief Sets the target position in steps.
@@ -88,7 +88,7 @@ namespace ChimeraTK {
      *        If the motor is moving, the target position will
      *        be updated.
      */
-    virtual void setTargetPositionInSteps(int newPositionInSteps);
+    virtual StepperMotorRet setTargetPositionInSteps(int newPositionInSteps);
 
     /**
      * @brief Initiates movement of the motor.
@@ -445,7 +445,7 @@ namespace ChimeraTK {
     virtual void initStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
-    StepperMotorRet checkNewPosition(int newPositionInSteps);
+    virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
 
     /// Common actions for translateAxis for this and derived classes
     void translateAxisActions(int translationInSteps);

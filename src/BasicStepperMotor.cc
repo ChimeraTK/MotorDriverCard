@@ -57,10 +57,10 @@ namespace ChimeraTK{
 //      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
 //    }
     if (_motorControler->getCalibrationTime() == 0){
-      throw MotorDriverException("motor not calibrated", MotorDriverException::NOT_IMPLEMENTED);
+      return StepperMotorRet::ERR_SYSTEM_NOT_CALIBRATED;
     }
     if (!limitsOK(newPositionInSteps)){
-      throw MotorDriverException("new position out of range of the soft limits", MotorDriverException::OUT_OF_RANGE);
+      return StepperMotorRet::ERR_INVALID_PARAMETER;
     }
     return StepperMotorRet::SUCCESS;
   }
@@ -83,25 +83,32 @@ namespace ChimeraTK{
     LockGuard guard(_mutex);
 
     if(motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
 
     int newPosition = _motorControler->getActualPosition() + delta;
-    checkNewPosition(newPosition);
-    _targetPositionInSteps =  newPosition;
+    auto checkResult =  checkNewPosition(newPosition);
+    if(checkResult != StepperMotorRet::SUCCESS){
+      return checkResult;
+    }
+
+    _targetPositionInSteps = newPosition;
 
     _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
     return StepperMotorRet::SUCCESS;
   }
 
-  void BasicStepperMotor::setTargetPosition(float newPosition){
-    setTargetPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(newPosition));
+  StepperMotorRet BasicStepperMotor::setTargetPosition(float newPosition){
+    return setTargetPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(newPosition));
   }
 
-  void BasicStepperMotor::setTargetPositionInSteps(int newPositionInSteps){
+  StepperMotorRet BasicStepperMotor::setTargetPositionInSteps(int newPositionInSteps){
     LockGuard guard(_mutex);
 
-    checkNewPosition(newPositionInSteps);
+    auto checkResult = checkNewPosition(newPositionInSteps);
+    if(checkResult != StepperMotorRet::SUCCESS){
+      return checkResult;
+    }
     _targetPositionInSteps = newPositionInSteps;
 
     if(_stateMachine->getCurrentState()->getName() == "moving"){
@@ -110,6 +117,7 @@ namespace ChimeraTK{
     else if(_autostart){
       _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
     }
+    return StepperMotorRet::SUCCESS;
   }
 
   void BasicStepperMotor::start(){
@@ -151,7 +159,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setSoftwareLimitsEnabled(bool enabled){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     _softwareLimitsEnabled = enabled;
     return StepperMotorRet::SUCCESS;
@@ -165,7 +173,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setMaxPositionLimitInSteps(int maxPos){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }else if(maxPos <= _minPositionLimitInSteps){
       throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
     }
@@ -176,7 +184,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setMaxPositionLimit(float maxPos){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }else if(_stepperMotorUnitsConverter->unitsToSteps(maxPos) <= _minPositionLimitInSteps){
       throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
     }
@@ -187,7 +195,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setMinPositionLimitInSteps(int minPos){
       LockGuard guard(_mutex);
       if (motorActive()){
-        return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+        return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
       }else if(minPos >= _maxPositionLimitInSteps){
         throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
       }
@@ -198,7 +206,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setMinPositionLimit(float minPos){
       LockGuard guard(_mutex);
       if (motorActive()){
-        return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+        return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
       }else if(_stepperMotorUnitsConverter->unitsToSteps(minPos) >= _maxPositionLimitInSteps){
         throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
       }
@@ -246,7 +254,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setActualPositionInSteps(int actualPositionInSteps){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
     return StepperMotorRet::SUCCESS;
@@ -282,7 +290,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::translateAxisInSteps(int translationInSteps){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     translateAxisActions(translationInSteps);
     return StepperMotorRet::SUCCESS;
@@ -335,7 +343,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setActualEncoderPosition(double referencePosition){
     LockGuard guard(_mutex);
     if(motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
 
     _encoderPositionOffset = _encoderUnitsConverter->unitsToSteps(referencePosition)
@@ -356,11 +364,11 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     else{
       if (stepperMotorUnitsConverter == nullptr){
-        return StepperMotorRet::ERROR_INVALID_PARAMETER;
+        return StepperMotorRet::ERR_INVALID_PARAMETER;
       }
       _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
       return StepperMotorRet::SUCCESS;
@@ -370,7 +378,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setStepperMotorUnitsConverterToDefault(){
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     _stepperMotorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>();
     return StepperMotorRet::SUCCESS;
@@ -384,6 +392,7 @@ namespace ChimeraTK{
   bool BasicStepperMotor::isSystemIdle(){
     LockGuard guard(_mutex);
     return !motorActive();
+    //return _stateMachine->getCurrentState()->getName() == "idle";
   }
 
   void BasicStepperMotor::waitForIdle(){
@@ -473,7 +482,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setUserCurrentLimit(double currentInAmps) {
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     _motorControler->setUserCurrentLimit(currentInAmps);
     return StepperMotorRet::SUCCESS;
@@ -487,7 +496,7 @@ namespace ChimeraTK{
   StepperMotorRet BasicStepperMotor::setUserSpeedLimit(double speedInUstepsPerSec) {
     LockGuard guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     else{
       _motorControler->setUserSpeedLimit(speedInUstepsPerSec);
@@ -517,7 +526,7 @@ namespace ChimeraTK{
 
   bool BasicStepperMotor::motorActive(){
     std::string stateName =  _stateMachine->getCurrentState()->getName();
-    if (stateName == "moving" || stateName == "calibrating"){
+    if (stateName == "moving"){
       return true;
     }else{
       return false;

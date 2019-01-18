@@ -121,7 +121,9 @@ namespace ChimeraTK{
     friend class ::StepperMotorWithReferenceTestFixture;
 
   protected:
+    virtual bool motorActive();
     virtual bool limitsOK(int newPositionInSteps);
+    virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
 
     /**
      * @brief loadEndSwitchCalibration

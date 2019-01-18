@@ -37,6 +37,15 @@ namespace ChimeraTK{
 
   StepperMotorWithReference::~StepperMotorWithReference(){}
 
+  bool StepperMotorWithReference::motorActive(){
+    std::string stateName =  _stateMachine->getCurrentState()->getName();
+    if (stateName == "moving" || stateName == "calibrating" || stateName == "calculatingTolerance"){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   bool StepperMotorWithReference::limitsOK(int newPositionInSteps){
     if (newPositionInSteps >= _calibNegativeEndSwitchInSteps.load() && newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
       return BasicStepperMotor::limitsOK(newPositionInSteps);
@@ -46,10 +55,18 @@ namespace ChimeraTK{
     }
   }
 
+  StepperMotorRet StepperMotorWithReference::checkNewPosition(int newPositionInSteps){
+
+    if(_stateMachine->getCurrentState()->getName() == "calibrating"){
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
+    }
+    return BasicStepperMotor::checkNewPosition(newPositionInSteps);
+  }
+
   StepperMotorRet StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
 
@@ -63,7 +80,7 @@ namespace ChimeraTK{
   StepperMotorRet StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
 
     translateAxisActions(translationInSteps);
@@ -73,7 +90,7 @@ namespace ChimeraTK{
       if(checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
          checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps))
       {
-        return StepperMotorRet::ERROR_INVALID_PARAMETER;
+        return StepperMotorRet::ERR_INVALID_PARAMETER;
       }
       else{
         _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
@@ -86,7 +103,7 @@ namespace ChimeraTK{
   StepperMotorRet StepperMotorWithReference::calibrate(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calibEvent);
     return StepperMotorRet::SUCCESS;
@@ -95,7 +112,7 @@ namespace ChimeraTK{
   StepperMotorRet StepperMotorWithReference::determineTolerance(){
     boost::lock_guard<boost::mutex> guard(_mutex);
     if (motorActive()){
-      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
+      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calcToleranceEvent);
     return StepperMotorRet::SUCCESS;
