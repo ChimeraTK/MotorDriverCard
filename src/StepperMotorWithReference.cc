@@ -46,10 +46,10 @@ namespace ChimeraTK{
     }
   }
 
-  StepperMotorConfigurationResult StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
+  StepperMotorRet StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!motorNotActive()){
-      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
+    if (motorActive()){
+      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
 
@@ -57,13 +57,13 @@ namespace ChimeraTK{
     _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
 
-    return StepperMotorConfigurationResult::SUCCESS;
+    return StepperMotorRet::SUCCESS;
   }
 
-  StepperMotorConfigurationResult StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
+  StepperMotorRet StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!motorNotActive()){
-      return StepperMotorConfigurationResult::ERROR_SYSTEM_IN_ACTION;
+    if (motorActive()){
+      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
     }
 
     translateAxisActions(translationInSteps);
@@ -73,41 +73,43 @@ namespace ChimeraTK{
       if(checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
          checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps))
       {
-        return StepperMotorConfigurationResult::ERROR_INVALID_PARAMETER;
+        return StepperMotorRet::ERROR_INVALID_PARAMETER;
       }
       else{
         _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
         _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
       }
     }
-    return StepperMotorConfigurationResult::SUCCESS;
+    return StepperMotorRet::SUCCESS;
   }
 
-  void StepperMotorWithReference::calibrate(){
+  StepperMotorRet StepperMotorWithReference::calibrate(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!motorNotActive()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    if (motorActive()){
+      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calibEvent);
+    return StepperMotorRet::SUCCESS;
   }
 
-  void StepperMotorWithReference::determineTolerance(){
+  StepperMotorRet StepperMotorWithReference::determineTolerance(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!motorNotActive()){
-      throw MotorDriverException("state machine not in idle", MotorDriverException::NOT_IMPLEMENTED);
+    if (motorActive()){
+      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(StepperMotorWithReferenceStateMachine::calcToleranceEvent);
+    return StepperMotorRet::SUCCESS;
   }
 
   // FIXME Combine this with getError from base class
   StepperMotorError StepperMotorWithReference::getError(){
     boost::lock_guard<boost::mutex> guard(_mutex);
-    if (!motorNotActive() &&
+    if (motorActive() &&
         _motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
         _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
       return BOTH_END_SWITCHES_ON;
     }
-    if (motorNotActive()){
+    if (!motorActive()){
       if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
         return ACTION_ERROR;
       }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&

@@ -63,13 +63,13 @@ namespace ChimeraTK {
      * @ brief move the motor a delta from the current position
      * @param delta is given in unit
      */
-    virtual void moveRelative(float delta);
+    virtual StepperMotorRet moveRelative(float delta);
 
     /**
      * @brief move the motor a delta from the current position
      * @param delta is given in steps
      */
-    virtual void moveRelativeInSteps(int delta);
+    virtual StepperMotorRet moveRelativeInSteps(int delta);
 
     /**
      * @brief Sets the target position in arbitrary units (according to the scaling).
@@ -82,8 +82,11 @@ namespace ChimeraTK {
     /**
      * @brief Sets the target position in steps.
      *
-     *        If the autostart flag is set to true, this will initiate movement,
-     *        otherwise movement needs to be triggered by calling start().
+     *        If the motor is idle and the autostart flag is set to true,
+     *        this will initiate movement, otherwise movement needs to be
+     *        triggered by calling start().
+     *        If the motor is moving, the target position will
+     *        be updated.
      */
     virtual void setTargetPositionInSteps(int newPositionInSteps);
 
@@ -135,7 +138,7 @@ namespace ChimeraTK {
     /**
      * @brief enable/disable software position limits
      */
-    virtual void setSoftwareLimitsEnabled(bool enabled);
+    virtual StepperMotorRet setSoftwareLimitsEnabled(bool enabled);
 
     /**
      * @brief get software position limits enabled flag
@@ -146,25 +149,25 @@ namespace ChimeraTK {
      * @brief set maximum software limit in units
      * @param maxPos maximum limit
      */
-    virtual void setMaxPositionLimit(float maxPos);
+    virtual StepperMotorRet setMaxPositionLimit(float maxPos);
 
     /**
      * @brief set maximum software limit in steps
      * @param maxPos maximum limit
      */
-    virtual void setMaxPositionLimitInSteps(int maxPos);
+    virtual StepperMotorRet setMaxPositionLimitInSteps(int maxPos);
 
     /**
      * @brief set minimum software limit in units
      * @param minPos minimum limit
      */
-    virtual void setMinPositionLimit(float minPos);
+    virtual StepperMotorRet setMinPositionLimit(float minPos);
 
     /**
      * @brief set minimum software limit in steps
      * @param minPos maximum limit
      */
-    virtual void setMinPositionLimitInSteps(int minPos);
+    virtual StepperMotorRet setMinPositionLimitInSteps(int minPos);
 
     /**
      * @brief get maximal software position limit in units
@@ -193,7 +196,7 @@ namespace ChimeraTK {
      * This can be done defining the position of the motor respect to an external reference (actual position).\n
      * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
      */
-    virtual StepperMotorConfigurationResult setActualPosition(float actualPositionInUnits);
+    virtual StepperMotorRet setActualPosition(float actualPositionInUnits);
 
     /**
      * @brief set actual position in steps of the motor respect to some reference
@@ -201,19 +204,19 @@ namespace ChimeraTK {
      *
      * This can be done defining the position of the motor respect to an external reference (actual position).
      */
-    virtual StepperMotorConfigurationResult setActualPositionInSteps(int actualPositionInSteps);
+    virtual StepperMotorRet setActualPositionInSteps(int actualPositionInSteps);
 
     /**@brief translate the reference axis of the motor. This operation will translate also the software limits
      * @param translationInSteps translation value in steps
      */
 
-    virtual StepperMotorConfigurationResult translateAxisInSteps(int translationInSteps);
+    virtual StepperMotorRet translateAxisInSteps(int translationInSteps);
 
     /**@brief translate the reference axis of the motor. This operation will translate also the software limits
      * @param translationInUnits translation value in unit
      */
 
-    virtual StepperMotorConfigurationResult translateAxis(float translationInUnits);
+    virtual StepperMotorRet translateAxis(float translationInUnits);
 
     /**
      * @brief get current position of the motor in units
@@ -238,7 +241,7 @@ namespace ChimeraTK {
      *  step counter to a reference value, this function can be used to define a reference\n
      *  for the encoder output.
      */
-    virtual void setActualEncoderPosition(double referencePosition);
+    virtual StepperMotorRet setActualEncoderPosition(double referencePosition);
 
     /**
      * Return target motor position in the arbitrary units.
@@ -257,13 +260,13 @@ namespace ChimeraTK {
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual StepperMotorConfigurationResult setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter to the default one
      */
-    virtual void setStepperMotorUnitsConverterToDefault();
+    virtual StepperMotorRet setStepperMotorUnitsConverterToDefault();
 
     /**
      * Check if the system is in idle and it returns true is it is so.
@@ -351,7 +354,7 @@ namespace ChimeraTK {
      * @brief set user current limit for the motor
      * @param currentInAmps current limit in ampere
      */
-    virtual double setUserCurrentLimit(double currentInAmps);
+    virtual StepperMotorRet setUserCurrentLimit(double currentInAmps);
 
     /**
      * @brief returns the user current limit in ampere
@@ -359,14 +362,14 @@ namespace ChimeraTK {
     virtual double getUserCurrentLimit();
 
     /**
-     * @brief set user speed limit
+     * @brief set user speed limit in microsteps per second
      */
-    virtual bool setUserSpeedLimit(double newSpeed);//todo newSpeed unit!?!?
+    virtual StepperMotorRet setUserSpeedLimit(double speedInUstepsPerSec);
 
     /**
-     * @brief return user speed limit
+     * @brief return user speed limit in microsteps per secon.
      */
-    virtual double getUserSpeedLimit();//todo newSpeed unit!?!?
+    virtual double getUserSpeedLimit();
 
 
     /**
@@ -390,9 +393,9 @@ namespace ChimeraTK {
 
     virtual bool hasHWReferenceSwitches();
 
-    virtual void calibrate() ;
+    virtual StepperMotorRet calibrate() ;
 
-    virtual void determineTolerance() ;
+    virtual StepperMotorRet determineTolerance() ;
 
     virtual float getPositiveEndReference() ;
 
@@ -428,7 +431,7 @@ namespace ChimeraTK {
      * Returns true if the motor is not active,
      * i.e. in disabled or idle state
      */
-    virtual bool motorNotActive();
+    virtual bool motorActive();
 
     /// Common actions for setActualPosition for this and derived classes
     void setActualPositionActions(int actualPositionInSteps);
@@ -442,7 +445,7 @@ namespace ChimeraTK {
     virtual void initStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
-    void checkNewPosition(int newPositionInSteps);
+    StepperMotorRet checkNewPosition(int newPositionInSteps);
 
     /// Common actions for translateAxis for this and derived classes
     void translateAxisActions(int translationInSteps);

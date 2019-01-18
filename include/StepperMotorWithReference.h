@@ -42,7 +42,7 @@ namespace ChimeraTK{
      *  This is useful in applications where the stage can not move through the full range between the end switches.\n
      *  This function will result in the calibration mode being StepperMotorCalibrationMode::SIMPLE.\n
      */
-    virtual StepperMotorConfigurationResult setActualPositionInSteps(int actualPositionInSteps);
+    virtual StepperMotorRet setActualPositionInSteps(int actualPositionInSteps);
 
 
     /**
@@ -52,7 +52,7 @@ namespace ChimeraTK{
      * the given offset. The resulting new position will be truncated if the calculated value
      * exceeds the numeric limits of an int.
      */
-    virtual StepperMotorConfigurationResult translateAxisInSteps(int translationInSteps);
+    virtual StepperMotorRet translateAxisInSteps(int translationInSteps);
 
 
     virtual bool hasHWReferenceSwitches();
@@ -66,7 +66,7 @@ namespace ChimeraTK{
      *
      *  On success, this function will result in the calibration mode being StepperMotorCalibrationMode::FULL.\n
      */
-    virtual void calibrate();
+    virtual StepperMotorRet calibrate();
 
     /**
      *  @brief Determines the standard deviation of the end switch position.
@@ -76,7 +76,7 @@ namespace ChimeraTK{
      *  error when an end switch is activated and the actual position is not within a 3 sigma band around the\n
      *  calibrated end switch position.\n
      */
-    virtual void determineTolerance();
+    virtual StepperMotorRet determineTolerance();
 
     virtual StepperMotorError getError();
 
