@@ -24,14 +24,13 @@
 
 //Stepper Motor includes
 #include "StepperMotorError.h"
+#include "StepperMotorException.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
 #include "StepperMotorStateMachine.h"
 #include "Logger.h"
 
 namespace ChimeraTK {
-
-  using mtca4u::MotorDriverException;
 
   /**
    *  @brief Enum type describing how the system is calibrated:
@@ -59,6 +58,9 @@ namespace ChimeraTK {
     ERR_INVALID_PARAMETER,
     ERR_SYSTEM_NOT_CALIBRATED
   };
+
+
+  enum StepperMotorError{NO_ERROR, ACTION_ERROR, CALIBRATION_LOST, BOTH_END_SWITCHES_ON, MOVE_INTERRUPTED, EMERGENCY_STOP};
 
   /**
    * @brief Namespace for utility classes related to the StepperMotor

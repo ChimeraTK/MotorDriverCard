@@ -23,7 +23,6 @@
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCard.h"
 #include "MotorControler.h"
-#include "MotorDriverException.h"
 
 //Stepper Motor includes
 #include "StepperMotor.h"
@@ -38,8 +37,6 @@
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
-
-  using mtca4u::MotorDriverException;
 
 
   /**
@@ -465,6 +462,7 @@ namespace ChimeraTK {
     Logger _logger;
     mutable boost::mutex _mutex;
     std::shared_ptr<StateMachine> _stateMachine;
+    std::atomic<StepperMotorError> _error;
     std::atomic<StepperMotorCalibrationMode> _calibrationMode;
 
   }; // class BasicStepperMotor

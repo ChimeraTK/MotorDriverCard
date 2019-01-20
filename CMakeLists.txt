@@ -73,9 +73,20 @@ ELSE(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   message("Boost unit_test_framework not found, disabling testing")
 ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
+# Add source files and include directories
+# First, files not yet sorted into secific subdirs TODO
 include_directories(${CMAKE_SOURCE_DIR}/include)
 set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
+
+set(subdirs util backend steppermotor mtca4u_steppermotor)
+foreach(subdir ${subdirs})
+  aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
+  set(SOURCE ${SOURCE} ${sources})
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
+  set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${subdir}/include/)
+endforeach()
+
 
 MACRO( COPY_MAPPING_FILES )
   foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp

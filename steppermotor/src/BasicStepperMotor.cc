@@ -3,7 +3,6 @@
 #include <future>
 #include <chrono>
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
 #include "StepperMotorException.h"
 #include "StepperMotorStateMachine.h"
 
@@ -170,49 +169,35 @@ namespace ChimeraTK{
     return _softwareLimitsEnabled;
   }
 
-  StepperMotorRet BasicStepperMotor::setMaxPositionLimitInSteps(int maxPos){
+  StepperMotorRet BasicStepperMotor::setMaxPositionLimitInSteps(int maxPosInSteps){
     LockGuard guard(_mutex);
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
-    }else if(maxPos <= _minPositionLimitInSteps){
-      throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
+    }else if(maxPosInSteps <= _minPositionLimitInSteps){
+      return StepperMotorRet::ERR_INVALID_PARAMETER;
     }
-    _maxPositionLimitInSteps = maxPos;
+    _maxPositionLimitInSteps = maxPosInSteps;
     return StepperMotorRet::SUCCESS;
   }
 
-  StepperMotorRet BasicStepperMotor::setMaxPositionLimit(float maxPos){
-    LockGuard guard(_mutex);
-    if (motorActive()){
-      return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
-    }else if(_stepperMotorUnitsConverter->unitsToSteps(maxPos) <= _minPositionLimitInSteps){
-      throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
-    }
-    _maxPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(maxPos);
-    return StepperMotorRet::SUCCESS;
+  StepperMotorRet BasicStepperMotor::setMaxPositionLimit(float maxPosInUnits){
+    return setMaxPositionLimitInSteps(_stepperMotorUnitsConverter->unitsToSteps(maxPosInUnits));
   }
 
-  StepperMotorRet BasicStepperMotor::setMinPositionLimitInSteps(int minPos){
+  StepperMotorRet BasicStepperMotor::setMinPositionLimitInSteps(int minPosInSteps){
       LockGuard guard(_mutex);
       if (motorActive()){
         return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
-      }else if(minPos >= _maxPositionLimitInSteps){
-        throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
+      }else if(minPosInSteps >= _maxPositionLimitInSteps){
+        return StepperMotorRet::ERR_INVALID_PARAMETER;
       }
-      _minPositionLimitInSteps = minPos;
+      _minPositionLimitInSteps = minPosInSteps;
       return StepperMotorRet::SUCCESS;
     }
 
-  StepperMotorRet BasicStepperMotor::setMinPositionLimit(float minPos){
-      LockGuard guard(_mutex);
-      if (motorActive()){
-        return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
-      }else if(_stepperMotorUnitsConverter->unitsToSteps(minPos) >= _maxPositionLimitInSteps){
-        throw MotorDriverException("minimum limit not smaller than maximum limit", MotorDriverException::NOT_IMPLEMENTED);
-      }
-      _minPositionLimitInSteps = _stepperMotorUnitsConverter->unitsToSteps(minPos);
-      return StepperMotorRet::SUCCESS;
-    }
+  StepperMotorRet BasicStepperMotor::setMinPositionLimit(float minPosInUnits){
+    return setMinPositionLimitInSteps(_stepperMotorUnitsConverter->unitsToSteps(minPosInUnits));
+  }
 
   int BasicStepperMotor::getMaxPositionLimitInSteps(){
     LockGuard guard(_mutex);
@@ -545,51 +530,51 @@ namespace ChimeraTK{
   }
 
   StepperMotorRet BasicStepperMotor::calibrate(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   StepperMotorRet BasicStepperMotor::determineTolerance(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   float BasicStepperMotor::getPositiveEndReference(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   int BasicStepperMotor::getPositiveEndReferenceInSteps(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   float BasicStepperMotor::getNegativeEndReference(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   int BasicStepperMotor::getNegativeEndReferenceInSteps(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   float BasicStepperMotor::getTolerancePositiveEndSwitch(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   float BasicStepperMotor::getToleranceNegativeEndSwitch(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   bool BasicStepperMotor::isPositiveReferenceActive(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   bool BasicStepperMotor::isNegativeReferenceActive(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   bool BasicStepperMotor::isPositiveEndSwitchEnabled(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   bool BasicStepperMotor::isNegativeEndSwitchEnabled(){
-    throw MotorDriverException("This routine is not available for the BasicStepperMotor", MotorDriverException::NOT_IMPLEMENTED);
+    throw StepperMotorException("This routine is not available for the BasicStepperMotor",StepperMotorException::FEATURE_NOT_AVAILABLE);
   }
 
   StepperMotorCalibrationMode BasicStepperMotor::getCalibrationMode(){
