@@ -462,7 +462,7 @@ namespace ChimeraTK {
     Logger _logger;
     mutable boost::mutex _mutex;
     std::shared_ptr<StateMachine> _stateMachine;
-    std::atomic<StepperMotorError> _error;
+    std::atomic<StepperMotorError> _errorMode;
     std::atomic<StepperMotorCalibrationMode> _calibrationMode;
 
   }; // class BasicStepperMotor

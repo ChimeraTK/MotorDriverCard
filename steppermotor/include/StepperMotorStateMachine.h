@@ -29,6 +29,7 @@ namespace ChimeraTK{
     static const Event initialEvent;
     static const Event moveEvent;
     static const Event stopEvent;
+    static const Event errorEvent;
     static const Event emergencyStopEvent;
     static const Event actionCompleteEvent;
     static const Event enableEvent;

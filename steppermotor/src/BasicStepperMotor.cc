@@ -27,6 +27,7 @@ namespace ChimeraTK{
       _logger(),
       _mutex(),
       _stateMachine(),
+      _errorMode(StepperMotorError::NO_ERROR),
       _calibrationMode(StepperMotorCalibrationMode::NONE)
   {
     _stateMachine.reset(new StepperMotorStateMachine(*this));
@@ -47,6 +48,7 @@ namespace ChimeraTK{
      _logger(),
      _mutex(),
      _stateMachine(),
+     _errorMode(StepperMotorError::NO_ERROR),
      _calibrationMode(StepperMotorCalibrationMode::NONE){}
 
   BasicStepperMotor::~BasicStepperMotor(){}
@@ -377,6 +379,7 @@ namespace ChimeraTK{
   bool BasicStepperMotor::isSystemIdle(){
     LockGuard guard(_mutex);
     return !motorActive();
+    // FIXME Return to this
     //return _stateMachine->getCurrentState()->getName() == "idle";
   }
 
@@ -391,16 +394,7 @@ namespace ChimeraTK{
 
   StepperMotorError BasicStepperMotor::getError(){
     LockGuard guard(_mutex);
-    StepperMotorError _motorError = NO_ERROR;
-    if (!motorActive() && (_motorControler->getTargetPosition() != _motorControler->getActualPosition())){
-      _motorError = ACTION_ERROR;
-    }
-    //FIXME This is a temporary hack, currently only emergency stops sets error state
-    //TODO Change this, so that the StepperMotor has a error property
-    else if(_stateMachine->getCurrentState()->getName() == "error"){
-      _motorError = EMERGENCY_STOP;
-    }
-    return _motorError;
+    return _errorMode;
   }
 
   bool BasicStepperMotor::isCalibrated(){

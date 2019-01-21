@@ -16,6 +16,7 @@ namespace ChimeraTK{
   const StateMachine::Event StepperMotorStateMachine::initialEvent("initialEvent");
   const StateMachine::Event StepperMotorStateMachine::moveEvent("moveEvent");
   const StateMachine::Event StepperMotorStateMachine::stopEvent("stopEvent");
+  const StateMachine::Event StepperMotorStateMachine::errorEvent("errorEvent");
   const StateMachine::Event StepperMotorStateMachine::emergencyStopEvent("emergencyStopEvent");
   const StateMachine::Event StepperMotorStateMachine::actionCompleteEvent("actionCompletedEvent");
   const StateMachine::Event StepperMotorStateMachine::enableEvent("enableEvent");
@@ -37,6 +38,7 @@ namespace ChimeraTK{
                                                                    std::bind(&StepperMotorStateMachine::waitForStandstill, this));
     _idle.setTransition     (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
     _moving.setTransition   (stopEvent,           &_idle,          std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
+    _moving.setTransition   (errorEvent,          &_error,         []{});
     _moving.setTransition   (emergencyStopEvent,  &_error,         std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
     _moving.setTransition   (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
     _disabled.setTransition (enableEvent,         &_idle,          std::bind(&StepperMotorStateMachine::actionEnable, this));
@@ -50,20 +52,31 @@ namespace ChimeraTK{
 
     if(!_motorControler->isMotorMoving()){
 
-      // Set the propagated state or return to idle by stop event
-      // Either of them does not take effect
       _asyncActionActive.exchange(false);
-      moveToRequestedState();
-      //TODO Perform error checking (setpoint = actual position) here?
-      performTransition(stopEvent);
-      //_internalEventCallback = []{};
+
+      // Move may be stopped by
+      // user requesting state transition
+      if(hasRequestedState()){}
+        moveToRequestedState();
+        return;
+      }
+
+      Event stateExitEvnt = stopEvent;
+
+      // Motor stopped by itself
+      if(_motorControler->getTargetPosition() != _motorControler->getActualPosition()){
+        _stepperMotor._errorMode.exchange(StepperMotorError::MOVE_INTERRUPTED);
+
+        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+        stateExitEvnt = errorEvent;
+      }
+      performTransition(stateExitEvnt);
+      return;
     }
-  }
 
   void StepperMotorStateMachine::actionIdleToMove(){
     _asyncActionActive.exchange(true);
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
-    //_internalEventCallback = std::bind(&StepperMotorStateMachine::waitForStandstill, this);
   }
 
   void StepperMotorStateMachine::actionMovetoStop(){
@@ -83,6 +96,7 @@ namespace ChimeraTK{
     _motorControler->setEndSwitchPowerEnabled(false);
     actionMovetoStop();
     _motorControler->setCalibrationTime(0);
+    _stepperMotor._errorMode.exchange(StepperMotorError::EMERGENCY_STOP);
   }
 
   void StepperMotorStateMachine::actionEnable(){

@@ -124,6 +124,7 @@ namespace ChimeraTK{
     std::function<void(void)> _internalEventCallback;
     std::function<void(void)> _requestedInternalCallback;
     void performTransition(Event event);
+    bool hasRequestedState();
     void moveToRequestedState();
   };
 

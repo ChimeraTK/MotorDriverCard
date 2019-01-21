@@ -89,6 +89,10 @@ namespace ChimeraTK{
     }
   }
 
+  bool StateMachine::hasRequestedState(){
+    return  _requestedState != nullptr;
+  }
+
   void StateMachine::moveToRequestedState(){
     if(_requestedState != nullptr){
       _currentState = _requestedState;

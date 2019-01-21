@@ -26,13 +26,13 @@ namespace ChimeraTK{
       _moveInterrupted(false)
   {
     _idle.setTransition(calibEvent,
-                                    &_calibrating,
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this),
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
+                        &_calibrating,
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this),
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
     _idle.setTransition(StepperMotorWithReferenceStateMachine::calcToleranceEvent,
-                                    &_calculatingTolerance,
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this),
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
+                        &_calculatingTolerance,
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this),
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
 
     _calibrating.setTransition(StepperMotorStateMachine::stopEvent,
                                &_idle,
