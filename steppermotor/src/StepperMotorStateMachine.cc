@@ -38,7 +38,7 @@ namespace ChimeraTK{
                                                                    std::bind(&StepperMotorStateMachine::waitForStandstill, this));
     _idle.setTransition     (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
     _moving.setTransition   (stopEvent,           &_idle,          std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
-    _moving.setTransition   (errorEvent,          &_error,         []{});
+    _moving.setTransition   (errorEvent,          &_error,         []{std::cout << "    moving to error   " << std::endl;});
     _moving.setTransition   (emergencyStopEvent,  &_error,         std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
     _moving.setTransition   (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
     _disabled.setTransition (enableEvent,         &_idle,          std::bind(&StepperMotorStateMachine::actionEnable, this));
@@ -56,7 +56,7 @@ namespace ChimeraTK{
 
       // Move may be stopped by
       // user requesting state transition
-      if(hasRequestedState()){}
+      if(hasRequestedState()){
         moveToRequestedState();
         return;
       }
@@ -73,6 +73,7 @@ namespace ChimeraTK{
       performTransition(stateExitEvnt);
       return;
     }
+  }
 
   void StepperMotorStateMachine::actionIdleToMove(){
     _asyncActionActive.exchange(true);

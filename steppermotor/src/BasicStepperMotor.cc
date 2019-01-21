@@ -54,9 +54,7 @@ namespace ChimeraTK{
   BasicStepperMotor::~BasicStepperMotor(){}
 
   StepperMotorRet BasicStepperMotor::checkNewPosition(int newPositionInSteps){
-//    if (motorActive()){
-//      return StepperMotorRet::ERROR_SYSTEM_IN_ACTION;
-//    }
+
     if (_motorControler->getCalibrationTime() == 0){
       return StepperMotorRet::ERR_SYSTEM_NOT_CALIBRATED;
     }
@@ -90,6 +88,7 @@ namespace ChimeraTK{
     int newPosition = _motorControler->getActualPosition() + delta;
     auto checkResult =  checkNewPosition(newPosition);
     if(checkResult != StepperMotorRet::SUCCESS){
+      std::cout << "  ** moveRelative exists because new position check fails" << std::endl;
       return checkResult;
     }
 
@@ -378,9 +377,10 @@ namespace ChimeraTK{
 
   bool BasicStepperMotor::isSystemIdle(){
     LockGuard guard(_mutex);
-    return !motorActive();
+    //return !motorActive();
     // FIXME Return to this
-    //return _stateMachine->getCurrentState()->getName() == "idle";
+    std::string state = _stateMachine->getCurrentState()->getName();
+    return state == "idle" || state == "disabled";
   }
 
   void BasicStepperMotor::waitForIdle(){
