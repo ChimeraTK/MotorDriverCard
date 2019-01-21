@@ -455,7 +455,19 @@ namespace ChimeraTK{
 
   double BasicStepperMotor::getSafeCurrentLimit() {
     LockGuard guard(_mutex);
-    return (_motorControler->getMaxCurrentLimit());
+
+    double currentLimit = 0.;
+    /*
+     * While the MotorControlerDummy does not implement
+     * the function, the exception is remapped to not
+     * expose the mtca4u namespace in the interface
+     */
+    try {
+      currentLimit = _motorControler->getMaxCurrentLimit();
+    } catch (mtca4u::MotorDriverException &e) {
+      throw StepperMotorException(e.what(), StepperMotorException::FEATURE_NOT_AVAILABLE);
+    }
+    return currentLimit;
   }
 
   StepperMotorRet BasicStepperMotor::setUserCurrentLimit(double currentInAmps) {
