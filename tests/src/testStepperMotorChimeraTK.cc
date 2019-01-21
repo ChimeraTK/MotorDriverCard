@@ -303,9 +303,9 @@ BOOST_AUTO_TEST_CASE(testMove){
   BOOST_CHECK(_stepperMotor->setTargetPositionInSteps(-100000) == StepperMotorRet::ERR_INVALID_PARAMETER);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(10));
-  BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
+  //BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), false);
 
-  waitForState("moving");
+  BOOST_CHECK(waitForState("moving"));
 
   // Restating should have no effect
   _stepperMotor->setTargetPositionInSteps(10);
