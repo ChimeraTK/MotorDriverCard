@@ -38,6 +38,7 @@ namespace ChimeraTK{
                                &_idle,
                                std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
     _calibrating.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{ actionEmergencyStop(); });
+//    _calibrating.setTransition(StepperMotorStateMachine::errorEvent, &_error, [this]{});
 
     _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent, &_idle, [this]{ actionStop(); });
     _calculatingTolerance.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{actionEmergencyStop();});

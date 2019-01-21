@@ -44,7 +44,6 @@ namespace ChimeraTK{
     BasicStepperMotor &_stepperMotor;
     boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
     void getActionCompleteEvent();
-    void actionWaitForStandstill();
     void waitForStandstill();
     void actionIdleToMove();
     void actionMovetoStop();

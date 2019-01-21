@@ -444,6 +444,9 @@ namespace ChimeraTK {
     bool checkIfOverflow(int termA, int termB);
     virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
 
+    /// Checks if moving resulted in the requested target position
+    virtual bool verifyMoveAction();
+
     /// Common actions for translateAxis for this and derived classes
     void translateAxisActions(int translationInSteps);
 

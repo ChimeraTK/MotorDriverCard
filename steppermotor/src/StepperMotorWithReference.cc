@@ -8,6 +8,8 @@
 #include "StepperMotorWithReference.h"
 #include "StepperMotorWithReferenceStateMachine.h"
 
+using LockGuard = boost::lock_guard<boost::mutex>;
+
 namespace ChimeraTK{
   StepperMotorWithReference::StepperMotorWithReference(const StepperMotorParameters & parameters)
     : BasicStepperMotor(),
@@ -64,7 +66,7 @@ namespace ChimeraTK{
   }
 
   StepperMotorRet StepperMotorWithReference::setActualPositionInSteps(int actualPositionInSteps){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
@@ -78,7 +80,7 @@ namespace ChimeraTK{
   }
 
   StepperMotorRet StepperMotorWithReference::translateAxisInSteps(int translationInSteps){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
@@ -101,7 +103,7 @@ namespace ChimeraTK{
   }
 
   StepperMotorRet StepperMotorWithReference::calibrate(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
@@ -110,7 +112,7 @@ namespace ChimeraTK{
   }
 
   StepperMotorRet StepperMotorWithReference::determineTolerance(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
@@ -118,9 +120,8 @@ namespace ChimeraTK{
     return StepperMotorRet::SUCCESS;
   }
 
-  // FIXME Combine this with getError from base class
   StepperMotorError StepperMotorWithReference::getError(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     if (motorActive() &&
         _motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
         _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
@@ -128,10 +129,6 @@ namespace ChimeraTK{
     }
     if (!motorActive()){
       if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
-        return ACTION_ERROR;
-      }else if ((_motorControler->getTargetPosition() != _motorControler->getActualPosition()) &&
-                !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-                !_motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
         return ACTION_ERROR;
       }
     }
@@ -152,52 +149,52 @@ namespace ChimeraTK{
   }
 
   int StepperMotorWithReference::getPositiveEndReferenceInSteps(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _calibPositiveEndSwitchInSteps.load();
   }
 
   float StepperMotorWithReference::getPositiveEndReference(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _stepperMotorUnitsConverter->stepsToUnits(_calibPositiveEndSwitchInSteps.load());
   }
 
   int StepperMotorWithReference::getNegativeEndReferenceInSteps(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _calibNegativeEndSwitchInSteps.load();
   }
 
   float StepperMotorWithReference::getNegativeEndReference(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _stepperMotorUnitsConverter->stepsToUnits(_calibNegativeEndSwitchInSteps.load());
   }
 
   float StepperMotorWithReference::getTolerancePositiveEndSwitch(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _tolerancePositiveEndSwitch.load();
   }
 
   float StepperMotorWithReference::getToleranceNegativeEndSwitch(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _toleranceNegativeEndSwitch.load();
   }
 
   bool StepperMotorWithReference::isPositiveReferenceActive(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
   }
 
   bool StepperMotorWithReference::isNegativeReferenceActive(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
   }
 
   bool StepperMotorWithReference::isPositiveEndSwitchEnabled(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _positiveEndSwitchEnabled.load();
   }
 
   bool StepperMotorWithReference::isNegativeEndSwitchEnabled(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
     return _negativeEndSwitchEnabled.load();
   }
 
@@ -206,7 +203,7 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReference::loadEndSwitchCalibration(){
-    boost::lock_guard<boost::mutex> guard(_mutex);
+    LockGuard guard(_mutex);
 
     if(_motorControler->getCalibrationTime() != 0){
 
@@ -223,6 +220,15 @@ namespace ChimeraTK{
         _calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
       }
     }
+  }
+
+  bool StepperMotorWithReference::verifyMoveAction(){
+
+    bool endSwitchesNotActive = !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+                                !_motorControler->getReferenceSwitchData().getNegativeSwitchActive();
+    bool positionMismatch     = _motorControler->getTargetPosition() != _motorControler->getActualPosition();
+
+    return endSwitchesNotActive && positionMismatch;
   }
 }
 

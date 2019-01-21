@@ -124,6 +124,7 @@ namespace ChimeraTK{
     virtual bool motorActive();
     virtual bool limitsOK(int newPositionInSteps);
     virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
+    virtual bool verifyMoveAction();
 
     /**
      * @brief loadEndSwitchCalibration

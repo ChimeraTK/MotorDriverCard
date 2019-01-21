@@ -138,6 +138,8 @@ namespace ChimeraTK{
   void BasicStepperMotor::resetError(){
     LockGuard guard(_mutex);
 
+    _errorMode = StepperMotorError::NO_ERROR;
+
     if(!_motorControler->isMotorCurrentEnabled()){
       _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::resetToDisableEvent);
     }
@@ -522,6 +524,10 @@ namespace ChimeraTK{
     }else{
       return false;
     }
+  }
+
+  bool BasicStepperMotor::verifyMoveAction(){
+    return _motorControler->getTargetPosition() != _motorControler->getActualPosition();
   }
 
   void BasicStepperMotor::initStateMachine(){
