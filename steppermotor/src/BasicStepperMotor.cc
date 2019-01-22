@@ -55,7 +55,7 @@ namespace ChimeraTK{
 
   StepperMotorRet BasicStepperMotor::checkNewPosition(int newPositionInSteps){
 
-    if (_calibrationMode.load() != StepperMotorCalibrationMode::NONE){
+    if (_calibrationMode.load() == StepperMotorCalibrationMode::NONE){
       return StepperMotorRet::ERR_SYSTEM_NOT_CALIBRATED;
     }
     if (!limitsOK(newPositionInSteps)){
@@ -88,7 +88,6 @@ namespace ChimeraTK{
     int newPosition = _motorControler->getActualPosition() + delta;
     auto checkResult =  checkNewPosition(newPosition);
     if(checkResult != StepperMotorRet::SUCCESS){
-      std::cout << "  ** moveRelative exists because new position check fails" << std::endl;
       return checkResult;
     }
 

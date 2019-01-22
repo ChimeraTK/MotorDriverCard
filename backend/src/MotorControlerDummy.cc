@@ -175,6 +175,7 @@ namespace mtca4u {
 
     void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition){
       //TODO
+      (void)calibratedPosition;
     }
 
     int  MotorControlerDummy::getPositiveReferenceSwitchCalibration(){
@@ -183,6 +184,7 @@ namespace mtca4u {
 
     void MotorControlerDummy::setNegativeReferenceSwitchCalibration(int calibratedPosition){
       //TODO
+      (void)calibratedPosition;
     }
 
     int  MotorControlerDummy::getNegativeReferenceSwitchCalibration(){

@@ -296,6 +296,7 @@ BOOST_AUTO_TEST_CASE(testTranslateAxis){
 BOOST_AUTO_TEST_CASE(testMove){
 
   _stepperMotor->setSoftwareLimitsEnabled(true);
+  _stepperMotor->setActualPosition(0);
   _stepperMotor->setEnabled(true);
 
   BOOST_CHECK_EQUAL(_stepperMotor->getSoftwareLimitsEnabled(), true);
@@ -356,6 +357,7 @@ BOOST_AUTO_TEST_CASE(testMove){
 
 BOOST_AUTO_TEST_CASE(testMoveRelative){
 
+  _stepperMotor->setActualPosition(30);
   _stepperMotor->setEnabled(true);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->moveRelativeInSteps(5));
@@ -373,6 +375,8 @@ BOOST_AUTO_TEST_CASE(testMoveRelative){
 }
 
 BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
+
+  _stepperMotor->setActualPosition(0);
 
   // Don't want to dig through relation of positions between test cases
   // just restore where we came from in the end
@@ -413,20 +417,24 @@ BOOST_AUTO_TEST_CASE( testTargetPositionAndStart ){
 
 BOOST_AUTO_TEST_CASE( testStop ){
 
+  _stepperMotor->setActualPosition(0);
+
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
-  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(50));
+  BOOST_CHECK(_stepperMotor->setTargetPositionInSteps(50) == StepperMotorRet::SUCCESS);
 
   waitForState("moving");
-  _motorControlerDummy->moveTowardsTarget(0.4);
+  _motorControlerDummy->moveTowardsTarget(0.4f);
   _stepperMotor->stop();
   _stepperMotor->waitForIdle();
 
-  BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 41);
+  BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 20);
   BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
 BOOST_AUTO_TEST_CASE( testEmergencyStop ){
+
+  _stepperMotor->setActualPosition(0);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
@@ -457,6 +465,8 @@ BOOST_AUTO_TEST_CASE( testEmergencyStop ){
 }
 
 BOOST_AUTO_TEST_CASE( testFullStepping ){
+
+  _stepperMotor->setActualPosition(0);
 
   _motorControlerDummy->resetInternalStateToDefaults();
   _motorControlerDummy->setCalibrationTime(32);
@@ -548,6 +558,7 @@ BOOST_AUTO_TEST_CASE( testLocking ){
 
   auto currentPosition = _stepperMotor->getCurrentPositionInSteps();
 
+  _stepperMotor->setActualPositionInSteps(0);
   BOOST_CHECK(_stepperMotor->isSystemIdle());
   _stepperMotor->setSoftwareLimitsEnabled(false);
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
@@ -565,7 +576,8 @@ BOOST_AUTO_TEST_CASE( testLocking ){
 BOOST_AUTO_TEST_CASE( testDisable ){
 
   _motorControlerDummy->resetInternalStateToDefaults();
-  _motorControlerDummy->setCalibrationTime(32);
+//  _motorControlerDummy->setCalibrationTime(32);
+  _stepperMotor->setActualPositionInSteps(0);
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));

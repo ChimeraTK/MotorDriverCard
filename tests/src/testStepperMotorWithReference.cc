@@ -90,7 +90,7 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
   _stepperMotor = std::make_shared<ChimeraTK::StepperMotorWithReference>(_stepperMotorParameters);
 }
 
-bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, unsigned timeoutInSeconds = 10){
+bool StepperMotorWithReferenceTestFixture::waitForState(std::string reqStateName, unsigned timeoutInSeconds = 10){
 
   unsigned sleepPeriodInMilliSec = 100;
   unsigned timeoutInSteps    = timeoutInSeconds*1000/sleepPeriodInMilliSec;
@@ -99,11 +99,14 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string stateName, u
   do{
     std::this_thread::sleep_for(std::chrono::milliseconds(sleepPeriodInMilliSec));
 
-    if(_stepperMotor->getState() == stateName){
+    auto actStateName = _stepperMotor->getState();
+    if(actStateName == reqStateName){
       isCorrectState = true;
       break;
     }
     else{
+      std::cout << "  ** waitForState: False state "  << actStateName
+                << " detected. Requested " << reqStateName << std::endl;
       cnt++;
     }
   }while(cnt <= timeoutInSteps);
@@ -372,7 +375,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate){
   while(!_stepperMotor->isSystemIdle()){}
   _stepperMotor->setTargetPositionInSteps(100);
   _stepperMotor->start();
-  BOOST_CHECK(waitForState("moving"));
+  BOOST_CHECK(waitForState("moving", 1));
   _motorControlerDummy->moveTowardsTarget(1);
   while(!_stepperMotor->isSystemIdle()){}
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 100);

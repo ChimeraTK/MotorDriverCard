@@ -97,6 +97,7 @@ namespace ChimeraTK{
     _motorControler->setEndSwitchPowerEnabled(false);
     actionMovetoStop();
     _motorControler->setCalibrationTime(0);
+    _stepperMotor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
     _stepperMotor._errorMode.exchange(StepperMotorError::EMERGENCY_STOP);
   }
 
