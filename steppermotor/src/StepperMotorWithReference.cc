@@ -125,23 +125,23 @@ namespace ChimeraTK{
     if (motorActive() &&
         _motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
         _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
-      return BOTH_END_SWITCHES_ON;
+      return StepperMotorError::BOTH_END_SWITCHES_ON;
     }
     if (!motorActive()){
       if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
-        return ACTION_ERROR;
+        return StepperMotorError::ACTION_ERROR;
       }
     }
     if (_toleranceCalculated){
       if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
           std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps.load()) > 3 * _tolerancePositiveEndSwitch.load()){
-        return CALIBRATION_LOST;
+        return StepperMotorError::CALIBRATION_ERROR;
       }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() &&
           std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps.load()) > 3 * _toleranceNegativeEndSwitch.load()){
-        return CALIBRATION_LOST;
+        return StepperMotorError::CALIBRATION_ERROR;
       }
     }
-    return NO_ERROR;
+    return StepperMotorError::NO_ERROR;
   }
 
   bool StepperMotorWithReference::hasHWReferenceSwitches(){
@@ -224,11 +224,11 @@ namespace ChimeraTK{
 
   bool StepperMotorWithReference::verifyMoveAction(){
 
-    bool endSwitchesNotActive = !_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-                                !_motorControler->getReferenceSwitchData().getNegativeSwitchActive();
-    bool positionMismatch     = _motorControler->getTargetPosition() != _motorControler->getActualPosition();
+    bool endSwitchActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() ||
+                                _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
+    bool positionMatch     = _motorControler->getTargetPosition() == _motorControler->getActualPosition();
 
-    return endSwitchesNotActive && positionMismatch;
+    return endSwitchActive || positionMatch;
   }
 }
 

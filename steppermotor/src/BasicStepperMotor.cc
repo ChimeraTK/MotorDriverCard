@@ -527,7 +527,7 @@ namespace ChimeraTK{
   }
 
   bool BasicStepperMotor::verifyMoveAction(){
-    return _motorControler->getTargetPosition() != _motorControler->getActualPosition();
+    return _motorControler->getTargetPosition() == _motorControler->getActualPosition();
   }
 
   void BasicStepperMotor::initStateMachine(){

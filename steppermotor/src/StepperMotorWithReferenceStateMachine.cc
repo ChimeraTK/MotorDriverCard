@@ -176,9 +176,19 @@ namespace ChimeraTK{
       _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(POSITIVE));
       _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(NEGATIVE));
 
-      if (_moveInterrupted.load() || _stopAction.load()){
+      if (_stopAction.load()){
+        _motor._toleranceCalculated.exchange(false);
+      }
+      else if(_moveInterrupted.load()){
         _motor._toleranceCalculated.exchange(false);
         _motor._toleranceCalcFailed.exchange(true);
+
+        // TODO include
+//        _asyncActionActive.exchange(false);
+//        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+//        _stepperMotor._errorMode = StepperMotorError::CALIBRATION_LOST;
+//        performTransition(errorEvent);
+//        return;
       }
       else{
         _motor._toleranceCalculated.exchange(true);
@@ -220,9 +230,7 @@ namespace ChimeraTK{
       }
 
       //Check if in expected position
-      if (_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
-            !_motor.isPositiveReferenceActive() &&
-            !_motor.isNegativeReferenceActive()){
+      if (!_motor.verifyMoveAction()){
         _moveInterrupted.exchange(true);
         break;
       }

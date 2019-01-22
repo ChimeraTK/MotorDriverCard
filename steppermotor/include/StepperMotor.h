@@ -60,7 +60,14 @@ namespace ChimeraTK {
   };
 
 
-  enum StepperMotorError{NO_ERROR, ACTION_ERROR, CALIBRATION_LOST, BOTH_END_SWITCHES_ON, MOVE_INTERRUPTED, EMERGENCY_STOP};
+  enum class StepperMotorError{
+    NO_ERROR,
+    ACTION_ERROR,
+    CALIBRATION_ERROR,
+    BOTH_END_SWITCHES_ON,
+    MOVE_INTERRUPTED,
+    EMERGENCY_STOP
+  };
 
   /**
    * @brief Namespace for utility classes related to the StepperMotor

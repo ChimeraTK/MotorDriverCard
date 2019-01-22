@@ -34,8 +34,8 @@ namespace ChimeraTK{
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
     enum Sign{NEGATIVE = -1, POSITIVE = 1};
+
     void actionStop();
-    //void getActionCompletedEvent();
     void actionStartCalib();
     void actionEndCallback();
     void actionStartCalcTolercance();

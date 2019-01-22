@@ -64,7 +64,7 @@ namespace ChimeraTK{
       Event stateExitEvnt = stopEvent;
 
       // Motor stopped by itself
-      if(_stepperMotor.verifyMoveAction()){
+      if(!_stepperMotor.verifyMoveAction()){
         _stepperMotor._errorMode.exchange(StepperMotorError::MOVE_INTERRUPTED);
 
         _motorControler->setTargetPosition(_motorControler->getActualPosition());
