@@ -2,6 +2,7 @@
 #include <cmath>
 #include <future>
 #include <chrono>
+#include "MotorDriverException.h"
 #include "MotorDriverCardFactory.h"
 #include "StepperMotorException.h"
 #include "StepperMotorStateMachine.h"
@@ -24,7 +25,6 @@ namespace ChimeraTK{
       _minPositionLimitInSteps(std::numeric_limits<int>::min()),
       _autostart(false),
       _softwareLimitsEnabled(false),
-      _logger(),
       _mutex(),
       _stateMachine(),
       _errorMode(StepperMotorError::NO_ERROR),
@@ -45,7 +45,6 @@ namespace ChimeraTK{
      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
      _autostart(false),
      _softwareLimitsEnabled(false),
-     _logger(),
      _mutex(),
      _stateMachine(),
      _errorMode(StepperMotorError::NO_ERROR),
@@ -439,15 +438,6 @@ namespace ChimeraTK{
   bool BasicStepperMotor::getAutostart(){
     LockGuard guard(_mutex);
     return _autostart;
-  }
-  void BasicStepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){
-    LockGuard guard(_mutex);
-    _logger.setLogLevel(newLevel);
-  }
-
-  Logger::LogLevel BasicStepperMotor::getLogLevel() {
-    LockGuard guard(_mutex);
-    return _logger.getLogLevel();
   }
 
   double BasicStepperMotor::getMaxSpeedCapability() {

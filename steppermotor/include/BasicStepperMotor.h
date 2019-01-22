@@ -26,11 +26,11 @@
 
 //Stepper Motor includes
 #include "StepperMotor.h"
+#include "StepperMotorUtil.h"
 #include "StepperMotorError.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
 #include "StepperMotorStateMachine.h"
-#include "Logger.h"
 
 
 // Forward-declare fixture used in the test
@@ -40,8 +40,8 @@ namespace ChimeraTK {
 
 
   /**
-   *  @class StepperMotor
-   *  @brief This class provides the user interface for a basic stepper motor.
+   *  @class BasicStepperMotor
+   *  @brief This class provides the basic implementation stepper motor.
    */
   class BasicStepperMotor : public StepperMotor{
   public:
@@ -315,12 +315,6 @@ namespace ChimeraTK {
     virtual bool getEnabled();
 
     /**
-     * @brief set logger level
-     */
-    virtual void setLogLevel(ChimeraTK::Logger::LogLevel newLevel);
-
-
-    /**
      * @brief Sets the autostart flag.
      *        Allows automatic start of movement on change of target position if set to true.
      */
@@ -331,11 +325,6 @@ namespace ChimeraTK {
      *        If true, movement is initiated automatically on change of the target position.
      */
     virtual bool getAutostart();
-
-    /**
-     * @brief get logger level
-     */
-    virtual ChimeraTK::Logger::LogLevel getLogLevel();
 
     /**
      * @brief get maximal speed capability
@@ -462,7 +451,6 @@ namespace ChimeraTK {
     int  _minPositionLimitInSteps;
     bool _autostart;
     bool _softwareLimitsEnabled;
-    Logger _logger;
     mutable boost::mutex _mutex;
     std::shared_ptr<StateMachine> _stateMachine;
     std::atomic<StepperMotorError> _errorMode;
