@@ -122,26 +122,26 @@ namespace ChimeraTK{
 
   StepperMotorError StepperMotorWithReference::getError(){
     LockGuard guard(_mutex);
-    if (motorActive() &&
-        _motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-        _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
-      return StepperMotorError::BOTH_END_SWITCHES_ON;
-    }
-    if (!motorActive()){
-      if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
-        return StepperMotorError::ACTION_ERROR;
-      }
-    }
-    if (_toleranceCalculated){
-      if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
-          std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps.load()) > 3 * _tolerancePositiveEndSwitch.load()){
-        return StepperMotorError::CALIBRATION_ERROR;
-      }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() &&
-          std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps.load()) > 3 * _toleranceNegativeEndSwitch.load()){
-        return StepperMotorError::CALIBRATION_ERROR;
-      }
-    }
-    return StepperMotorError::NO_ERROR;
+//    if (motorActive() &&
+//        _motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+//        _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+//      return StepperMotorError::BOTH_END_SWITCHES_ON;
+//    }
+//    if (!motorActive()){
+//      if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
+//        return StepperMotorError::ACTION_ERROR;
+//      }
+//    }
+//    if (_toleranceCalculated){
+//      if (_motorControler->getReferenceSwitchData().getPositiveSwitchActive() &&
+//          std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps.load()) > 3 * _tolerancePositiveEndSwitch.load()){
+//        return StepperMotorError::CALIBRATION_ERROR;
+//      }else if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive() &&
+//          std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps.load()) > 3 * _toleranceNegativeEndSwitch.load()){
+//        return StepperMotorError::CALIBRATION_ERROR;
+//      }
+//    }
+    return _errorMode.load();
   }
 
   bool StepperMotorWithReference::hasHWReferenceSwitches(){
@@ -180,12 +180,12 @@ namespace ChimeraTK{
 
   bool StepperMotorWithReference::isPositiveReferenceActive(){
     LockGuard guard(_mutex);
-    return _motorControler->getReferenceSwitchData().getPositiveSwitchActive();
+    return isEndSwitchActive(Sign::POSITIVE);;
   }
 
   bool StepperMotorWithReference::isNegativeReferenceActive(){
     LockGuard guard(_mutex);
-    return _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
+    return isEndSwitchActive(Sign::NEGATIVE);
   }
 
   bool StepperMotorWithReference::isPositiveEndSwitchEnabled(){
@@ -229,6 +229,43 @@ namespace ChimeraTK{
     bool positionMatch     = _motorControler->getTargetPosition() == _motorControler->getActualPosition();
 
     return endSwitchActive || positionMatch;
+  }
+
+  bool StepperMotorWithReference::isEndSwitchActive(Sign sign){
+    bool posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
+    bool negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
+
+    if(posActive && negActive){
+      _errorMode.exchange(StepperMotorError::BOTH_END_SWITCHES_ON);
+      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::errorEvent);
+    }
+
+    if (_toleranceCalculated){
+      if (posActive){
+        if(std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps.load()) > 3 * _tolerancePositiveEndSwitch.load()){
+          _errorMode.exchange(StepperMotorError::CALIBRATION_ERROR);
+        }
+      }
+      else if(negActive){
+        if(std::abs(_motorControler->getActualPosition() -  _calibNegativeEndSwitchInSteps.load()) > 3 * _toleranceNegativeEndSwitch.load()){
+          _errorMode.exchange(StepperMotorError::CALIBRATION_ERROR);
+        }
+      }
+    }
+
+    if (sign == Sign::POSITIVE){
+      if (posActive){
+        return true;
+      }else{
+        return false;
+      }
+    }else{
+      if (negActive){
+        return true;
+      }else{
+        return false;
+      }
+    }
   }
 }
 

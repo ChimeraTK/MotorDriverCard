@@ -6,6 +6,7 @@
  */
 
 #include "StepperMotorStateMachine.h"
+#include  "StepperMotorWithReference.h"
 #include <atomic>
 
 
@@ -33,7 +34,6 @@ namespace ChimeraTK{
     StepperMotorWithReference& _motor;
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
-    enum Sign{NEGATIVE = -1, POSITIVE = 1};
 
     void actionStop();
     void actionStartCalib();
@@ -43,7 +43,6 @@ namespace ChimeraTK{
     void toleranceCalcThreadFunction();
     void moveToEndSwitch(Sign sign);
     void findEndSwitch(Sign sign);
-    bool isEndSwitchActive(Sign sign);
     double getToleranceEndSwitch(Sign sign);
     int getPositionEndSwitch(Sign sign);
   };

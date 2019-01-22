@@ -397,7 +397,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateError){
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   _motorControlerDummy->simulateBlockedMotor(false);
-  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::ACTION_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::CALIBRATION_ERROR);
   _motorControlerDummy->resetInternalStateToDefaults();
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
   BOOST_CHECK(waitForState("calibrating"));
@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateError){
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   _motorControlerDummy->simulateBlockedMotor(false);
-  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::ACTION_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::CALIBRATION_ERROR);
 }
 
 BOOST_AUTO_TEST_CASE(testCalibrateStop){
@@ -432,7 +432,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
-  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::ACTION_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::CALIBRATION_ERROR);
 
   _motorControlerDummy->resetInternalStateToDefaults();
   while(!_stepperMotor->isSystemIdle()){}
@@ -450,7 +450,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop){
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE);
-  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::ACTION_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::CALIBRATION_ERROR);
 }
 
 BOOST_AUTO_TEST_CASE(testTranslation){
@@ -563,7 +563,7 @@ BOOST_AUTO_TEST_CASE(testDetermineToleranceError){
   while(!_stepperMotor->isSystemIdle()){}
 
   // Should have an error now
-  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::ACTION_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::CALIBRATION_ERROR);
   BOOST_CHECK_EQUAL(getToleranceCalculated(), false);
   BOOST_CHECK_EQUAL(getToleranceCalcFailed(), true);
 

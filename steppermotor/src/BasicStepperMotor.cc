@@ -138,7 +138,7 @@ namespace ChimeraTK{
   void BasicStepperMotor::resetError(){
     LockGuard guard(_mutex);
 
-    _errorMode = StepperMotorError::NO_ERROR;
+    _errorMode.exchange(StepperMotorError::NO_ERROR);
 
     if(!_motorControler->isMotorCurrentEnabled()){
       _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::resetToDisableEvent);
@@ -396,7 +396,7 @@ namespace ChimeraTK{
 
   StepperMotorError BasicStepperMotor::getError(){
     LockGuard guard(_mutex);
-    return _errorMode;
+    return _errorMode.load();
   }
 
   bool BasicStepperMotor::isCalibrated(){

@@ -19,6 +19,9 @@ class StepperMotorWithReferenceTestFixture;
 
 namespace ChimeraTK{
 
+  /// Helper class for endswitch polarity
+  enum class Sign{NEGATIVE = -1, POSITIVE = 1};
+
   /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
    */
@@ -132,6 +135,9 @@ namespace ChimeraTK{
      * Loads end switch calibration from the HW and sets the calibration mode accordingly.
      */
     virtual void loadEndSwitchCalibration();
+
+    /// True if end switch is activated, checks for error
+    bool isEndSwitchActive(Sign sign);
 
     std::atomic<bool> _positiveEndSwitchEnabled;
     std::atomic<bool> _negativeEndSwitchEnabled;
