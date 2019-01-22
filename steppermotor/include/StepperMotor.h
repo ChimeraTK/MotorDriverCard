@@ -61,12 +61,12 @@ namespace ChimeraTK {
 
 
   enum class StepperMotorError{
-    NO_ERROR,
-    ACTION_ERROR,
-    CALIBRATION_ERROR,
-    BOTH_END_SWITCHES_ON,
-    MOVE_INTERRUPTED,
-    EMERGENCY_STOP
+    NO_ERROR = 0,
+    ACTION_ERROR = 1 << 0,
+    CALIBRATION_ERROR =  1 << 1,
+    BOTH_END_SWITCHES_ON = 1 << 2,
+    MOVE_INTERRUPTED = 1 << 3,
+    EMERGENCY_STOP = 1 << 4
   };
 
   /**
