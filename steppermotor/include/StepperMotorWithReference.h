@@ -129,11 +129,8 @@ namespace ChimeraTK{
     virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
     virtual bool verifyMoveAction();
 
-    /**
-     * @brief loadEndSwitchCalibration
-     *
-     * Loads end switch calibration from the HW and sets the calibration mode accordingly.
-     */
+
+    /// Loads end switch calibration from the HW and sets the calibration mode accordingly.
     virtual void loadEndSwitchCalibration();
 
     /// True if end switch is activated, checks for error

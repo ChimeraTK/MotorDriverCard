@@ -55,7 +55,7 @@ namespace ChimeraTK{
 
   StepperMotorRet BasicStepperMotor::checkNewPosition(int newPositionInSteps){
 
-    if (_motorControler->getCalibrationTime() == 0){
+    if (_calibrationMode.load() != StepperMotorCalibrationMode::NONE){
       return StepperMotorRet::ERR_SYSTEM_NOT_CALIBRATED;
     }
     if (!limitsOK(newPositionInSteps)){
@@ -400,13 +400,14 @@ namespace ChimeraTK{
   }
 
   bool BasicStepperMotor::isCalibrated(){
-    LockGuard guard(_mutex);
-    uint32_t calibTime = _motorControler->getCalibrationTime();
-    if (calibTime == 0){
-      return false;
-    }else{
-      return true;
-    }
+    return _calibrationMode.load() != StepperMotorCalibrationMode::NONE;
+//    LockGuard guard(_mutex);
+//    uint32_t calibTime = _motorControler->getCalibrationTime();
+//    if (calibTime == 0){
+//      return false;
+//    }else{
+//      return true;
+//    }
   }
 
   uint32_t BasicStepperMotor::getCalibrationTime(){

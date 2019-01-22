@@ -40,7 +40,11 @@ namespace ChimeraTK {
    *              No valid position for the end switches can be determined. Useful if driving in full range between the end switches is possible.\n
    *  2 - FULL:   The motor has been calibrated by calling calibrate(). The end switch position has been determined.\n
    */
-  enum class StepperMotorCalibrationMode{NONE, SIMPLE, FULL};
+  enum class StepperMotorCalibrationMode{
+    NONE = 0,
+    SIMPLE = 1 << 0,
+    FULL = 1 << 1\
+  };
 
   /**
    * Enum type to select the StepperMotor variant when
