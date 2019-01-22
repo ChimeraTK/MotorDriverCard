@@ -26,7 +26,6 @@
 
 //Stepper Motor includes
 #include "StepperMotor.h"
-#include "StepperMotorUtil.h"
 #include "StepperMotorError.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorCalibrationStatus.h"
