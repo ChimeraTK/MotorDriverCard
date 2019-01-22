@@ -18,6 +18,7 @@ public:
   ~DerivedStateMachine();
 
 protected:
+  static ChimeraTK::StateMachine::Event initEvent;
   static ChimeraTK::StateMachine::Event userEvent1;
   static ChimeraTK::StateMachine::Event userEvent2;
   static ChimeraTK::StateMachine::Event userEvent3;
@@ -56,7 +57,7 @@ private:
 };
 
 
-
+ChimeraTK::StateMachine::Event DerivedStateMachine::initEvent("initEvent");
 ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent1("userEvent1");
 ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent2("userEvent2");
 ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent3("userEvent3");
@@ -78,7 +79,7 @@ DerivedStateMachine::DerivedStateMachine() :
     _counter(0)
 {
 
-  _initState.setTransition(ChimeraTK::StateMachine::noEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this),
+  _initState.setTransition(DerivedStateMachine::initEvent, &_firstState, std::bind(&DerivedStateMachine::actionIdleToFirstState, this),
                                                                            std::bind(&DerivedStateMachine::actionFirstStateExit, this));
   _firstState.setTransition(DerivedStateMachine::userEvent1, &_thirdState, std::bind(&DerivedStateMachine::actionExtern1, this));
   _firstState.setTransition(_state1to2Event, &_secondState, std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
@@ -187,7 +188,7 @@ BOOST_FIXTURE_TEST_CASE( testDerivedStateMachine, DerivedStateMachine ){
 
   // noEvent triggers transition from idle to first state
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
-  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(ChimeraTK::StateMachine::noEvent));
+  BOOST_CHECK_NO_THROW(setAndProcessUserEvent(initEvent));
 
   // Wait until the async task sets the flag to false
   while(_transitionAllowed.load()){}

@@ -511,8 +511,8 @@ void StepperMotorTest::testSetPositionAs() {
 }
 
 void StepperMotorTest::testSetGetSpeed() {
-    BOOST_CHECK_THROW(_stepperMotor->setUserSpeedLimit(100), mtca4u::MotorDriverException);
-    BOOST_CHECK_THROW(_stepperMotor->getUserSpeedLimit(), mtca4u::MotorDriverException);
+    _stepperMotor->setUserSpeedLimit(100);
+    BOOST_CHECK_CLOSE(_stepperMotor->getUserSpeedLimit(), 100., 1e-6);
 }
 
 void StepperMotorTest::testMoveToPosition() {

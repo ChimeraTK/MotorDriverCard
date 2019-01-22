@@ -783,6 +783,10 @@ WARN_LOGFILE           =
 
 INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/backend \
+                         @CMAKE_CURRENT_SOURCE_DIR@/util \
+                         @CMAKE_CURRENT_SOURCE_DIR@/steppermotor \
+                         @CMAKE_CURRENT_SOURCE_DIR@/mtca4u_steppermotor \
                          @CMAKE_CURRENT_SOURCE_DIR@/doc
 
 # This tag can be used to specify the character encoding of the source files

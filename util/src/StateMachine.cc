@@ -41,8 +41,6 @@ namespace ChimeraTK{
     return _stateName;
   }
 
-  StateMachine::Event StateMachine::noEvent("noEvent");
-
   StateMachine::StateMachine() :
              _initState("initState"),
              _endState("endState"),
@@ -89,6 +87,10 @@ namespace ChimeraTK{
       }
       (it->second).entryCallbackAction();
     }
+  }
+
+  bool StateMachine::hasRequestedState(){
+    return  _requestedState != nullptr;
   }
 
   void StateMachine::moveToRequestedState(){

@@ -112,8 +112,6 @@ namespace ChimeraTK{
     State* getCurrentState();
     void setAndProcessUserEvent(Event event);
     Event getUserEvent();
-    static Event noEvent;
-    static Event undefinedEvent;
 
   protected:
     State _initState;
@@ -126,6 +124,7 @@ namespace ChimeraTK{
     std::function<void(void)> _internalEventCallback;
     std::function<void(void)> _requestedInternalCallback;
     void performTransition(Event event);
+    bool hasRequestedState();
     void moveToRequestedState();
   };
 

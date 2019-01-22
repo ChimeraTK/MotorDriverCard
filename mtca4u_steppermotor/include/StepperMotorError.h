@@ -12,10 +12,6 @@
 #include "GeneralStatus.h"
 
 
-namespace ChimeraTK {
-  enum StepperMotorError{NO_ERROR, ACTION_ERROR, CALIBRATION_LOST, BOTH_END_SWITCHES_ON, MOVE_INTERRUPTED, EMERGENCY_STOP};
-}
-
 
 namespace mtca4u{
   using namespace ChimeraTK;
