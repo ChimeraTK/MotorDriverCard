@@ -105,8 +105,8 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string reqStateName
       break;
     }
     else{
-      std::cout << "  ** waitForState: False state "  << actStateName
-                << " detected. Requested " << reqStateName << std::endl;
+//      std::cout << "  ** waitForState: False state "  << actStateName
+//                << " detected. Requested " << reqStateName << std::endl;
       cnt++;
     }
   }while(cnt <= timeoutInSteps);
