@@ -12,7 +12,7 @@
 #define	CHIMERATK_STEPPER_MOTOR_H
 
 #include "StepperMotorUtil.h"
-#include "StepperMotorException.h"
+//#include "StepperMotorException.h"
 ///#include "StepperMotorStateMachine.h"
 
 //TODO Sort out whats used here
@@ -414,10 +414,6 @@ namespace ChimeraTK {
     virtual bool isNegativeEndSwitchEnabled() = 0;
 
     virtual StepperMotorCalibrationMode getCalibrationMode() = 0;
-
-
-    friend class StepperMotorStateMachine;
-    friend class ::StepperMotorChimeraTKFixture;
 
   }; // class StepperMotor
 

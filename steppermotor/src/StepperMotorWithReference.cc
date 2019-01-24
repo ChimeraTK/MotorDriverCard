@@ -6,12 +6,20 @@
  */
 
 #include "StepperMotorWithReference.h"
+
+#include "StepperMotorUtil.h"
 #include "StepperMotorWithReferenceStateMachine.h"
+#include "MotorDriverCard.h"
+#include "MotorDriverCardFactory.h"
+
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 
 
 namespace ChimeraTK{
+
+
+
   StepperMotorWithReference::StepperMotorWithReference(const StepperMotorParameters & parameters)
     : BasicStepperMotor(),
       _positiveEndSwitchEnabled(false),

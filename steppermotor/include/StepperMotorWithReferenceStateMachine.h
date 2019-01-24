@@ -17,6 +17,7 @@ class StepperMotorWithReferenceTestFixture;
 namespace ChimeraTK{
 
   class StepperMotorWithReference;
+  enum class Sign;
 
   class StepperMotorWithReferenceStateMachine : public StepperMotorStateMachine{
   public:

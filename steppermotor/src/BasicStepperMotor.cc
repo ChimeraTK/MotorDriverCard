@@ -1,11 +1,17 @@
 #include "BasicStepperMotor.h"
+
 #include <cmath>
 #include <future>
 #include <chrono>
-#include "MotorDriverException.h"
 #include "MotorDriverCardFactory.h"
 #include "StepperMotorException.h"
 #include "StepperMotorStateMachine.h"
+
+#include "MotorDriverException.h"
+#include "MotorDriverCardConfigXML.h"
+#include "MotorDriverCard.h"
+#include "MotorControler.h"
+
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 

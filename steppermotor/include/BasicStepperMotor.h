@@ -12,30 +12,31 @@
 #ifndef CHIMERATK_BASIC_STEPPER_MOTOR_H
 #define	CHIMERATK_BASIC_STEPPER_MOTOR_H
 
-#include <string>
-#include <atomic>
-#include <memory>
-#include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
-
-
-
 //Stepper Motor includes
 #include "StepperMotor.h"
-//#include "StepperMotorUtil.h"
-#include "StepperMotorStateMachine.h"
 
 
 //MD22 library includes
-#include "MotorDriverCardConfigXML.h"
-#include "MotorDriverCard.h"
-#include "MotorControler.h"
+//#include "MotorDriverCardConfigXML.h"
+//#include "MotorDriverCard.h"
+//#include "MotorControler.h"
 
+#include <string>
+#include <atomic>
+#include <memory>
+#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
+
+namespace mtca4u{
+  class MotorDriverCard;
+  class MotorControler;
+}
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
+
+  class StateMachine;
 
   /**
    *  @class BasicStepperMotor
