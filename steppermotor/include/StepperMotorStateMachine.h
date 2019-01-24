@@ -19,8 +19,6 @@
 namespace ChimeraTK{
 
   class BasicStepperMotor;
-
-
   class  StepperMotorStateMachine : public StateMachine{
 
   public:

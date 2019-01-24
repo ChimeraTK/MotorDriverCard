@@ -1,13 +1,24 @@
 
 set(HEADERS StepperMotor.h LinearStepperMotor.h StepperMotorError.h StepperMotorStatus.h StepperMotorCalibrationStatus.h)
 foreach(HEADER ${HEADERS})
-  set(MTCA4U_STEPPERMOTOR_HEADERS ${MTCA4U_STEPPERMOTOR_HEADERS} mtca4u_steppermotor/include/${HEADER})
+  set(MTCA4U_HEADERS ${MTCA4U_HEADERS} include/${HEADER})
 endforeach()
-set(MTCA4U_STEPPERMOTOR_HEADERS ${MTCA4U_STEPPERMOTOR_HEADERS} PARENT_SCOPE)
+install(DIRECTORY include DESTINATION include/mtca4u/MotorDriverCard)
+#set(MTCA4U_STEPPERMOTOR_HEADERS ${MTCA4U_STEPPERMOTOR_HEADERS} PARENT_SCOPE)
 
 set(SRC StepperMotor.cc LinearStepperMotor.cc  StepperMotorStatus.cc StepperMotorError.cc StepperMotorCalibrationStatus.cc)
 foreach(SOURCE ${SRC})
-  set(MTCA4U_STEPPERMOTOR_SOURCES ${MTCA4U_STEPPERMOTOR_SOURCES} mtca4u_steppermotor/src/${SOURCE})
+  #get_filename_component(SOURCE_NAME ${SOURCE} NAME_WE)
+  #add_library(${SOURCE_NAME} OBJECT src/${SOURCE})
+  #set(OBJECTS ${OBJECTS} ${SOURCE_NAME})
+  set(SOURCES ${SOURCES} src/${SOURCE})
 endforeach()
-set(MTCA4U_STEPPERMOTOR_SOURCES ${MTCA4U_STEPPERMOTOR_SOURCES} PARENT_SCOPE)
 
+message("  ** SOURCES: ${SOURCES}")
+
+add_library(MTCA4U_OBJECTS OBJECT ${SOURCES})# ${MTCA4U_HEADERS})
+target_include_directories(MTCA4U_OBJECTS PUBLIC include ${COMMON_HEADERS})
+
+
+
+#set(MTCA4U_OBJECTS ${OBJECTS} PARENT_SCOPE)

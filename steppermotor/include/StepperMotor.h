@@ -13,12 +13,13 @@
 
 #include "StepperMotorUtil.h"
 #include "StepperMotorException.h"
-#include "StepperMotorStateMachine.h"
+///#include "StepperMotorStateMachine.h"
 
 //TODO Sort out whats used here
 #include <string>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 

@@ -10,6 +10,7 @@
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 
+
 namespace ChimeraTK{
   StepperMotorWithReference::StepperMotorWithReference(const StepperMotorParameters & parameters)
     : BasicStepperMotor(),

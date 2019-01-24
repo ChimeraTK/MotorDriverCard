@@ -19,21 +19,23 @@
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 
 
+
+//Stepper Motor includes
+#include "StepperMotor.h"
+//#include "StepperMotorUtil.h"
+#include "StepperMotorStateMachine.h"
+
+
 //MD22 library includes
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCard.h"
 #include "MotorControler.h"
-
-//Stepper Motor includes
-#include "StepperMotor.h"
-#include "StepperMotorStateMachine.h"
 
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
-
 
   /**
    *  @class BasicStepperMotor

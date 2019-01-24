@@ -6,7 +6,6 @@
  */
 
 #include "StepperMotorStateMachine.h"
-#include  "StepperMotorWithReference.h"
 #include <atomic>
 
 

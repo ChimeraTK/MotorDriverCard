@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8.0)
 
 project(mtca4u-MotorDriverCard)
 
-set(CTK_PROJECT_NAME "ChimeraTK-MotorDriverCard")
-
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
 set(${PROJECT_NAME}_MINOR_VERSION 08)
 set(${PROJECT_NAME}_PATCH_VERSION 00)
@@ -81,14 +79,18 @@ ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 #set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 #aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
-set(subdirs util backend steppermotor mtca4u_steppermotor)
+#set(subdirs util backend steppermotor mtca4u_steppermotor)
+set(subdirs util backend)
 foreach(subdir ${subdirs})
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
   set(SOURCE ${SOURCE} ${sources})
-  #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
+  set(COMMON_HEADERS ${COMMON_HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
   set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${subdir}/include/)
 endforeach()
 
+add_subdirectory(steppermotor)
+add_subdirectory(mtca4u_steppermotor)
 
 
 MACRO( COPY_MAPPING_FILES )
@@ -120,7 +122,7 @@ if(TESTING_IS_ENABLED)
   foreach( testSourceFile ${testSources})
     #NAME_WE means the base name without path and (longest) extension
     get_filename_component(executableName ${testSourceFile} NAME_WE)
-    add_executable(${executableName} ${testSourceFile})
+    add_executable(${executableName} ${testSourceFile} $<TARGET_OBJECTS:MTCA4U_OBJECTS>)
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
@@ -148,28 +150,29 @@ if(TESTING_IS_ENABLED)
 
 endif(TESTING_IS_ENABLED)
 
-add_library(${PROJECT_NAME} SHARED ${library_sources} ${pugixml_sources})
+add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:MTCA4U_OBJECTS> $<TARGET_OBJECTS:CTK_OBJECTS> ${library_sources} ${pugixml_sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} pthread)
 
-foreach(dir util backend mtca4u_steppermotor)
-  target_include_directories(${PROJECT_NAME} PUBLIC ${dir}/include)
-endforeach()
+#foreach(dir util backend mtca4u_steppermotor)
+#  target_include_directories(${PROJECT_NAME} PUBLIC ${dir}/include)
+#endforeach()
 
 
-add_library(${CTK_PROJECT_NAME} SHARED ${library_sources} ${pugixml_sources})
-set_target_properties(${CTK_PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${CTK_PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} pthread)
+#add_library(${CTK_PROJECT_NAME} SHARED $<TARGET_OBJECTS:CTK_OBJECTS> ${library_sources} ${pugixml_sources})
+#set_target_properties(${CTK_PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
+#target_link_libraries(${CTK_PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} pthread)
 
-foreach(dir util backend steppermotor)
-  target_include_directories(${CTK_PROJECT_NAME} PUBLIC ${dir}/include)
-endforeach()
+#foreach(dir util backend steppermotor)
+#  target_include_directories(${CTK_PROJECT_NAME} PUBLIC ${dir}/include)
+#endforeach()
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
-  add_executable(${executableName} ${hardwareTestSourceFile})
+  add_executable(${executableName} $<TARGET_OBJECTS:MTCA4U_OBJECTS> ${hardwareTestSourceFile})
+  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_HEADERS})
   set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
   target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endforeach( hardwareTestSourceFile )
@@ -190,19 +193,19 @@ install(TARGETS ${PROJECT_NAME}
 #all include files go into include/PROJECT_NAME
 #The exclusion of ${PROJECT_NAME} and MotorDriverCard prevents the recursive installation of the files just being installed.
 #The original headers are in include/*.h, the installed ones in include/PROJECT_NAME/*.h.
-install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard
-          FILES_MATCHING PATTERN "*.h" 
-	  PATTERN ".svn" EXCLUDE
-	  PATTERN "${PROJECT_NAME}" EXCLUDE
-	  PATTERN "MotorDriverCard" EXCLUDE
-	  )
+#install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard
+#          FILES_MATCHING PATTERN "*.h"
+#	  PATTERN ".svn" EXCLUDE
+#	  PATTERN "${PROJECT_NAME}" EXCLUDE
+#	  PATTERN "MotorDriverCard" EXCLUDE
+#	  )
 
-install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard
-          FILES_MATCHING PATTERN "*.h"
-    PATTERN ".svn" EXCLUDE
-    PATTERN "${PROJECT_NAME}" EXCLUDE
-    PATTERN "MotorDriverCard" EXCLUDE
-    )
+#install(DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard
+#          FILES_MATCHING PATTERN "*.h"
+#    PATTERN ".svn" EXCLUDE
+#    PATTERN "${PROJECT_NAME}" EXCLUDE
+#    PATTERN "MotorDriverCard" EXCLUDE
+#    )
 
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
