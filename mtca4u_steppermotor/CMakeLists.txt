@@ -3,7 +3,7 @@ set(HEADERS StepperMotor.h LinearStepperMotor.h StepperMotorError.h StepperMotor
 foreach(HEADER ${HEADERS})
   set(MTCA4U_HEADERS ${MTCA4U_HEADERS} include/${HEADER})
 endforeach()
-install(DIRECTORY include DESTINATION include/mtca4u/MotorDriverCard)
+install(DIRECTORY include DESTINATION include/mtca4u/MotorDriverCard/)
 set(MTCA4U_STEPPERMOTOR_HEADERS ${MTCA4U_STEPPERMOTOR_HEADERS} PARENT_SCOPE)
 
 set(SRC StepperMotor.cc LinearStepperMotor.cc  StepperMotorStatus.cc StepperMotorError.cc StepperMotorCalibrationStatus.cc)

@@ -4,7 +4,7 @@ foreach(HEADER ${HEADERS})
   set(CTK_HEADERS ${CTK_HEADERS} include/${HEADER})
 endforeach()
 #set(CTK_STEPPERMOTOR_HEADERS ${STEPPERMOTOR_HEADERS}  PARENT_SCOPE)
-install(DIRECTORY include DESTINATION include/ChimeraTK/MotorDriverCard)
+install(DIRECTORY include DESTINATION include/ChimeraTK/MotorDriverCard/)
 
 
 set(SRC BasicStepperMotor.cc StepperMotorWithReference.cc  StepperMotorStateMachine.cc StepperMotorWithReferenceStateMachine.cc StepperMotorFactory.cc)

@@ -112,8 +112,13 @@ MACRO( COPY_XML_FILES )
 ENDMACRO( COPY_XML_FILES )
 
 #Create the executables for automated unit testing.
-#Currently we assume that they are all tests contained in one file, so
-#each file gives a new executable. This section has to be adapted if this should change.
+#
+# Current structure of the tests:
+#  - All tests of a module are place in a single source
+#    -> one executable per tested module
+#  - To avoid conflicts headers of the ChimeraTK interface
+#    are placed in their own subfolder and have to be linked against
+#    the specific objects. All other tests can be linked with the mtca4u objects.
 if(TESTING_IS_ENABLED)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
