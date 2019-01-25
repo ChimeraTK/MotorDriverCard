@@ -79,13 +79,12 @@ ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 #set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
 #aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
 
-#set(subdirs util backend steppermotor mtca4u_steppermotor)
 set(subdirs util backend)
 foreach(subdir ${subdirs})
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
   set(SOURCE ${SOURCE} ${sources})
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
-  set(COMMON_HEADERS ${COMMON_HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
+  set(COMMON_HEADER_DIRS ${COMMON_HEADER_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
   set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${subdir}/include/)
 endforeach()
 
@@ -118,14 +117,34 @@ ENDMACRO( COPY_XML_FILES )
 if(TESTING_IS_ENABLED)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
+
+  # mtca4u interface and backend tests
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testSources)
   foreach( testSourceFile ${testSources})
     #NAME_WE means the base name without path and (longest) extension
     get_filename_component(executableName ${testSourceFile} NAME_WE)
+
     add_executable(${executableName} ${testSourceFile} $<TARGET_OBJECTS:MTCA4U_OBJECTS>)
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_HEADER_DIRS})
+
+    add_test(${executableName} ${executableName})
+  endforeach( testSourceFile )
+
+  # ChimeraTK StepperMotor interace test
+  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src/steppermotor ctkTestSources)
+  foreach( testSourceFile ${ctkTestSources})
+
+    get_filename_component(executableName ${testSourceFile} NAME_WE)
+
+    add_executable(${executableName} ${testSourceFile} $<TARGET_OBJECTS:CTK_OBJECTS>)
+    set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
+                          ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_include_directories(${executableName} PUBLIC steppermotor/include ${COMMON_HEADER_DIRS})
+
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
@@ -172,7 +191,7 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${executableName} $<TARGET_OBJECTS:MTCA4U_OBJECTS> ${hardwareTestSourceFile})
-  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_HEADERS})
+  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_HEADER_DIRS})
   set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
   target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 endforeach( hardwareTestSourceFile )

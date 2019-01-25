@@ -1,4 +1,3 @@
-message("  ** Processing steppermotor subdir. Common header dirs: ${COMMON_HEADERS}")
 
 set(HEADERS StepperMotor.h BasicStepperMotor.h StepperMotorStateMachine.h StepperMotorWithReference.h StepperMotorWithReferenceStateMachine.h)
 foreach(HEADER ${HEADERS})
@@ -19,5 +18,5 @@ endforeach()
 
 
 add_library(CTK_OBJECTS OBJECT ${SOURCES})# ${CTK_HEADERS})
-target_include_directories(CTK_OBJECTS PUBLIC include ${COMMON_HEADERS})
+target_include_directories(CTK_OBJECTS PUBLIC include ${COMMON_HEADER_DIRS})
 #set(CTK_OBJECTS ${OBJECTS} PARENT_SCOPE)

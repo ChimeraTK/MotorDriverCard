@@ -4,7 +4,7 @@ foreach(HEADER ${HEADERS})
   set(MTCA4U_HEADERS ${MTCA4U_HEADERS} include/${HEADER})
 endforeach()
 install(DIRECTORY include DESTINATION include/mtca4u/MotorDriverCard)
-#set(MTCA4U_STEPPERMOTOR_HEADERS ${MTCA4U_STEPPERMOTOR_HEADERS} PARENT_SCOPE)
+set(MTCA4U_STEPPERMOTOR_HEADERS ${MTCA4U_STEPPERMOTOR_HEADERS} PARENT_SCOPE)
 
 set(SRC StepperMotor.cc LinearStepperMotor.cc  StepperMotorStatus.cc StepperMotorError.cc StepperMotorCalibrationStatus.cc)
 foreach(SOURCE ${SRC})
@@ -17,8 +17,4 @@ endforeach()
 message("  ** SOURCES: ${SOURCES}")
 
 add_library(MTCA4U_OBJECTS OBJECT ${SOURCES})# ${MTCA4U_HEADERS})
-target_include_directories(MTCA4U_OBJECTS PUBLIC include ${COMMON_HEADERS})
-
-
-
-#set(MTCA4U_OBJECTS ${OBJECTS} PARENT_SCOPE)
+target_include_directories(MTCA4U_OBJECTS PUBLIC include ${COMMON_HEADER_DIRS})
