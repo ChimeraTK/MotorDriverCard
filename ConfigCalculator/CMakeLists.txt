@@ -9,7 +9,8 @@ add_library(${PROJECT_NAME} ${calculator_library_sources} )
 target_link_libraries(${PROJECT_NAME} mtca4u-MotorDriverCard)    
 
 add_executable(MotorConfigCalculator executables/ConfigCalculatorCLI.cpp)
-target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})    
+target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})
+target_include_directories(MotorConfigCalculator  PUBLIC ${COMMON_INCLUDE_DIRS})
 set_target_properties(MotorConfigCalculator PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
 install(TARGETS MotorConfigCalculator
         RUNTIME DESTINATION bin

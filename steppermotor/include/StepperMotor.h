@@ -12,8 +12,7 @@
 #define	CHIMERATK_STEPPER_MOTOR_H
 
 #include "StepperMotorUtil.h"
-//#include "StepperMotorException.h"
-///#include "StepperMotorStateMachine.h"
+
 
 //TODO Sort out whats used here
 #include <string>
