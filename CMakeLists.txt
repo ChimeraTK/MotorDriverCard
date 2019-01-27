@@ -94,6 +94,7 @@ add_library(COMMON_OBJECTS OBJECT ${library_sources})
 target_include_directories(COMMON_OBJECTS PUBLIC ${COMMON_INCLUDE_DIRS})
 
 install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard)
+install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 
 # Add  targets for mtca4u and ChimeraTK interfaces
 add_subdirectory(steppermotor)
