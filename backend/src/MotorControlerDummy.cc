@@ -15,6 +15,7 @@ namespace mtca4u {
 	_motorCurrentEnabled(false), _endSwitchPowerEnabled(false),
 	_positiveEndSwitchPosition(10000),
 	_negativeEndSwitchPosition(-10000),
+	_userSpeedLimit(100000), /* some arbitatry high value */
 	_id(id), _blockMotor(false),
 	_bothEndSwitchesAlwaysOn(false),
 	_userMicroStepSize(4),
@@ -174,6 +175,7 @@ namespace mtca4u {
 
     void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition){
       //TODO
+      (void)calibratedPosition;
     }
 
     int  MotorControlerDummy::getPositiveReferenceSwitchCalibration(){
@@ -182,6 +184,7 @@ namespace mtca4u {
 
     void MotorControlerDummy::setNegativeReferenceSwitchCalibration(int calibratedPosition){
       //TODO
+      (void)calibratedPosition;
     }
 
     int  MotorControlerDummy::getNegativeReferenceSwitchCalibration(){
@@ -313,12 +316,13 @@ namespace mtca4u {
     }
 
     double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {
-      (void) microStepsPerSecond; // To suppress parameter unused warning.
-      throw MotorDriverException("MotorControlerDummy::setUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+      lock_guard guard(_motorControllerDummyMutex);
+      _userSpeedLimit = microStepsPerSecond;
+      return _userSpeedLimit;
     }
 
     double MotorControlerDummy::getUserSpeedLimit() {
-      throw MotorDriverException("MotorControlerDummy::getUserSpeedLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+      return _userSpeedLimit;
     }
 
     double MotorControlerDummy::setUserCurrentLimit(double currentLimit){

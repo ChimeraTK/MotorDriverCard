@@ -442,6 +442,7 @@ namespace mtca4u
 
   void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition){
     //TODO
+    (void)calibratedPosition;
   }
 
   int  MotorControlerImpl::getNegativeReferenceSwitchCalibration(){

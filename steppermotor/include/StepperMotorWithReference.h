@@ -5,19 +5,23 @@
  *      Author: vitimic
  */
 
-#ifndef CHIMERATK_STEPPER_MOTOR_H
-#define CHIMERATK_STEPPER_MOTOR_H
+#ifndef CHIMERATK_LINEAR_STEPPER_MOTOR_H
+#define CHIMERATK_LINEAR_STEPPER_MOTOR_H
 
 #include "BasicStepperMotor.h"
-#include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
-#include "StepperMotorException.h"
 
 #include <memory>
 
 class StepperMotorWithReferenceTestFixture;
 
 namespace ChimeraTK{
+
+  /// Helper class for endswitch polarity
+  enum class Sign{NEGATIVE = -1, POSITIVE = 1};
+
+  struct StepperMotorParameters;
+  enum class StepperMotorRet;
+  enum class StepperMotorError;
 
   /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
@@ -28,7 +32,7 @@ namespace ChimeraTK{
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    StepperMotorWithReference(StepperMotorParameters &);
+    StepperMotorWithReference(const StepperMotorParameters &);
 
     /**
      * @brief  Destructor of the class object
@@ -42,7 +46,7 @@ namespace ChimeraTK{
      *  This is useful in applications where the stage can not move through the full range between the end switches.\n
      *  This function will result in the calibration mode being StepperMotorCalibrationMode::SIMPLE.\n
      */
-    virtual void setActualPositionInSteps(int actualPositionInSteps);
+    virtual StepperMotorRet setActualPositionInSteps(int actualPositionInSteps);
 
 
     /**
@@ -52,7 +56,7 @@ namespace ChimeraTK{
      * the given offset. The resulting new position will be truncated if the calculated value
      * exceeds the numeric limits of an int.
      */
-    virtual void translateAxisInSteps(int translationInSteps);
+    virtual StepperMotorRet translateAxisInSteps(int translationInSteps);
 
 
     virtual bool hasHWReferenceSwitches();
@@ -66,7 +70,7 @@ namespace ChimeraTK{
      *
      *  On success, this function will result in the calibration mode being StepperMotorCalibrationMode::FULL.\n
      */
-    virtual void calibrate();
+    virtual StepperMotorRet calibrate();
 
     /**
      *  @brief Determines the standard deviation of the end switch position.
@@ -76,7 +80,7 @@ namespace ChimeraTK{
      *  error when an end switch is activated and the actual position is not within a 3 sigma band around the\n
      *  calibrated end switch position.\n
      */
-    virtual void determineTolerance();
+    virtual StepperMotorRet determineTolerance();
 
     virtual StepperMotorError getError();
 
@@ -121,14 +125,17 @@ namespace ChimeraTK{
     friend class ::StepperMotorWithReferenceTestFixture;
 
   protected:
+    virtual bool motorActive();
     virtual bool limitsOK(int newPositionInSteps);
+    virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
+    virtual bool verifyMoveAction();
 
-    /**
-     * @brief loadEndSwitchCalibration
-     *
-     * Loads end switch calibration from the HW and sets the calibration mode accordingly.
-     */
+
+    /// Loads end switch calibration from the HW and sets the calibration mode accordingly.
     virtual void loadEndSwitchCalibration();
+
+    /// True if end switch is activated, checks for error
+    bool isEndSwitchActive(Sign sign);
 
     std::atomic<bool> _positiveEndSwitchEnabled;
     std::atomic<bool> _negativeEndSwitchEnabled;
@@ -141,4 +148,4 @@ namespace ChimeraTK{
     std::atomic<float> _toleranceNegativeEndSwitch;
   };
 }
-#endif /* CHIMERATK_STEPPER_MOTOR_H */
+#endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */

@@ -5,11 +5,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
 
 #not a shared library, just link it to all the executables statically
-add_library(${PROJECT_NAME} ${calculator_library_sources} )
-target_link_libraries(${PROJECT_NAME} mtca4u-MotorDriverCard)    
+add_library(${PROJECT_NAME} ${calculator_library_sources})
+target_link_libraries(${PROJECT_NAME} mtca4u-MotorDriverCard)
+target_include_directories(${PROJECT_NAME} PUBLIC ${COMMON_INCLUDE_DIRS})
+
 
 add_executable(MotorConfigCalculator executables/ConfigCalculatorCLI.cpp)
-target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})    
+target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})
 set_target_properties(MotorConfigCalculator PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
 install(TARGETS MotorConfigCalculator
         RUNTIME DESTINATION bin
@@ -31,6 +33,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
     add_executable(${executableName} ${testSourceFile})
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+    target_include_directories(${executableName} PUBLIC ${COMMON_INCLUDE_DIRS})
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )

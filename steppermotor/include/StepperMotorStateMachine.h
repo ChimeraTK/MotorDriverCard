@@ -19,8 +19,6 @@
 namespace ChimeraTK{
 
   class BasicStepperMotor;
-
-
   class  StepperMotorStateMachine : public StateMachine{
 
   public:
@@ -29,6 +27,7 @@ namespace ChimeraTK{
     static const Event initialEvent;
     static const Event moveEvent;
     static const Event stopEvent;
+    static const Event errorEvent;
     static const Event emergencyStopEvent;
     static const Event actionCompleteEvent;
     static const Event enableEvent;
@@ -43,7 +42,6 @@ namespace ChimeraTK{
     BasicStepperMotor &_stepperMotor;
     boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
     void getActionCompleteEvent();
-    void actionWaitForStandstill();
     void waitForStandstill();
     void actionIdleToMove();
     void actionMovetoStop();

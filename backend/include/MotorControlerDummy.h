@@ -156,6 +156,8 @@ namespace mtca4u{
     int _positiveEndSwitchPosition;
     int _negativeEndSwitchPosition;
 
+    double _userSpeedLimit;
+
     unsigned int _id;
 
     /** determines if the motor is considered as "stepping". This is the case

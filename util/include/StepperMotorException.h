@@ -22,7 +22,7 @@ namespace ChimeraTK
   public:
     /** The different error types of the StepperMotor.
      */
-    enum ExceptionID {NOT_VALID_CONVERTER};
+    enum ExceptionID {NOT_VALID_CONVERTER, FEATURE_NOT_AVAILABLE};
 
     protected:
       std::string  _message;      /**< exception description*/

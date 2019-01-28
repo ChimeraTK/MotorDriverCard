@@ -26,18 +26,19 @@ namespace ChimeraTK{
       _moveInterrupted(false)
   {
     _idle.setTransition(calibEvent,
-                                    &_calibrating,
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this),
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
+                        &_calibrating,
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalib, this),
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
     _idle.setTransition(StepperMotorWithReferenceStateMachine::calcToleranceEvent,
-                                    &_calculatingTolerance,
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this),
-                                    std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
+                        &_calculatingTolerance,
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionStartCalcTolercance, this),
+                        std::bind(&StepperMotorWithReferenceStateMachine::actionEndCallback, this));
 
     _calibrating.setTransition(StepperMotorStateMachine::stopEvent,
                                &_idle,
                                std::bind(&StepperMotorWithReferenceStateMachine::actionStop, this));
     _calibrating.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{ actionEmergencyStop(); });
+    _calibrating.setTransition(StepperMotorStateMachine::errorEvent, &_error, []{});
 
     _calculatingTolerance.setTransition(StepperMotorStateMachine::stopEvent, &_idle, [this]{ actionStop(); });
     _calculatingTolerance.setTransition(StepperMotorStateMachine::emergencyStopEvent, &_error, [this]{actionEmergencyStop();});
@@ -58,8 +59,17 @@ namespace ChimeraTK{
 
   void StepperMotorWithReferenceStateMachine::actionEndCallback(){
     if(!_asyncActionActive.load()){
-      moveToRequestedState();
-      performTransition(stopEvent);
+
+      if(hasRequestedState()){
+        moveToRequestedState();
+      }
+
+      auto stateExitEvent = stopEvent;
+// TODO include
+//      if(_moveInterrupted.load()){
+//        stateExitEvent = errorEvent;
+//      }
+      performTransition(stateExitEvent);
     }
   }
 
@@ -76,6 +86,7 @@ namespace ChimeraTK{
     _moveInterrupted.exchange(false);
 
     // Local variables for calibrated position
+    // TODO Move to else scope to remove cppcheck warning
     int calibPositiveEndSwitchInSteps = 0;
     int calibNegativeEndSwitchInSteps = 0;
 
@@ -88,9 +99,9 @@ namespace ChimeraTK{
       _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
     }
     else{
-      findEndSwitch(POSITIVE);
+      findEndSwitch(Sign::POSITIVE);
       calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
-      findEndSwitch(NEGATIVE);
+      findEndSwitch(Sign::NEGATIVE);
       calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
 
       if (_moveInterrupted.load() || _stopAction.load()){
@@ -98,6 +109,7 @@ namespace ChimeraTK{
         _motor._motorControler->setCalibrationTime(0);
 
         _motor._calibrationFailed.exchange(true);
+        _motor._errorMode.exchange(StepperMotorError::CALIBRATION_ERROR);
         _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
       }else{
         // Define positive axis with negative end switch as zero
@@ -120,7 +132,7 @@ namespace ChimeraTK{
   }
 
   void StepperMotorWithReferenceStateMachine::findEndSwitch(Sign sign){
-    while (!isEndSwitchActive(sign)){
+    while (!_motor.isEndSwitchActive(sign)){
       if (_stopAction.load() || _moveInterrupted.load()){
         return;
       }else if (_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
@@ -137,26 +149,10 @@ namespace ChimeraTK{
 
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
-      _motor._motorControler->setTargetPosition(_motor._motorControler->getActualPosition() + sign*50000);
+      _motor._motorControler->setTargetPosition(_motor._motorControler->getActualPosition() + static_cast<int>(sign)*50000);
     }
     while (_motor._motorControler->isMotorMoving()){
       std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
-    }
-  }
-
-  bool StepperMotorWithReferenceStateMachine::isEndSwitchActive(Sign sign){
-    if (sign == POSITIVE){
-      if (_motor.isPositiveReferenceActive()){
-        return true;
-      }else{
-        return false;
-      }
-    }else{
-      if (_motor.isNegativeReferenceActive()){
-        return true;
-      }else{
-        return false;
-      }
     }
   }
 
@@ -172,12 +168,21 @@ namespace ChimeraTK{
       _motor._toleranceCalcFailed.exchange(true);
     }
     else{
-      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(POSITIVE));
-      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(NEGATIVE));
+      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
+      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
 
-      if (_moveInterrupted.load() || _stopAction.load()){
+      if (_stopAction.load()){
+        _motor._toleranceCalculated.exchange(false);
+      }
+      else if(_moveInterrupted.load()){
         _motor._toleranceCalculated.exchange(false);
         _motor._toleranceCalcFailed.exchange(true);
+
+        // TODO include
+//        _asyncActionActive.exchange(false);
+//        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+        _motor._errorMode = StepperMotorError::CALIBRATION_ERROR;
+//        return;
       }
       else{
         _motor._toleranceCalculated.exchange(true);
@@ -188,7 +193,7 @@ namespace ChimeraTK{
   }
 
   int StepperMotorWithReferenceStateMachine::getPositionEndSwitch(Sign sign){
-    if (sign == POSITIVE){
+    if (sign == Sign::POSITIVE){
       return _motor._calibPositiveEndSwitchInSteps.load();
     }else{
       return _motor._calibNegativeEndSwitchInSteps.load();
@@ -212,16 +217,14 @@ namespace ChimeraTK{
       //Move close to end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setTargetPosition(endSwitchPosition - sign*1000);
+        _motor._motorControler->setTargetPosition(endSwitchPosition - static_cast<int>(sign)*1000);
       }
       while(_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
 
       //Check if in expected position
-      if (_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
-            !_motor.isPositiveReferenceActive() &&
-            !_motor.isNegativeReferenceActive()){
+      if (!_motor.verifyMoveAction()){
         _moveInterrupted.exchange(true);
         break;
       }
@@ -229,12 +232,12 @@ namespace ChimeraTK{
       // Try to move beyond end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setTargetPosition(endSwitchPosition + sign*1000);
+        _motor._motorControler->setTargetPosition(endSwitchPosition + static_cast<int>(sign)*1000);
       }
       while(_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
-      if (!isEndSwitchActive(sign)){
+      if (!_motor.isEndSwitchActive(sign)){
         _moveInterrupted.exchange(true);
         break;
       }
