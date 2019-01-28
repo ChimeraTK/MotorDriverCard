@@ -50,7 +50,9 @@ namespace dfmc_md22{
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
   std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME"; // Added as support for newer FW > r2261
-  //TODO Add cstants for new registers
+  std::string const POS_ENDSW_CALIB_SUFFIX  = "TODO";
+  std::string const NEG_ENDSW_CALIB_SUFFIX  = "TODO";
+  //TODO Add constants for new tolerance registers
 
   uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 

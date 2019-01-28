@@ -106,7 +106,6 @@ namespace mtca4u
       _localTargetPosition(0)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
-    //setActualPosition( motorControlerConfig.actualPosition );
     setChopperControlData( motorControlerConfig.chopperControlData );
     setCoolStepControlData( motorControlerConfig.coolStepControlData );
     setDecoderReadoutMode( motorControlerConfig.decoderReadoutMode );
@@ -134,12 +133,13 @@ namespace mtca4u
 
     if(firmwareVersion >= MIN_FW_VERSION_WITH_CALIB_BACKUP){
       _calibrationTime.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX));
+
+      _calibratedPositiveEndSwitchPos.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, POS_ENDSW_CALIB_SUFFIX));
+      _calibratedNegativeEndSwitchPos.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, NEG_ENDSW_CALIB_SUFFIX));
     }
     else{
       _calibrationTime.replace(
         device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_USER_REGISTER_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw}));
-
-      _calibratedPositiveEndSwitchPos(/*TODO*/);
     }
 
     // enabling the motor is the last step after setting all registers
@@ -428,11 +428,27 @@ namespace mtca4u
     return static_cast<uint32_t>(_calibrationTime);
   }
 
+  void MotorControlerImpl::setCalibrationData(CalibrationData const & calibData){
+    lock_guard guard(_mutex);
+
+    _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
+    _calibrationTime.write();
+    _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
+    _calibratedPositiveEndSwitchPos.write();
+    _calibratedNegativeEndSwitchPos = calibData.negendSwitchCalibration;
+    _calibratedNegativeEndSwitchPos.write();
+    _calibratedPositiveEndSwitchTol = calibData.posEndSwitchTolerance;
+    _calibratedPositiveEndSwitchTol.write();
+    _calibratedNegativeEndSwitchTol = calibData.negEndSwitchTolerance;
+    _calibratedNegativeEndSwitchTol.write();
+  }
+
   void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
 
      if(_calibratedPositiveEndSwitchPos.isInitialised()){
        lock_guard guard(_mutex);
-       _calibratedPositiveEndSwitchPos.write(static_cast<int32_t>(calibratedPosition));
+       _calibratedPositiveEndSwitchPos = static_cast<int32_t>(calibratedPosition);
+       _calibratedPositiveEndSwitchPos.write();
      }
   }
 

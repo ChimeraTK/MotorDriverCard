@@ -43,6 +43,16 @@ namespace mtca4u
       static const unsigned int INCREMENTAL = 1;
     };
 
+    // Helper struct to hold endswitch calibration data stored in the FW
+    struct CalibrationData
+    {
+      uint32_t calibrationTime;
+      int32_t posEndSwitchCalibration;
+      int32_t negendSwitchCalibration;
+      int32_t posEndSwitchTolerance;
+      int32_t negEndSwitchTolerance;
+    };
+
     /// Get the ID of the motor controler on the FMC board (0 or 1).
     virtual unsigned int getID()=0;
 
@@ -75,6 +85,8 @@ namespace mtca4u
     virtual void setCalibrationTime(uint32_t calibrationTime) = 0;
     virtual uint32_t getCalibrationTime() = 0;
 
+    virtual void setCalibrationData(CalibrationData const &) = 0;
+    virtual CalibrationData getCalibrationData() = 0;
     virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition) = 0;
     virtual int  getPositiveReferenceSwitchCalibration() = 0;
     virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition) = 0;

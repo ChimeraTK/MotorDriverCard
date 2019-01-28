@@ -107,6 +107,9 @@ namespace mtca4u
     virtual void setCalibrationTime(uint32_t calibrationTime);
     virtual uint32_t getCalibrationTime();
 
+    virtual void setCalibrationData(CalibrationData const &);
+    virtual CalibrationData getCalibrationData();
+
     /**
      * @brief Writes a calibrated position for the positive end switch to the firmware
      */
@@ -242,6 +245,8 @@ namespace mtca4u
      ChimeraTK::ScalarRegisterAccessor<int32_t> _calibrationTime;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedPositiveEndSwitchPos;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedNegativeEndSwitchPos;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedPositiveEndSwitchTol;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedNegativeEndSwitchTol;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwithPowerIndicator;
      
      mtca4u::SPIviaPCIe _driverSPI;
