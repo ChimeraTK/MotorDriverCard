@@ -108,7 +108,7 @@ namespace mtca4u
     virtual uint32_t getCalibrationTime();
 
     virtual void setCalibrationData(CalibrationData const &);
-    virtual CalibrationData getCalibrationData();
+    virtual CalibrationData const & getCalibrationData();
 
     /**
      * @brief Writes a calibrated position for the positive end switch to the firmware
@@ -270,6 +270,8 @@ namespace mtca4u
      unsigned int _userMicroStepSize;
 
      int _localTargetPosition;
+     CalibrationData _calibrationData;
+
      //bool _positiveSwitch, _negativeSwitch;
      int retrieveTargetPositonAndConvert();
      int readPositionRegisterAndConvert();

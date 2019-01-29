@@ -103,7 +103,8 @@ namespace mtca4u
       converter24bits(24), converter12bits(12),
       _moveOnlyFullStep(false),
       _userMicroStepSize(0),
-      _localTargetPosition(0)
+      _localTargetPosition(0),
+      _calibrationData()
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     setChopperControlData( motorControlerConfig.chopperControlData );
@@ -441,6 +442,13 @@ namespace mtca4u
     _calibratedPositiveEndSwitchTol.write();
     _calibratedNegativeEndSwitchTol = calibData.negEndSwitchTolerance;
     _calibratedNegativeEndSwitchTol.write();
+  }
+
+  CalibrationData const & MotorControlerImpl(){
+    lock_guard guard(_mutex);
+
+    return _calibrationData;
+
   }
 
   void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
