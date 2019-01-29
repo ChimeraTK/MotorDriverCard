@@ -86,6 +86,7 @@ namespace ChimeraTK{
     _moveInterrupted.exchange(false);
 
     // Local variables for calibrated position
+    // TODO Move to else scope to remove cppcheck warning
     int calibPositiveEndSwitchInSteps = 0;
     int calibNegativeEndSwitchInSteps = 0;
 

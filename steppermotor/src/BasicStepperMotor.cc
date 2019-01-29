@@ -1,4 +1,5 @@
 #include "BasicStepperMotor.h"
+
 #include <cmath>
 #include <future>
 #include <chrono>
@@ -6,7 +7,14 @@
 #include "StepperMotorException.h"
 #include "StepperMotorStateMachine.h"
 
+#include "MotorDriverException.h"
+#include "MotorDriverCardConfigXML.h"
+#include "MotorDriverCard.h"
+#include "MotorControler.h"
+
+
 using LockGuard = boost::lock_guard<boost::mutex>;
+
 
 namespace ChimeraTK{
 
@@ -24,7 +32,6 @@ namespace ChimeraTK{
       _minPositionLimitInSteps(std::numeric_limits<int>::min()),
       _autostart(false),
       _softwareLimitsEnabled(false),
-      _logger(),
       _mutex(),
       _stateMachine(),
       _errorMode(StepperMotorError::NO_ERROR),
@@ -45,7 +52,6 @@ namespace ChimeraTK{
      _minPositionLimitInSteps(std::numeric_limits<int>::min()),
      _autostart(false),
      _softwareLimitsEnabled(false),
-     _logger(),
      _mutex(),
      _stateMachine(),
      _errorMode(StepperMotorError::NO_ERROR),
@@ -323,7 +329,6 @@ namespace ChimeraTK{
 
   double BasicStepperMotor::getEncoderPosition(){
     LockGuard guard(_mutex);
-    //return _encoderUnitToStepsRatio * (static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
     return _encoderUnitsConverter->stepsToUnits(static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
   }
 
@@ -400,13 +405,6 @@ namespace ChimeraTK{
 
   bool BasicStepperMotor::isCalibrated(){
     return _calibrationMode.load() != StepperMotorCalibrationMode::NONE;
-//    LockGuard guard(_mutex);
-//    uint32_t calibTime = _motorControler->getCalibrationTime();
-//    if (calibTime == 0){
-//      return false;
-//    }else{
-//      return true;
-//    }
   }
 
   uint32_t BasicStepperMotor::getCalibrationTime(){
@@ -439,15 +437,6 @@ namespace ChimeraTK{
   bool BasicStepperMotor::getAutostart(){
     LockGuard guard(_mutex);
     return _autostart;
-  }
-  void BasicStepperMotor::setLogLevel(ChimeraTK::Logger::LogLevel newLevel){
-    LockGuard guard(_mutex);
-    _logger.setLogLevel(newLevel);
-  }
-
-  Logger::LogLevel BasicStepperMotor::getLogLevel() {
-    LockGuard guard(_mutex);
-    return _logger.getLogLevel();
   }
 
   double BasicStepperMotor::getMaxSpeedCapability() {

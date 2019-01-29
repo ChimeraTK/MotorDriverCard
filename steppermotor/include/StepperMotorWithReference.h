@@ -5,13 +5,10 @@
  *      Author: vitimic
  */
 
-#ifndef CHIMERATK_STEPPER_MOTOR_H
-#define CHIMERATK_STEPPER_MOTOR_H
+#ifndef CHIMERATK_LINEAR_STEPPER_MOTOR_H
+#define CHIMERATK_LINEAR_STEPPER_MOTOR_H
 
 #include "BasicStepperMotor.h"
-#include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
-#include "StepperMotorException.h"
 
 #include <memory>
 
@@ -21,6 +18,10 @@ namespace ChimeraTK{
 
   /// Helper class for endswitch polarity
   enum class Sign{NEGATIVE = -1, POSITIVE = 1};
+
+  struct StepperMotorParameters;
+  enum class StepperMotorRet;
+  enum class StepperMotorError;
 
   /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
@@ -147,4 +148,4 @@ namespace ChimeraTK{
     std::atomic<float> _toleranceNegativeEndSwitch;
   };
 }
-#endif /* CHIMERATK_STEPPER_MOTOR_H */
+#endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */

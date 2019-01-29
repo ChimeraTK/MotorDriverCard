@@ -12,36 +12,29 @@
 #ifndef CHIMERATK_BASIC_STEPPER_MOTOR_H
 #define	CHIMERATK_BASIC_STEPPER_MOTOR_H
 
+#include "StepperMotor.h"
+
 #include <string>
 #include <atomic>
 #include <memory>
-#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 
 
-//MD22 library includes
-#include "MotorDriverCardConfigXML.h"
-#include "MotorDriverCard.h"
-#include "MotorControler.h"
-
-//Stepper Motor includes
-#include "StepperMotor.h"
-#include "StepperMotorError.h"
-#include "StepperMotorStatus.h"
-#include "StepperMotorCalibrationStatus.h"
-#include "StepperMotorStateMachine.h"
-#include "Logger.h"
-
+namespace mtca4u{
+  class MotorDriverCard;
+  class MotorControler;
+}
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
 
+  class StateMachine;
 
   /**
-   *  @class StepperMotor
-   *  @brief This class provides the user interface for a basic stepper motor.
+   *  @class BasicStepperMotor
+   *  @brief This class implements the basic implementation stepper motor.
    */
   class BasicStepperMotor : public StepperMotor{
   public:
@@ -315,12 +308,7 @@ namespace ChimeraTK {
     virtual bool getEnabled();
 
     /**
-     * @brief set logger level
-     */
-    virtual void setLogLevel(ChimeraTK::Logger::LogLevel newLevel);
 
-
-    /**
      * @brief Sets the autostart flag.
      *        Allows automatic start of movement on change of target position if set to true.
      */
@@ -331,11 +319,6 @@ namespace ChimeraTK {
      *        If true, movement is initiated automatically on change of the target position.
      */
     virtual bool getAutostart();
-
-    /**
-     * @brief get logger level
-     */
-    virtual ChimeraTK::Logger::LogLevel getLogLevel();
 
     /**
      * @brief get maximal speed capability
@@ -462,7 +445,7 @@ namespace ChimeraTK {
     int  _minPositionLimitInSteps;
     bool _autostart;
     bool _softwareLimitsEnabled;
-    Logger _logger;
+
     mutable boost::mutex _mutex;
     std::shared_ptr<StateMachine> _stateMachine;
     std::atomic<StepperMotorError> _errorMode;

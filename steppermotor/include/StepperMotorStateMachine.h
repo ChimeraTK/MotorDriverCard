@@ -8,7 +8,6 @@
 #ifndef INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 #define INCLUDE_STEPPERMOTORSTATEMACHINE_H_
 
-//#include "BasicStepperMotor.h"
 #include "StateMachine.h"
 #include "MotorControler.h"
 #include <boost/shared_ptr.hpp> //Kept for compatibilty with lower layers
@@ -19,7 +18,6 @@
 namespace ChimeraTK{
 
   class BasicStepperMotor;
-
 
   class  StepperMotorStateMachine : public StateMachine{
 

@@ -6,18 +6,19 @@
  */
 
 #include "StepperMotorStateMachine.h"
-#include  "StepperMotorWithReference.h"
+//#include  "StepperMotorWithReference.h"
 #include <atomic>
 
 
-#ifndef INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
-#define INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_
+#ifndef INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_H_
+#define INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_H_
 
 class StepperMotorWithReferenceTestFixture;
 
 namespace ChimeraTK{
 
   class StepperMotorWithReference;
+  enum class Sign;
 
   class StepperMotorWithReferenceStateMachine : public StepperMotorStateMachine{
   public:
@@ -48,4 +49,4 @@ namespace ChimeraTK{
   };
 
 }
-#endif /* INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_HH_ */
+#endif /* INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_H_ */

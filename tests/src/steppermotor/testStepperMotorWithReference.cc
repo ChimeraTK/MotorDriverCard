@@ -11,12 +11,15 @@ using namespace boost::unit_test_framework;
 #include "StepperMotor.h"
 #include "StepperMotorWithReference.h"
 #include "StepperMotorWithReferenceStateMachine.h"
+
 #include "TMC429Constants.h"
 #include "DFMC_MD22Dummy.h"
+#include "MotorDriverCard.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
+
 #include <ChimeraTK/DMapFilesParser.h>
 #include <ChimeraTK/Utilities.h>
 
@@ -105,8 +108,6 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string reqStateName
       break;
     }
     else{
-//      std::cout << "  ** waitForState: False state "  << actStateName
-//                << " detected. Requested " << reqStateName << std::endl;
       cnt++;
     }
   }while(cnt <= timeoutInSteps);
