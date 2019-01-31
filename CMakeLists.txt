@@ -8,6 +8,7 @@ set(${PROJECT_NAME}_PATCH_VERSION 00)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
+
 #This library depends on deviceaccess, which is likely to change often.
 #We add a build version to the version number to be able to install
 #the same software version of the library linked against different versions
@@ -72,6 +73,7 @@ IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 ELSE(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   message("Boost unit_test_framework not found, disabling testing")
 ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
+
 
 # Add source files and include directories and define object targets
 # Three object targets are defined:
@@ -147,7 +149,7 @@ if(TESTING_IS_ENABLED)
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
 
-  # ChimeraTK StepperMotor interace test
+  # ChimeraTK StepperMotor interface test
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src/steppermotor ctkTestSources)
   foreach( testSourceFile ${ctkTestSources})
 
@@ -157,6 +159,7 @@ if(TESTING_IS_ENABLED)
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
     target_include_directories(${executableName} PUBLIC steppermotor/include ${COMMON_INCLUDE_DIRS})
 
     add_test(${executableName} ${executableName})
