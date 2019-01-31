@@ -16,10 +16,13 @@ namespace mtca4u {
 	_positiveEndSwitchPosition(10000),
 	_negativeEndSwitchPosition(-10000),
 	_userSpeedLimit(100000), /* some arbitatry high value */
-	_id(id), _blockMotor(false),
+	_id(id),
+	_blockMotor(false),
 	_bothEndSwitchesAlwaysOn(false),
 	_userMicroStepSize(4),
-	_isFullStepping(false){
+	_isFullStepping(false),
+	_calibrationData()
+    {
       MotorControlerDummy::_positiveEndSwitchPosition = 10000;
       MotorControlerDummy::_negativeEndSwitchPosition = -10000;
     }
@@ -171,6 +174,15 @@ namespace mtca4u {
     uint32_t MotorControlerDummy::getCalibrationTime(){
       lock_guard guard(_motorControllerDummyMutex);
       return static_cast<time_t>(_calibrationTime);
+    }
+
+
+    void MotorControlerDummy::setCalibrationData(CalibrationData const & calibData){
+      (void)calibData;
+    }
+
+    MotorControler::CalibrationData const& MotorControlerDummy::getCalibrationData(){
+      return _calibrationData;
     }
 
     void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition){

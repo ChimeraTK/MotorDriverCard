@@ -57,6 +57,10 @@ namespace mtca4u{
     virtual void setCalibrationTime(uint32_t calibrationTime);
     virtual uint32_t getCalibrationTime();
 
+
+    virtual void setCalibrationData(CalibrationData const &);
+    virtual CalibrationData const& getCalibrationData();
+
     virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
     virtual int  getPositiveReferenceSwitchCalibration();
     virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
@@ -176,6 +180,9 @@ namespace mtca4u{
     bool _bothEndSwitchesAlwaysOn;
     unsigned int _userMicroStepSize;
     bool _isFullStepping;
+
+    CalibrationData _calibrationData;
+
     void setMicroStepSize(unsigned int microStepSize){_userMicroStepSize = microStepSize;}
     unsigned int getMicropStepSize(){return _userMicroStepSize;}
     void roundToNextFullStep(int &targetPosition);

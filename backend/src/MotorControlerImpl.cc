@@ -432,6 +432,10 @@ namespace mtca4u
   void MotorControlerImpl::setCalibrationData(CalibrationData const & calibData){
     lock_guard guard(_mutex);
 
+    // Store in memory
+    _calibrationData = calibData;
+
+    // Also store in FW for persistency
     _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
     _calibrationTime.write();
     _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
@@ -444,11 +448,9 @@ namespace mtca4u
     _calibratedNegativeEndSwitchTol.write();
   }
 
-  CalibrationData const & MotorControlerImpl(){
+  MotorControler::CalibrationData const& MotorControlerImpl::getCalibrationData(){
     lock_guard guard(_mutex);
-
     return _calibrationData;
-
   }
 
   void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
