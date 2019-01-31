@@ -12,19 +12,13 @@
 #ifndef CHIMERATK_BASIC_STEPPER_MOTOR_H
 #define	CHIMERATK_BASIC_STEPPER_MOTOR_H
 
-//Stepper Motor includes
 #include "StepperMotor.h"
-
-
-//MD22 library includes
-//#include "MotorDriverCardConfigXML.h"
-//#include "MotorDriverCard.h"
-//#include "MotorControler.h"
 
 #include <string>
 #include <atomic>
 #include <memory>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
+
 
 namespace mtca4u{
   class MotorDriverCard;
@@ -40,7 +34,7 @@ namespace ChimeraTK {
 
   /**
    *  @class BasicStepperMotor
-   *  @brief This class provides the basic implementation stepper motor.
+   *  @brief This class implements the basic implementation stepper motor.
    */
   class BasicStepperMotor : public StepperMotor{
   public:
@@ -450,6 +444,7 @@ namespace ChimeraTK {
     int  _minPositionLimitInSteps;
     bool _autostart;
     bool _softwareLimitsEnabled;
+
     mutable boost::mutex _mutex;
     std::shared_ptr<StateMachine> _stateMachine;
     std::atomic<StepperMotorError> _errorMode;

@@ -25,8 +25,8 @@ static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string dmapPath(".");
 static const std::string moduleName("");
-static mtca4u::TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md22);
-static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md2);
+//static mtca4u::TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md22);
+//static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md2);
 
 
 
@@ -44,21 +44,21 @@ public:
 };
 
 
-static mtca4u::TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md22){
-  mtca4u::TMC429InputWord readVmaxRegister;
-  readVmaxRegister.setSMDA(0);
-  readVmaxRegister.setIDX_JDX(mtca4u::tmc429::IDX_MAXIMUM_VELOCITY);
-  readVmaxRegister.setRW(mtca4u::tmc429::RW_READ);
-  return mtca4u::TMC429OutputWord(
-      dfmc_md22->readTMC429Register(readVmaxRegister.getDataWord()));
-}
+//static mtca4u::TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md22){
+//  mtca4u::TMC429InputWord readVmaxRegister;
+//  readVmaxRegister.setSMDA(0);
+//  readVmaxRegister.setIDX_JDX(mtca4u::tmc429::IDX_MAXIMUM_VELOCITY);
+//  readVmaxRegister.setRW(mtca4u::tmc429::RW_READ);
+//  return mtca4u::TMC429OutputWord(
+//      dfmc_md22->readTMC429Register(readVmaxRegister.getDataWord()));
+//}
 
 
-static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md2){
-  auto motorId = 0U;
-  return mtca4u::StallGuardControlData(dfmc_md2->readTMC260Register(
-      motorId, mtca4u::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
-}
+//static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md2){
+//  auto motorId = 0U;
+//  return mtca4u::StallGuardControlData(dfmc_md2->readTMC260Register(
+//      motorId, mtca4u::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
+//}
 
 
 class StepperMotorChimeraTKFixture{

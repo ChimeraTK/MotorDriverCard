@@ -328,7 +328,6 @@ namespace ChimeraTK{
 
   double BasicStepperMotor::getEncoderPosition(){
     LockGuard guard(_mutex);
-    //return _encoderUnitToStepsRatio * (static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
     return _encoderUnitsConverter->stepsToUnits(static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
   }
 
@@ -405,13 +404,6 @@ namespace ChimeraTK{
 
   bool BasicStepperMotor::isCalibrated(){
     return _calibrationMode.load() != StepperMotorCalibrationMode::NONE;
-//    LockGuard guard(_mutex);
-//    uint32_t calibTime = _motorControler->getCalibrationTime();
-//    if (calibTime == 0){
-//      return false;
-//    }else{
-//      return true;
-//    }
   }
 
   uint32_t BasicStepperMotor::getCalibrationTime(){
