@@ -14,7 +14,8 @@
 
 class StepperMotorWithReferenceTestFixture;
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
 
   /// Helper class for endswitch polarity
   enum class Sign{NEGATIVE = -1, POSITIVE = 1};
@@ -23,6 +24,9 @@ namespace ChimeraTK{
   enum class StepperMotorRet;
   enum class StepperMotorError;
 
+  namespace utility{
+    class StepperMotorWithReferenceStateMachine;
+  }
   /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
    */
@@ -121,7 +125,7 @@ namespace ChimeraTK{
      */
     virtual StepperMotorCalibrationMode getCalibrationMode();
 
-    friend class StepperMotorWithReferenceStateMachine;
+    friend class utility::StepperMotorWithReferenceStateMachine;
     friend class ::StepperMotorWithReferenceTestFixture;
 
   protected:
@@ -147,5 +151,6 @@ namespace ChimeraTK{
     std::atomic<float> _tolerancePositiveEndSwitch;
     std::atomic<float> _toleranceNegativeEndSwitch;
   };
+}
 }
 #endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */

@@ -16,6 +16,8 @@
 
 #include <string>
 #include <atomic>
+//#include <mutex>
+#include <boost/thread.hpp>
 #include <memory>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 
@@ -29,9 +31,12 @@ namespace mtca4u{
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
+namespace motordriver {
 
+namespace utility{
   class StateMachine;
-
+  class StepperMotorStateMachine;
+}
   /**
    *  @class BasicStepperMotor
    *  @brief This class implements the basic implementation stepper motor.
@@ -250,7 +255,7 @@ namespace ChimeraTK {
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<utility::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
@@ -400,7 +405,7 @@ namespace ChimeraTK {
 
 
 
-    friend class StepperMotorStateMachine;
+    friend class utility::StepperMotorStateMachine;
     friend class ::StepperMotorChimeraTKFixture;
 
   protected:
@@ -435,8 +440,8 @@ namespace ChimeraTK {
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
 
-    std::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    std::shared_ptr<StepperMotorUtility::EncoderUnitsConverter> _encoderUnitsConverter;
+    std::shared_ptr<utility::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<utility::EncoderUnitsConverter> _encoderUnitsConverter;
 
     int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
@@ -446,11 +451,12 @@ namespace ChimeraTK {
     bool _softwareLimitsEnabled;
 
     mutable boost::mutex _mutex;
-    std::shared_ptr<StateMachine> _stateMachine;
+    std::shared_ptr<utility::StateMachine> _stateMachine;
     std::atomic<StepperMotorError> _errorMode;
     std::atomic<StepperMotorCalibrationMode> _calibrationMode;
 
   }; // class BasicStepperMotor
+}// namespace motordriver
 }// namespace ChimeraTK
 
 #endif	/* CHIMERATK_BASIC_STEPPER_MOTOR_H */

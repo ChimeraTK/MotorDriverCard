@@ -20,7 +20,9 @@
 struct StateMachineTestFixture;
 
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
+namespace utility{
 
   /**
    * @brief Base class for a state machine
@@ -130,7 +132,7 @@ namespace ChimeraTK{
 
   bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2);
 
-
 }
-
+}
+}
 #endif /* INCLUDE_STATEMACHINE_H_ */

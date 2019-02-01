@@ -11,7 +11,9 @@
 #include <thread>
 #include <chrono>
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
+namespace utility {
 
   const StateMachine::Event StepperMotorStateMachine::initialEvent("initialEvent");
   const StateMachine::Event StepperMotorStateMachine::moveEvent("moveEvent");
@@ -115,3 +117,5 @@ namespace ChimeraTK{
   void StepperMotorStateMachine::actionResetError(){}
 
 }
+} // namespace motordriver
+} // namespace ChimeraTK

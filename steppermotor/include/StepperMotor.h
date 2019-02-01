@@ -13,19 +13,17 @@
 
 #include "StepperMotorUtil.h"
 
-
-//TODO Sort out whats used here
 #include <string>
-#include <atomic>
 #include <memory>
 #include <mutex>
-#include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
+#include <map>
+
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
+namespace motordriver {
 
   /**
    * @brief Contains parameters for initialization of a StepperMotor object
@@ -42,9 +40,9 @@ namespace ChimeraTK {
     /// Name of configuration file
     std::string configFileName{""};
     /// A converter between motor steps and user unit. Based on the abstract class StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and steps.
-    std::shared_ptr<StepperMotorUnitsConverter> motorUnitsConverter{std::make_shared<StepperMotorUnitsConverterTrivia>()};
+    std::shared_ptr<utility::StepperMotorUnitsConverter> motorUnitsConverter{std::make_shared<utility::StepperMotorUnitsConverterTrivia>()};
     /// A converter between encoder steps and user unit. Based on the abstract class EncoderUnitsConverter. Defaults to a 1:1 converter between units and steps.
-    std::shared_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter{std::make_shared<StepperMotorUtility::EncoderUnitsConverterTrivia>()};
+    std::shared_ptr<utility::EncoderUnitsConverter> encoderUnitsConverter{std::make_shared<utility::EncoderUnitsConverterTrivia>()};
   };
 
 
@@ -258,7 +256,7 @@ namespace ChimeraTK {
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) = 0;
+    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<utility::StepperMotorUnitsConverter> stepperMotorUnitsConverter) = 0;
 
     // FIXME This can be constant after construction?
     /**
@@ -455,5 +453,6 @@ namespace ChimeraTK {
     std::map<MotorIdentifier, std::weak_ptr<StepperMotor>> _existingMotors;
   }; // class StepperMotorFactory
 
+}// namespace motordiver
 }// namespace ChimeraTK
 #endif	/* CHIMERATK_STEPPER_MOTOR_H */

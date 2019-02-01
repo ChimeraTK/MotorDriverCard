@@ -5,7 +5,8 @@
 
 #include <mutex>
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
 
   StepperMotorFactory::StepperMotorFactory()
     : _factoryMutex{},
@@ -51,5 +52,6 @@ namespace ChimeraTK{
     return ptr;
   }
 
+}
 } // namespace ChimeraTK
 

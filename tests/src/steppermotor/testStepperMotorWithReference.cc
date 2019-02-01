@@ -23,6 +23,8 @@ using namespace boost::unit_test_framework;
 #include <ChimeraTK/DMapFilesParser.h>
 #include <ChimeraTK/Utilities.h>
 
+using namespace ChimeraTK::motordriver;
+
 
 static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
@@ -62,13 +64,10 @@ public:
 
 
 protected:
-  ChimeraTK::StepperMotorParameters _stepperMotorParameters;
-  std::shared_ptr<ChimeraTK::StepperMotorWithReference> _stepperMotor;
+  StepperMotorParameters _stepperMotorParameters;
+  std::shared_ptr<StepperMotorWithReference> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
 };
-
-
-using namespace ChimeraTK;
 
 
 StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()

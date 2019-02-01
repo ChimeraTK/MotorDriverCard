@@ -15,10 +15,13 @@
 
 class StepperMotorWithReferenceTestFixture;
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
 
   class StepperMotorWithReference;
   enum class Sign;
+
+namespace utility {
 
   class StepperMotorWithReferenceStateMachine : public StepperMotorStateMachine{
   public:
@@ -47,6 +50,7 @@ namespace ChimeraTK{
     double getToleranceEndSwitch(Sign sign);
     int getPositionEndSwitch(Sign sign);
   };
-
+}
+}
 }
 #endif /* INCLUDE_STEPPERMOTORWITHREFERENCESTATEMACHINE_H_ */

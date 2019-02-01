@@ -29,8 +29,10 @@ static const std::string moduleName("");
 //static mtca4u::StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>& dfmc_md2);
 
 
+using namespace ChimeraTK::motordriver;
 
-class TestUnitConverter : public ChimeraTK::StepperMotorUnitsConverter {
+
+class TestUnitConverter : public utility::StepperMotorUnitsConverter {
 public:
   TestUnitConverter() {
   }
@@ -70,13 +72,10 @@ public:
   void configThreadFcn();
 
 protected:
-  std::unique_ptr<ChimeraTK::StepperMotor> _stepperMotor;
+  std::unique_ptr<StepperMotor> _stepperMotor;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
-
-
-using namespace ChimeraTK;
 
 
 // Fixture for common setup
@@ -93,7 +92,7 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() :
   _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,  moduleName, stepperMotorDeviceConfigFile)->getMotorControler(0));
 
   // Omit the optional 5th argument for the units converter here so we get the default 1:1 converter for the encoder readout
-  ChimeraTK::StepperMotorParameters parameters;
+  StepperMotorParameters parameters;
   parameters.deviceName = stepperMotorDeviceName;
   parameters.moduleName = moduleName;
   parameters.configFileName = stepperMotorDeviceConfigFile;
@@ -170,7 +169,7 @@ BOOST_AUTO_TEST_CASE(  testStepperMotorFactory ){
   auto _motor = inst.create(parametersBasicMotor);
 
   BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), false);
-  BOOST_CHECK_THROW(_motor->isNegativeEndSwitchEnabled(), StepperMotorException);
+  BOOST_CHECK_THROW(_motor->isNegativeEndSwitchEnabled(), ChimeraTK::StepperMotorException);
 
   StepperMotorParameters parametersLinearMotor;
   parametersLinearMotor.motorType  = StepperMotorType::LINEAR;
@@ -193,8 +192,8 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
   int steps = 1000;
   BOOST_CHECK_EQUAL(_stepperMotor->recalculateStepsInUnits(steps), steps);
 
- std::unique_ptr<StepperMotorUtility::EncoderUnitsConverter> encoderUnitsConverter
-     = std::make_unique<StepperMotorUtility::EncoderUnitsScalingConverter>(10.);
+ std::unique_ptr<utility::EncoderUnitsConverter> encoderUnitsConverter
+     = std::make_unique<utility::EncoderUnitsScalingConverter>(10.);
 
  StepperMotorParameters parameters;
  parameters.deviceName = stepperMotorDeviceName;
@@ -204,8 +203,8 @@ BOOST_AUTO_TEST_CASE( testUnitsConverterInitialization ){
  parameters.motorUnitsConverter = std::move(_testUnitConverter);
  parameters.encoderUnitsConverter = std::move(encoderUnitsConverter);
 
- std::unique_ptr<ChimeraTK::StepperMotor>  motorWithCustomConverter
-   = std::make_unique<ChimeraTK::BasicStepperMotor>(parameters);
+ std::unique_ptr<StepperMotor>  motorWithCustomConverter
+   = std::make_unique<BasicStepperMotor>(parameters);
 
   // Should convert according to the TestUnitConverter
   BOOST_CHECK_EQUAL(motorWithCustomConverter->recalculateStepsInUnits(steps), 100.f);

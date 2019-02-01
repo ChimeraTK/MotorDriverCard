@@ -12,7 +12,12 @@
 
 static const unsigned wakeupPeriodInMilliseconds = 500U;
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver {
+
+  using utility::StateMachine;
+  using utility::StepperMotorStateMachine;
+  using utility::StepperMotorWithReferenceStateMachine;
 
   const StateMachine::Event StepperMotorWithReferenceStateMachine::calibEvent("calibEvent");
   const StateMachine::Event StepperMotorWithReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
@@ -257,5 +262,6 @@ namespace ChimeraTK{
 
     return sqrt(stdMeasurement);
   }
+}
 }
 

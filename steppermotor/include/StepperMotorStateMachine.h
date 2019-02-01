@@ -15,9 +15,14 @@
 #include <memory>
 
 
-namespace ChimeraTK{
 
-  class BasicStepperMotor;
+namespace ChimeraTK {
+namespace motordriver{
+
+    class BasicStepperMotor;
+
+namespace utility {
+
 
   class  StepperMotorStateMachine : public StateMachine{
 
@@ -51,5 +56,7 @@ namespace ChimeraTK{
     void actionEmergencyStop();
     void actionResetError();
   };
+}
+}
 }
 #endif /* INCLUDE_STEPPERMOTORSTATEMACHINE_H_ */
