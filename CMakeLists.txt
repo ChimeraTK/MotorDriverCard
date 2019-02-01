@@ -8,6 +8,7 @@ set(${PROJECT_NAME}_PATCH_VERSION 00)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
+
 #This library depends on deviceaccess, which is likely to change often.
 #We add a build version to the version number to be able to install
 #the same software version of the library linked against different versions
@@ -73,13 +74,7 @@ ELSE(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   message("Boost unit_test_framework not found, disabling testing")
 ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
-#<<<<<<< HEAD
-## Add source files and include directories
-## First, files not yet sorted into secific subdirs TODO
-#include_directories(${CMAKE_SOURCE_DIR}/include)
-#set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include/)
-#aux_source_directory(${CMAKE_SOURCE_DIR}/src library_sources)
-#=======
+
 # Add source files and include directories and define object targets
 # Three object targets are defined:
 # - mtca4u interface
@@ -106,16 +101,6 @@ install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 # Add  targets for mtca4u and ChimeraTK interfaces
 add_subdirectory(steppermotor)
 add_subdirectory(mtca4u_steppermotor)
-
-#>>>>>>> ChimeraTK_API_update
-
-#set(subdirs util backend steppermotor mtca4u_steppermotor)
-#foreach(subdir ${subdirs})
-#  aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
-#  set(SOURCE ${SOURCE} ${sources})
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
-#  set(${PROJECT_NAME}_INCLUDE_DIRS ${${PROJECT_NAME}_INCLUDE_DIRS} ${subdir}/include/)
-#endforeach()
 
 
 MACRO( COPY_MAPPING_FILES )
@@ -164,7 +149,7 @@ if(TESTING_IS_ENABLED)
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
 
-  # ChimeraTK StepperMotor interace test
+  # ChimeraTK StepperMotor interface test
   aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src/steppermotor ctkTestSources)
   foreach( testSourceFile ${ctkTestSources})
 
@@ -174,6 +159,7 @@ if(TESTING_IS_ENABLED)
     set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
     target_include_directories(${executableName} PUBLIC steppermotor/include ${COMMON_INCLUDE_DIRS})
 
     add_test(${executableName} ${executableName})

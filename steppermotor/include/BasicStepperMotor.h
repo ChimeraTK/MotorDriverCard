@@ -13,9 +13,11 @@
 #define	CHIMERATK_BASIC_STEPPER_MOTOR_H
 
 #include "StepperMotor.h"
+#include "StateMachine.h"
 
 #include <string>
 #include <atomic>
+#include <boost/thread.hpp>
 #include <memory>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 
@@ -29,8 +31,8 @@ namespace mtca4u{
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
+namespace motordriver {
 
-  class StateMachine;
 
   /**
    *  @class BasicStepperMotor
@@ -250,7 +252,7 @@ namespace ChimeraTK {
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<utility::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
@@ -308,7 +310,6 @@ namespace ChimeraTK {
     virtual bool getEnabled();
 
     /**
-
      * @brief Sets the autostart flag.
      *        Allows automatic start of movement on change of target position if set to true.
      */
@@ -401,10 +402,50 @@ namespace ChimeraTK {
 
 
 
-    friend class StepperMotorStateMachine;
+//    /friend class StateMachine;
     friend class ::StepperMotorChimeraTKFixture;
 
   protected:
+
+    /**
+     * StateMachine subclass specific to this implementation
+     */
+    class  StateMachine : public utility::StateMachine{
+
+      friend class BasicStepperMotor;
+
+    public:
+      StateMachine(BasicStepperMotor &stepperMotor);
+      virtual ~StateMachine();
+      static const Event initialEvent;
+      static const Event moveEvent;
+      static const Event stopEvent;
+      static const Event errorEvent;
+      static const Event emergencyStopEvent;
+      static const Event actionCompleteEvent;
+      static const Event enableEvent;
+      static const Event disableEvent;
+      static const Event resetToIdleEvent;
+      static const Event resetToDisableEvent;
+    protected:
+      State _moving;
+      State _idle;
+      State _disabled;
+      State _error;
+      BasicStepperMotor &_stepperMotor;
+      boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
+      void getActionCompleteEvent();
+      void waitForStandstill();
+      void actionIdleToMove();
+      void actionMovetoStop();
+      void actionMoveToFullStep();
+      void actionEnable();
+      void actionDisable();
+      void actionEmergencyStop();
+      void actionResetError();
+    }; // class StateMachine
+
+
     BasicStepperMotor();
 
     /**
@@ -436,8 +477,8 @@ namespace ChimeraTK {
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
 
-    std::shared_ptr<StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    std::shared_ptr<StepperMotorUtility::EncoderUnitsConverter> _encoderUnitsConverter;
+    std::shared_ptr<utility::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<utility::EncoderUnitsConverter> _encoderUnitsConverter;
 
     int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
@@ -447,11 +488,12 @@ namespace ChimeraTK {
     bool _softwareLimitsEnabled;
 
     mutable boost::mutex _mutex;
-    std::shared_ptr<StateMachine> _stateMachine;
+    std::shared_ptr<utility::StateMachine> _stateMachine;
     std::atomic<StepperMotorError> _errorMode;
     std::atomic<StepperMotorCalibrationMode> _calibrationMode;
 
   }; // class BasicStepperMotor
+}// namespace motordriver
 }// namespace ChimeraTK
 
 #endif	/* CHIMERATK_BASIC_STEPPER_MOTOR_H */

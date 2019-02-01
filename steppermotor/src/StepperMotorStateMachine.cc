@@ -1,31 +1,33 @@
 /*
- * StepperMotorStateMachine.cc
+ * BasicStepperMotor::StateMachine.cc
  *
  *  Created on: Feb 2, 2017
  *      Author: vitimic
  */
 
-#include "StepperMotorStateMachine.h"
 #include "BasicStepperMotor.h"
+
+#include "MotorControler.h"
 #include <memory>
 #include <thread>
 #include <chrono>
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
 
-  const StateMachine::Event StepperMotorStateMachine::initialEvent("initialEvent");
-  const StateMachine::Event StepperMotorStateMachine::moveEvent("moveEvent");
-  const StateMachine::Event StepperMotorStateMachine::stopEvent("stopEvent");
-  const StateMachine::Event StepperMotorStateMachine::errorEvent("errorEvent");
-  const StateMachine::Event StepperMotorStateMachine::emergencyStopEvent("emergencyStopEvent");
-  const StateMachine::Event StepperMotorStateMachine::actionCompleteEvent("actionCompletedEvent");
-  const StateMachine::Event StepperMotorStateMachine::enableEvent("enableEvent");
-  const StateMachine::Event StepperMotorStateMachine::disableEvent("disableEvent");
-  const StateMachine::Event StepperMotorStateMachine::resetToIdleEvent("resetToIdleEvent");
-  const StateMachine::Event StepperMotorStateMachine::resetToDisableEvent("resetToDisableEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::initialEvent("initialEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::moveEvent("moveEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::stopEvent("stopEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::errorEvent("errorEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::emergencyStopEvent("emergencyStopEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::actionCompleteEvent("actionCompletedEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::enableEvent("enableEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::disableEvent("disableEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::resetToIdleEvent("resetToIdleEvent");
+  const utility::StateMachine::Event BasicStepperMotor::StateMachine::resetToDisableEvent("resetToDisableEvent");
 
-  StepperMotorStateMachine::StepperMotorStateMachine(BasicStepperMotor &stepperMotor) :
-      StateMachine(),
+  BasicStepperMotor::StateMachine::StateMachine(BasicStepperMotor &stepperMotor)
+      : utility::StateMachine(),
       _moving("moving"),
       _idle("idle"),
       _disabled("disabled"),
@@ -34,21 +36,21 @@ namespace ChimeraTK{
       _motorControler(stepperMotor._motorControler)
   {
     _initState.setTransition(initialEvent,        &_disabled,      []{});
-    _idle.setTransition     (moveEvent,           &_moving,        std::bind(&StepperMotorStateMachine::actionIdleToMove, this),
-                                                                   std::bind(&StepperMotorStateMachine::waitForStandstill, this));
-    _idle.setTransition     (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
-    _moving.setTransition   (stopEvent,           &_idle,          std::bind(&StepperMotorStateMachine::actionMovetoStop, this));
+    _idle.setTransition     (moveEvent,           &_moving,        std::bind(&BasicStepperMotor::StateMachine::actionIdleToMove, this),
+                                                                   std::bind(&BasicStepperMotor::StateMachine::waitForStandstill, this));
+    _idle.setTransition     (disableEvent,        &_disabled,      std::bind(&BasicStepperMotor::StateMachine::actionDisable, this));
+    _moving.setTransition   (stopEvent,           &_idle,          std::bind(&BasicStepperMotor::StateMachine::actionMovetoStop, this));
     _moving.setTransition   (errorEvent,          &_error,         []{});
-    _moving.setTransition   (emergencyStopEvent,  &_error,         std::bind(&StepperMotorStateMachine::actionEmergencyStop, this));
-    _moving.setTransition   (disableEvent,        &_disabled,      std::bind(&StepperMotorStateMachine::actionDisable, this));
-    _disabled.setTransition (enableEvent,         &_idle,          std::bind(&StepperMotorStateMachine::actionEnable, this));
-    _error.setTransition    (resetToIdleEvent,    &_idle,          std::bind(&StepperMotorStateMachine::actionResetError, this));
-    _error.setTransition    (resetToDisableEvent, &_disabled,      std::bind(&StepperMotorStateMachine::actionResetError, this));
+    _moving.setTransition   (emergencyStopEvent,  &_error,         std::bind(&BasicStepperMotor::StateMachine::actionEmergencyStop, this));
+    _moving.setTransition   (disableEvent,        &_disabled,      std::bind(&BasicStepperMotor::StateMachine::actionDisable, this));
+    _disabled.setTransition (enableEvent,         &_idle,          std::bind(&BasicStepperMotor::StateMachine::actionEnable, this));
+    _error.setTransition    (resetToIdleEvent,    &_idle,          std::bind(&BasicStepperMotor::StateMachine::actionResetError, this));
+    _error.setTransition    (resetToDisableEvent, &_disabled,      std::bind(&BasicStepperMotor::StateMachine::actionResetError, this));
   }
 
-  StepperMotorStateMachine::~StepperMotorStateMachine(){}
+  BasicStepperMotor::StateMachine::~StateMachine(){}
 
-  void StepperMotorStateMachine::waitForStandstill(){
+  void BasicStepperMotor::StateMachine::waitForStandstill(){
 
     if(!_motorControler->isMotorMoving()){
 
@@ -75,24 +77,24 @@ namespace ChimeraTK{
     }
   }
 
-  void StepperMotorStateMachine::actionIdleToMove(){
+  void BasicStepperMotor::StateMachine::actionIdleToMove(){
     _asyncActionActive.exchange(true);
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
-  void StepperMotorStateMachine::actionMovetoStop(){
+  void BasicStepperMotor::StateMachine::actionMovetoStop(){
     int currentPos = _motorControler->getActualPosition();
     _motorControler->setTargetPosition(currentPos);
   }
 
-  void StepperMotorStateMachine::actionMoveToFullStep(){
+  void BasicStepperMotor::StateMachine::actionMoveToFullStep(){
     bool isFullStepping = _motorControler->isFullStepping();
     _motorControler->enableFullStepping(true);
     actionMovetoStop();
     _motorControler->enableFullStepping(isFullStepping);
   }
 
-  void StepperMotorStateMachine::actionEmergencyStop(){
+  void BasicStepperMotor::StateMachine::actionEmergencyStop(){
     _motorControler->setMotorCurrentEnabled(false);
     _motorControler->setEndSwitchPowerEnabled(false);
     actionMovetoStop();
@@ -101,17 +103,18 @@ namespace ChimeraTK{
     _stepperMotor._errorMode.exchange(StepperMotorError::EMERGENCY_STOP);
   }
 
-  void StepperMotorStateMachine::actionEnable(){
+  void BasicStepperMotor::StateMachine::actionEnable(){
     _motorControler->setMotorCurrentEnabled(true);
     _motorControler->setEndSwitchPowerEnabled(true);
   }
 
-  void StepperMotorStateMachine::actionDisable(){
+  void BasicStepperMotor::StateMachine::actionDisable(){
     actionMoveToFullStep();
     _motorControler->setMotorCurrentEnabled(false);
     _motorControler->setEndSwitchPowerEnabled(false);
   }
 
-  void StepperMotorStateMachine::actionResetError(){}
+  void BasicStepperMotor::StateMachine::actionResetError(){}
 
-}
+} // namespace motordriver
+} // namespace ChimeraTK

@@ -34,6 +34,8 @@
 namespace mtca4u{
 
   using namespace ChimeraTK;
+  using ChimeraTK::motordriver::utility::StepperMotorUnitsConverter;
+  using ChimeraTK::motordriver::utility::StepperMotorUnitsConverterTrivia;
 
   /**
    * @class StepperMotorStatusAndError

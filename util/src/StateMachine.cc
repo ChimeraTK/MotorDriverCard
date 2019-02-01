@@ -8,6 +8,8 @@
 #include "StateMachine.h"
 
 namespace ChimeraTK{
+namespace motordriver{
+namespace utility{
 
   bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2){
     return event1._eventName < event2._eventName;
@@ -100,6 +102,8 @@ namespace ChimeraTK{
       _requestedState = nullptr;
     }
   }
+}
+}
 } /* namespace ChimeraTK */
 
 

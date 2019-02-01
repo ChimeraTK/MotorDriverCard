@@ -13,8 +13,8 @@
 
 #define EXCEPTION_MESSAGE std::string("error in ") + std::string(__PRETTY_FUNCTION__)
 
-namespace ChimeraTK
-{
+namespace ChimeraTK {
+
   /** The type of exception thrown by StepperMotor.
    *
    */

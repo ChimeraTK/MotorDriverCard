@@ -12,6 +12,7 @@
 
 
 namespace ChimeraTK {
+namespace motordriver{
 
   /**
    *  @brief Enum type describing how the system is calibrated:
@@ -57,7 +58,7 @@ namespace ChimeraTK {
   /**
    * @brief Namespace for utility classes related to the StepperMotor
    */
-  namespace StepperMotorUtility{
+  namespace utility{
 
     /**
      * @brief A generic abstract units converter between an integer value (steps)\n
@@ -139,8 +140,8 @@ namespace ChimeraTK {
   }
 
   // Make available in parent namespace for compatiblity to mtca4u interface
-  using StepperMotorUtility::StepperMotorUnitsConverter;
-  using StepperMotorUtility::StepperMotorUnitsConverterTrivia;
-
-}
+  //using utility::StepperMotorUnitsConverter;
+  //using utility::StepperMotorUnitsConverterTrivia;
+} //namespace motordriver
+} //namespace ChimeraTK
 #endif // CHIMERATK_STEPPER_MOTOR_UTIL_H

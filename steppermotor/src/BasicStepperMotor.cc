@@ -5,7 +5,6 @@
 #include <chrono>
 #include "MotorDriverCardFactory.h"
 #include "StepperMotorException.h"
-#include "StepperMotorStateMachine.h"
 
 #include "MotorDriverException.h"
 #include "MotorDriverCardConfigXML.h"
@@ -15,8 +14,8 @@
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 
-
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace motordriver{
 
   BasicStepperMotor::BasicStepperMotor(const StepperMotorParameters & parameters)
     :
@@ -37,15 +36,15 @@ namespace ChimeraTK{
       _errorMode(StepperMotorError::NO_ERROR),
       _calibrationMode(StepperMotorCalibrationMode::NONE)
   {
-    _stateMachine.reset(new StepperMotorStateMachine(*this));
+    _stateMachine.reset(new StateMachine(*this));
     initStateMachine();
   }
 
   BasicStepperMotor::BasicStepperMotor() :
      _motorDriverCard(),
      _motorControler(),
-     _stepperMotorUnitsConverter(std::make_shared<StepperMotorUnitsConverterTrivia>()),
-     _encoderUnitsConverter(std::make_shared<StepperMotorUtility::EncoderUnitsConverterTrivia>()),
+     _stepperMotorUnitsConverter(std::make_shared<utility::StepperMotorUnitsConverterTrivia>()),
+     _encoderUnitsConverter(std::make_shared<utility::EncoderUnitsConverterTrivia>()),
      _encoderPositionOffset(0),
      _targetPositionInSteps(0),
      _maxPositionLimitInSteps(std::numeric_limits<int>::max()),
@@ -99,7 +98,7 @@ namespace ChimeraTK{
 
     _targetPositionInSteps = newPosition;
 
-    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
     return StepperMotorRet::SUCCESS;
   }
 
@@ -120,24 +119,24 @@ namespace ChimeraTK{
       _motorControler->setTargetPosition(_targetPositionInSteps);
     }
     else if(_autostart){
-      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
     }
     return StepperMotorRet::SUCCESS;
   }
 
   void BasicStepperMotor::start(){
     LockGuard guard(_mutex);
-    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
   }
 
   void BasicStepperMotor::stop(){
     LockGuard guard(_mutex);
-    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::stopEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::stopEvent);
   }
 
   void BasicStepperMotor::emergencyStop(){
     LockGuard guard(_mutex);
-    _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::emergencyStopEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::emergencyStopEvent);
   }
 
   void BasicStepperMotor::resetError(){
@@ -146,10 +145,10 @@ namespace ChimeraTK{
     _errorMode.exchange(StepperMotorError::NO_ERROR);
 
     if(!_motorControler->isMotorCurrentEnabled()){
-      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::resetToDisableEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::resetToDisableEvent);
     }
     else{
-      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::resetToIdleEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::resetToIdleEvent);
     }
   }
 
@@ -353,7 +352,7 @@ namespace ChimeraTK{
     return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
   }
 
-  StepperMotorRet BasicStepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter){
+  StepperMotorRet BasicStepperMotor::setStepperMotorUnitsConverter(std::shared_ptr<utility::StepperMotorUnitsConverter> stepperMotorUnitsConverter){
     LockGuard guard(_mutex);
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
@@ -372,7 +371,7 @@ namespace ChimeraTK{
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
-    _stepperMotorUnitsConverter = std::make_unique<StepperMotorUnitsConverterTrivia>();
+    _stepperMotorUnitsConverter = std::make_unique<utility::StepperMotorUnitsConverterTrivia>();
     return StepperMotorRet::SUCCESS;
   }
 
@@ -415,9 +414,9 @@ namespace ChimeraTK{
   void BasicStepperMotor::setEnabled(bool enable){
     LockGuard guard(_mutex);
     if (enable){
-      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::enableEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::enableEvent);
     }else{
-      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::disableEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::disableEvent);
     }
   }
 
@@ -522,7 +521,7 @@ namespace ChimeraTK{
   void BasicStepperMotor::initStateMachine(){
     LockGuard guard(_mutex);
     if(_stateMachine->getCurrentState()->getName() == "initState"){
-      _stateMachine->setAndProcessUserEvent(StepperMotorStateMachine::initialEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::initialEvent);
     }
   }
 
@@ -581,5 +580,6 @@ namespace ChimeraTK{
   StepperMotorCalibrationMode BasicStepperMotor::getCalibrationMode(){
     return _calibrationMode.load();
   }
-}
+} //namespace motordriver
+} //namespace ChimeraTK
 

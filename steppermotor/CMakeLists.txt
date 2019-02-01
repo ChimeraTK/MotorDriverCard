@@ -1,5 +1,5 @@
 
-set(HEADERS StepperMotor.h BasicStepperMotor.h StepperMotorStateMachine.h StepperMotorWithReference.h StepperMotorWithReferenceStateMachine.h)
+set(HEADERS StepperMotor.h BasicStepperMotor.h StepperMotorWithReference.h)
 foreach(HEADER ${HEADERS})
   set(CTK_HEADERS ${CTK_HEADERS} include/${HEADER})
 endforeach()
