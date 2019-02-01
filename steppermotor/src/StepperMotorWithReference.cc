@@ -8,9 +8,9 @@
 #include "StepperMotorWithReference.h"
 
 #include "StepperMotorUtil.h"
-#include "StepperMotorWithReferenceStateMachine.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
+#include "MotorControler.h"
 
 
 using LockGuard = boost::lock_guard<boost::mutex>;
@@ -37,7 +37,7 @@ namespace motordriver{
     _motorControler = _motorDriverCard->getMotorControler(parameters.driverId);
     _stepperMotorUnitsConverter = parameters.motorUnitsConverter;
     _encoderUnitsConverter = parameters.encoderUnitsConverter;
-    _stateMachine.reset(new utility::StepperMotorWithReferenceStateMachine(*this));
+    _stateMachine.reset(new StateMachine(*this));
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
@@ -115,7 +115,7 @@ namespace motordriver{
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
-    _stateMachine->setAndProcessUserEvent(utility::StepperMotorWithReferenceStateMachine::calibEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::calibEvent);
     return StepperMotorRet::SUCCESS;
   }
 
@@ -124,7 +124,7 @@ namespace motordriver{
     if (motorActive()){
       return StepperMotorRet::ERR_SYSTEM_IN_ACTION;
     }
-    _stateMachine->setAndProcessUserEvent(utility::StepperMotorWithReferenceStateMachine::calcToleranceEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::calcToleranceEvent);
     return StepperMotorRet::SUCCESS;
   }
 
@@ -245,7 +245,7 @@ namespace motordriver{
 
     if(posActive && negActive){
       _errorMode.exchange(StepperMotorError::BOTH_END_SWITCHES_ON);
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::errorEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
     }
 
     if (_toleranceCalculated){

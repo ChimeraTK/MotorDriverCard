@@ -13,10 +13,10 @@
 #define	CHIMERATK_BASIC_STEPPER_MOTOR_H
 
 #include "StepperMotor.h"
+#include "StateMachine.h"
 
 #include <string>
 #include <atomic>
-//#include <mutex>
 #include <boost/thread.hpp>
 #include <memory>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
@@ -33,10 +33,7 @@ class StepperMotorChimeraTKFixture;
 namespace ChimeraTK {
 namespace motordriver {
 
-namespace utility{
-  class StateMachine;
-  class StepperMotorStateMachine;
-}
+
   /**
    *  @class BasicStepperMotor
    *  @brief This class implements the basic implementation stepper motor.
@@ -405,10 +402,50 @@ namespace utility{
 
 
 
-    friend class utility::StepperMotorStateMachine;
+//    /friend class StateMachine;
     friend class ::StepperMotorChimeraTKFixture;
 
   protected:
+
+    /**
+     * StateMachine subclass specific to this implementation
+     */
+    class  StateMachine : public utility::StateMachine{
+
+      friend class BasicStepperMotor;
+
+    public:
+      StateMachine(BasicStepperMotor &stepperMotor);
+      virtual ~StateMachine();
+      static const Event initialEvent;
+      static const Event moveEvent;
+      static const Event stopEvent;
+      static const Event errorEvent;
+      static const Event emergencyStopEvent;
+      static const Event actionCompleteEvent;
+      static const Event enableEvent;
+      static const Event disableEvent;
+      static const Event resetToIdleEvent;
+      static const Event resetToDisableEvent;
+    protected:
+      State _moving;
+      State _idle;
+      State _disabled;
+      State _error;
+      BasicStepperMotor &_stepperMotor;
+      boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
+      void getActionCompleteEvent();
+      void waitForStandstill();
+      void actionIdleToMove();
+      void actionMovetoStop();
+      void actionMoveToFullStep();
+      void actionEnable();
+      void actionDisable();
+      void actionEmergencyStop();
+      void actionResetError();
+    }; // class StateMachine
+
+
     BasicStepperMotor();
 
     /**

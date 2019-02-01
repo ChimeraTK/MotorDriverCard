@@ -5,7 +5,6 @@
 #include <chrono>
 #include "MotorDriverCardFactory.h"
 #include "StepperMotorException.h"
-#include "StepperMotorStateMachine.h"
 
 #include "MotorDriverException.h"
 #include "MotorDriverCardConfigXML.h"
@@ -37,7 +36,7 @@ namespace motordriver{
       _errorMode(StepperMotorError::NO_ERROR),
       _calibrationMode(StepperMotorCalibrationMode::NONE)
   {
-    _stateMachine.reset(new utility::StepperMotorStateMachine(*this));
+    _stateMachine.reset(new StateMachine(*this));
     initStateMachine();
   }
 
@@ -99,7 +98,7 @@ namespace motordriver{
 
     _targetPositionInSteps = newPosition;
 
-    _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
     return StepperMotorRet::SUCCESS;
   }
 
@@ -120,24 +119,24 @@ namespace motordriver{
       _motorControler->setTargetPosition(_targetPositionInSteps);
     }
     else if(_autostart){
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::moveEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
     }
     return StepperMotorRet::SUCCESS;
   }
 
   void BasicStepperMotor::start(){
     LockGuard guard(_mutex);
-    _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::moveEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
   }
 
   void BasicStepperMotor::stop(){
     LockGuard guard(_mutex);
-    _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::stopEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::stopEvent);
   }
 
   void BasicStepperMotor::emergencyStop(){
     LockGuard guard(_mutex);
-    _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::emergencyStopEvent);
+    _stateMachine->setAndProcessUserEvent(StateMachine::emergencyStopEvent);
   }
 
   void BasicStepperMotor::resetError(){
@@ -146,10 +145,10 @@ namespace motordriver{
     _errorMode.exchange(StepperMotorError::NO_ERROR);
 
     if(!_motorControler->isMotorCurrentEnabled()){
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::resetToDisableEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::resetToDisableEvent);
     }
     else{
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::resetToIdleEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::resetToIdleEvent);
     }
   }
 
@@ -415,9 +414,9 @@ namespace motordriver{
   void BasicStepperMotor::setEnabled(bool enable){
     LockGuard guard(_mutex);
     if (enable){
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::enableEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::enableEvent);
     }else{
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::disableEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::disableEvent);
     }
   }
 
@@ -522,7 +521,7 @@ namespace motordriver{
   void BasicStepperMotor::initStateMachine(){
     LockGuard guard(_mutex);
     if(_stateMachine->getCurrentState()->getName() == "initState"){
-      _stateMachine->setAndProcessUserEvent(utility::StepperMotorStateMachine::initialEvent);
+      _stateMachine->setAndProcessUserEvent(StateMachine::initialEvent);
     }
   }
 

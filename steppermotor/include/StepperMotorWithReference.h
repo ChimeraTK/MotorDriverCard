@@ -24,9 +24,6 @@ namespace motordriver{
   enum class StepperMotorRet;
   enum class StepperMotorError;
 
-  namespace utility{
-    class StepperMotorWithReferenceStateMachine;
-  }
   /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
    */
@@ -125,10 +122,45 @@ namespace motordriver{
      */
     virtual StepperMotorCalibrationMode getCalibrationMode();
 
-    friend class utility::StepperMotorWithReferenceStateMachine;
+    //friend class utility::StepperMotorWithReferenceStateMachine;
     friend class ::StepperMotorWithReferenceTestFixture;
 
   protected:
+
+    /**
+     * StateMachine subclass specific to this implementation of the StepperMotor
+     */
+    class StateMachine : public BasicStepperMotor::StateMachine{
+
+      friend class StepperMotorWithReference;
+    public:
+     StateMachine(StepperMotorWithReference &stepperMotorWithReference);
+      virtual ~StateMachine();
+
+      static const Event calibEvent;
+      static const Event calcToleranceEvent;
+
+      friend class ::StepperMotorWithReferenceTestFixture;
+    protected:
+      State _calibrating;
+      State _calculatingTolerance;
+      StepperMotorWithReference& _motor;
+      std::atomic<bool> _stopAction;
+      std::atomic<bool> _moveInterrupted;
+
+      void actionStop();
+      void actionStartCalib();
+      void actionEndCallback();
+      void actionStartCalcTolercance();
+      void calibrationThreadFunction();
+      void toleranceCalcThreadFunction();
+      void moveToEndSwitch(Sign sign);
+      void findEndSwitch(Sign sign);
+      double getToleranceEndSwitch(Sign sign);
+      int getPositionEndSwitch(Sign sign);
+    };
+
+
     virtual bool motorActive();
     virtual bool limitsOK(int newPositionInSteps);
     virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
