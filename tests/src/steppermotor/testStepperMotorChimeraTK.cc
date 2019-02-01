@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 10);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
 
 
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 40);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(30));
@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE(testMove){
   _motorControlerDummy->moveTowardsTarget(1);
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 30);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
@@ -370,7 +370,7 @@ BOOST_AUTO_TEST_CASE(testMoveRelative){
   double secondEncoderPosition = _stepperMotor->getEncoderPosition();
   BOOST_CHECK(static_cast<int>(secondEncoderPosition - firstEncoderPosition) == 5);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 35);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
@@ -428,7 +428,7 @@ BOOST_AUTO_TEST_CASE( testStop ){
   _stepperMotor->waitForIdle();
 
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 20);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 }
 
@@ -595,7 +595,7 @@ BOOST_AUTO_TEST_CASE( testDisable ){
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   BOOST_CHECK(_stepperMotor->isCalibrated() == true);
   _stepperMotor->setActualPositionInSteps(68);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   _stepperMotor->setEnabled(true);
   BOOST_CHECK(_stepperMotor->getEnabled() == true);
 }
@@ -643,7 +643,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 10);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 100);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->moveRelative(5));
@@ -656,7 +656,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 15);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 150);
-  BOOST_CHECK(_stepperMotor->getError() == ChimeraTK::StepperMotorError::NO_ERROR);
+  BOOST_CHECK(_stepperMotor->getError() == StepperMotorError::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 
   // Now, it should be safe to set the converter
