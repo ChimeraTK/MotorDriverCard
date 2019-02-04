@@ -5,8 +5,7 @@
  *      Author: vitimic
  */
 
-//#include "StepperMotorWithReferenceStateMachine.h"
-#include "StepperMotorWithReference.h"
+#include "LinearStepperMotor.h"
 #include "MotorControler.h"
 
 #include <mutex>
@@ -14,16 +13,15 @@
 static const unsigned wakeupPeriodInMilliseconds = 500U;
 
 namespace ChimeraTK {
-namespace motordriver {
+namespace MotorDriver {
 
   using utility::StateMachine;
-//  using utility::BasicStepperMotor::StateMachine;
-//  using utility::StepperMotorWithReferenceStateMachine;
 
-  const StateMachine::Event StepperMotorWithReference::StateMachine::calibEvent("calibEvent");
-  const StateMachine::Event StepperMotorWithReference::StateMachine::calcToleranceEvent("calcToleranceEvent");
+ const StateMachine::Event LinearStepperMotor::StateMachine::calibEvent("calibEvent");
+ const StateMachine::Event LinearStepperMotor::StateMachine::calcToleranceEvent("calcToleranceEvent");
 
-  StepperMotorWithReference::StateMachine::StateMachine(StepperMotorWithReference &stepperMotorWithReference) :
+
+  LinearStepperMotor::StateMachine::StateMachine(LinearStepperMotor &stepperMotorWithReference) :
       BasicStepperMotor::StateMachine(stepperMotorWithReference),
       _calibrating("calibrating"),
       _calculatingTolerance("calculatingTolerance"),
@@ -33,16 +31,16 @@ namespace motordriver {
   {
     _idle.setTransition(calibEvent,
                         &_calibrating,
-                        std::bind(&StepperMotorWithReference::StateMachine::actionStartCalib, this),
-                        std::bind(&StepperMotorWithReference::StateMachine::actionEndCallback, this));
-    _idle.setTransition(StepperMotorWithReference::StateMachine::calcToleranceEvent,
+                        std::bind(&LinearStepperMotor::StateMachine::actionStartCalib, this),
+                        std::bind(&LinearStepperMotor::StateMachine::actionEndCallback, this));
+    _idle.setTransition(LinearStepperMotor::StateMachine::calcToleranceEvent,
                         &_calculatingTolerance,
-                        std::bind(&StepperMotorWithReference::StateMachine::actionStartCalcTolercance, this),
-                        std::bind(&StepperMotorWithReference::StateMachine::actionEndCallback, this));
+                        std::bind(&LinearStepperMotor::StateMachine::actionStartCalcTolercance, this),
+                        std::bind(&LinearStepperMotor::StateMachine::actionEndCallback, this));
 
     _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent,
                                &_idle,
-                               std::bind(&StepperMotorWithReference::StateMachine::actionStop, this));
+                               std::bind(&LinearStepperMotor::StateMachine::actionStop, this));
     _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this]{ actionEmergencyStop(); });
     _calibrating.setTransition(BasicStepperMotor::StateMachine::errorEvent, &_error, []{});
 
@@ -50,20 +48,20 @@ namespace motordriver {
     _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this]{actionEmergencyStop();});
   }
 
-  StepperMotorWithReference::StateMachine::~StateMachine(){}
+  LinearStepperMotor::StateMachine::~StateMachine(){}
 
-  void StepperMotorWithReference::StateMachine::actionStop(){
+  void LinearStepperMotor::StateMachine::actionStop(){
     _stopAction.exchange(true);
     return;
   }
 
-  void StepperMotorWithReference::StateMachine::actionStartCalib(){
+  void LinearStepperMotor::StateMachine::actionStartCalib(){
     _asyncActionActive.exchange(true);
-      std::thread calibrationThread(&StepperMotorWithReference::StateMachine::calibrationThreadFunction, this);
+      std::thread calibrationThread(&LinearStepperMotor::StateMachine::calibrationThreadFunction, this);
       calibrationThread.detach();
   }
 
-  void StepperMotorWithReference::StateMachine::actionEndCallback(){
+  void LinearStepperMotor::StateMachine::actionEndCallback(){
     if(!_asyncActionActive.load()){
 
       if(hasRequestedState()){
@@ -79,14 +77,13 @@ namespace motordriver {
     }
   }
 
-  void StepperMotorWithReference::StateMachine::actionStartCalcTolercance(){
+  void LinearStepperMotor::StateMachine::actionStartCalcTolercance(){
     _asyncActionActive.exchange(true);
-      std::thread toleranceCalcThread(&StepperMotorWithReference::StateMachine::toleranceCalcThreadFunction, this);
+      std::thread toleranceCalcThread(&LinearStepperMotor::StateMachine::toleranceCalcThreadFunction, this);
       toleranceCalcThread.detach();
   }
 
-
-  void StepperMotorWithReference::StateMachine::calibrationThreadFunction(){
+  void LinearStepperMotor::StateMachine::calibrationThreadFunction(){
     _motor._calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
@@ -102,7 +99,7 @@ namespace motordriver {
       _motor._motorControler->setCalibrationTime(0);
 
       _motor._calibrationFailed.exchange(true);
-      _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
+      _motor._calibrationMode.exchange(CalibrationMode::NONE);
     }
     else{
       findEndSwitch(Sign::POSITIVE);
@@ -115,8 +112,8 @@ namespace motordriver {
         _motor._motorControler->setCalibrationTime(0);
 
         _motor._calibrationFailed.exchange(true);
-        _motor._errorMode.exchange(StepperMotorError::CALIBRATION_ERROR);
-        _motor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
+        _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
+        _motor._calibrationMode.exchange(CalibrationMode::NONE);
       }else{
         // Define positive axis with negative end switch as zero
         calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
@@ -128,7 +125,7 @@ namespace motordriver {
         _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
 
-        _motor._calibrationMode.exchange(StepperMotorCalibrationMode::FULL);
+        _motor._calibrationMode.exchange(CalibrationMode::FULL);
         _motor.resetMotorControllerPositions(0);
       }
     }
@@ -137,7 +134,7 @@ namespace motordriver {
     return;
   }
 
-  void StepperMotorWithReference::StateMachine::findEndSwitch(Sign sign){
+  void LinearStepperMotor::StateMachine::findEndSwitch(Sign sign){
     while (!_motor.isEndSwitchActive(sign)){
       if (_stopAction.load() || _moveInterrupted.load()){
         return;
@@ -151,7 +148,7 @@ namespace motordriver {
     return;
   }
 
-  void StepperMotorWithReference::StateMachine::moveToEndSwitch(Sign sign){
+  void LinearStepperMotor::StateMachine::moveToEndSwitch(Sign sign){
 
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
@@ -162,14 +159,15 @@ namespace motordriver {
     }
   }
 
-  void StepperMotorWithReference::StateMachine::toleranceCalcThreadFunction(){
+  void LinearStepperMotor::StateMachine::toleranceCalcThreadFunction(){
+
     _motor._toleranceCalcFailed.exchange(false);
     _motor._toleranceCalculated.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
     // This makes only sense once the motor is fully calibrated
-    if (_motor._calibrationMode != StepperMotorCalibrationMode::FULL){
+    if (_motor._calibrationMode != CalibrationMode::FULL){
       _motor._toleranceCalculated.exchange(false);
       _motor._toleranceCalcFailed.exchange(true);
     }
@@ -187,7 +185,7 @@ namespace motordriver {
         // TODO include
 //        _asyncActionActive.exchange(false);
 //        _motorControler->setTargetPosition(_motorControler->getActualPosition());
-        _motor._errorMode = StepperMotorError::CALIBRATION_ERROR;
+        _motor._errorMode = Error::CALIBRATION_ERROR;
 //        return;
       }
       else{
@@ -198,7 +196,7 @@ namespace motordriver {
     return;
   }
 
-  int StepperMotorWithReference::StateMachine::getPositionEndSwitch(Sign sign){
+  int LinearStepperMotor::StateMachine::getPositionEndSwitch(Sign sign){
     if (sign == Sign::POSITIVE){
       return _motor._calibPositiveEndSwitchInSteps.load();
     }else{
@@ -206,7 +204,7 @@ namespace motordriver {
     }
   }
 
-  double StepperMotorWithReference::StateMachine::getToleranceEndSwitch(Sign sign){
+  double LinearStepperMotor::StateMachine::getToleranceEndSwitch(Sign sign){
     double meanMeasurement = 0;
     double stdMeasurement = 0;
     const int N_TOLERANCE_CALC_SAMPLES = 10;

@@ -15,39 +15,39 @@
 class StepperMotorWithReferenceTestFixture;
 
 namespace ChimeraTK {
-namespace motordriver{
+namespace MotorDriver{
 
   /// Helper class for endswitch polarity
   enum class Sign{NEGATIVE = -1, POSITIVE = 1};
 
   struct StepperMotorParameters;
-  enum class StepperMotorRet;
-  enum class StepperMotorError;
+  enum class ExitStatus;
+  enum class Error;
 
   /**
    *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
    */
-  class StepperMotorWithReference : public BasicStepperMotor{
+  class LinearStepperMotor : public BasicStepperMotor{
   public:
     /**
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    StepperMotorWithReference(const StepperMotorParameters &);
+    LinearStepperMotor(const StepperMotorParameters &);
 
     /**
      * @brief  Destructor of the class object
      */
-    virtual ~StepperMotorWithReference();
+    virtual ~LinearStepperMotor();
 
     /**
      *  @brief Simple calibration of the linear stage by defining the actual position in steps.
      *
      *  This function only sets the actual position to a defined value. The end switch positions will not be defined.\n
      *  This is useful in applications where the stage can not move through the full range between the end switches.\n
-     *  This function will result in the calibration mode being StepperMotorCalibrationMode::SIMPLE.\n
+     *  This function will result in the calibration mode being CalibrationMode::SIMPLE.\n
      */
-    virtual StepperMotorRet setActualPositionInSteps(int actualPositionInSteps);
+    virtual ExitStatus setActualPositionInSteps(int actualPositionInSteps);
 
 
     /**
@@ -57,7 +57,7 @@ namespace motordriver{
      * the given offset. The resulting new position will be truncated if the calculated value
      * exceeds the numeric limits of an int.
      */
-    virtual StepperMotorRet translateAxisInSteps(int translationInSteps);
+    virtual ExitStatus translateAxisInSteps(int translationInSteps);
 
 
     virtual bool hasHWReferenceSwitches();
@@ -69,21 +69,21 @@ namespace motordriver{
      *  The negative end switch will be defined as zero. The resulting coordinates can later be translated by the
      *  translateAxis() routines.\n
      *
-     *  On success, this function will result in the calibration mode being StepperMotorCalibrationMode::FULL.\n
+     *  On success, this function will result in the calibration mode being CalibrationMode::FULL.\n
      */
-    virtual StepperMotorRet calibrate();
+    virtual ExitStatus calibrate();
 
     /**
      *  @brief Determines the standard deviation of the end switch position.
      *
      *  The standard deviation is determined by running into each end switch multiple times.\n
-     *  If this has been called on system setup, getError() will return StepperMotorError::CALIBRATION_LOST\n
+     *  If this has been called on system setup, getError() will return Error::CALIBRATION_LOST\n
      *  error when an end switch is activated and the actual position is not within a 3 sigma band around the\n
      *  calibrated end switch position.\n
      */
-    virtual StepperMotorRet determineTolerance();
+    virtual ExitStatus determineTolerance();
 
-    virtual StepperMotorError getError();
+    virtual Error getError();
 
     virtual float getPositiveEndReference();
 
@@ -120,7 +120,7 @@ namespace motordriver{
     /**
      *  @brief Returns the current calibration mode
      */
-    virtual StepperMotorCalibrationMode getCalibrationMode();
+    virtual CalibrationMode getCalibrationMode();
 
     //friend class utility::StepperMotorWithReferenceStateMachine;
     friend class ::StepperMotorWithReferenceTestFixture;
@@ -132,9 +132,9 @@ namespace motordriver{
      */
     class StateMachine : public BasicStepperMotor::StateMachine{
 
-      friend class StepperMotorWithReference;
+      friend class LinearStepperMotor;
     public:
-     StateMachine(StepperMotorWithReference &stepperMotorWithReference);
+     StateMachine(LinearStepperMotor &stepperMotorWithReference);
       virtual ~StateMachine();
 
       static const Event calibEvent;
@@ -144,7 +144,7 @@ namespace motordriver{
     protected:
       State _calibrating;
       State _calculatingTolerance;
-      StepperMotorWithReference& _motor;
+      LinearStepperMotor& _motor;
       std::atomic<bool> _stopAction;
       std::atomic<bool> _moveInterrupted;
 
@@ -163,7 +163,7 @@ namespace motordriver{
 
     virtual bool motorActive();
     virtual bool limitsOK(int newPositionInSteps);
-    virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
+    virtual ExitStatus checkNewPosition(int newPositionInSteps);
     virtual bool verifyMoveAction();
 
 
