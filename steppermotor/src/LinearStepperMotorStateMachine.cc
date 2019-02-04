@@ -17,6 +17,10 @@ namespace MotorDriver {
 
   using utility::StateMachine;
 
+ const StateMachine::Event LinearStepperMotor::StateMachine::calibEvent("calibEvent");
+ const StateMachine::Event LinearStepperMotor::StateMachine::calcToleranceEvent("calcToleranceEvent");
+
+
   LinearStepperMotor::StateMachine::StateMachine(LinearStepperMotor &stepperMotorWithReference) :
       BasicStepperMotor::StateMachine(stepperMotorWithReference),
       _calibrating("calibrating"),
