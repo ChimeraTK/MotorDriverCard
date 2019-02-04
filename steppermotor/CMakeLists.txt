@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.0)
 
 set(HEADERS StepperMotor.h BasicStepperMotor.h LinearStepperMotor.h)
+
 foreach(HEADER ${HEADERS})
   set(CTK_HEADERS ${CTK_HEADERS} include/${HEADER})
 endforeach()

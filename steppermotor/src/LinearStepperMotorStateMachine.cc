@@ -5,7 +5,6 @@
  *      Author: vitimic
  */
 
-//#include "StepperMotorWithReferenceStateMachine.h"
 #include "LinearStepperMotor.h"
 #include "MotorControler.h"
 
@@ -17,11 +16,6 @@ namespace ChimeraTK {
 namespace MotorDriver {
 
   using utility::StateMachine;
-//  using utility::BasicStepperMotor::StateMachine;
-//  using utility::StepperMotorWithReferenceStateMachine;
-
-  const StateMachine::Event LinearStepperMotor::StateMachine::calibEvent("calibEvent");
-  const StateMachine::Event LinearStepperMotor::StateMachine::calcToleranceEvent("calcToleranceEvent");
 
   LinearStepperMotor::StateMachine::StateMachine(LinearStepperMotor &stepperMotorWithReference) :
       BasicStepperMotor::StateMachine(stepperMotorWithReference),
@@ -84,7 +78,6 @@ namespace MotorDriver {
       std::thread toleranceCalcThread(&LinearStepperMotor::StateMachine::toleranceCalcThreadFunction, this);
       toleranceCalcThread.detach();
   }
-
 
   void LinearStepperMotor::StateMachine::calibrationThreadFunction(){
     _motor._calibrationFailed.exchange(false);
@@ -163,6 +156,7 @@ namespace MotorDriver {
   }
 
   void LinearStepperMotor::StateMachine::toleranceCalcThreadFunction(){
+
     _motor._toleranceCalcFailed.exchange(false);
     _motor._toleranceCalculated.exchange(false);
     _stopAction.exchange(false);

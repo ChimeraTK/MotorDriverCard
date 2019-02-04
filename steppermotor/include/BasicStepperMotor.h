@@ -33,7 +33,6 @@ class StepperMotorChimeraTKFixture;
 namespace ChimeraTK {
 namespace MotorDriver {
 
-
   /**
    *  @class BasicStepperMotor
    *  @brief This class implements the basic implementation stepper motor.
@@ -489,6 +488,7 @@ namespace MotorDriver {
 
     mutable boost::mutex _mutex;
     std::shared_ptr<utility::StateMachine> _stateMachine;
+
     std::atomic<Error> _errorMode;
     std::atomic<CalibrationMode> _calibrationMode;
 

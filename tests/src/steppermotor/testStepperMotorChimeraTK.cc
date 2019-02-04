@@ -643,6 +643,7 @@ BOOST_AUTO_TEST_CASE( testConverter ){
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getCurrentPosition() == 10);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 100);
+
   BOOST_CHECK(_stepperMotor->getError() == Error::NO_ERROR);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
 

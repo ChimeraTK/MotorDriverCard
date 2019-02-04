@@ -9,6 +9,7 @@
 
 namespace ChimeraTK{
 namespace MotorDriver{
+
 namespace utility{
 
   bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2){

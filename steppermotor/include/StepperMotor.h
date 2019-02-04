@@ -25,6 +25,7 @@ class StepperMotorChimeraTKFixture;
 namespace ChimeraTK {
 namespace MotorDriver {
 
+
   /**
    * @brief Contains parameters for initialization of a StepperMotor object
    */
