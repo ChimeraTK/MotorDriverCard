@@ -21,7 +21,7 @@ struct StateMachineTestFixture;
 
 
 namespace ChimeraTK {
-namespace motordriver{
+namespace MotorDriver{
 namespace utility{
 
   /**

@@ -10,7 +10,7 @@ using namespace boost::unit_test_framework;
 #include <atomic>
 #include <mutex>
 
-using namespace ChimeraTK::motordriver::utility;
+using namespace ChimeraTK::MotorDriver::utility;
 
 class DerivedStateMachine : public StateMachine{
 

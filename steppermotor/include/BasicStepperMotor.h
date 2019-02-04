@@ -31,7 +31,7 @@ namespace mtca4u{
 class StepperMotorChimeraTKFixture;
 
 namespace ChimeraTK {
-namespace motordriver {
+namespace MotorDriver {
 
 
   /**
@@ -55,13 +55,13 @@ namespace motordriver {
      * @ brief move the motor a delta from the current position
      * @param delta is given in unit
      */
-    virtual StepperMotorRet moveRelative(float delta);
+    virtual ExitStatus moveRelative(float delta);
 
     /**
      * @brief move the motor a delta from the current position
      * @param delta is given in steps
      */
-    virtual StepperMotorRet moveRelativeInSteps(int delta);
+    virtual ExitStatus moveRelativeInSteps(int delta);
 
     /**
      * @brief Sets the target position in arbitrary units (according to the scaling).
@@ -69,7 +69,7 @@ namespace motordriver {
      *        If the autostart flag is set to true, this will initiate movement,
      *        otherwise movement needs to be triggered by calling start().
      */
-    virtual StepperMotorRet setTargetPosition(float newPosition);
+    virtual ExitStatus setTargetPosition(float newPosition);
 
     /**
      * @brief Sets the target position in steps.
@@ -80,7 +80,7 @@ namespace motordriver {
      *        If the motor is moving, the target position will
      *        be updated.
      */
-    virtual StepperMotorRet setTargetPositionInSteps(int newPositionInSteps);
+    virtual ExitStatus setTargetPositionInSteps(int newPositionInSteps);
 
     /**
      * @brief Initiates movement of the motor.
@@ -130,7 +130,7 @@ namespace motordriver {
     /**
      * @brief enable/disable software position limits
      */
-    virtual StepperMotorRet setSoftwareLimitsEnabled(bool enabled);
+    virtual ExitStatus setSoftwareLimitsEnabled(bool enabled);
 
     /**
      * @brief get software position limits enabled flag
@@ -141,25 +141,25 @@ namespace motordriver {
      * @brief set maximum software limit in units
      * @param maxPos maximum limit
      */
-    virtual StepperMotorRet setMaxPositionLimit(float maxPos);
+    virtual ExitStatus setMaxPositionLimit(float maxPos);
 
     /**
      * @brief set maximum software limit in steps
      * @param maxPos maximum limit
      */
-    virtual StepperMotorRet setMaxPositionLimitInSteps(int maxPos);
+    virtual ExitStatus setMaxPositionLimitInSteps(int maxPos);
 
     /**
      * @brief set minimum software limit in units
      * @param minPos minimum limit
      */
-    virtual StepperMotorRet setMinPositionLimit(float minPos);
+    virtual ExitStatus setMinPositionLimit(float minPos);
 
     /**
      * @brief set minimum software limit in steps
      * @param minPos maximum limit
      */
-    virtual StepperMotorRet setMinPositionLimitInSteps(int minPos);
+    virtual ExitStatus setMinPositionLimitInSteps(int minPos);
 
     /**
      * @brief get maximal software position limit in units
@@ -188,7 +188,7 @@ namespace motordriver {
      * This can be done defining the position of the motor respect to an external reference (actual position).\n
      * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
      */
-    virtual StepperMotorRet setActualPosition(float actualPositionInUnits);
+    virtual ExitStatus setActualPosition(float actualPositionInUnits);
 
     /**
      * @brief set actual position in steps of the motor respect to some reference
@@ -196,19 +196,19 @@ namespace motordriver {
      *
      * This can be done defining the position of the motor respect to an external reference (actual position).
      */
-    virtual StepperMotorRet setActualPositionInSteps(int actualPositionInSteps);
+    virtual ExitStatus setActualPositionInSteps(int actualPositionInSteps);
 
     /**@brief translate the reference axis of the motor. This operation will translate also the software limits
      * @param translationInSteps translation value in steps
      */
 
-    virtual StepperMotorRet translateAxisInSteps(int translationInSteps);
+    virtual ExitStatus translateAxisInSteps(int translationInSteps);
 
     /**@brief translate the reference axis of the motor. This operation will translate also the software limits
      * @param translationInUnits translation value in unit
      */
 
-    virtual StepperMotorRet translateAxis(float translationInUnits);
+    virtual ExitStatus translateAxis(float translationInUnits);
 
     /**
      * @brief get current position of the motor in units
@@ -233,7 +233,7 @@ namespace motordriver {
      *  step counter to a reference value, this function can be used to define a reference\n
      *  for the encoder output.
      */
-    virtual StepperMotorRet setActualEncoderPosition(double referencePosition);
+    virtual ExitStatus setActualEncoderPosition(double referencePosition);
 
     /**
      * Return target motor position in the arbitrary units.
@@ -252,13 +252,13 @@ namespace motordriver {
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1 converter
      */
-    virtual StepperMotorRet setStepperMotorUnitsConverter(std::shared_ptr<utility::StepperMotorUnitsConverter> stepperMotorUnitsConverter);
+    virtual ExitStatus setStepperMotorUnitsConverter(std::shared_ptr<utility::MotorStepsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter to the default one
      */
-    virtual StepperMotorRet setStepperMotorUnitsConverterToDefault();
+    virtual ExitStatus setStepperMotorUnitsConverterToDefault();
 
     /**
      * Check if the system is in idle and it returns true is it is so.
@@ -285,7 +285,7 @@ namespace motordriver {
      * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.\n
      * 3 - CALIBRATION_LOST if calibration is lost.\n
      */
-    virtual StepperMotorError getError();
+    virtual Error getError();
 
     /**
      * @brief function returns true if system is calibrated, false otherwise
@@ -335,7 +335,7 @@ namespace motordriver {
      * @brief set user current limit for the motor
      * @param currentInAmps current limit in ampere
      */
-    virtual StepperMotorRet setUserCurrentLimit(double currentInAmps);
+    virtual ExitStatus setUserCurrentLimit(double currentInAmps);
 
     /**
      * @brief returns the user current limit in ampere
@@ -345,7 +345,7 @@ namespace motordriver {
     /**
      * @brief set user speed limit in microsteps per second
      */
-    virtual StepperMotorRet setUserSpeedLimit(double speedInUstepsPerSec);
+    virtual ExitStatus setUserSpeedLimit(double speedInUstepsPerSec);
 
     /**
      * @brief return user speed limit in microsteps per secon.
@@ -374,9 +374,9 @@ namespace motordriver {
 
     virtual bool hasHWReferenceSwitches();
 
-    virtual StepperMotorRet calibrate() ;
+    virtual ExitStatus calibrate() ;
 
-    virtual StepperMotorRet determineTolerance() ;
+    virtual ExitStatus determineTolerance() ;
 
     virtual float getPositiveEndReference() ;
 
@@ -398,7 +398,7 @@ namespace motordriver {
 
     virtual bool isNegativeEndSwitchEnabled();
 
-    virtual StepperMotorCalibrationMode getCalibrationMode() ;
+    virtual CalibrationMode getCalibrationMode() ;
 
 
 
@@ -466,7 +466,7 @@ namespace motordriver {
     virtual void initStateMachine();
     virtual bool limitsOK(int newPositionInSteps);
     bool checkIfOverflow(int termA, int termB);
-    virtual StepperMotorRet checkNewPosition(int newPositionInSteps);
+    virtual ExitStatus checkNewPosition(int newPositionInSteps);
 
     /// Checks if moving resulted in the requested target position
     virtual bool verifyMoveAction();
@@ -477,8 +477,8 @@ namespace motordriver {
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
     boost::shared_ptr<mtca4u::MotorControler> _motorControler;
 
-    std::shared_ptr<utility::StepperMotorUnitsConverter> _stepperMotorUnitsConverter;
-    std::shared_ptr<utility::EncoderUnitsConverter> _encoderUnitsConverter;
+    std::shared_ptr<utility::MotorStepsConverter> _stepperMotorUnitsConverter;
+    std::shared_ptr<utility::EncoderStepsConverter> _encoderUnitsConverter;
 
     int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
@@ -489,8 +489,8 @@ namespace motordriver {
 
     mutable boost::mutex _mutex;
     std::shared_ptr<utility::StateMachine> _stateMachine;
-    std::atomic<StepperMotorError> _errorMode;
-    std::atomic<StepperMotorCalibrationMode> _calibrationMode;
+    std::atomic<Error> _errorMode;
+    std::atomic<CalibrationMode> _calibrationMode;
 
   }; // class BasicStepperMotor
 }// namespace motordriver

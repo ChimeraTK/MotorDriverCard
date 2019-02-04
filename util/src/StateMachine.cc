@@ -8,7 +8,7 @@
 #include "StateMachine.h"
 
 namespace ChimeraTK{
-namespace motordriver{
+namespace MotorDriver{
 namespace utility{
 
   bool operator<(const StateMachine::Event &event1, const StateMachine::Event &event2){

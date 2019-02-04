@@ -12,17 +12,17 @@
 
 
 namespace ChimeraTK {
-namespace motordriver{
+namespace MotorDriver{
 
   /**
-   *  @brief Enum type describing how the system is calibrated:
+   *  Enum type describing how the system is calibrated:
    *
    *  0 - NONE:   No calibration has been determined or it has been lost.\n
    *  1 - SIMPLE: The motor position has been defined by setActualPosition().\n
    *              No valid position for the end switches can be determined. Useful if driving in full range between the end switches is possible.\n
    *  2 - FULL:   The motor has been calibrated by calling calibrate(). The end switch position has been determined.\n
    */
-  enum class StepperMotorCalibrationMode{
+  enum class CalibrationMode{
     NONE = 0,
     SIMPLE = 1 << 0,
     FULL = 1 << 1\
@@ -38,7 +38,14 @@ namespace motordriver{
   enum class StepperMotorType{BASIC, LINEAR};
 
 
-  enum class StepperMotorRet{
+  /**
+   * Enum describing the exit status of setting member functions
+   *
+   * The member functions for setting parameters to the StepperMotor
+   * object return this to provide user feedback in case an input can
+   * not be applied due to the system's current state or an invalid value.
+   */
+  enum class ExitStatus{
     SUCCESS,
     ERR_SYSTEM_IN_ACTION,
     ERR_INVALID_PARAMETER,
@@ -46,7 +53,13 @@ namespace motordriver{
   };
 
 
-  enum class StepperMotorError{
+  /**
+   * Enum class describing errors
+   *
+   * This is returned by getError() and differs from NO_ERROR
+   * when the motor's StateMachine is in state "error"
+   */
+  enum class Error{
     NO_ERROR = 0,
     ACTION_ERROR = 1 << 0,
     CALIBRATION_ERROR =  1 << 1,
@@ -55,9 +68,7 @@ namespace motordriver{
     EMERGENCY_STOP = 1 << 4
   };
 
-  /**
-   * @brief Namespace for utility classes related to the StepperMotor
-   */
+  /// Namespace for utility classes related to the StepperMotor
   namespace utility{
 
     /**
@@ -114,34 +125,30 @@ namespace motordriver{
      * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class. \n
      *          Methods allows to recalculate steps to arbitrary units and arbitrary units into steps.
      */
-    using StepperMotorUnitsConverter = UnitsConverter<float>;
+    using MotorStepsConverter = UnitsConverter<float>;
 
     /**
      * @class StepperMotorUnitsScalingConverter
      * @details A convenience implementation for a scaling units converter
      */
-    using StepperMotorUnitsScalingConverter = ScalingUnitsConverter<float>;
-
+    using ScalingMotorStepsConverter = ScalingUnitsConverter<float>;
 
     /**
      * @class StepperMotorUnitsConveterTrivia
      * @details Trivial implementation of StepperMotorUnitsConverter. 1:1 conversion between units and steps
      *          Used as default conversion if nothing else is specified
      */
-    using StepperMotorUnitsConverterTrivia = UnitsConverterTrivia<float>;
+    using MotorStepsConverterTrivia = UnitsConverterTrivia<float>;
 
     /**
      * @class EncoderUnitsConverter
      * @details Abstract class which creates interface. It contains two abstract methods which should be implemented in derived class.
      */
-    using EncoderUnitsConverter        = UnitsConverter<double>;
-    using EncoderUnitsScalingConverter = ScalingUnitsConverter<double>;
-    using EncoderUnitsConverterTrivia  = UnitsConverterTrivia<double>;
+    using EncoderStepsConverter        = UnitsConverter<double>;
+    using ScalingEncoderStepsConverter = ScalingUnitsConverter<double>;
+    using EncoderStepsConverterTrivia  = UnitsConverterTrivia<double>;
   }
 
-  // Make available in parent namespace for compatiblity to mtca4u interface
-  //using utility::StepperMotorUnitsConverter;
-  //using utility::StepperMotorUnitsConverterTrivia;
 } //namespace motordriver
 } //namespace ChimeraTK
 #endif // CHIMERATK_STEPPER_MOTOR_UTIL_H

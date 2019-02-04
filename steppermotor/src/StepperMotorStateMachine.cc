@@ -13,7 +13,7 @@
 #include <chrono>
 
 namespace ChimeraTK {
-namespace motordriver{
+namespace MotorDriver{
 
   const utility::StateMachine::Event BasicStepperMotor::StateMachine::initialEvent("initialEvent");
   const utility::StateMachine::Event BasicStepperMotor::StateMachine::moveEvent("moveEvent");
@@ -67,7 +67,7 @@ namespace motordriver{
 
       // Motor stopped by itself
       if(!_stepperMotor.verifyMoveAction()){
-        _stepperMotor._errorMode.exchange(StepperMotorError::MOVE_INTERRUPTED);
+        _stepperMotor._errorMode.exchange(Error::MOVE_INTERRUPTED);
 
         _motorControler->setTargetPosition(_motorControler->getActualPosition());
         stateExitEvnt = errorEvent;
@@ -99,8 +99,8 @@ namespace motordriver{
     _motorControler->setEndSwitchPowerEnabled(false);
     actionMovetoStop();
     _motorControler->setCalibrationTime(0);
-    _stepperMotor._calibrationMode.exchange(StepperMotorCalibrationMode::NONE);
-    _stepperMotor._errorMode.exchange(StepperMotorError::EMERGENCY_STOP);
+    _stepperMotor._calibrationMode.exchange(CalibrationMode::NONE);
+    _stepperMotor._errorMode.exchange(Error::EMERGENCY_STOP);
   }
 
   void BasicStepperMotor::StateMachine::actionEnable(){
