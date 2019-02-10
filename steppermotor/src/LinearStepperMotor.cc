@@ -240,9 +240,13 @@ namespace MotorDriver{
   }
 
   bool LinearStepperMotor::isEndSwitchActive(Sign sign){
-    bool posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
-    bool negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
+    bool posActive = false;
+    bool negActive = false;
 
+    if(_motorControler->isMotorCurrentEnabled()){
+      posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
+      negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
+    }
     if(posActive && negActive){
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
