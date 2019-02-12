@@ -243,7 +243,8 @@ namespace MotorDriver{
     bool posActive = false;
     bool negActive = false;
 
-    if(_motorControler->isMotorCurrentEnabled()){
+    // FIXME Should go to MotorControler for better abstraction
+    if(_motorControler->isEndSwitchPowerEnabled()){
       posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
       negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
     }
