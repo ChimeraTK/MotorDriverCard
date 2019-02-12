@@ -320,6 +320,9 @@ namespace mtca4u {
         if (_bothEndSwitchesAlwaysOn)
             return true;
         
+        //FIXME This does not model the behaviour of the actual HW/FW, where
+        //      the switches (sometimes?) appear to be active when the power is
+        //      shut off.
         return _positiveEndSwitchEnabled && (_absolutePosition >= _positiveEndSwitchPosition);
     }
 

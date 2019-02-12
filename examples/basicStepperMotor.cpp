@@ -15,9 +15,13 @@ static const std::string moduleName("");
 // Specify the configuration file
 static const std::string stepperMotorConfigFile("VT21-MotorDriverCardConfig.xml");
 
-using namespace ChimeraTK;
+using namespace ChimeraTK::MotorDriver;
 
 int main(){
+
+  //TODO Easy waz to define dmap path
+//  std::string deviceFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(deviceName).deviceName);
+//  std::string mapFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(deviceName).mapFileName);
 
   // Define the parameter structure
   StepperMotorParameters param;
@@ -34,7 +38,7 @@ int main(){
 
   // Motor does not have a position reference yet,
   // i.e is not calibrated
-  if(stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE){
+  if(stepperMotor->getCalibrationMode() == CalibrationMode::NONE){
     std::cout << "Motor is not yet calibrated" << std::endl;
   }
 

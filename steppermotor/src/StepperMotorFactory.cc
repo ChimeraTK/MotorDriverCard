@@ -1,11 +1,12 @@
 
 #include "StepperMotor.h"
 #include "BasicStepperMotor.h"
-#include "StepperMotorWithReference.h"
+#include "LinearStepperMotor.h"
 
 #include <mutex>
 
-namespace ChimeraTK{
+namespace ChimeraTK {
+namespace MotorDriver{
 
   StepperMotorFactory::StepperMotorFactory()
     : _factoryMutex{},
@@ -43,7 +44,7 @@ namespace ChimeraTK{
         ptr = std::make_shared<BasicStepperMotor>(parameters);
         break;
       case StepperMotorType::LINEAR:
-        ptr = std::make_shared<StepperMotorWithReference>(parameters);
+        ptr = std::make_shared<LinearStepperMotor>(parameters);
         break;
     }
 
@@ -51,5 +52,6 @@ namespace ChimeraTK{
     return ptr;
   }
 
+}
 } // namespace ChimeraTK
 

@@ -10,28 +10,29 @@ using namespace boost::unit_test_framework;
 #include <atomic>
 #include <mutex>
 
+using namespace ChimeraTK::MotorDriver::utility;
 
-class DerivedStateMachine : public ChimeraTK::StateMachine{
+class DerivedStateMachine : public StateMachine{
 
 public:
   DerivedStateMachine();
   ~DerivedStateMachine();
 
 protected:
-  static ChimeraTK::StateMachine::Event initEvent;
-  static ChimeraTK::StateMachine::Event userEvent1;
-  static ChimeraTK::StateMachine::Event userEvent2;
-  static ChimeraTK::StateMachine::Event userEvent3;
+  static StateMachine::Event initEvent;
+  static StateMachine::Event userEvent1;
+  static StateMachine::Event userEvent2;
+  static StateMachine::Event userEvent3;
 
-  ChimeraTK::StateMachine::State _firstState;
-  ChimeraTK::StateMachine::State _secondState;
-  ChimeraTK::StateMachine::State _thirdState;
-  ChimeraTK::StateMachine::State _fourthState;
-  ChimeraTK::StateMachine::State _fifthState;
-  ChimeraTK::StateMachine::Event _state1to2Event;
-  ChimeraTK::StateMachine::Event _state2to3Event;
-  ChimeraTK::StateMachine::Event _state3to1Event;
-  ChimeraTK::StateMachine::Event _state1to4Event;
+  StateMachine::State _firstState;
+  StateMachine::State _secondState;
+  StateMachine::State _thirdState;
+  StateMachine::State _fourthState;
+  StateMachine::State _fifthState;
+  StateMachine::Event _state1to2Event;
+  StateMachine::Event _state2to3Event;
+  StateMachine::Event _state3to1Event;
+  StateMachine::Event _state1to4Event;
   void actionIdleToFirstState();
   void actionFirstToSecondState();
   void actionFirstStateExit();
@@ -52,15 +53,15 @@ protected:
 
 private:
   // To be used inside the callbacks which are guarded, so no locking here
-  void assertRequestedState(ChimeraTK::StateMachine::State* referenceState);
+  void assertRequestedState(StateMachine::State* referenceState);
 
 };
 
 
-ChimeraTK::StateMachine::Event DerivedStateMachine::initEvent("initEvent");
-ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent1("userEvent1");
-ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent2("userEvent2");
-ChimeraTK::StateMachine::Event DerivedStateMachine::userEvent3("userEvent3");
+StateMachine::Event DerivedStateMachine::initEvent("initEvent");
+StateMachine::Event DerivedStateMachine::userEvent1("userEvent1");
+StateMachine::Event DerivedStateMachine::userEvent2("userEvent2");
+StateMachine::Event DerivedStateMachine::userEvent3("userEvent3");
 
 DerivedStateMachine::DerivedStateMachine() :
     StateMachine(),
@@ -90,7 +91,7 @@ DerivedStateMachine::DerivedStateMachine() :
 
 DerivedStateMachine::~DerivedStateMachine(){}
 
-void DerivedStateMachine::assertRequestedState(ChimeraTK::StateMachine::State* referenceState){
+void DerivedStateMachine::assertRequestedState(StateMachine::State* referenceState){
 
   if(_requestedState == nullptr){
     _isCorrectRequestedState.exchange(referenceState == nullptr);
@@ -171,12 +172,12 @@ void DerivedStateMachine::actionFirstToFourthState(){
 BOOST_AUTO_TEST_SUITE(StateMachineTestSuite)
 
 // Test of the base state machine provided by the StateMachine class
-BOOST_FIXTURE_TEST_CASE( testBaseStateMachine, ChimeraTK::StateMachine ){
+BOOST_FIXTURE_TEST_CASE( testBaseStateMachine, StateMachine ){
 
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
 
   // Default-constructed event should be undefined
-  ChimeraTK::StateMachine::Event undefinedEvent("undefinedEvent");
+  StateMachine::Event undefinedEvent("undefinedEvent");
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(undefinedEvent));
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState") ;
 }
