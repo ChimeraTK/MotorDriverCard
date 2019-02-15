@@ -61,11 +61,6 @@ namespace mtca4u{
     virtual void setCalibrationData(CalibrationData const &);
     virtual CalibrationData const& getCalibrationData();
 
-    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
-    virtual int  getPositiveReferenceSwitchCalibration();
-    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
-    virtual int  getNegativeReferenceSwitchCalibration();
-
     bool isEnabled();
     
     MotorReferenceSwitchData getReferenceSwitchData();

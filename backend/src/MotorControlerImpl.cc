@@ -104,7 +104,8 @@ namespace mtca4u
       _moveOnlyFullStep(false),
       _userMicroStepSize(0),
       _localTargetPosition(0),
-      _calibrationData()
+      _calibrationData(),
+      _hasCalibrationFWRegisters(false)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
     setChopperControlData( motorControlerConfig.chopperControlData );
@@ -133,12 +134,35 @@ namespace mtca4u
     firmwareVersion.read();
 
     if(firmwareVersion >= MIN_FW_VERSION_WITH_CALIB_BACKUP){
+      // Init calibration registers, if supported
+      _hasCalibrationFWRegisters = true;
       _calibrationTime.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX));
 
       _calibratedPositiveEndSwitchPos.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, POS_ENDSW_CALIB_SUFFIX));
       _calibratedNegativeEndSwitchPos.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, NEG_ENDSW_CALIB_SUFFIX));
+      //_calibratedPositiveEndSwitchTol.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, POS_ENDSW_TOL_SUFFIX));
+      _calibratedPositiveEndSwitchTol.replace(
+         _device->getScalarRegisterAccessor<float>(moduleName + "/" + createMotorRegisterName(_id, POS_ENDSW_TOL_SUFFIX)));
+      //_calibratedNegativeEndSwitchTol.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, NEG_ENDSW_TOL_SUFFIX));
+      _calibratedNegativeEndSwitchTol.replace(
+         _device->getScalarRegisterAccessor<float>(moduleName + "/" + createMotorRegisterName(_id, NEG_ENDSW_TOL_SUFFIX)));
+
+
+      // Read calibration from the registers and store internally
+      _calibrationTime.read();
+      _calibratedPositiveEndSwitchPos.read();
+      _calibratedNegativeEndSwitchPos.read();
+      _calibratedPositiveEndSwitchTol.read();
+      _calibratedNegativeEndSwitchTol.read();
+
+      _calibrationData.calibrationTime         = _calibrationTime;
+      _calibrationData.posEndSwitchCalibration = _calibratedPositiveEndSwitchPos;
+      _calibrationData.negEndSwitchCalibration = _calibratedNegativeEndSwitchPos;
+      _calibrationData.posEndSwitchTolerance   = _calibratedPositiveEndSwitchTol;
+      _calibrationData.negEndSwitchTolerance   = _calibratedNegativeEndSwitchTol;
     }
     else{
+      // Keep behaviour for older FW
       _calibrationTime.replace(
         device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_USER_REGISTER_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw}));
     }
@@ -432,20 +456,21 @@ namespace mtca4u
   void MotorControlerImpl::setCalibrationData(CalibrationData const & calibData){
     lock_guard guard(_mutex);
 
-    // Store in memory
     _calibrationData = calibData;
 
-    // Also store in FW for persistency
-    _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
-    _calibrationTime.write();
-    _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
-    _calibratedPositiveEndSwitchPos.write();
-    _calibratedNegativeEndSwitchPos = calibData.negendSwitchCalibration;
-    _calibratedNegativeEndSwitchPos.write();
-    _calibratedPositiveEndSwitchTol = calibData.posEndSwitchTolerance;
-    _calibratedPositiveEndSwitchTol.write();
-    _calibratedNegativeEndSwitchTol = calibData.negEndSwitchTolerance;
-    _calibratedNegativeEndSwitchTol.write();
+    // Store in memory, if supported
+    if(_hasCalibrationFWRegisters){
+      _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
+      _calibrationTime.write();
+      _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
+      _calibratedPositiveEndSwitchPos.write();
+      _calibratedNegativeEndSwitchPos = calibData.negEndSwitchCalibration;
+      _calibratedNegativeEndSwitchPos.write();
+      _calibratedPositiveEndSwitchTol = calibData.posEndSwitchTolerance;
+      _calibratedPositiveEndSwitchTol.write();
+      _calibratedNegativeEndSwitchTol = calibData.negEndSwitchTolerance;
+      _calibratedNegativeEndSwitchTol.write();
+    }
   }
 
   MotorControler::CalibrationData const& MotorControlerImpl::getCalibrationData(){
@@ -453,27 +478,6 @@ namespace mtca4u
     return _calibrationData;
   }
 
-  void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
-
-     if(_calibratedPositiveEndSwitchPos.isInitialised()){
-       lock_guard guard(_mutex);
-       _calibratedPositiveEndSwitchPos = static_cast<int32_t>(calibratedPosition);
-       _calibratedPositiveEndSwitchPos.write();
-     }
-  }
-
-  int  MotorControlerImpl::getPositiveReferenceSwitchCalibration(){
-    return 0; //TODO
-  }
-
-  void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition){
-    //TODO
-    (void)calibratedPosition;
-  }
-
-  int  MotorControlerImpl::getNegativeReferenceSwitchCalibration(){
-    return 0; //TODO
-  }
 
   bool MotorControlerImpl::targetPositionReached(){
     lock_guard guard(_mutex);

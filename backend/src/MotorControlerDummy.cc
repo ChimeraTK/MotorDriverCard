@@ -178,29 +178,12 @@ namespace mtca4u {
 
 
     void MotorControlerDummy::setCalibrationData(CalibrationData const & calibData){
-      (void)calibData;
+      _calibrationData = calibData;
+      _calibrationTime = calibData.calibrationTime;
     }
 
     MotorControler::CalibrationData const& MotorControlerDummy::getCalibrationData(){
       return _calibrationData;
-    }
-
-    void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition){
-      //TODO
-      (void)calibratedPosition;
-    }
-
-    int  MotorControlerDummy::getPositiveReferenceSwitchCalibration(){
-      return 0; //TODO
-    }
-
-    void MotorControlerDummy::setNegativeReferenceSwitchCalibration(int calibratedPosition){
-      //TODO
-      (void)calibratedPosition;
-    }
-
-    int  MotorControlerDummy::getNegativeReferenceSwitchCalibration(){
-      return 0; //TODO
     }
 
     MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {

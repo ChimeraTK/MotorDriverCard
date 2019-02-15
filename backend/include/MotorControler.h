@@ -50,9 +50,9 @@ namespace mtca4u
     {
       uint32_t calibrationTime = 0U;
       int32_t posEndSwitchCalibration = std::numeric_limits<int32_t>::max();
-      int32_t negendSwitchCalibration = -std::numeric_limits<int32_t>::max();
-      int32_t posEndSwitchTolerance = 0;
-      int32_t negEndSwitchTolerance = 0;
+      int32_t negEndSwitchCalibration = -std::numeric_limits<int32_t>::max();
+      float posEndSwitchTolerance = 0;
+      float negEndSwitchTolerance = 0;
     };
 
     /// Get the ID of the motor controler on the FMC board (0 or 1).
@@ -89,10 +89,6 @@ namespace mtca4u
 
     virtual void setCalibrationData(CalibrationData const &) = 0;
     virtual CalibrationData const& getCalibrationData() = 0;
-    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition) = 0;
-    virtual int  getPositiveReferenceSwitchCalibration() = 0;
-    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition) = 0;
-    virtual int  getNegativeReferenceSwitchCalibration() = 0;
 
     virtual bool isEnabled()=0; ///< @deprecated Use isMotorCurrentEnabled instead.
     

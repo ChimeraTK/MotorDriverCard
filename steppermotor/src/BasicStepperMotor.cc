@@ -237,10 +237,14 @@ namespace MotorDriver{
   void BasicStepperMotor::setActualPositionActions(int actualPositionInSteps){
     resetMotorControllerPositions(actualPositionInSteps);
 
-    _motorControler->setPositiveReferenceSwitchCalibration(std::numeric_limits<int>::max());
-    _motorControler->setNegativeReferenceSwitchCalibration(std::numeric_limits<int>::min());
+    mtca4u::MotorControler::CalibrationData calibData;
+    calibData.calibrationTime = static_cast<uint32_t>(time(nullptr));
+    calibData.posEndSwitchCalibration = std::numeric_limits<int>::max();
+    calibData.negEndSwitchCalibration = std::numeric_limits<int>::min();
+
+    _motorControler->setCalibrationData(calibData);
+
     _calibrationMode.exchange(CalibrationMode::SIMPLE);
-    _motorControler->setCalibrationTime(static_cast<uint32_t>(time(nullptr)));
   }
 
   ExitStatus BasicStepperMotor::setActualPositionInSteps(int actualPositionInSteps){
