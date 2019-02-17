@@ -215,10 +215,12 @@ namespace MotorDriver{
 
     if(_motorControler->getCalibrationTime() != 0){
 
-      int calibPositiveEndSwitchInSteps = _motorControler->getPositiveReferenceSwitchCalibration();
-      int calibNegativeEndSwitchInSteps = _motorControler->getNegativeReferenceSwitchCalibration();
+      int calibPositiveEndSwitchInSteps = _motorControler->getCalibrationData().posEndSwitchCalibration;
+      int calibNegativeEndSwitchInSteps = _motorControler->getCalibrationData().negEndSwitchCalibration;
       _calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
       _calibNegativeEndSwitchInSteps.exchange(calibNegativeEndSwitchInSteps);
+      _tolerancePositiveEndSwitch.exchange(_motorControler->getCalibrationData().posEndSwitchTolerance);
+      _toleranceNegativeEndSwitch.exchange(_motorControler->getCalibrationData().negEndSwitchTolerance);
 
       if(calibPositiveEndSwitchInSteps == std::numeric_limits<int>::max()
          && calibNegativeEndSwitchInSteps == std::numeric_limits<int>::min()){
@@ -253,7 +255,7 @@ namespace MotorDriver{
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
     }
 
-    if (_toleranceCalculated){
+    if (_toleranceCalculated){//TODO Can check CalibrationMode::Full
       if (posActive){
         if(std::abs(_motorControler->getActualPosition() -  _calibPositiveEndSwitchInSteps.load()) > 3 * _tolerancePositiveEndSwitch.load()){
           _errorMode.exchange(Error::CALIBRATION_ERROR);

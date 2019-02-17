@@ -107,25 +107,8 @@ namespace mtca4u
     virtual void setCalibrationTime(uint32_t calibrationTime);
     virtual uint32_t getCalibrationTime();
 
-    /**
-     * @brief Writes a calibrated position for the positive end switch to the firmware
-     */
-    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
-
-    /**
-     * @brief Read a calibrated position for the positive end switch from the firmware
-     */
-    virtual int  getPositiveReferenceSwitchCalibration();
-
-    /**
-     * @brief Writes a calibrated position for the negative end switch to the firmware
-     */
-    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
-
-    /**
-     * @brief Read a calibrated position for the negative end switch from the firmware
-     */
-    virtual int  getNegativeReferenceSwitchCalibration();
+    virtual void setCalibrationData(CalibrationData const &);
+    virtual CalibrationData const & getCalibrationData();
 
     bool isEnabled();
 
@@ -240,6 +223,10 @@ namespace mtca4u
      ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderReadoutMode;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderPosition;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _calibrationTime;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedPositiveEndSwitchPos;
+     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibratedNegativeEndSwitchPos;
+     ChimeraTK::ScalarRegisterAccessor<float>   _calibratedPositiveEndSwitchTol;
+     ChimeraTK::ScalarRegisterAccessor<float>   _calibratedNegativeEndSwitchTol;
      ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwithPowerIndicator;
      
      mtca4u::SPIviaPCIe _driverSPI;
@@ -263,6 +250,9 @@ namespace mtca4u
      unsigned int _userMicroStepSize;
 
      int _localTargetPosition;
+     CalibrationData _calibrationData;
+     bool _hasCalibrationFWRegisters;
+
      //bool _positiveSwitch, _negativeSwitch;
      int retrieveTargetPositonAndConvert();
      int readPositionRegisterAndConvert();

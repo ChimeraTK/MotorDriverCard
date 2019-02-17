@@ -91,8 +91,9 @@ namespace mtca4u
       _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
       _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
       _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
-      _calibrationTime{device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
-      //_calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)}, // Might use this with newer FW
+      _calibrationTime(),
+      _calibratedPositiveEndSwitchPos(),
+      _calibratedNegativeEndSwitchPos(),
       _endSwithPowerIndicator{},
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),
@@ -102,10 +103,11 @@ namespace mtca4u
       converter24bits(24), converter12bits(12),
       _moveOnlyFullStep(false),
       _userMicroStepSize(0),
-      _localTargetPosition(0)
+      _localTargetPosition(0),
+      _calibrationData(),
+      _hasCalibrationFWRegisters(false)
   {
     setAccelerationThresholdData( motorControlerConfig.accelerationThresholdData );
-    //setActualPosition( motorControlerConfig.actualPosition );
     setChopperControlData( motorControlerConfig.chopperControlData );
     setCoolStepControlData( motorControlerConfig.coolStepControlData );
     setDecoderReadoutMode( motorControlerConfig.decoderReadoutMode );
@@ -125,6 +127,45 @@ namespace mtca4u
 
     _localTargetPosition = retrieveTargetPositonAndConvert();
     _userMicroStepSize = pow(2, motorControlerConfig.driverControlData.getMicroStepResolution());
+
+
+    ChimeraTK::ScalarRegisterAccessor<int32_t> firmwareVersion
+      = _device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_VERSION_ADDRESS_STRING);
+    firmwareVersion.read();
+
+    if(firmwareVersion >= MIN_FW_VERSION_WITH_CALIB_BACKUP){
+      // Init calibration registers, if supported
+      _hasCalibrationFWRegisters = true;
+      _calibrationTime.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX));
+
+      _calibratedPositiveEndSwitchPos.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, POS_ENDSW_CALIB_SUFFIX));
+      _calibratedNegativeEndSwitchPos.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, NEG_ENDSW_CALIB_SUFFIX));
+      //_calibratedPositiveEndSwitchTol.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, POS_ENDSW_TOL_SUFFIX));
+      _calibratedPositiveEndSwitchTol.replace(
+         _device->getScalarRegisterAccessor<float>(moduleName + "/" + createMotorRegisterName(_id, POS_ENDSW_TOL_SUFFIX)));
+      //_calibratedNegativeEndSwitchTol.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, NEG_ENDSW_TOL_SUFFIX));
+      _calibratedNegativeEndSwitchTol.replace(
+         _device->getScalarRegisterAccessor<float>(moduleName + "/" + createMotorRegisterName(_id, NEG_ENDSW_TOL_SUFFIX)));
+
+
+      // Read calibration from the registers and store internally
+      _calibrationTime.read();
+      _calibratedPositiveEndSwitchPos.read();
+      _calibratedNegativeEndSwitchPos.read();
+      _calibratedPositiveEndSwitchTol.read();
+      _calibratedNegativeEndSwitchTol.read();
+
+      _calibrationData.calibrationTime         = _calibrationTime;
+      _calibrationData.posEndSwitchCalibration = _calibratedPositiveEndSwitchPos;
+      _calibrationData.negEndSwitchCalibration = _calibratedNegativeEndSwitchPos;
+      _calibrationData.posEndSwitchTolerance   = _calibratedPositiveEndSwitchTol;
+      _calibrationData.negEndSwitchTolerance   = _calibratedNegativeEndSwitchTol;
+    }
+    else{
+      // Keep behaviour for older FW
+      _calibrationTime.replace(
+        device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_USER_REGISTER_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw}));
+    }
 
     // enabling the motor is the last step after setting all registers
     setEnabled( motorControlerConfig.enabled );
@@ -412,23 +453,31 @@ namespace mtca4u
     return static_cast<uint32_t>(_calibrationTime);
   }
 
-  void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition){
-    //TODO
-    (void)calibratedPosition;
+  void MotorControlerImpl::setCalibrationData(CalibrationData const & calibData){
+    lock_guard guard(_mutex);
+
+    _calibrationData = calibData;
+
+    // Store in memory, if supported
+    if(_hasCalibrationFWRegisters){
+      _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
+      _calibrationTime.write();
+      _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
+      _calibratedPositiveEndSwitchPos.write();
+      _calibratedNegativeEndSwitchPos = calibData.negEndSwitchCalibration;
+      _calibratedNegativeEndSwitchPos.write();
+      _calibratedPositiveEndSwitchTol = calibData.posEndSwitchTolerance;
+      _calibratedPositiveEndSwitchTol.write();
+      _calibratedNegativeEndSwitchTol = calibData.negEndSwitchTolerance;
+      _calibratedNegativeEndSwitchTol.write();
+    }
   }
 
-  int  MotorControlerImpl::getPositiveReferenceSwitchCalibration(){
-    return 0; //TODO
+  MotorControler::CalibrationData const& MotorControlerImpl::getCalibrationData(){
+    lock_guard guard(_mutex);
+    return _calibrationData;
   }
 
-  void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition){
-    //TODO
-    (void)calibratedPosition;
-  }
-
-  int  MotorControlerImpl::getNegativeReferenceSwitchCalibration(){
-    return 0; //TODO
-  }
 
   bool MotorControlerImpl::targetPositionReached(){
     lock_guard guard(_mutex);

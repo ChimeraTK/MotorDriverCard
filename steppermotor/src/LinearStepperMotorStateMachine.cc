@@ -119,9 +119,12 @@ namespace MotorDriver {
         calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
         calibNegativeEndSwitchInSteps = 0;
 
-        _motor._motorControler->setCalibrationTime(time(nullptr));
-        _motor._motorControler->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
-        _motor._motorControler->setNegativeReferenceSwitchCalibration(0);
+        mtca4u::MotorControler::CalibrationData calibData;
+        calibData.calibrationTime = time(nullptr);
+        calibData.posEndSwitchCalibration = calibPositiveEndSwitchInSteps;
+        calibData.negEndSwitchCalibration = calibNegativeEndSwitchInSteps;
+        _motorControler->setCalibrationData(calibData);
+
         _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
         _motor._calibNegativeEndSwitchInSteps.exchange(0);
 

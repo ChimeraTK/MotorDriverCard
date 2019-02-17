@@ -10,6 +10,7 @@ namespace mtca4u{
 namespace dfmc_md22{
 
   int32_t const MINIMAL_FIRMWARE_VERSION = 0x02020000;
+  int32_t const MIN_FW_VERSION_WITH_CALIB_BACKUP = 0x02030000;
   int32_t const PROJECT_ID = 0x0;
   int32_t const PROJECT_MAGIC_NUMBER = 0x50524F4A;
 
@@ -19,12 +20,13 @@ namespace dfmc_md22{
   std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION";
   std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET";
   std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT";
+  // This is used to store the calibration time for FW versions <= 0x02020000
+  std::string const PROJECT_USER_REGISTER_ADDRESS_STRING = "WORD_PROJ_USER";
 
   std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
   std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
   std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
   std::string const CONTROLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
-  std::string const CALIBRATION_TIME = "WORD_PROJ_USER"; // TODO: Needs to be keep for backward compatibility?
 
   int32_t const SPI_SYNC_OK = 0;
   int32_t const SPI_SYNC_REQUESTED = 0xFF;
@@ -48,6 +50,10 @@ namespace dfmc_md22{
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
   std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME"; // Added as support for newer FW > r2261
+  std::string const POS_ENDSW_CALIB_SUFFIX  = "CAL_END_SW_POS";
+  std::string const NEG_ENDSW_CALIB_SUFFIX  = "CAL_END_SW_NEG";
+  std::string const POS_ENDSW_TOL_SUFFIX    = "CAL_TOL_POS";
+  std::string const NEG_ENDSW_TOL_SUFFIX    = "CAL_TOL_NEG";
 
   uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 
