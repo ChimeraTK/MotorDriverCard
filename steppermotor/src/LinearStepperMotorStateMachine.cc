@@ -9,6 +9,7 @@
 #include "MotorControler.h"
 
 #include <mutex>
+#include <cmath>
 
 static const unsigned wakeupPeriodInMilliseconds = 500U;
 
@@ -102,6 +103,7 @@ namespace MotorDriver {
       _motor._calibrationMode.exchange(CalibrationMode::NONE);
     }
     else{
+      // Else, the actual calibration procedure
       findEndSwitch(Sign::POSITIVE);
       calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
       findEndSwitch(Sign::NEGATIVE);
@@ -163,36 +165,60 @@ namespace MotorDriver {
   }
 
   void LinearStepperMotor::StateMachine::toleranceCalcThreadFunction(){
-
-    _motor._toleranceCalcFailed.exchange(false);
-    _motor._toleranceCalculated.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
-    // This makes only sense once the motor is fully calibrated
-    if (_motor._calibrationMode != CalibrationMode::FULL){
-      _motor._toleranceCalculated.exchange(false);
-      _motor._toleranceCalcFailed.exchange(true);
+    // At least one end switch disabled -> calibration not possible
+    if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())){
+
+      _motor._motorControler->setCalibrationTime(0);
+
+      _motor._calibrationFailed.exchange(true);
+      _motor._calibrationMode.exchange(CalibrationMode::NONE);
     }
     else{
-      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
-      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
+      int   calibPositiveEndSwitchInSteps = 0;
+      float calibPositiveToleranceInSteps = 0.f;
+      int   calibNegativeEndSwitchInSteps = 0;
+      float calibNegativeToleranceInSteps = 0.f;
+
+      determineCalibrationForEndSwitch(Sign::POSITIVE, calibPositiveEndSwitchInSteps, calibPositiveToleranceInSteps);
+      determineCalibrationForEndSwitch(Sign::NEGATIVE, calibNegativeEndSwitchInSteps, calibNegativeToleranceInSteps);
+
 
       if (_stopAction.load()){
-        _motor._toleranceCalculated.exchange(false);
+        _motor._calibrationMode.exchange(CalibrationMode::NONE);
+        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+
       }
       else if(_moveInterrupted.load()){
-        _motor._toleranceCalculated.exchange(false);
-        _motor._toleranceCalcFailed.exchange(true);
 
-        // TODO include
-//        _asyncActionActive.exchange(false);
-//        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+
+        _motor._calibrationMode.exchange(CalibrationMode::NONE);
         _motor._errorMode = Error::CALIBRATION_ERROR;
-//        return;
       }
       else{
-        _motor._toleranceCalculated.exchange(true);
+
+        // Define positive axis with negative end switch as zero
+        calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
+        calibNegativeEndSwitchInSteps = 0;
+
+        mtca4u::MotorControler::CalibrationData calibData;
+        calibData.calibrationTime = time(nullptr);
+        calibData.posEndSwitchCalibration = calibPositiveEndSwitchInSteps;
+        calibData.negEndSwitchCalibration = calibNegativeEndSwitchInSteps;
+        calibData.posEndSwitchTolerance   = calibPositiveToleranceInSteps;
+        calibData.negEndSwitchTolerance   = calibNegativeToleranceInSteps;
+        _motorControler->setCalibrationData(calibData);
+
+        _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+        _motor._calibNegativeEndSwitchInSteps.exchange(0);
+        _motor._tolerancePositiveEndSwitch.exchange(calibPositiveToleranceInSteps);
+        _motor._toleranceNegativeEndSwitch.exchange(calibNegativeToleranceInSteps);
+
+        _motor._calibrationMode.exchange(CalibrationMode::FULL);
+        _motor.resetMotorControllerPositions(0);
       }
     }
     _asyncActionActive.exchange(false);
@@ -207,16 +233,24 @@ namespace MotorDriver {
     }
   }
 
-  double LinearStepperMotor::StateMachine::getToleranceEndSwitch(Sign sign){
-    double meanMeasurement = 0;
-    double stdMeasurement = 0;
+  void LinearStepperMotor::StateMachine::determineCalibrationForEndSwitch(Sign sign, int& positionResult, float& toleranceResult){
+    float meanMeasurement = 0;
+    float stdMeasurement = 0;
     const int N_TOLERANCE_CALC_SAMPLES = 10;
-    double measurements[N_TOLERANCE_CALC_SAMPLES];
+    int measurements[N_TOLERANCE_CALC_SAMPLES];
 
-    int endSwitchPosition = getPositionEndSwitch(sign);
+    // Move to the end switch, get first sample
+    findEndSwitch(sign);
 
-    // Get 10 samples for tolerance calculation
-    for (unsigned i=0; i<N_TOLERANCE_CALC_SAMPLES; i++){
+    if(_stopAction.load() || _moveInterrupted.load()){
+      return;
+    }
+    measurements[0] = _motor.getCurrentPositionInSteps();
+    meanMeasurement = static_cast<float>(measurements[0])
+                        / N_TOLERANCE_CALC_SAMPLES;
+
+    // Get remaining samples for tolerance calculation
+    for (unsigned i=1; i<N_TOLERANCE_CALC_SAMPLES-1; i++){
       if (_stopAction.load() || _moveInterrupted.load()){
         break;
       }
@@ -224,7 +258,7 @@ namespace MotorDriver {
       //Move close to end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setTargetPosition(endSwitchPosition - static_cast<int>(sign)*1000);
+        _motor._motorControler->setTargetPosition(measurements[i-1] - static_cast<int>(sign)*1000);
       }
       while(_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
@@ -239,7 +273,7 @@ namespace MotorDriver {
       // Try to move beyond end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setTargetPosition(endSwitchPosition + static_cast<int>(sign)*1000);
+        _motor._motorControler->setTargetPosition(measurements[i-1]+ static_cast<int>(sign)*1000);
       }
       while(_motor._motorControler->isMotorMoving()){
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
@@ -250,10 +284,10 @@ namespace MotorDriver {
       }
 
       // Mean calculation
-      meanMeasurement += static_cast<double>(_motor.getCurrentPositionInSteps())
-                         / N_TOLERANCE_CALC_SAMPLES;
       measurements[i] = _motor.getCurrentPositionInSteps();
-    } /* for (i in [0,9]) */
+      meanMeasurement += static_cast<float>(measurements[i])
+                         / N_TOLERANCE_CALC_SAMPLES;
+    } /* for (i in [1, N_TOLERANCE_CALC_SAMPLES-1]) */
 
     // Compute variance
     if (!(_stopAction.load() || _moveInterrupted.load()) ){
@@ -262,7 +296,9 @@ namespace MotorDriver {
       }
     }
 
-    return sqrt(stdMeasurement);
+    positionResult = static_cast<int>(std::round(meanMeasurement));
+    toleranceResult = static_cast<float>(sqrt(stdMeasurement));
+    return;
   }
 }
 }

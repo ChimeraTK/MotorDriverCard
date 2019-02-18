@@ -94,6 +94,8 @@ namespace mtca4u
       _calibrationTime(),
       _calibratedPositiveEndSwitchPos(),
       _calibratedNegativeEndSwitchPos(),
+      _calibratedPositiveEndSwitchTol(),
+      _calibratedNegativeEndSwitchTol(),
       _endSwithPowerIndicator{},
       _driverSPI( device, moduleName,
                   createMotorRegisterName(ID, SPI_WRITE_SUFFIX ),

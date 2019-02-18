@@ -156,7 +156,7 @@ namespace MotorDriver{
       void toleranceCalcThreadFunction();
       void moveToEndSwitch(Sign sign);
       void findEndSwitch(Sign sign);
-      double getToleranceEndSwitch(Sign sign);
+      void determineCalibrationForEndSwitch(Sign sign, int& positionResult, float& toleranceResult);
       int getPositionEndSwitch(Sign sign);
     };
 
