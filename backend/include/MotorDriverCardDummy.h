@@ -5,35 +5,35 @@
 
 #include <vector>
 
-namespace mtca4u
-{
-  /**
-   * A dummy implementation of the MotorDriverCard. It 
-   * provides MotorControlerDummys and a PowerMonitorDummy.
-   */
-  class MotorDriverCardDummy : public MotorDriverCard{
-  public:
-    virtual boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID);
-    
-    virtual PowerMonitor & getPowerMonitor();
-    virtual ~MotorDriverCardDummy();
+namespace mtca4u {
+/**
+ * A dummy implementation of the MotorDriverCard. It
+ * provides MotorControlerDummys and a PowerMonitorDummy.
+ */
+class MotorDriverCardDummy : public MotorDriverCard {
+public:
+  virtual boost::shared_ptr<MotorControler>
+  getMotorControler(unsigned int motorControlerID);
 
-  private:
-    // The constructor does not need to know anything. There is noting to configure
-    // in the dummy, and it does not access any hardware (or hardware dummy).
-    MotorDriverCardDummy();
-    
-    // The factory needs access to the constructor because it is the only official ways
-    // to create a MotorDriverCard
-    friend class MotorDriverCardFactory;
+  virtual PowerMonitor &getPowerMonitor();
+  virtual ~MotorDriverCardDummy();
 
-    // For testing we need access to the constructor
-    friend class MotorDriverCardDummyTest;
+private:
+  // The constructor does not need to know anything. There is noting to
+  // configure in the dummy, and it does not access any hardware (or hardware
+  // dummy).
+  MotorDriverCardDummy();
 
-    std::vector< boost::shared_ptr<MotorControler> > _motorControlers;
+  // The factory needs access to the constructor because it is the only official
+  // ways to create a MotorDriverCard
+  friend class MotorDriverCardFactory;
 
-  };
-  
-}// namespace mtca4u
+  // For testing we need access to the constructor
+  friend class MotorDriverCardDummyTest;
 
-#endif //MTCA4U_MOTOR_DRIVER_CARD_DUMMY_H
+  std::vector<boost::shared_ptr<MotorControler>> _motorControlers;
+};
+
+} // namespace mtca4u
+
+#endif // MTCA4U_MOTOR_DRIVER_CARD_DUMMY_H

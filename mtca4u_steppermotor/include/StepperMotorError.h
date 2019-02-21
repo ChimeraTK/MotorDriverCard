@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   StepperMotorError.h
  * Author: tsk
  *
@@ -6,72 +6,65 @@
  */
 
 #ifndef STEPPER_MOTOR_ERROR_H
-#define	STEPPER_MOTOR_ERROR_H
+#define STEPPER_MOTOR_ERROR_H
 
-#include <string>
 #include "GeneralStatus.h"
+#include <string>
 
+namespace mtca4u {
+using namespace ChimeraTK;
 
+class StepperMotorError;
+class LinearStepperMotorError;
 
-namespace mtca4u{
-  using namespace ChimeraTK;
+class StepperMotorErrorTypes {
+public:
+  static const StepperMotorError M_NO_ERROR;
+  static const StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
+  static const StepperMotorError M_COMMUNICATION_LOST;
+  static const StepperMotorError M_NO_REACTION_ON_COMMAND;
+  static const StepperMotorError M_HARDWARE_NOT_CONNECTED;
+  virtual ~StepperMotorErrorTypes() {}
+};
 
-  class StepperMotorError;
-  class LinearStepperMotorError;
+class LinearStepperMotorErrorTypes : public StepperMotorErrorTypes {
+public:
+  static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
+};
 
-  class StepperMotorErrorTypes {
-  public:
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// StepperMotorError class
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    static const StepperMotorError M_NO_ERROR;
-    static const StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
-    static const StepperMotorError M_COMMUNICATION_LOST;
-    static const StepperMotorError M_NO_REACTION_ON_COMMAND;
-    static const StepperMotorError M_HARDWARE_NOT_CONNECTED;
-    virtual ~StepperMotorErrorTypes(){}
-  };
+class StepperMotorError : public GeneralStatus {
+public:
+  // default constructor
+  StepperMotorError();
+  // constructor with params
+  StepperMotorError(int id);
+  // copy constructor
+  StepperMotorError(const StepperMotorError &error);
 
-  class LinearStepperMotorErrorTypes : public StepperMotorErrorTypes {
-  public:
-    static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
-  };
+  virtual std::string asString() const;
+};
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// LinearStepperMotorError class
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // StepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+class LinearStepperMotorError : public StepperMotorError {
+public:
+  // default constructor
+  LinearStepperMotorError();
+  // constructor with params
+  LinearStepperMotorError(int id);
+  // copy constructor
+  LinearStepperMotorError(const LinearStepperMotorError &error);
 
-  class StepperMotorError : public GeneralStatus {
-  public:
-    //default constructor
-    StepperMotorError();
-    //constructor with params
-    StepperMotorError(int id);
-    //copy constructor
-    StepperMotorError(const StepperMotorError &error);
+  virtual std::string asString() const;
+};
+} // namespace mtca4u
 
-    virtual std::string asString() const;
-
-  };
-
-
-
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // LinearStepperMotorError class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  class LinearStepperMotorError : public StepperMotorError {
-  public:
-    //default constructor
-    LinearStepperMotorError();
-    //constructor with params
-    LinearStepperMotorError(int id);
-    //copy constructor
-    LinearStepperMotorError(const LinearStepperMotorError &error);
-
-    virtual std::string asString() const;
-
-  };
-}
-
-#endif	/* STEPPER_MOTOR_ERROR_H */
-
+#endif /* STEPPER_MOTOR_ERROR_H */

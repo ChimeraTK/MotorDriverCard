@@ -1,13 +1,12 @@
 #include "MotorReferenceSwitchData.h"
 
-namespace mtca4u{
-  
-  MotorReferenceSwitchData::MotorReferenceSwitchData(unsigned int dataWord)
-    : MultiVariableWord( dataWord )
-  {}
+namespace mtca4u {
 
-  MotorReferenceSwitchData::operator bool() const{
-    return static_cast<bool>(getSwitchesActiveWord());
-  }
+MotorReferenceSwitchData::MotorReferenceSwitchData(unsigned int dataWord)
+    : MultiVariableWord(dataWord) {}
 
-}//namespace mtca4u
+MotorReferenceSwitchData::operator bool() const {
+  return static_cast<bool>(getSwitchesActiveWord());
+}
+
+} // namespace mtca4u
