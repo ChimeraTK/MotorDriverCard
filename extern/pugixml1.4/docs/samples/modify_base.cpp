@@ -5,9 +5,7 @@
 
 int main() {
   pugi::xml_document doc;
-  if (!doc.load("<node id='123'>text</node><!-- comment -->",
-                pugi::parse_default | pugi::parse_comments))
-    return -1;
+  if(!doc.load("<node id='123'>text</node><!-- comment -->", pugi::parse_default | pugi::parse_comments)) return -1;
 
   //[code_modify_base_node
   pugi::xml_node node = doc.child("node");
@@ -21,8 +19,7 @@ int main() {
   std::cout << ", new comment text: " << doc.last_child().value() << std::endl;
 
   // we can't change value of the element or name of the comment
-  std::cout << node.set_value("1") << ", " << doc.last_child().set_name("2")
-            << std::endl;
+  std::cout << node.set_value("1") << ", " << doc.last_child().set_name("2") << std::endl;
   //]
 
   //[code_modify_base_attr
@@ -30,8 +27,7 @@ int main() {
 
   // change attribute name/value
   std::cout << attr.set_name("key") << ", " << attr.set_value("345");
-  std::cout << ", new attribute: " << attr.name() << "=" << attr.value()
-            << std::endl;
+  std::cout << ", new attribute: " << attr.name() << "=" << attr.value() << std::endl;
 
   // we can use numbers or booleans
   attr.set_value(1.234);

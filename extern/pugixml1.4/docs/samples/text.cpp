@@ -12,17 +12,11 @@ int main() {
   pugi::xml_node project = doc.child("project");
 
   //[code_text_access
-  std::cout << "Project name: " << project.child("name").text().get()
-            << std::endl;
-  std::cout << "Project version: "
-            << project.child("version").text().as_double() << std::endl;
+  std::cout << "Project name: " << project.child("name").text().get() << std::endl;
+  std::cout << "Project version: " << project.child("version").text().as_double() << std::endl;
   std::cout << "Project visibility: "
-            << (project.child("public").text().as_bool(/* def= */ true)
-                    ? "public"
-                    : "private")
-            << std::endl;
-  std::cout << "Project description: "
-            << project.child("description").text().get() << std::endl;
+            << (project.child("public").text().as_bool(/* def= */ true) ? "public" : "private") << std::endl;
+  std::cout << "Project description: " << project.child("description").text().get() << std::endl;
   //]
 
   std::cout << std::endl;

@@ -4,22 +4,20 @@
 #include <iomanip>
 #include <iostream>
 
-void print_doc(const char *message, const pugi::xml_document &doc,
-               const pugi::xml_parse_result &result) {
+void print_doc(const char* message, const pugi::xml_document& doc, const pugi::xml_parse_result& result) {
   std::cout << message << "\t: load result '" << result.description() << "'"
-            << ", first character of root name: U+" << std::hex
-            << std::uppercase << std::setw(4) << std::setfill('0')
-            << pugi::as_wide(doc.first_child().name())[0] << ", year: "
-            << doc.first_child().first_child().first_child().child_value()
-            << std::endl;
+            << ", first character of root name: U+" << std::hex << std::uppercase << std::setw(4) << std::setfill('0')
+            << pugi::as_wide(doc.first_child().name())[0]
+            << ", year: " << doc.first_child().first_child().first_child().child_value() << std::endl;
 }
 
-bool try_imbue(std::wistream &stream, const char *name) {
+bool try_imbue(std::wistream& stream, const char* name) {
   try {
     stream.imbue(std::locale(name));
 
     return true;
-  } catch (const std::exception &) {
+  }
+  catch(const std::exception&) {
     return false;
   }
 }
@@ -52,13 +50,14 @@ int main() {
     // use utf8_codecvt_facet from Boost or codecvt_utf8 from C++0x)
     std::wifstream stream("weekly-utf-8.xml");
 
-    if (try_imbue(stream, "en_US.UTF-8")) // try Linux encoding
+    if(try_imbue(stream, "en_US.UTF-8")) // try Linux encoding
     {
       pugi::xml_parse_result result = doc.load(stream);
 
       // first character of root name: U+00E9, year: 1997
       print_doc("UTF8 file from wide stream", doc, result);
-    } else {
+    }
+    else {
       std::cout << "UTF-8 locale is not available\n";
     }
   }
@@ -74,9 +73,8 @@ int main() {
     // any other non-ASCII) file from a wide stream portably
     std::wifstream stream("weekly-shift_jis.xml");
 
-    if (try_imbue(stream, ".932") || // try Microsoft encoding
-        try_imbue(
-            stream,
+    if(try_imbue(stream, ".932") || // try Microsoft encoding
+        try_imbue(stream,
             "ja_JP.SJIS")) // try Linux encoding; run "localedef -i ja_JP -c -f
                            // SHIFT_JIS /usr/lib/locale/ja_JP.SJIS" to get it
     {
@@ -84,7 +82,8 @@ int main() {
 
       // first character of root name: U+9031, year: 1997
       print_doc("Shift-JIS file from wide stream", doc, result);
-    } else {
+    }
+    else {
       std::cout << "Shift-JIS locale is not available\n";
     }
   }

@@ -1,6 +1,6 @@
 #ifndef PUGIXML_NO_XPATH
 
-#include "common.hpp"
+#  include "common.hpp"
 
 TEST(xpath_operators_arithmetic) {
   xml_node c;
@@ -71,8 +71,7 @@ TEST(xpath_operators_arithmetic_specials) {
   CHECK_XPATH_STRING(c, STR("-1 div (0 div -1)"), STR("Infinity"));
 }
 
-TEST_XML(xpath_operators_arithmetic_subtraction_parse,
-         "<node><foo-bar>10</foo-bar><foo>2</foo><bar>3</bar></node>") {
+TEST_XML(xpath_operators_arithmetic_subtraction_parse, "<node><foo-bar>10</foo-bar><foo>2</foo><bar>3</bar></node>") {
   xml_node n = doc.child(STR("node"));
 
   // correct subtraction parsing, from W3C standard
@@ -142,11 +141,11 @@ TEST(xpath_operators_equality_primitive_number) {
   CHECK_XPATH_BOOLEAN(c, STR("1 div 0 = 2 div 0"), true);
   CHECK_XPATH_BOOLEAN(c, STR("-1 div 0 != 2 div 0"), true);
 
-#ifndef MSVC6_NAN_BUG
+#  ifndef MSVC6_NAN_BUG
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 = 1"), false);
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 != 1"), true);
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 = 0 div 0"), false);
-#endif
+#  endif
 
   // upcast to number
   CHECK_XPATH_BOOLEAN(c, STR("2 = '2'"), true);
@@ -167,16 +166,14 @@ TEST(xpath_operators_equality_primitive_string) {
   CHECK_XPATH_BOOLEAN(c, STR("'' != ''"), false);
 }
 
-TEST_XML(
-    xpath_operators_equality_node_set_node_set,
+TEST_XML(xpath_operators_equality_node_set_node_set,
     "<node><c1><v>a</v><v>b</v></c1><c2><v>a</v><v>c</v></c2><c3><v>b</v></"
     "c3><c4><v>d</v></c4><c5><v>a</v><v>b</v></c5><c6><v>b</v></c6></node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
   // node set vs node set
-  CHECK_XPATH_BOOLEAN(
-      c, STR("x = x"),
+  CHECK_XPATH_BOOLEAN(c, STR("x = x"),
       false); // empty node set compares as false with any other object via any
               // comparison operator, as per XPath spec
   CHECK_XPATH_BOOLEAN(c, STR("x != x"), false);
@@ -192,16 +189,16 @@ TEST_XML(
   CHECK_XPATH_BOOLEAN(n, STR("c2/v != c3/v"), true);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v != c4/v"), true);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v != c5/v"),
-                      true); // (a, b) != (a, b), since a != b, as per XPath
-                             // spec (comparison operators are so not intutive)
+      true); // (a, b) != (a, b), since a != b, as per XPath
+             // spec (comparison operators are so not intutive)
   CHECK_XPATH_BOOLEAN(n, STR("c3/v != c6/v"), false);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v != x"), false);
   CHECK_XPATH_BOOLEAN(n, STR("x != c1/v"), false);
 }
 
 TEST_XML(xpath_operators_equality_node_set_primitive,
-         "<node><c1><v>1</v><v>-1</v><v>100</v></c1><c2><v>1</v><v>nan</v></"
-         "c2></node>") {
+    "<node><c1><v>1</v><v>-1</v><v>100</v></c1><c2><v>1</v><v>nan</v></"
+    "c2></node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
@@ -223,10 +220,10 @@ TEST_XML(xpath_operators_equality_node_set_primitive,
   CHECK_XPATH_BOOLEAN(n, STR("5 = c1/v"), false);
   CHECK_XPATH_BOOLEAN(n, STR("1 = c2/v"), true);
 
-#ifndef MSVC6_NAN_BUG
+#  ifndef MSVC6_NAN_BUG
   CHECK_XPATH_BOOLEAN(n, STR("c2/v != 1"), true);
   CHECK_XPATH_BOOLEAN(n, STR("1 != c2/v"), true);
-#endif
+#  endif
 
   // node set vs string
   CHECK_XPATH_BOOLEAN(c, STR("x = '1'"), false);
@@ -287,12 +284,12 @@ TEST(xpath_operators_inequality_primitive) {
   CHECK_XPATH_BOOLEAN(c, STR("-1 div 0 < 2 div 0"), true);
   CHECK_XPATH_BOOLEAN(c, STR("-1 div 0 > 2 div 0"), false);
 
-#ifndef MSVC6_NAN_BUG
+#  ifndef MSVC6_NAN_BUG
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 < 1"), false);
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 <= 1"), false);
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 > 1"), false);
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 >= 1"), false);
-#endif
+#  endif
 
   // upcast to number
   CHECK_XPATH_BOOLEAN(c, STR("2 < '2'"), false);
@@ -308,8 +305,8 @@ TEST(xpath_operators_inequality_primitive) {
 }
 
 TEST_XML(xpath_operators_inequality_node_set_node_set,
-         "<node><c1><v>1</v><v>-1</v><v>-100</v></c1><c2><v>1</v><v>nan</v></"
-         "c2><c3><v>1</v><v>-4</v></c3></node>") {
+    "<node><c1><v>1</v><v>-1</v><v>-100</v></c1><c2><v>1</v><v>nan</v></"
+    "c2><c3><v>1</v><v>-4</v></c3></node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
@@ -334,17 +331,17 @@ TEST_XML(xpath_operators_inequality_node_set_node_set,
   CHECK_XPATH_BOOLEAN(n, STR("c1/v < c3/v"), true);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v <= c3/v"), true);
 
-#ifndef MSVC6_NAN_BUG
+#  ifndef MSVC6_NAN_BUG
   CHECK_XPATH_BOOLEAN(n, STR("c1/v > c2/v"), false);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v >= c2/v"), true);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v < c2/v"), true);
   CHECK_XPATH_BOOLEAN(n, STR("c1/v <= c2/v"), true);
-#endif
+#  endif
 }
 
 TEST_XML(xpath_operators_inequality_node_set_primitive,
-         "<node><c1><v>1</v><v>-1</v><v>-100</v></c1><c2><v>1</v><v>nan</v></"
-         "c2></node>") {
+    "<node><c1><v>1</v><v>-1</v><v>-100</v></c1><c2><v>1</v><v>nan</v></"
+    "c2></node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
@@ -412,25 +409,19 @@ TEST(xpath_operators_boolean_precedence) {
 }
 
 TEST_XML(xpath_operators_union,
-         "<node><employee/><employee secretary=''/><employee "
-         "assistant=''/><employee secretary='' assistant=''/><employee "
-         "assistant='' secretary=''/><tail/></node>") {
+    "<node><employee/><employee secretary=''/><employee "
+    "assistant=''/><employee secretary='' assistant=''/><employee "
+    "assistant='' secretary=''/><tail/></node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
   CHECK_XPATH_NODESET(n, STR("employee | .")) % 2 % 3 % 4 % 6 % 8 % 11;
-  CHECK_XPATH_NODESET(n, STR("employee[@secretary] | employee[@assistant]")) %
-      4 % 6 % 8 % 11;
-  CHECK_XPATH_NODESET(n, STR("employee[@assistant] | employee[@secretary]")) %
-      4 % 6 % 8 % 11;
-  CHECK_XPATH_NODESET(n, STR("employee[@secretary] | employee[@nobody]")) % 4 %
-      8 % 11;
-  CHECK_XPATH_NODESET(n, STR("employee[@nobody] | employee[@secretary]")) % 4 %
-      8 % 11;
-  CHECK_XPATH_NODESET(n, STR("tail/preceding-sibling::employee | .")) % 2 % 3 %
-      4 % 6 % 8 % 11;
-  CHECK_XPATH_NODESET(n, STR(". | tail/preceding-sibling::employee | .")) % 2 %
-      3 % 4 % 6 % 8 % 11;
+  CHECK_XPATH_NODESET(n, STR("employee[@secretary] | employee[@assistant]")) % 4 % 6 % 8 % 11;
+  CHECK_XPATH_NODESET(n, STR("employee[@assistant] | employee[@secretary]")) % 4 % 6 % 8 % 11;
+  CHECK_XPATH_NODESET(n, STR("employee[@secretary] | employee[@nobody]")) % 4 % 8 % 11;
+  CHECK_XPATH_NODESET(n, STR("employee[@nobody] | employee[@secretary]")) % 4 % 8 % 11;
+  CHECK_XPATH_NODESET(n, STR("tail/preceding-sibling::employee | .")) % 2 % 3 % 4 % 6 % 8 % 11;
+  CHECK_XPATH_NODESET(n, STR(". | tail/preceding-sibling::employee | .")) % 2 % 3 % 4 % 6 % 8 % 11;
 }
 
 TEST(xpath_operators_union_error) {
@@ -457,8 +448,7 @@ TEST_XML(xpath_operators_union_minus, "<node1>3</node1><node2>4</node2>") {
 TEST(xpath_operators_associativity_boolean) {
   xml_node c;
 
-  CHECK_XPATH_BOOLEAN(c, STR("false() or true() and true() and false()"),
-                      false);
+  CHECK_XPATH_BOOLEAN(c, STR("false() or true() and true() and false()"), false);
   CHECK_XPATH_BOOLEAN(c, STR("3 > 2 > 1"), false);
   CHECK_XPATH_BOOLEAN(c, STR("4 > 3 > 2 > 1"), false);
   CHECK_XPATH_BOOLEAN(c, STR("5 > 4 > 3 > 2 > 1"), false);

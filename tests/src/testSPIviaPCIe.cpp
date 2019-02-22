@@ -16,36 +16,31 @@ using namespace boost::unit_test_framework;
 #include "testConfigConstants.h"
 
 class SPIviaPCIeTest {
-public:
-  SPIviaPCIeTest(std::string const &mapFileName, std::string const &moduleName);
+ public:
+  SPIviaPCIeTest(std::string const& mapFileName, std::string const& moduleName);
   //  static void testConstructors();
 
   void testRead();
   void testWrite();
   void testGetSetWaitingTime();
 
-private:
+ private:
   boost::shared_ptr<mtca4u::DFMC_MD22Dummy> _dummyBackend;
   boost::shared_ptr<ChimeraTK::Device> _device;
   std::string _mapFileName;
 
-  boost::shared_ptr<mtca4u::SPIviaPCIe>
-      _readWriteSPIviaPCIe; // use controler which has read/write
-  boost::shared_ptr<mtca4u::SPIviaPCIe>
-      _writeSPIviaPCIe; // use a motor address which has debug readback in the
-                        // dummy
+  boost::shared_ptr<mtca4u::SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
+  boost::shared_ptr<mtca4u::SPIviaPCIe> _writeSPIviaPCIe;     // use a motor address which has debug readback in the
+                                                              // dummy
 };
 
 class SPIviaPCIeTestSuite : public test_suite {
-public:
-  SPIviaPCIeTestSuite(std::string const &mapFileName,
-                      std::string const &moduleName)
-      : test_suite("SPIviaPCIe test suite") {
-
+ public:
+  SPIviaPCIeTestSuite(std::string const& mapFileName, std::string const& moduleName)
+  : test_suite("SPIviaPCIe test suite") {
     ChimeraTK::setDMapFilePath("./dummies.dmap");
     // create an instance of the test class
-    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest(
-        new SPIviaPCIeTest(mapFileName, moduleName));
+    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest(new SPIviaPCIeTest(mapFileName, moduleName));
 
     // add the tests
     //   add( BOOST_CLASS_TEST_CASE( &SPIviaPCIeTest::testConstructors,
@@ -53,10 +48,8 @@ public:
 
     // in case of dependencies store the test cases before adding them and
     // declare the dependency
-    test_case *writeTestCase =
-        BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testWrite, spiViaPCIeTest);
-    test_case *readTestCase =
-        BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testRead, spiViaPCIeTest);
+    test_case* writeTestCase = BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testWrite, spiViaPCIeTest);
+    test_case* readTestCase = BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testRead, spiViaPCIeTest);
 
     // exceptionally the read depends on the write (usually it is the other way
     // round)
@@ -64,21 +57,17 @@ public:
 
     add(writeTestCase);
     add(readTestCase);
-    add(BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testGetSetWaitingTime,
-                              spiViaPCIeTest));
+    add(BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testGetSetWaitingTime, spiViaPCIeTest));
   }
 };
 
-test_suite *init_unit_test_suite(int /*argc*/, char * /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
   framework::master_test_suite().p_name.value = "SPIviaPCIe test suite";
   return new SPIviaPCIeTestSuite(MAP_FILE_NAME, MODULE_NAME_0);
 }
 
-SPIviaPCIeTest::SPIviaPCIeTest(std::string const &mapFileName,
-                               std::string const &moduleName)
-    : _dummyBackend(), _device(), _mapFileName(), _readWriteSPIviaPCIe(),
-      _writeSPIviaPCIe() {
-
+SPIviaPCIeTest::SPIviaPCIeTest(std::string const& mapFileName, std::string const& moduleName)
+: _dummyBackend(), _device(), _mapFileName(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe() {
   _dummyBackend = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
       ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
@@ -91,25 +80,19 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const &mapFileName,
   //_dummyBackend->open();
 
   ChimeraTK::MapFileParser fileParser;
-  boost::shared_ptr<ChimeraTK::RegisterInfoMap> registerMapping =
-      fileParser.parse(mapFileName);
+  boost::shared_ptr<ChimeraTK::RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
   _device->open(DFMC_ALIAS);
 
   //_dummyBackend->setRegistersForTesting();
 
-  _readWriteSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(
-      _device, moduleName,
-      mtca4u::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING,
-      mtca4u::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
+  _readWriteSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(_device, moduleName,
+      mtca4u::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING, mtca4u::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
       mtca4u::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING));
 
-  _writeSPIviaPCIe.reset(
-      new mtca4u::SPIviaPCIe(_device, moduleName,
-                             mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" +
-                                 mtca4u::dfmc_md22::SPI_WRITE_SUFFIX,
-                             mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" +
-                                 mtca4u::dfmc_md22::SPI_SYNC_SUFFIX));
+  _writeSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(_device, moduleName,
+      mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_WRITE_SUFFIX,
+      mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_SYNC_SUFFIX));
 }
 
 void SPIviaPCIeTest::testRead() {
@@ -127,8 +110,7 @@ void SPIviaPCIeTest::testRead() {
   coverDatagram.setDATA(0);
 
   unsigned int readbackInt;
-  BOOST_REQUIRE_NO_THROW(
-      readbackInt = _readWriteSPIviaPCIe->read(coverDatagram.getDataWord()));
+  BOOST_REQUIRE_NO_THROW(readbackInt = _readWriteSPIviaPCIe->read(coverDatagram.getDataWord()));
   // For optimised code the require is not enough. The code might continue if an
   // exception occured (at least the compiler says so an gives a warning) Just
   // reexecute and let the exception through
@@ -143,11 +125,12 @@ void SPIviaPCIeTest::testRead() {
   try {
     _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
     BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
-  } catch (mtca4u::MotorDriverException &e) {
-    if (e.getID() != mtca4u::MotorDriverException::SPI_TIMEOUT) {
+  }
+  catch(mtca4u::MotorDriverException& e) {
+    if(e.getID() != mtca4u::MotorDriverException::SPI_TIMEOUT) {
       BOOST_ERROR(std::string("SPIviaPCIe::read did not throw the right "
                               "exception ID. Error message: ") +
-                  e.what());
+          e.what());
     }
   }
   // up to two timeouts are caught by the backend via retry
@@ -160,11 +143,12 @@ void SPIviaPCIeTest::testRead() {
   try {
     _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
     BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
-  } catch (mtca4u::MotorDriverException &e) {
-    if (e.getID() != mtca4u::MotorDriverException::SPI_ERROR) {
+  }
+  catch(mtca4u::MotorDriverException& e) {
+    if(e.getID() != mtca4u::MotorDriverException::SPI_ERROR) {
       BOOST_ERROR(std::string("SPIviaPCIe::read did not throw the right "
                               "exception ID. Error message: ") +
-                  e.what());
+          e.what());
     }
   }
   _dummyBackend->causeSpiErrors(false);
@@ -173,20 +157,17 @@ void SPIviaPCIeTest::testRead() {
 void SPIviaPCIeTest::testWrite() {
   // This test is hard coded against the dummy implementation of the TCM260
   // driver chip
-  for (uint32_t motorID = 1; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX;
-       ++motorID) {
+  for(uint32_t motorID = 1; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     // the readDriverSpiRegister is a debug function of the dummy which bypasses
     // the SPI interface
-    unsigned int registerContent = _dummyBackend->readDriverSpiRegister(
-        motorID, mtca4u::ChopperControlData().getAddress());
+    unsigned int registerContent =
+        _dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress());
 
     mtca4u::ChopperControlData chopperControlData(registerContent + 5);
-    BOOST_CHECK_NO_THROW(
-        _writeSPIviaPCIe->write(chopperControlData.getDataWord()));
+    BOOST_CHECK_NO_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()));
 
-    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(
-                    motorID, mtca4u::ChopperControlData().getAddress()) ==
-                chopperControlData.getPayloadData());
+    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
+        chopperControlData.getPayloadData());
 
     // test the error cases
     _dummyBackend->causeSpiTimeouts(true);
@@ -194,42 +175,39 @@ void SPIviaPCIeTest::testWrite() {
     try {
       _writeSPIviaPCIe->write(chopperControlData.getDataWord());
       BOOST_ERROR("SPIviaPCIe::write did not throw as expected.");
-    } catch (mtca4u::MotorDriverException &e) {
-      if (e.getID() != mtca4u::MotorDriverException::SPI_TIMEOUT) {
+    }
+    catch(mtca4u::MotorDriverException& e) {
+      if(e.getID() != mtca4u::MotorDriverException::SPI_TIMEOUT) {
         BOOST_ERROR(std::string("SPIviaPCIe::write did not throw the right "
                                 "exception ID. Error message: ") +
-                    e.what());
+            e.what());
       }
     }
-    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(
-                    motorID, mtca4u::ChopperControlData().getAddress()) ==
-                chopperControlData.getPayloadData() - 1);
+    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
+        chopperControlData.getPayloadData() - 1);
     _dummyBackend->causeSpiTimeouts(false);
 
     _dummyBackend->causeSpiErrors(true);
     try {
       _writeSPIviaPCIe->write(chopperControlData.getDataWord());
       BOOST_ERROR("SPIviaPCIe::write did not throw as expected.");
-    } catch (mtca4u::MotorDriverException &e) {
-      if (e.getID() != mtca4u::MotorDriverException::SPI_ERROR) {
+    }
+    catch(mtca4u::MotorDriverException& e) {
+      if(e.getID() != mtca4u::MotorDriverException::SPI_ERROR) {
         BOOST_ERROR(std::string("SPIviaPCIe::write did not throw the right "
                                 "exception ID. Error message: ") +
-                    e.what());
+            e.what());
       }
     }
-    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(
-                    motorID, mtca4u::ChopperControlData().getAddress()) ==
-                chopperControlData.getPayloadData() - 1);
+    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
+        chopperControlData.getPayloadData() - 1);
     _dummyBackend->causeSpiErrors(false);
   }
 }
 
 void SPIviaPCIeTest::testGetSetWaitingTime() {
-  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() ==
-              mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 
-  _writeSPIviaPCIe->setSpiWaitingTime(
-      2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
-  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() ==
-              2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+  _writeSPIviaPCIe->setSpiWaitingTime(2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == 2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 }

@@ -5,13 +5,13 @@ using namespace boost::unit_test_framework;
 
 #include "GeneralStatus.h"
 
-bool checkOperatorForDefaultConstructedObject(mtca4u::GeneralStatus &status) {
-  switch (status) {
-  case 0:
-    return true;
-    break;
-  default:
-    return false;
+bool checkOperatorForDefaultConstructedObject(mtca4u::GeneralStatus& status) {
+  switch(status) {
+    case 0:
+      return true;
+      break;
+    default:
+      return false;
   }
 }
 
@@ -59,30 +59,22 @@ BOOST_AUTO_TEST_CASE(GeneralStatusTestCase) {
 
   // test: operator<<
   testStream << status0;
-  BOOST_CHECK(
-      testStream.str().compare(
-          "No name available in GeneralStatus object. Status id: (0)") == 0);
+  BOOST_CHECK(testStream.str().compare("No name available in GeneralStatus object. Status id: (0)") == 0);
 
   testStream.str(std::string());
   testStream.clear();
   testStream << status0Copy1;
-  BOOST_CHECK(
-      testStream.str().compare(
-          "No name available in GeneralStatus object. Status id: (0)") == 0);
+  BOOST_CHECK(testStream.str().compare("No name available in GeneralStatus object. Status id: (0)") == 0);
 
   testStream.str(std::string());
   testStream.clear();
   testStream << status0Copy2;
-  BOOST_CHECK(
-      testStream.str().compare(
-          "No name available in GeneralStatus object. Status id: (0)") == 0);
+  BOOST_CHECK(testStream.str().compare("No name available in GeneralStatus object. Status id: (0)") == 0);
 
   testStream.str(std::string());
   testStream.clear();
   testStream << status1;
-  BOOST_CHECK(
-      testStream.str().compare(
-          "No name available in GeneralStatus object. Status id: (1)") == 0);
+  BOOST_CHECK(testStream.str().compare("No name available in GeneralStatus object. Status id: (1)") == 0);
 
   // fail test
   // BOOST_CHECK( (status0 != status0Copy1) != false);

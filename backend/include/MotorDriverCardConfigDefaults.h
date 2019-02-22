@@ -7,12 +7,12 @@
 
 namespace mtca4u {
 
-// controler registers
-unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000122;
-unsigned int const STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT = 0x010701;
+  // controler registers
+  unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000122;
+  unsigned int const STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT = 0x010701;
 
-// spi communication parametes
-unsigned int const CONTROLER_SPI_WAITING_TIME_DEFAULT = 50; // microseconds
+  // spi communication parametes
+  unsigned int const CONTROLER_SPI_WAITING_TIME_DEFAULT = 50; // microseconds
 
 } // namespace mtca4u
 

@@ -1,6 +1,6 @@
 #ifndef PUGIXML_NO_XPATH
 
-#include "common.hpp"
+#  include "common.hpp"
 
 TEST_XML(xpath_number_number, "<node>123</node>") {
   xml_node c;
@@ -50,11 +50,10 @@ TEST_XML(xpath_number_sum, "<node>123<child>789</child></node><node/>") {
   CHECK_XPATH_NUMBER(c, STR("sum(.)"), 0);
   CHECK_XPATH_NUMBER(n, STR("sum(.)"), 123789); // 123 .. 789
 
-  CHECK_XPATH_NUMBER(
-      n, STR("sum(./descendant-or-self::node())"),
+  CHECK_XPATH_NUMBER(n, STR("sum(./descendant-or-self::node())"),
       125490); // node + 123 + child + 789 = 123789 + 123 + 789 + 789 = 125490
   CHECK_XPATH_NUMBER(n, STR("sum(.//node())"),
-                     1701); // 123 + child + 789 = 123 + 789 + 789
+      1701); // 123 + child + 789 = 123 + 789 + 789
   CHECK_XPATH_NUMBER_NAN(doc.last_child(), STR("sum(.)"));
 
   // sum with 2 arguments
@@ -86,11 +85,10 @@ TEST(xpath_number_floor) {
   CHECK_XPATH_STRING(c, STR("string(1 div floor(0))"), STR("Infinity"));
 
   // floor with argument -0 should return -0
-#if !(defined(__APPLE__) &&                                                    \
-      defined(__MACH__)) // MacOS X gcc 4.0.1 implements floor incorrectly
-                         // (floor never returns -0)
+#  if !(defined(__APPLE__) && defined(__MACH__)) // MacOS X gcc 4.0.1 implements floor incorrectly
+                                                 // (floor never returns -0)
   CHECK_XPATH_STRING(c, STR("string(1 div floor(-0))"), STR("-Infinity"));
-#endif
+#  endif
 }
 
 TEST(xpath_number_ceiling) {
@@ -115,12 +113,11 @@ TEST(xpath_number_ceiling) {
   CHECK_XPATH_STRING(c, STR("string(1 div ceiling(0))"), STR("Infinity"));
 
   // ceiling with argument in range (-1, -0] should result in minus zero
-#if !(defined(__APPLE__) &&                                                    \
-      defined(__MACH__)) // MacOS X gcc 4.0.1 implements ceil incorrectly (ceil
-                         // never returns -0)
+#  if !(defined(__APPLE__) && defined(__MACH__)) // MacOS X gcc 4.0.1 implements ceil incorrectly (ceil
+                                                 // never returns -0)
   CHECK_XPATH_STRING(c, STR("string(1 div ceiling(-0))"), STR("-Infinity"));
   CHECK_XPATH_STRING(c, STR("string(1 div ceiling(-0.1))"), STR("-Infinity"));
-#endif
+#  endif
 }
 
 TEST(xpath_number_round) {
@@ -147,13 +144,12 @@ TEST(xpath_number_round) {
   // round with argument in range [-0.5, -0] should result in minus zero
   CHECK_XPATH_STRING(c, STR("string(1 div round(0))"), STR("Infinity"));
 
-#if !(defined(__APPLE__) &&                                                    \
-      defined(__MACH__)) // MacOS X gcc 4.0.1 implements ceil incorrectly (ceil
-                         // never returns -0)
+#  if !(defined(__APPLE__) && defined(__MACH__)) // MacOS X gcc 4.0.1 implements ceil incorrectly (ceil
+                                                 // never returns -0)
   CHECK_XPATH_STRING(c, STR("string(1 div round(-0.5))"), STR("-Infinity"));
   CHECK_XPATH_STRING(c, STR("string(1 div round(-0))"), STR("-Infinity"));
   CHECK_XPATH_STRING(c, STR("string(1 div round(-0.1))"), STR("-Infinity"));
-#endif
+#  endif
 }
 
 TEST_XML(xpath_boolean_boolean, "<node />") {
@@ -217,8 +213,8 @@ TEST(xpath_boolean_false) {
 }
 
 TEST_XML(xpath_boolean_lang,
-         "<node xml:lang='en'><child "
-         "xml:lang='zh-UK'><subchild/></child></node><foo><bar/></foo>") {
+    "<node xml:lang='en'><child "
+    "xml:lang='zh-UK'><subchild/></child></node><foo><bar/></foo>") {
   xml_node c;
 
   // lang with 0 arguments
@@ -228,43 +224,31 @@ TEST_XML(xpath_boolean_lang,
   CHECK_XPATH_BOOLEAN(c, STR("lang('en')"), false);
   CHECK_XPATH_BOOLEAN(doc.child(STR("foo")), STR("lang('en')"), false);
   CHECK_XPATH_BOOLEAN(doc.child(STR("foo")), STR("lang('')"), false);
-  CHECK_XPATH_BOOLEAN(doc.child(STR("foo")).child(STR("bar")),
-                      STR("lang('en')"), false);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("foo")).child(STR("bar")), STR("lang('en')"), false);
 
   // lang with 1 argument, same language/prefix
   CHECK_XPATH_BOOLEAN(doc.child(STR("node")), STR("lang('en')"), true);
-  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")),
-                      STR("lang('zh-uk')"), true);
-  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")),
-                      STR("lang('zh')"), true);
-  CHECK_XPATH_BOOLEAN(
-      doc.child(STR("node")).child(STR("child")).child(STR("subchild")),
-      STR("lang('zh')"), true);
-  CHECK_XPATH_BOOLEAN(
-      doc.child(STR("node")).child(STR("child")).child(STR("subchild")),
-      STR("lang('ZH')"), true);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")), STR("lang('zh-uk')"), true);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")), STR("lang('zh')"), true);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")).child(STR("subchild")), STR("lang('zh')"), true);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")).child(STR("subchild")), STR("lang('ZH')"), true);
 
   // lang with 1 argument, different language/prefix
   CHECK_XPATH_BOOLEAN(doc.child(STR("node")), STR("lang('')"), false);
   CHECK_XPATH_BOOLEAN(doc.child(STR("node")), STR("lang('e')"), false);
-  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")),
-                      STR("lang('en')"), false);
-  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")),
-                      STR("lang('zh-gb')"), false);
-  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")),
-                      STR("lang('r')"), false);
-  CHECK_XPATH_BOOLEAN(
-      doc.child(STR("node")).child(STR("child")).child(STR("subchild")),
-      STR("lang('en')"), false);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")), STR("lang('en')"), false);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")), STR("lang('zh-gb')"), false);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")), STR("lang('r')"), false);
+  CHECK_XPATH_BOOLEAN(doc.child(STR("node")).child(STR("child")).child(STR("subchild")), STR("lang('en')"), false);
 
   // lang with 2 arguments
   CHECK_XPATH_FAIL(STR("lang(1, 2)"));
 }
 
 TEST_XML(xpath_string_string,
-         "<node>123<child "
-         "id='1'>789</child><child><subchild><![CDATA[200]]></subchild></"
-         "child>100</node>") {
+    "<node>123<child "
+    "id='1'>789</child><child><subchild><![CDATA[200]]></subchild></"
+    "child>100</node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
@@ -323,10 +307,8 @@ TEST(xpath_string_concat) {
   CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c')"), STR("abc"));
   CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c', 'd')"), STR("abcd"));
   CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c', 'd', 'e')"), STR("abcde"));
-  CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c', 'd', 'e', 'f')"),
-                     STR("abcdef"));
-  CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c', 'd', 'e', 'f', 'g')"),
-                     STR("abcdefg"));
+  CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c', 'd', 'e', 'f')"), STR("abcdef"));
+  CHECK_XPATH_STRING(c, STR("concat('a', 'b', 'c', 'd', 'e', 'f', 'g')"), STR("abcdefg"));
   CHECK_XPATH_STRING(c, STR("concat(1, 2, 3, 4, 5, 6, 7, 8)"), STR("12345678"));
 }
 
@@ -394,8 +376,7 @@ TEST(xpath_string_substring_before) {
   CHECK_XPATH_STRING(c, STR("substring-before('', '')"), STR(""));
 
   // substring-before with 2 arguments, from W3C standard
-  CHECK_XPATH_STRING(c, STR("substring-before(\"1999/04/01\",\"/\")"),
-                     STR("1999"));
+  CHECK_XPATH_STRING(c, STR("substring-before(\"1999/04/01\",\"/\")"), STR("1999"));
 
   // substring-before with 3 arguments
   CHECK_XPATH_FAIL(STR("substring-before('a', 'b', 'c')"));
@@ -420,10 +401,8 @@ TEST(xpath_string_substring_after) {
   CHECK_XPATH_STRING(c, STR("substring-after('', '')"), STR(""));
 
   // substring-before with 2 arguments, from W3C standard
-  CHECK_XPATH_STRING(c, STR("substring-after(\"1999/04/01\",\"/\")"),
-                     STR("04/01"));
-  CHECK_XPATH_STRING(c, STR("substring-after(\"1999/04/01\",\"19\")"),
-                     STR("99/04/01"));
+  CHECK_XPATH_STRING(c, STR("substring-after(\"1999/04/01\",\"/\")"), STR("04/01"));
+  CHECK_XPATH_STRING(c, STR("substring-after(\"1999/04/01\",\"19\")"), STR("99/04/01"));
 
   // substring-after with 3 arguments
   CHECK_XPATH_FAIL(STR("substring-after('a', 'b', 'c')"));
@@ -452,9 +431,7 @@ TEST(xpath_string_substring) {
   CHECK_XPATH_STRING(c, STR("substring('abcd', 0 div 0)"), STR(""));
   CHECK_XPATH_STRING(c, STR("substring('', 1)"), STR(""));
   CHECK_XPATH_STRING(c, STR("substring('', 0)"), STR(""));
-  CHECK_XPATH_STRING(
-      c, STR("substring(substring('internalexternalcorrect substring',9),9)"),
-      STR("correct substring"));
+  CHECK_XPATH_STRING(c, STR("substring(substring('internalexternalcorrect substring',9),9)"), STR("correct substring"));
 
   // substring with 3 arguments
   CHECK_XPATH_STRING(c, STR("substring('abcd', 2, 1)"), STR("b"));
@@ -507,9 +484,7 @@ TEST_XML(xpath_string_string_length, "<node>123</node>") {
   CHECK_XPATH_FAIL(STR("string-length(1, 2)"));
 }
 
-TEST_XML_FLAGS(xpath_string_normalize_space,
-               "<node> \t\r\rval1  \rval2\r\nval3\nval4\r\r</node>",
-               parse_minimal) {
+TEST_XML_FLAGS(xpath_string_normalize_space, "<node> \t\r\rval1  \rval2\r\nval3\nval4\r\r</node>", parse_minimal) {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
@@ -558,23 +533,20 @@ TEST(xpath_string_translate) {
   CHECK_XPATH_FAIL(STR("translate('a', 'b', 'c', 'd')"));
 }
 
-TEST_XML(xpath_nodeset_last,
-         "<node><c1/><c1/><c2/><c3/><c3/><c3/><c3/></node>") {
+TEST_XML(xpath_nodeset_last, "<node><c1/><c1/><c2/><c3/><c3/><c3/><c3/></node>") {
   xml_node n = doc.child(STR("node"));
 
   // last with 0 arguments
   CHECK_XPATH_NUMBER(n, STR("last()"), 1);
   CHECK_XPATH_NODESET(n, STR("c1[last() = 1]"));
-  CHECK_XPATH_NODESET(n, STR("c1[last() = 2]")) % 3 % 4; // c1, c1
-  CHECK_XPATH_NODESET(n, STR("c2/preceding-sibling::node()[last() = 2]")) % 4 %
-      3; // c1, c1
+  CHECK_XPATH_NODESET(n, STR("c1[last() = 2]")) % 3 % 4;                           // c1, c1
+  CHECK_XPATH_NODESET(n, STR("c2/preceding-sibling::node()[last() = 2]")) % 4 % 3; // c1, c1
 
   // last with 1 argument
   CHECK_XPATH_FAIL(STR("last(c)"));
 }
 
-TEST_XML(xpath_nodeset_position,
-         "<node><c1/><c1/><c2/><c3/><c3/><c3/><c3/></node>") {
+TEST_XML(xpath_nodeset_position, "<node><c1/><c1/><c2/><c3/><c3/><c3/><c3/></node>") {
   xml_node n = doc.child(STR("node"));
 
   // position with 0 arguments
@@ -583,17 +555,14 @@ TEST_XML(xpath_nodeset_position,
   CHECK_XPATH_NODESET(n, STR("c1[position() = 1]")) % 3;
   CHECK_XPATH_NODESET(n, STR("c1[position() = 2]")) % 4;
   CHECK_XPATH_NODESET(n, STR("c1[position() = 3]"));
-  CHECK_XPATH_NODESET(n, STR("c2/preceding-sibling::node()[position() = 1]")) %
-      4;
-  CHECK_XPATH_NODESET(n, STR("c2/preceding-sibling::node()[position() = 2]")) %
-      3;
+  CHECK_XPATH_NODESET(n, STR("c2/preceding-sibling::node()[position() = 1]")) % 4;
+  CHECK_XPATH_NODESET(n, STR("c2/preceding-sibling::node()[position() = 2]")) % 3;
 
   // position with 1 argument
   CHECK_XPATH_FAIL(STR("position(c)"));
 }
 
-TEST_XML(xpath_nodeset_count,
-         "<node><c1/><c1/><c2/><c3/><c3/><c3/><c3/></node>") {
+TEST_XML(xpath_nodeset_count, "<node><c1/><c1/><c2/><c3/><c3/><c3/><c3/></node>") {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
@@ -630,8 +599,7 @@ TEST_XML(xpath_nodeset_id, "<node id='foo'/>") {
   CHECK_XPATH_FAIL(STR("id(1, 2)"));
 }
 
-TEST_XML_FLAGS(
-    xpath_nodeset_local_name,
+TEST_XML_FLAGS(xpath_nodeset_local_name,
     "<node xmlns:foo='http://foo'><c1>text</c1><c2 xmlns:foo='http://foo2' "
     "foo:attr='value'><foo:child/></c2><c3 xmlns='http://def' "
     "attr='value'><child/></c3><c4><?target stuff?></c4></node>",
@@ -652,60 +620,50 @@ TEST_XML_FLAGS(
   CHECK_XPATH_STRING(n, STR("local-name(c2/attribute::node())"), STR("attr"));
   CHECK_XPATH_STRING(n, STR("local-name(c1/node())"), STR(""));
   CHECK_XPATH_STRING(n, STR("local-name(c4/node())"), STR("target"));
-  CHECK_XPATH_STRING(n, STR("local-name(c1/following-sibling::node())"),
-                     STR("c2"));
-  CHECK_XPATH_STRING(n, STR("local-name(c4/preceding-sibling::node())"),
-                     STR("c1"));
+  CHECK_XPATH_STRING(n, STR("local-name(c1/following-sibling::node())"), STR("c2"));
+  CHECK_XPATH_STRING(n, STR("local-name(c4/preceding-sibling::node())"), STR("c1"));
 
   // local-name with 2 arguments
   CHECK_XPATH_FAIL(STR("local-name(c1, c2)"));
 }
 
 TEST_XML_FLAGS(xpath_nodeset_namespace_uri,
-               "<node xmlns:foo='http://foo'><c1>text</c1><c2 "
-               "xmlns:foo='http://foo2' foo:attr='value'><foo:child/></c2><c3 "
-               "xmlns='http://def' attr='value'><child/></c3><c4><?target "
-               "stuff?></c4><c5><foo:child/></c5><c6 bar:attr=''/><c7><node "
-               "foo:attr=''/></c7></node>",
-               parse_default | parse_pi) {
+    "<node xmlns:foo='http://foo'><c1>text</c1><c2 "
+    "xmlns:foo='http://foo2' foo:attr='value'><foo:child/></c2><c3 "
+    "xmlns='http://def' attr='value'><child/></c3><c4><?target "
+    "stuff?></c4><c5><foo:child/></c5><c6 bar:attr=''/><c7><node "
+    "foo:attr=''/></c7></node>",
+    parse_default | parse_pi) {
   xml_node c;
   xml_node n = doc.child(STR("node"));
 
   // namespace-uri with 0 arguments
   CHECK_XPATH_STRING(c, STR("namespace-uri()"), STR(""));
-  CHECK_XPATH_STRING(n.child(STR("c2")).child(STR("foo:child")),
-                     STR("namespace-uri()"), STR("http://foo2"));
+  CHECK_XPATH_STRING(n.child(STR("c2")).child(STR("foo:child")), STR("namespace-uri()"), STR("http://foo2"));
 
   // namespace-uri with 1 non-node-set argument
   CHECK_XPATH_FAIL(STR("namespace-uri(1)"));
 
   // namespace-uri with 1 node-set argument
   CHECK_XPATH_STRING(n, STR("namespace-uri(c1)"), STR(""));
-  CHECK_XPATH_STRING(n, STR("namespace-uri(c5/child::node())"),
-                     STR("http://foo"));
-  CHECK_XPATH_STRING(n, STR("namespace-uri(c2/attribute::node())"),
-                     STR("http://foo2"));
-  CHECK_XPATH_STRING(n, STR("namespace-uri(c2/child::node())"),
-                     STR("http://foo2"));
+  CHECK_XPATH_STRING(n, STR("namespace-uri(c5/child::node())"), STR("http://foo"));
+  CHECK_XPATH_STRING(n, STR("namespace-uri(c2/attribute::node())"), STR("http://foo2"));
+  CHECK_XPATH_STRING(n, STR("namespace-uri(c2/child::node())"), STR("http://foo2"));
   CHECK_XPATH_STRING(n, STR("namespace-uri(c1/child::node())"), STR(""));
   CHECK_XPATH_STRING(n, STR("namespace-uri(c4/child::node())"), STR(""));
   CHECK_XPATH_STRING(n, STR("namespace-uri(c3)"), STR("http://def"));
-  CHECK_XPATH_STRING(
-      n, STR("namespace-uri(c3/@attr)"),
+  CHECK_XPATH_STRING(n, STR("namespace-uri(c3/@attr)"),
       STR("")); // the namespace name for an unprefixed attribute name always
                 // has no value (Namespaces in XML 1.0)
-  CHECK_XPATH_STRING(n, STR("namespace-uri(c3/child::node())"),
-                     STR("http://def"));
+  CHECK_XPATH_STRING(n, STR("namespace-uri(c3/child::node())"), STR("http://def"));
   CHECK_XPATH_STRING(n, STR("namespace-uri(c6/@bar:attr)"), STR(""));
-  CHECK_XPATH_STRING(n, STR("namespace-uri(c7/node/@foo:attr)"),
-                     STR("http://foo"));
+  CHECK_XPATH_STRING(n, STR("namespace-uri(c7/node/@foo:attr)"), STR("http://foo"));
 
   // namespace-uri with 2 arguments
   CHECK_XPATH_FAIL(STR("namespace-uri(c1, c2)"));
 }
 
-TEST_XML_FLAGS(
-    xpath_nodeset_name,
+TEST_XML_FLAGS(xpath_nodeset_name,
     "<node xmlns:foo='http://foo'><c1>text</c1><c2 xmlns:foo='http://foo2' "
     "foo:attr='value'><foo:child/></c2><c3 xmlns='http://def' "
     "attr='value'><child/></c3><c4><?target stuff?></c4></node>",
@@ -773,8 +731,7 @@ TEST(xpath_function_arguments) {
   CHECK_XPATH_FAIL(STR("round(1, 2, 3, 4, 5, 6)"));
 }
 
-TEST_XML_FLAGS(
-    xpath_string_value,
+TEST_XML_FLAGS(xpath_string_value,
     "<node><c1>pcdata</c1><c2><child/></c2><c3 attr='avalue'/><c4><?target "
     "pivalue?></c4><c5><!--comment--></c5><c6><![CDATA[cdata]]></c6></node>",
     parse_default | parse_pi | parse_comments) {
@@ -793,9 +750,7 @@ TEST_XML_FLAGS(
 }
 
 TEST_XML(xpath_string_concat_translate, "<node>foobar</node>") {
-  CHECK_XPATH_STRING(
-      doc, STR("concat('a', 'b', 'c', translate(node, 'o', 'a'), 'd')"),
-      STR("abcfaabard"));
+  CHECK_XPATH_STRING(doc, STR("concat('a', 'b', 'c', translate(node, 'o', 'a'), 'd')"), STR("abcfaabard"));
 }
 
 #endif

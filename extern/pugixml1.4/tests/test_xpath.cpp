@@ -1,16 +1,16 @@
 #ifndef PUGIXML_NO_XPATH
 
-#include "common.hpp"
+#  include "common.hpp"
 
-#include <string.h>
-#include <wchar.h>
+#  include <string.h>
+#  include <wchar.h>
 
-#include <algorithm>
-#include <limits>
-#include <string>
-#include <vector>
+#  include <algorithm>
+#  include <limits>
+#  include <string>
+#  include <vector>
 
-static void load_document_copy(xml_document &doc, const char_t *text) {
+static void load_document_copy(xml_document& doc, const char_t* text) {
   xml_document source;
   CHECK(source.load(text));
 
@@ -20,8 +20,7 @@ static void load_document_copy(xml_document &doc, const char_t *text) {
 TEST(xpath_allocator_many_pages) {
   std::basic_string<char_t> query = STR("0");
 
-  for (int i = 0; i < 128; ++i)
-    query += STR("+string-length('abcdefgh')");
+  for(int i = 0; i < 128; ++i) query += STR("+string-length('abcdefgh')");
 
   CHECK_XPATH_NUMBER(xml_node(), query.c_str(), 1024);
 }
@@ -29,21 +28,17 @@ TEST(xpath_allocator_many_pages) {
 TEST(xpath_allocator_large_page) {
   std::basic_string<char_t> query;
 
-  for (int i = 0; i < 1024; ++i)
-    query += STR("abcdefgh");
+  for(int i = 0; i < 1024; ++i) query += STR("abcdefgh");
 
-  CHECK_XPATH_NUMBER(
-      xml_node(), (STR("string-length('") + query + STR("')")).c_str(), 8192);
+  CHECK_XPATH_NUMBER(xml_node(), (STR("string-length('") + query + STR("')")).c_str(), 8192);
 }
 
 TEST_XML(xpath_sort_complex,
-         "<node><child1 attr1='value1' attr2='value2'/><child2 "
-         "attr1='value1'>test</child2></node>") {
+    "<node><child1 attr1='value1' attr2='value2'/><child2 "
+    "attr1='value1'>test</child2></node>") {
   // just some random union order, it should not matter probably?
   xpath_node_set ns =
-      doc.child(STR("node"))
-          .select_nodes(STR(
-              "child1 | child2 | child1/@* | . | child2/@* | child2/text()"));
+      doc.child(STR("node")).select_nodes(STR("child1 | child2 | child1/@* | . | child2/@* | child2/text()"));
 
   ns.sort(false);
   xpath_node_set sorted = ns;
@@ -51,10 +46,8 @@ TEST_XML(xpath_sort_complex,
   ns.sort(true);
   xpath_node_set reverse_sorted = ns;
 
-  xpath_node_set_tester(sorted, "sorted order failed") % 2 % 3 % 4 % 5 % 6 % 7 %
-      8;
-  xpath_node_set_tester(reverse_sorted, "reverse sorted order failed") % 8 % 7 %
-      6 % 5 % 4 % 3 % 2;
+  xpath_node_set_tester(sorted, "sorted order failed") % 2 % 3 % 4 % 5 % 6 % 7 % 8;
+  xpath_node_set_tester(reverse_sorted, "reverse sorted order failed") % 8 % 7 % 6 % 5 % 4 % 3 % 2;
 }
 
 TEST(xpath_sort_complex_copy) // copy the document so that document order
@@ -62,14 +55,12 @@ TEST(xpath_sort_complex_copy) // copy the document so that document order
 {
   xml_document doc;
   load_document_copy(doc,
-                     STR("<node><child1 attr1='value1' attr2='value2'/><child2 "
-                         "attr1='value1'>test</child2></node>"));
+      STR("<node><child1 attr1='value1' attr2='value2'/><child2 "
+          "attr1='value1'>test</child2></node>"));
 
   // just some random union order, it should not matter probably?
   xpath_node_set ns =
-      doc.child(STR("node"))
-          .select_nodes(STR(
-              "child1 | child2 | child1/@* | . | child2/@* | child2/text()"));
+      doc.child(STR("node")).select_nodes(STR("child1 | child2 | child1/@* | . | child2/@* | child2/text()"));
 
   ns.sort(false);
   xpath_node_set sorted = ns;
@@ -77,18 +68,14 @@ TEST(xpath_sort_complex_copy) // copy the document so that document order
   ns.sort(true);
   xpath_node_set reverse_sorted = ns;
 
-  xpath_node_set_tester(sorted, "sorted order failed") % 2 % 3 % 4 % 5 % 6 % 7 %
-      8;
-  xpath_node_set_tester(reverse_sorted, "reverse sorted order failed") % 8 % 7 %
-      6 % 5 % 4 % 3 % 2;
+  xpath_node_set_tester(sorted, "sorted order failed") % 2 % 3 % 4 % 5 % 6 % 7 % 8;
+  xpath_node_set_tester(reverse_sorted, "reverse sorted order failed") % 8 % 7 % 6 % 5 % 4 % 3 % 2;
 }
 
 TEST_XML(xpath_sort_children,
-         "<node><child><subchild id='1'/></child><child><subchild "
-         "id='2'/></child></node>") {
-  xpath_node_set ns =
-      doc.child(STR("node"))
-          .select_nodes(STR("child/subchild[@id=1] | child/subchild[@id=2]"));
+    "<node><child><subchild id='1'/></child><child><subchild "
+    "id='2'/></child></node>") {
+  xpath_node_set ns = doc.child(STR("node")).select_nodes(STR("child/subchild[@id=1] | child/subchild[@id=2]"));
 
   ns.sort(false);
   xpath_node_set sorted = ns;
@@ -104,13 +91,11 @@ TEST(xpath_sort_children_copy) // copy the document so that document order
                                // optimization does not work
 {
   xml_document doc;
-  load_document_copy(
-      doc, STR("<node><child><subchild id='1'/></child><child><subchild "
-               "id='2'/></child></node>"));
+  load_document_copy(doc,
+      STR("<node><child><subchild id='1'/></child><child><subchild "
+          "id='2'/></child></node>"));
 
-  xpath_node_set ns =
-      doc.child(STR("node"))
-          .select_nodes(STR("child/subchild[@id=1] | child/subchild[@id=2]"));
+  xpath_node_set ns = doc.child(STR("node")).select_nodes(STR("child/subchild[@id=1] | child/subchild[@id=2]"));
 
   ns.sort(false);
   xpath_node_set sorted = ns;
@@ -141,27 +126,19 @@ TEST_XML(xpath_sort_attributes, "<node/>") {
   xpath_node_set sorted = ns;
 
   xpath_node_set_tester(sorted, "sorted order failed") % 3 % 4 % 5;
-  xpath_node_set_tester(reverse_sorted, "reverse sorted order failed") % 5 % 4 %
-      3;
+  xpath_node_set_tester(reverse_sorted, "reverse sorted order failed") % 5 % 4 % 3;
 }
 
 TEST(xpath_sort_random_large) {
   xml_document doc;
-  load_document_copy(
-      doc,
+  load_document_copy(doc,
       STR("<node>") STR("<child1 attr1='value1' attr2='value2'/><child2 "
                         "attr1='value1'>test</child2><child1 attr1='value1' "
                         "attr2='value2'/><child2 attr1='value1'>test</child2>")
           STR("<child1 attr1='value1' attr2='value2'/><child2 "
               "attr1='value1'>test</child2><child1 attr1='value1' "
-              "attr2='value2'/><child2 attr1='value1'>test</child2>") STR(
-              "<child1 attr1='value1' attr2='value2'/><child2 "
-              "attr1='value1'>test</child2><child1 attr1='value1' "
               "attr2='value2'/><child2 attr1='value1'>test</child2>")
               STR("<child1 attr1='value1' attr2='value2'/><child2 "
-                  "attr1='value1'>test</child2><child1 attr1='value1' "
-                  "attr2='value2'/><child2 attr1='value1'>test</child2>") STR(
-                  "<child1 attr1='value1' attr2='value2'/><child2 "
                   "attr1='value1'>test</child2><child1 attr1='value1' "
                   "attr2='value2'/><child2 attr1='value1'>test</child2>")
                   STR("<child1 attr1='value1' attr2='value2'/><child2 "
@@ -169,23 +146,29 @@ TEST(xpath_sort_random_large) {
                       "attr2='value2'/><child2 attr1='value1'>test</child2>")
                       STR("<child1 attr1='value1' attr2='value2'/><child2 "
                           "attr1='value1'>test</child2><child1 attr1='value1' "
-                          "attr2='value2'/><child2 "
-                          "attr1='value1'>test</child2>") STR(
-                          "<child1 attr1='value1' attr2='value2'/><child2 "
-                          "attr1='value1'>test</child2><child1 attr1='value1' "
-                          "attr2='value2'/><child2 "
-                          "attr1='value1'>test</child2>")
+                          "attr2='value2'/><child2 attr1='value1'>test</child2>")
                           STR("<child1 attr1='value1' attr2='value2'/><child2 "
-                              "attr1='value1'>test</child2><child1 "
-                              "attr1='value1' attr2='value2'/><child2 "
-                              "attr1='value1'>test</child2>") STR(
-                              "<child1 attr1='value1' attr2='value2'/><child2 "
-                              "attr1='value1'>test</child2><child1 "
-                              "attr1='value1' attr2='value2'/><child2 "
-                              "attr1='value1'>test</child2>")
-                              STR("<child1 attr1='value1' "
+                              "attr1='value1'>test</child2><child1 attr1='value1' "
+                              "attr2='value2'/><child2 attr1='value1'>test</child2>")
+                              STR("<child1 attr1='value1' attr2='value2'/><child2 "
+                                  "attr1='value1'>test</child2><child1 attr1='value1' "
                                   "attr2='value2'/><child2 "
-                                  "attr1='value1'>test</child2></node>"));
+                                  "attr1='value1'>test</child2>")
+                                  STR("<child1 attr1='value1' attr2='value2'/><child2 "
+                                      "attr1='value1'>test</child2><child1 attr1='value1' "
+                                      "attr2='value2'/><child2 "
+                                      "attr1='value1'>test</child2>")
+                                      STR("<child1 attr1='value1' attr2='value2'/><child2 "
+                                          "attr1='value1'>test</child2><child1 "
+                                          "attr1='value1' attr2='value2'/><child2 "
+                                          "attr1='value1'>test</child2>")
+                                          STR("<child1 attr1='value1' attr2='value2'/><child2 "
+                                              "attr1='value1'>test</child2><child1 "
+                                              "attr1='value1' attr2='value2'/><child2 "
+                                              "attr1='value1'>test</child2>")
+                                              STR("<child1 attr1='value1' "
+                                                  "attr2='value2'/><child2 "
+                                                  "attr1='value1'>test</child2></node>"));
 
   xpath_node_set ns = doc.select_nodes(STR("//node() | //@*"));
 
@@ -197,28 +180,23 @@ TEST(xpath_sort_random_large) {
 
   xpath_node_set_tester tester(copy, "sorted order failed");
 
-  for (unsigned int i = 2; i < 129; ++i)
-    tester % i;
+  for(unsigned int i = 2; i < 129; ++i) tester % i;
 }
 
 TEST(xpath_long_numbers_parse) {
-  const pugi::char_t *str_flt_max =
-      STR("340282346638528860000000000000000000000");
-  const pugi::char_t *str_flt_max_dec =
-      STR("340282346638528860000000000000000000000.000000");
+  const pugi::char_t* str_flt_max = STR("340282346638528860000000000000000000000");
+  const pugi::char_t* str_flt_max_dec = STR("340282346638528860000000000000000000000.000000");
 
-  const pugi::char_t *str_dbl_max =
-      STR("17976931348623157000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "0000000000000000000000000000000000000");
-  const pugi::char_t *str_dbl_max_dec =
-      STR("17976931348623157000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "0000000000000000000000000000000000000.000000");
+  const pugi::char_t* str_dbl_max = STR("17976931348623157000000000000000000000000000000000000000000000000000"
+                                        "00000000000000000000000000000000000000000000000000000000000000000000"
+                                        "00000000000000000000000000000000000000000000000000000000000000000000"
+                                        "00000000000000000000000000000000000000000000000000000000000000000000"
+                                        "0000000000000000000000000000000000000");
+  const pugi::char_t* str_dbl_max_dec = STR("17976931348623157000000000000000000000000000000000000000000000000000"
+                                            "00000000000000000000000000000000000000000000000000000000000000000000"
+                                            "00000000000000000000000000000000000000000000000000000000000000000000"
+                                            "00000000000000000000000000000000000000000000000000000000000000000000"
+                                            "0000000000000000000000000000000000000.000000");
 
   xml_node c;
 
@@ -229,41 +207,34 @@ TEST(xpath_long_numbers_parse) {
   CHECK_XPATH_NUMBER(c, str_dbl_max_dec, std::numeric_limits<double>::max());
 }
 
-static bool test_xpath_string_prefix(const pugi::xml_node &node,
-                                     const pugi::char_t *query,
-                                     const pugi::char_t *expected,
-                                     size_t match_length) {
+static bool test_xpath_string_prefix(const pugi::xml_node& node,
+    const pugi::char_t* query,
+    const pugi::char_t* expected,
+    size_t match_length) {
   pugi::xpath_query q(query);
 
   pugi::char_t result[32];
-  size_t size =
-      q.evaluate_string(result, sizeof(result) / sizeof(result[0]), node);
+  size_t size = q.evaluate_string(result, sizeof(result) / sizeof(result[0]), node);
 
   size_t expected_length = std::char_traits<pugi::char_t>::length(expected);
 
-  return size == expected_length + 1 &&
-         std::char_traits<pugi::char_t>::compare(result, expected,
-                                                 match_length) == 0;
+  return size == expected_length + 1 && std::char_traits<pugi::char_t>::compare(result, expected, match_length) == 0;
 }
 
 TEST(xpath_long_numbers_stringize) {
-  const pugi::char_t *str_flt_max =
-      STR("340282346638528860000000000000000000000");
-  const pugi::char_t *str_flt_max_dec =
-      STR("340282346638528860000000000000000000000.000000");
+  const pugi::char_t* str_flt_max = STR("340282346638528860000000000000000000000");
+  const pugi::char_t* str_flt_max_dec = STR("340282346638528860000000000000000000000.000000");
 
-  const pugi::char_t *str_dbl_max =
-      STR("17976931348623157000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "0000000000000000000000000000000000000");
-  const pugi::char_t *str_dbl_max_dec =
-      STR("17976931348623157000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "00000000000000000000000000000000000000000000000000000000000000000000"
-          "0000000000000000000000000000000000000.000000");
+  const pugi::char_t* str_dbl_max = STR("17976931348623157000000000000000000000000000000000000000000000000000"
+                                        "00000000000000000000000000000000000000000000000000000000000000000000"
+                                        "00000000000000000000000000000000000000000000000000000000000000000000"
+                                        "00000000000000000000000000000000000000000000000000000000000000000000"
+                                        "0000000000000000000000000000000000000");
+  const pugi::char_t* str_dbl_max_dec = STR("17976931348623157000000000000000000000000000000000000000000000000000"
+                                            "00000000000000000000000000000000000000000000000000000000000000000000"
+                                            "00000000000000000000000000000000000000000000000000000000000000000000"
+                                            "00000000000000000000000000000000000000000000000000000000000000000000"
+                                            "0000000000000000000000000000000000000.000000");
 
   xml_node c;
 
@@ -278,14 +249,12 @@ TEST(xpath_denorm_numbers) {
   std::basic_string<pugi::char_t> query;
 
   // 10^-318 - double denormal
-  for (int i = 0; i < 106; ++i) {
-    if (i != 0)
-      query += STR(" * ");
+  for(int i = 0; i < 106; ++i) {
+    if(i != 0) query += STR(" * ");
     query += STR("0.001");
   }
 
-  CHECK_XPATH_STRING(
-      xml_node(), query.c_str(),
+  CHECK_XPATH_STRING(xml_node(), query.c_str(),
       STR("0."
           "00000000000000000000000000000000000000000000000000000000000000000000"
           "00000000000000000000000000000000000000000000000000000000000000000000"
@@ -307,36 +276,35 @@ TEST_XML(xpath_rexml_1, "<a><b><c id='a'/></b><c id='b'/></a>") {
   CHECK_XPATH_NODESET(doc, STR(" / a / c [ ( @id ) ] ")) % 6;
 }
 
-TEST_XML(xpath_rexml_2,
-         "<a:x xmlns:a='1'><a:y p='p' q='q'><a:z>zzz</a:z></a:y></a:x>") {
+TEST_XML(xpath_rexml_2, "<a:x xmlns:a='1'><a:y p='p' q='q'><a:z>zzz</a:z></a:y></a:x>") {
   CHECK_XPATH_NODESET(doc, STR("a:x/a:y[@p='p' and @q='q']/a:z/text()")) % 8;
 }
 
 TEST_XML(xpath_rexml_3,
-         "<article><section role='subdivision' id='1'><para>free flowing "
-         "text.</para></section><section role='division'><section "
-         "role='subdivision' id='2'><para>free flowing "
-         "text.</para></section><section role='division'><para>free flowing "
-         "text.</para></section></section></article>") {
+    "<article><section role='subdivision' id='1'><para>free flowing "
+    "text.</para></section><section role='division'><section "
+    "role='subdivision' id='2'><para>free flowing "
+    "text.</para></section><section role='division'><para>free flowing "
+    "text.</para></section></section></article>") {
+  CHECK_XPATH_NODESET(doc, STR("//section[../self::section[@role=\"division\"]]")) % 10 % 15;
   CHECK_XPATH_NODESET(doc,
-                      STR("//section[../self::section[@role=\"division\"]]")) %
-      10 % 15;
-  CHECK_XPATH_NODESET(doc, STR("//section[@role=\"subdivision\" and "
-                               "not(../self::section[@role=\"division\"])]")) %
+      STR("//section[@role=\"subdivision\" and "
+          "not(../self::section[@role=\"division\"])]")) %
       3;
-  CHECK_XPATH_NODESET(doc, STR("//section[@role=\"subdivision\"][not(../"
-                               "self::section[@role=\"division\"])]")) %
+  CHECK_XPATH_NODESET(doc,
+      STR("//section[@role=\"subdivision\"][not(../"
+          "self::section[@role=\"division\"])]")) %
       3;
 }
 
 TEST_XML_FLAGS(xpath_rexml_4,
-               "<a><b number='1' str='abc'>TEXT1</b><c number='1'/><c "
-               "number='2' str='def'><b number='3'/><d number='1' "
-               "str='abc'>TEXT2</d><b number='2'><!--COMMENT--></b></c></a>",
-               parse_default | parse_comments) {
-  CHECK_XPATH_NODESET(
-      doc, STR("/descendant-or-self::node()[count(child::node()|following-"
-               "sibling::node()|preceding-sibling::node())=0]")) %
+    "<a><b number='1' str='abc'>TEXT1</b><c number='1'/><c "
+    "number='2' str='def'><b number='3'/><d number='1' "
+    "str='abc'>TEXT2</d><b number='2'><!--COMMENT--></b></c></a>",
+    parse_default | parse_comments) {
+  CHECK_XPATH_NODESET(doc,
+      STR("/descendant-or-self::node()[count(child::node()|following-"
+          "sibling::node()|preceding-sibling::node())=0]")) %
       6 % 17 % 20;
 }
 
@@ -346,79 +314,60 @@ TEST_XML(xpath_rexml_5, "<a><b><c id='a'/></b><c id='b'/></a>") {
   CHECK_XPATH_NODESET(doc, STR(".//node()[@id]")) % 4 % 6;
 }
 
-TEST_XML(xpath_rexml_6,
-         "<div><span><strong>a</strong></span><em>b</em></div>") {
+TEST_XML(xpath_rexml_6, "<div><span><strong>a</strong></span><em>b</em></div>") {
   CHECK_XPATH_NODESET(doc, STR("//em|//strong")) % 4 % 6;
   CHECK_XPATH_NODESET(doc, STR("//*[self::em | self::strong]")) % 4 % 6;
-  CHECK_XPATH_NODESET(doc, STR("//*[name()=\"em\" or name()=\"strong\"]")) % 4 %
-      6;
+  CHECK_XPATH_NODESET(doc, STR("//*[name()=\"em\" or name()=\"strong\"]")) % 4 % 6;
   CHECK_XPATH_NODESET(doc, STR("//*[self::em or self::strong]")) % 4 % 6;
 }
 
 TEST_XML(xpath_xsl_list_1,
-         "<input><type>whatever</type></input><input><type>text</type></"
-         "input><input><type>select</type></input><input><type>something</"
-         "type></input>") {
+    "<input><type>whatever</type></input><input><type>text</type></"
+    "input><input><type>select</type></input><input><type>something</"
+    "type></input>") {
   // if I'm not last, and the next input/type isn't select
   CHECK_XPATH_NODESET(doc,
-                      STR("input[type[parent::input/"
-                          "following-sibling::input[1]/type != 'select']]")) %
+      STR("input[type[parent::input/"
+          "following-sibling::input[1]/type != 'select']]")) %
       2 % 8;
-  CHECK_XPATH_NODESET(
-      doc,
-      STR("input[type[../following-sibling::input[1]/type != 'select']]")) %
-      2 % 8;
+  CHECK_XPATH_NODESET(doc, STR("input[type[../following-sibling::input[1]/type != 'select']]")) % 2 % 8;
 
   CHECK_XPATH_NODESET(doc, STR("input[position()+1]"));
 }
 
-TEST_XML(xpath_xsl_list_2, "<TR><TD id='1'>text1</TD><TD id='2'>text2</TD><TD "
-                           "id='3'>text3</TD><TD id='4'>text4</TD></TR>") {
+TEST_XML(xpath_xsl_list_2,
+    "<TR><TD id='1'>text1</TD><TD id='2'>text2</TD><TD "
+    "id='3'>text3</TD><TD id='4'>text4</TD></TR>") {
   CHECK_XPATH_FAIL(STR(".[not(.=ancestor::TR/TD[15]/node())]"));
 
-  CHECK_XPATH_NODESET(
-      doc.child(STR("TR"))
-          .find_child_by_attribute(STR("TD"), STR("id"), STR("1"))
-          .first_child(),
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("1")).first_child(),
       STR("self::node()[not(.=ancestor::TR/TD[3]/node())]")) %
       5;
-  CHECK_XPATH_NODESET(
-      doc.child(STR("TR"))
-          .find_child_by_attribute(STR("TD"), STR("id"), STR("2"))
-          .first_child(),
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("2")).first_child(),
       STR("self::node()[not(.=ancestor::TR/TD[3]/node())]")) %
       8;
-  CHECK_XPATH_NODESET(
-      doc.child(STR("TR"))
-          .find_child_by_attribute(STR("TD"), STR("id"), STR("3"))
-          .first_child(),
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("3")).first_child(),
       STR("self::node()[not(.=ancestor::TR/TD[3]/node())]"));
-  CHECK_XPATH_NODESET(
-      doc.child(STR("TR"))
-          .find_child_by_attribute(STR("TD"), STR("id"), STR("4"))
-          .first_child(),
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("4")).first_child(),
       STR("self::node()[not(.=ancestor::TR/TD[3]/node())]")) %
       14;
 
-  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(
-                          STR("TD"), STR("id"), STR("1")),
-                      STR("node()[not(.=ancestor::TR/TD[3]/node())]")) %
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("1")),
+      STR("node()[not(.=ancestor::TR/TD[3]/node())]")) %
       5;
-  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(
-                          STR("TD"), STR("id"), STR("2")),
-                      STR("node()[not(.=ancestor::TR/TD[3]/node())]")) %
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("2")),
+      STR("node()[not(.=ancestor::TR/TD[3]/node())]")) %
       8;
-  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(
-                          STR("TD"), STR("id"), STR("3")),
-                      STR("node()[not(.=ancestor::TR/TD[3]/node())]"));
-  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(
-                          STR("TD"), STR("id"), STR("4")),
-                      STR("node()[not(.=ancestor::TR/TD[3]/node())]")) %
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("3")),
+      STR("node()[not(.=ancestor::TR/TD[3]/node())]"));
+  CHECK_XPATH_NODESET(doc.child(STR("TR")).find_child_by_attribute(STR("TD"), STR("id"), STR("4")),
+      STR("node()[not(.=ancestor::TR/TD[3]/node())]")) %
       14;
 }
 
-TEST_XML(xpath_star_token, "<node>0.5<section><child/><child/><child/><child/"
-                           "></section><section/></node>") {
+TEST_XML(xpath_star_token,
+    "<node>0.5<section><child/><child/><child/><child/"
+    "></section><section/></node>") {
   CHECK_XPATH_NODESET(doc, STR("//*[/* * 4]")) % 6 % 9;
   CHECK_XPATH_NODESET(doc, STR("//*[/**4]")) % 6 % 9;
   CHECK_XPATH_FAIL(STR("//*[/***4]"));
@@ -467,16 +416,17 @@ TEST(xpath_out_of_memory_evaluate_concat) {
 
   pugi::xpath_query q(query.c_str());
 
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
   CHECK(q.evaluate_string(0, 0, xml_node()) == 1);
-#else
+#  else
   try {
     q.evaluate_string(0, 0, xml_node());
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
   }
-#endif
+  catch(const std::bad_alloc&) {
+  }
+#  endif
 }
 
 TEST(xpath_out_of_memory_evaluate_substring) {
@@ -489,64 +439,66 @@ TEST(xpath_out_of_memory_evaluate_substring) {
 
   pugi::xpath_query q(query.c_str());
 
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
   CHECK(q.evaluate_string(0, 0, xml_node()) == 1);
-#else
+#  else
   try {
     q.evaluate_string(0, 0, xml_node());
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
   }
-#endif
+  catch(const std::bad_alloc&) {
+  }
+#  endif
 }
 
 TEST_XML(xpath_out_of_memory_evaluate_union,
-         "<node><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/"
-         "><a/><a/><a/><a/><a/><a/><a/><a/><a/></node>") {
+    "<node><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/"
+    "><a/><a/><a/><a/><a/><a/><a/><a/><a/></node>") {
   test_runner::_memory_fail_threshold = 32768 + 4096 * 2;
 
   pugi::xpath_query q(STR("a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|(a|("
                           "a|(a|(a|a)))))))))))))))))))"));
 
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
   CHECK(q.evaluate_node_set(doc.child(STR("node"))).empty());
-#else
+#  else
   try {
     q.evaluate_node_set(doc.child(STR("node")));
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
   }
-#endif
+  catch(const std::bad_alloc&) {
+  }
+#  endif
 }
 
 TEST_XML(xpath_out_of_memory_evaluate_predicate,
-         "<node><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/"
-         "><a/><a/><a/><a/><a/><a/><a/><a/><a/></node>") {
+    "<node><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/><a/"
+    "><a/><a/><a/><a/><a/><a/><a/><a/><a/></node>") {
   test_runner::_memory_fail_threshold = 32768 + 4096 * 2;
 
   pugi::xpath_query q(STR("//a[//a[//a[//a[//a[//a[//a[//a[//a[//a[//a[//a[//"
                           "a[//a[true()]]]]]]]]]]]]]]"));
 
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
   CHECK(q.evaluate_node_set(doc).empty());
-#else
+#  else
   try {
     q.evaluate_node_set(doc);
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
   }
-#endif
+  catch(const std::bad_alloc&) {
+  }
+#  endif
 }
 
 TEST(xpath_memory_concat_massive) {
   pugi::xml_document doc;
   pugi::xml_node node = doc.append_child(STR("node"));
 
-  for (int i = 0; i < 5000; ++i)
-    node.append_child(STR("c")).text().set(i % 10);
+  for(int i = 0; i < 5000; ++i) node.append_child(STR("c")).text().set(i % 10);
 
   pugi::xpath_query q(STR("/"));
   size_t size = q.evaluate_string(0, 0, node);

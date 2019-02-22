@@ -9,31 +9,29 @@
 #include <string>
 
 #ifndef PUGIXML_NO_EXCEPTIONS
-#include <exception>
+#  include <exception>
 #endif
 
 #ifdef _WIN32_WCE
-#undef DebugBreak
-#pragma warning(                                                               \
-    disable : 4201) // nonstandard extension used: nameless struct/union
-#include <windows.h>
+#  undef DebugBreak
+#  pragma warning(disable : 4201) // nonstandard extension used: nameless struct/union
+#  include <windows.h>
 #endif
 
-test_runner *test_runner::_tests = 0;
+test_runner* test_runner::_tests = 0;
 size_t test_runner::_memory_fail_threshold = 0;
 jmp_buf test_runner::_failure_buffer;
-const char *test_runner::_failure_message;
-const char *test_runner::_temp_path;
+const char* test_runner::_failure_message;
+const char* test_runner::_temp_path;
 
 static size_t g_memory_total_size = 0;
 static size_t g_memory_total_count = 0;
 
-static void *custom_allocate(size_t size) {
-  if (test_runner::_memory_fail_threshold > 0 &&
-      test_runner::_memory_fail_threshold < g_memory_total_size + size)
+static void* custom_allocate(size_t size) {
+  if(test_runner::_memory_fail_threshold > 0 && test_runner::_memory_fail_threshold < g_memory_total_size + size)
     return 0;
   else {
-    void *ptr = memory_allocate(size);
+    void* ptr = memory_allocate(size);
 
     g_memory_total_size += memory_size(ptr);
     g_memory_total_count++;
@@ -42,7 +40,7 @@ static void *custom_allocate(size_t size) {
   }
 }
 
-static void custom_deallocate(void *ptr) {
+static void custom_deallocate(void* ptr) {
   assert(ptr);
 
   g_memory_total_size -= memory_size(ptr);
@@ -62,17 +60,16 @@ static void replace_memory_management() {
   pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
 }
 
-#if defined(_MSC_VER) && _MSC_VER > 1200 && _MSC_VER < 1400 &&                 \
-    !defined(__INTEL_COMPILER) && !defined(__DMC__)
-#include <exception>
+#if defined(_MSC_VER) && _MSC_VER > 1200 && _MSC_VER < 1400 && !defined(__INTEL_COMPILER) && !defined(__DMC__)
+#  include <exception>
 
 namespace std {
-_CRTIMP2 _Prhand _Raise_handler;
-_CRTIMP2 void __cdecl _Throw(const exception &) {}
+  _CRTIMP2 _Prhand _Raise_handler;
+  _CRTIMP2 void __cdecl _Throw(const exception&) {}
 } // namespace std
 #endif
 
-static bool run_test(test_runner *test) {
+static bool run_test(test_runner* test) {
 #ifndef PUGIXML_NO_EXCEPTIONS
   try {
 #endif
@@ -83,55 +80,55 @@ static bool run_test(test_runner *test) {
     pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
 
 #ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4611) // interaction between _setjmp and C++ object
-                                // destruction is non-portable
-#pragma warning(disable : 4793) // function compiled as native: presence of
-                                // '_setjmp' makes a function unmanaged
+#  pragma warning(push)
+#  pragma warning(disable : 4611) // interaction between _setjmp and C++ object
+                                  // destruction is non-portable
+#  pragma warning(disable : 4793) // function compiled as native: presence of
+                                  // '_setjmp' makes a function unmanaged
 #endif
 
     volatile int result = setjmp(test_runner::_failure_buffer);
 
 #ifdef _MSC_VER
-#pragma warning(pop)
+#  pragma warning(pop)
 #endif
 
-    if (result) {
-      printf("Test %s failed: %s\n", test->_name,
-             test_runner::_failure_message);
+    if(result) {
+      printf("Test %s failed: %s\n", test->_name, test_runner::_failure_message);
       return false;
     }
 
     test->run();
 
-    if (g_memory_total_size != 0 || g_memory_total_count != 0) {
-      printf(
-          "Test %s failed: memory leaks found (%u bytes in %u allocations)\n",
-          test->_name, static_cast<unsigned int>(g_memory_total_size),
-          static_cast<unsigned int>(g_memory_total_count));
+    if(g_memory_total_size != 0 || g_memory_total_count != 0) {
+      printf("Test %s failed: memory leaks found (%u bytes in %u allocations)\n", test->_name,
+          static_cast<unsigned int>(g_memory_total_size), static_cast<unsigned int>(g_memory_total_count));
       return false;
     }
 
     return true;
 #ifndef PUGIXML_NO_EXCEPTIONS
-  } catch (const std::exception &e) {
+  }
+  catch(const std::exception& e) {
     printf("Test %s failed: exception %s\n", test->_name, e.what());
     return false;
-  } catch (...) {
+  }
+  catch(...) {
     printf("Test %s failed for unknown reason\n", test->_name);
     return false;
   }
 #endif
 }
 
-#if defined(__CELLOS_LV2__) && defined(PUGIXML_NO_EXCEPTIONS) &&               \
-    !defined(__SNC__)
-#include <exception>
+#if defined(__CELLOS_LV2__) && defined(PUGIXML_NO_EXCEPTIONS) && !defined(__SNC__)
+#  include <exception>
 
-void std::exception::_Raise() const { abort(); }
+void std::exception::_Raise() const {
+  abort();
+}
 #endif
 
-int main(int, char **argv) {
+int main(int, char** argv) {
 #ifdef __BORLANDC__
   _control87(MCW_EM | PC_53, MCW_EM | MCW_PC);
 #endif
@@ -148,17 +145,17 @@ int main(int, char **argv) {
   unsigned int total = 0;
   unsigned int passed = 0;
 
-  test_runner *test = 0; // gcc3 "variable might be used uninitialized in this
+  test_runner* test = 0; // gcc3 "variable might be used uninitialized in this
                          // function" bug workaround
 
-  for (test = test_runner::_tests; test; test = test->_next) {
+  for(test = test_runner::_tests; test; test = test->_next) {
     total++;
     passed += run_test(test);
   }
 
   unsigned int failed = total - passed;
 
-  if (failed != 0)
+  if(failed != 0)
     printf("FAILURE: %u out of %u tests failed.\n", failed, total);
   else
     printf("Success: %u tests passed.\n", total);
@@ -167,5 +164,7 @@ int main(int, char **argv) {
 }
 
 #ifdef _WIN32_WCE
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) { return main(0, NULL); }
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+  return main(0, NULL);
+}
 #endif

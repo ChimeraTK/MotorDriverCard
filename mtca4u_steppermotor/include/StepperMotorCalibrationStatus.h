@@ -12,31 +12,30 @@
 
 namespace mtca4u {
 
-class StepperMotorCalibrationStatus;
+  class StepperMotorCalibrationStatus;
 
-class StepperMotorCalibrationStatusType {
-public:
-  static const StepperMotorCalibrationStatus M_CALIBRATED;
-  static const StepperMotorCalibrationStatus M_NOT_CALIBRATED;
-  static const StepperMotorCalibrationStatus M_CALIBRATION_UNKNOWN;
-  static const StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
-  static const StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
-  static const StepperMotorCalibrationStatus M_CALIBRATION_STOPPED_BY_USER;
-  static const StepperMotorCalibrationStatus M_CALIBRATION_NOT_AVAILABLE;
-};
+  class StepperMotorCalibrationStatusType {
+   public:
+    static const StepperMotorCalibrationStatus M_CALIBRATED;
+    static const StepperMotorCalibrationStatus M_NOT_CALIBRATED;
+    static const StepperMotorCalibrationStatus M_CALIBRATION_UNKNOWN;
+    static const StepperMotorCalibrationStatus M_CALIBRATION_FAILED;
+    static const StepperMotorCalibrationStatus M_CALIBRATION_IN_PROGRESS;
+    static const StepperMotorCalibrationStatus M_CALIBRATION_STOPPED_BY_USER;
+    static const StepperMotorCalibrationStatus M_CALIBRATION_NOT_AVAILABLE;
+  };
 
-class StepperMotorCalibrationStatus : public GeneralStatus {
+  class StepperMotorCalibrationStatus : public GeneralStatus {
+   public:
+    // default constructor
+    StepperMotorCalibrationStatus();
+    // param constructor
+    StepperMotorCalibrationStatus(int id);
+    // copy constructor
+    StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus& status);
 
-public:
-  // default constructor
-  StepperMotorCalibrationStatus();
-  // param constructor
-  StepperMotorCalibrationStatus(int id);
-  // copy constructor
-  StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus &status);
-
-  virtual std::string asString() const;
-};
+    virtual std::string asString() const;
+  };
 
 } // namespace mtca4u
 

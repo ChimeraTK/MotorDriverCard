@@ -14,8 +14,7 @@
 // The bit shift is performed on a 64 bit unsigned int (UL) to avoid
 // buffer overflow for FIRST_BIT=0 and LAST_BIT=31.
 // The result is cast back to 32 bit.
-#define INPUT_MASK(FIRST_BIT, LAST_BIT)                                        \
-  static_cast<unsigned int>((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)
+#define INPUT_MASK(FIRST_BIT, LAST_BIT) static_cast<unsigned int>((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)
 
 /** Generate an outpu mask from the position of the first and the last bit
  *  of the mask. The output mask is the mask applied to the combined word.
@@ -26,9 +25,8 @@
  *  @attention There is no range check for the bits. The valid bit range is
  * [0:31] for both first and last bit.
  */
-#define OUTPUT_MASK(FIRST_BIT, LAST_BIT)                                       \
-  static_cast<unsigned int>(((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)          \
-                            << FIRST_BIT)
+#define OUTPUT_MASK(FIRST_BIT, LAST_BIT)                                                                               \
+  static_cast<unsigned int>(((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1) << FIRST_BIT)
 
 /** \def ADD_VARIABLE(VAR_NAME,FIRST_BIT,LAST_BIT)
  *  The ADD_VARIABLE macro allows to add a getter and a setter function for a
@@ -47,103 +45,98 @@ unsigned int getVoltage();
  *  (12 through 15, both bits included, mask 0xF000)
  *
  */
-#define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)                            \
-  unsigned int get##VAR_NAME() const {                                         \
-    return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);            \
-  }                                                                            \
-  void set##VAR_NAME(unsigned int word) {                                      \
-    return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);       \
-  }
+#define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)                                                                    \
+  unsigned int get##VAR_NAME() const { return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT); }               \
+  void set##VAR_NAME(unsigned int word) { return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT); }
 
 namespace mtca4u {
 
-/** The MultiVariableWord encodes and decodes multiple short
- *  words into one unsigned int.
- *
- *  Example: A 32 bit word is interpreted as two values.
- *  Bits 0 to 10 are the first value, bits 13 to 23 are the second
- *  value. All other bits are empty/unused.
- *
- *  This class is used as a base class. The derived class can conveniently be
- * populated with the ADD_VARIABLE() macro.<br> Example for a 32 bit treshold
- * register which holds an upper and a lower threshold value.
- */
-// doxygen description in several blocks to work around a bug in doxygen.
-/**
-\verbatim
-class TwoThresholdsWord: public MultiVariableWord {
-    ADD_VARIABLE(LowerThreshold, 0, 10);
-    ADD_VARIABLE(UpperThreshold, 13, 23);
-};
-\endverbatim
-
- * This defines the methods
-\verbatim
-void setLowerThreshold(unsigned int);
-unsigned int getLowerThreshold();
-
-void setUpperThreshold(unsigned int);
-unsigned int getUpperThreshold();
-\endverbatim
-
- * and implements them, calling setSubWord() and getSubWord() with the correct
-masks
- * and offsets as specified by the bit ranges. All masks and offsets are hard
-coded
- * at compile time for maximum performance. They are not needed in the further
-code,
- * which only uses the generated getter and setter functions.
- */
-class MultiVariableWord {
-public:
-  /** The constructor allows to set the data word on construction.
-   */
-  MultiVariableWord(unsigned int dataWord = 0);
-
-  /** The desructor of a base class should be virtual
-   */
-  virtual ~MultiVariableWord();
-
-  /** Get the encoded 32 bit data word. */
-  unsigned int getDataWord() const;
-
-  /** Set the whole 32 bit data word. */
-  void setDataWord(unsigned int dataWord);
-
-  bool operator==(MultiVariableWord const &right) const;
-  bool operator!=(MultiVariableWord const &right) const;
-
-protected:
-  /** Get the sub word from the data word as specified by the output mask and
-   * offset. The output mask is the mask at the position of the data word in the
-   * 32 bit word.
+  /** The MultiVariableWord encodes and decodes multiple short
+   *  words into one unsigned int.
    *
-   *  N.B. The offset information is redundant and could be extracted from the
-   * mask. For performance reasons, and as this code usually is only called from
-   *  macro-generated code which avoids inconsistencies, this additional
-   * information is used to avoid unnecessary computations.
-   */
-  unsigned int getSubWord(unsigned int outputMask, unsigned char offset) const;
-
-  /** Set the sub word at the width and position defined by input mask and
-   * offset. The input mask is the mask at the end of the data word with the
-   * length of the sub word.
+   *  Example: A 32 bit word is interpreted as two values.
+   *  Bits 0 to 10 are the first value, bits 13 to 23 are the second
+   *  value. All other bits are empty/unused.
    *
-   *  The code throws an OutOfRangeException if the word is too large to fit the
-   * input mask. Like this the trunkation of words is avoided which could lead
-   * to unwanted results like setting a position to 0 instead of max+1.
-   *
-   *  N.B. The offset information is redundant and could be extracted from the
-   * mask. For performance reasons, and as this code usually is only called from
-   *  macro-generated code which avoids inconsistencies, this additional
-   * information is used to avoid unnecessary computations.
+   *  This class is used as a base class. The derived class can conveniently be
+   * populated with the ADD_VARIABLE() macro.<br> Example for a 32 bit treshold
+   * register which holds an upper and a lower threshold value.
    */
-  void setSubWord(unsigned int subWord, unsigned int inputMask,
-                  unsigned char offset);
+  // doxygen description in several blocks to work around a bug in doxygen.
+  /**
+  \verbatim
+  class TwoThresholdsWord: public MultiVariableWord {
+      ADD_VARIABLE(LowerThreshold, 0, 10);
+      ADD_VARIABLE(UpperThreshold, 13, 23);
+  };
+  \endverbatim
 
-private:
-  unsigned int _dataWord;
-};
+   * This defines the methods
+  \verbatim
+  void setLowerThreshold(unsigned int);
+  unsigned int getLowerThreshold();
+
+  void setUpperThreshold(unsigned int);
+  unsigned int getUpperThreshold();
+  \endverbatim
+
+   * and implements them, calling setSubWord() and getSubWord() with the correct
+  masks
+   * and offsets as specified by the bit ranges. All masks and offsets are hard
+  coded
+   * at compile time for maximum performance. They are not needed in the further
+  code,
+   * which only uses the generated getter and setter functions.
+   */
+  class MultiVariableWord {
+   public:
+    /** The constructor allows to set the data word on construction.
+     */
+    MultiVariableWord(unsigned int dataWord = 0);
+
+    /** The desructor of a base class should be virtual
+     */
+    virtual ~MultiVariableWord();
+
+    /** Get the encoded 32 bit data word. */
+    unsigned int getDataWord() const;
+
+    /** Set the whole 32 bit data word. */
+    void setDataWord(unsigned int dataWord);
+
+    bool operator==(MultiVariableWord const& right) const;
+    bool operator!=(MultiVariableWord const& right) const;
+
+   protected:
+    /** Get the sub word from the data word as specified by the output mask and
+     * offset. The output mask is the mask at the position of the data word in the
+     * 32 bit word.
+     *
+     *  N.B. The offset information is redundant and could be extracted from the
+     * mask. For performance reasons, and as this code usually is only called from
+     *  macro-generated code which avoids inconsistencies, this additional
+     * information is used to avoid unnecessary computations.
+     */
+    unsigned int getSubWord(unsigned int outputMask, unsigned char offset) const;
+
+    /** Set the sub word at the width and position defined by input mask and
+     * offset. The input mask is the mask at the end of the data word with the
+     * length of the sub word.
+     *
+     *  The code throws an OutOfRangeException if the word is too large to fit the
+     * input mask. Like this the trunkation of words is avoided which could lead
+     * to unwanted results like setting a position to 0 instead of max+1.
+     *
+     *  N.B. The offset information is redundant and could be extracted from the
+     * mask. For performance reasons, and as this code usually is only called from
+     *  macro-generated code which avoids inconsistencies, this additional
+     * information is used to avoid unnecessary computations.
+     */
+    void setSubWord(unsigned int subWord, unsigned int inputMask, unsigned char offset);
+
+   private:
+    unsigned int _dataWord;
+  };
 
 } // namespace mtca4u
 #endif // MTAC4U_MULTI_VARIABLE_WORD_H

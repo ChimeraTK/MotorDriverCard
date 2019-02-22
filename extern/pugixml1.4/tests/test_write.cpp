@@ -6,18 +6,15 @@
 #include <string>
 
 TEST_XML(write_simple, "<node attr='1'><child>text</child></node>") {
-  CHECK_NODE_EX(doc, STR("<node attr=\"1\">\n<child>text</child>\n</node>\n"),
-                STR(""), 0);
+  CHECK_NODE_EX(doc, STR("<node attr=\"1\">\n<child>text</child>\n</node>\n"), STR(""), 0);
 }
 
 TEST_XML(write_raw, "<node attr='1'><child>text</child></node>") {
-  CHECK_NODE_EX(doc, STR("<node attr=\"1\"><child>text</child></node>"),
-                STR(""), format_raw);
+  CHECK_NODE_EX(doc, STR("<node attr=\"1\"><child>text</child></node>"), STR(""), format_raw);
 }
 
 TEST_XML(write_indent, "<node attr='1'><child><sub>text</sub></child></node>") {
-  CHECK_NODE_EX(
-      doc,
+  CHECK_NODE_EX(doc,
       STR("<node "
           "attr=\"1\">\n\t<child>\n\t\t<sub>text</sub>\n\t</child>\n</node>\n"),
       STR("\t"), format_indent);
@@ -25,9 +22,9 @@ TEST_XML(write_indent, "<node attr='1'><child><sub>text</sub></child></node>") {
 
 TEST_XML(write_pcdata, "<node attr='1'><child><sub/>text</child></node>") {
   CHECK_NODE_EX(doc,
-                STR("<node attr=\"1\">\n\t<child>\n\t\t<sub "
-                    "/>\n\t\ttext\n\t</child>\n</node>\n"),
-                STR("\t"), format_indent);
+      STR("<node attr=\"1\">\n\t<child>\n\t\t<sub "
+          "/>\n\t\ttext\n\t</child>\n</node>\n"),
+      STR("\t"), format_indent);
 }
 
 TEST_XML_FLAGS(write_cdata, "<![CDATA[value]]>", parse_cdata | parse_fragment) {
@@ -35,14 +32,12 @@ TEST_XML_FLAGS(write_cdata, "<![CDATA[value]]>", parse_cdata | parse_fragment) {
   CHECK_NODE_EX(doc, STR("<![CDATA[value]]>\n"), STR(""), 0);
 }
 
-TEST_XML_FLAGS(write_cdata_empty, "<![CDATA[]]>",
-               parse_cdata | parse_fragment) {
+TEST_XML_FLAGS(write_cdata_empty, "<![CDATA[]]>", parse_cdata | parse_fragment) {
   CHECK_NODE(doc, STR("<![CDATA[]]>"));
   CHECK_NODE_EX(doc, STR("<![CDATA[]]>\n"), STR(""), 0);
 }
 
-TEST_XML_FLAGS(write_cdata_escape, "<![CDATA[value]]>",
-               parse_cdata | parse_fragment) {
+TEST_XML_FLAGS(write_cdata_escape, "<![CDATA[value]]>", parse_cdata | parse_fragment) {
   CHECK_NODE(doc, STR("<![CDATA[value]]>"));
 
   doc.first_child().set_value(STR("1]]>2]]>3"));
@@ -64,14 +59,12 @@ TEST_XML_FLAGS(write_pi, "<?name value?>", parse_pi | parse_fragment) {
   CHECK_NODE_EX(doc, STR("<?name value?>\n"), STR(""), 0);
 }
 
-TEST_XML_FLAGS(write_declaration, "<?xml version='2.0'?>",
-               parse_declaration | parse_fragment) {
+TEST_XML_FLAGS(write_declaration, "<?xml version='2.0'?>", parse_declaration | parse_fragment) {
   CHECK_NODE(doc, STR("<?xml version=\"2.0\"?>"));
   CHECK_NODE_EX(doc, STR("<?xml version=\"2.0\"?>\n"), STR(""), 0);
 }
 
-TEST_XML_FLAGS(write_doctype, "<!DOCTYPE id [ foo ]>",
-               parse_doctype | parse_fragment) {
+TEST_XML_FLAGS(write_doctype, "<!DOCTYPE id [ foo ]>", parse_doctype | parse_fragment) {
   CHECK_NODE(doc, STR("<!DOCTYPE id [ foo ]>"));
   CHECK_NODE_EX(doc, STR("<!DOCTYPE id [ foo ]>\n"), STR(""), 0);
 }
@@ -80,18 +73,19 @@ TEST_XML(write_escape, "<node attr=''>text</node>") {
   doc.child(STR("node")).attribute(STR("attr")) = STR("<>'\"&\x04\r\n\t");
   doc.child(STR("node")).first_child().set_value(STR("<>'\"&\x04\r\n\t"));
 
-  CHECK_NODE(doc, STR("<node "
-                      "attr=\"&lt;&gt;'&quot;&amp;&#04;&#13;&#10;\t\">&lt;&gt;'"
-                      "\"&amp;&#04;\r\n\t</node>"));
+  CHECK_NODE(doc,
+      STR("<node "
+          "attr=\"&lt;&gt;'&quot;&amp;&#04;&#13;&#10;\t\">&lt;&gt;'"
+          "\"&amp;&#04;\r\n\t</node>"));
 }
 
 TEST_XML(write_escape_unicode, "<node attr='&#x3c00;'/>") {
 #ifdef PUGIXML_WCHAR_MODE
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
   CHECK_NODE(doc, STR("<node attr=\"\u3c00\" />"));
-#else
+#  else
   CHECK_NODE(doc, STR("<node attr=\"\x3c00\" />"));
-#endif
+#  endif
 #else
   CHECK_NODE(doc, STR("<node attr=\"\xe3\xb0\x80\" />"));
 #endif
@@ -101,19 +95,17 @@ TEST_XML(write_no_escapes, "<node attr=''>text</node>") {
   doc.child(STR("node")).attribute(STR("attr")) = STR("<>'\"&\x04\r\n\t");
   doc.child(STR("node")).first_child().set_value(STR("<>'\"&\x04\r\n\t"));
 
-  CHECK_NODE_EX(doc,
-                STR("<node attr=\"<>'\"&\x04\r\n\t\"><>'\"&\x04\r\n\t</node>"),
-                STR(""), format_raw | format_no_escapes);
+  CHECK_NODE_EX(
+      doc, STR("<node attr=\"<>'\"&\x04\r\n\t\"><>'\"&\x04\r\n\t</node>"), STR(""), format_raw | format_no_escapes);
 }
 
 struct test_writer : xml_writer {
   std::basic_string<pugi::char_t> contents;
 
-  virtual void write(const void *data, size_t size) {
+  virtual void write(const void* data, size_t size) {
     CHECK(size % sizeof(pugi::char_t) == 0);
     contents += std::basic_string<pugi::char_t>(
-        static_cast<const pugi::char_t *>(data),
-        static_cast<const pugi::char_t *>(data) + size / sizeof(pugi::char_t));
+        static_cast<const pugi::char_t*>(data), static_cast<const pugi::char_t*>(data) + size / sizeof(pugi::char_t));
   }
 };
 
@@ -163,55 +155,41 @@ TEST(write_encodings) {
   xml_document doc;
   CHECK(doc.load_buffer(s_utf8, sizeof(s_utf8), parse_default, encoding_utf8));
 
-  CHECK(write_narrow(doc, format_default, encoding_utf8) ==
-        "<\x54\xC2\xA2\xE2\x82\xAC\xF0\xA4\xAD\xA2 />\n");
+  CHECK(write_narrow(doc, format_default, encoding_utf8) == "<\x54\xC2\xA2\xE2\x82\xAC\xF0\xA4\xAD\xA2 />\n");
 
-  CHECK(test_write_narrow(
-      doc, format_default, encoding_utf32_le,
+  CHECK(test_write_narrow(doc, format_default, encoding_utf32_le,
       "<\x00\x00\x00\x54\x00\x00\x00\xA2\x00\x00\x00\xAC\x20\x00\x00\x62\x4B"
       "\x02\x00 \x00\x00\x00/\x00\x00\x00>\x00\x00\x00\n\x00\x00\x00",
       36));
-  CHECK(test_write_narrow(
-      doc, format_default, encoding_utf32_be,
+  CHECK(test_write_narrow(doc, format_default, encoding_utf32_be,
       "\x00\x00\x00<"
       "\x00\x00\x00\x54\x00\x00\x00\xA2\x00\x00\x20\xAC\x00\x02\x4B\x62\x00\x00"
       "\x00 \x00\x00\x00/\x00\x00\x00>\x00\x00\x00\n",
       36));
-  CHECK(
-      write_narrow(doc, format_default, encoding_utf32) ==
-      write_narrow(doc, format_default,
-                   is_little_endian() ? encoding_utf32_le : encoding_utf32_be));
+  CHECK(write_narrow(doc, format_default, encoding_utf32) ==
+      write_narrow(doc, format_default, is_little_endian() ? encoding_utf32_le : encoding_utf32_be));
 
-  CHECK(test_write_narrow(
-      doc, format_default, encoding_utf16_le,
-      "<\x00\x54\x00\xA2\x00\xAC\x20\x52\xd8\x62\xdf \x00/\x00>\x00\n\x00",
-      20));
-  CHECK(test_write_narrow(
-      doc, format_default, encoding_utf16_be,
-      "\x00<\x00\x54\x00\xA2\x20\xAC\xd8\x52\xdf\x62\x00 \x00/\x00>\x00\n",
-      20));
-  CHECK(
-      write_narrow(doc, format_default, encoding_utf16) ==
-      write_narrow(doc, format_default,
-                   is_little_endian() ? encoding_utf16_le : encoding_utf16_be));
+  CHECK(test_write_narrow(doc, format_default, encoding_utf16_le,
+      "<\x00\x54\x00\xA2\x00\xAC\x20\x52\xd8\x62\xdf \x00/\x00>\x00\n\x00", 20));
+  CHECK(test_write_narrow(doc, format_default, encoding_utf16_be,
+      "\x00<\x00\x54\x00\xA2\x20\xAC\xd8\x52\xdf\x62\x00 \x00/\x00>\x00\n", 20));
+  CHECK(write_narrow(doc, format_default, encoding_utf16) ==
+      write_narrow(doc, format_default, is_little_endian() ? encoding_utf16_le : encoding_utf16_be));
 
   size_t wcharsize = sizeof(wchar_t);
-  std::basic_string<wchar_t> v =
-      write_wide(doc, format_default, encoding_wchar);
+  std::basic_string<wchar_t> v = write_wide(doc, format_default, encoding_wchar);
 
-  if (wcharsize == 4) {
-    CHECK(v.size() == 9 && v[0] == '<' && v[1] == 0x54 && v[2] == 0xA2 &&
-          v[3] == 0x20AC && v[4] == wchar_cast(0x24B62) && v[5] == ' ' &&
-          v[6] == '/' && v[7] == '>' && v[8] == '\n');
-  } else {
-    CHECK(v.size() == 10 && v[0] == '<' && v[1] == 0x54 && v[2] == 0xA2 &&
-          v[3] == 0x20AC && v[4] == wchar_cast(0xd852) &&
-          v[5] == wchar_cast(0xdf62) && v[6] == ' ' && v[7] == '/' &&
-          v[8] == '>' && v[9] == '\n');
+  if(wcharsize == 4) {
+    CHECK(v.size() == 9 && v[0] == '<' && v[1] == 0x54 && v[2] == 0xA2 && v[3] == 0x20AC &&
+        v[4] == wchar_cast(0x24B62) && v[5] == ' ' && v[6] == '/' && v[7] == '>' && v[8] == '\n');
+  }
+  else {
+    CHECK(v.size() == 10 && v[0] == '<' && v[1] == 0x54 && v[2] == 0xA2 && v[3] == 0x20AC &&
+        v[4] == wchar_cast(0xd852) && v[5] == wchar_cast(0xdf62) && v[6] == ' ' && v[7] == '/' && v[8] == '>' &&
+        v[9] == '\n');
   }
 
-  CHECK(test_write_narrow(doc, format_default, encoding_latin1,
-                          "<\x54\xA2?? />\n", 9));
+  CHECK(test_write_narrow(doc, format_default, encoding_latin1, "<\x54\xA2?? />\n", 9));
 }
 
 #ifdef PUGIXML_WCHAR_MODE
@@ -222,37 +200,32 @@ TEST(write_encoding_huge) {
   // internal buffer size, so will need split correction)
   std::string s_utf16 = std::string("\x00<", 2);
 
-  for (unsigned int i = 0; i < N; ++i)
-    s_utf16 += "\x20\xAC\xd8\x52\xdf\x62";
+  for(unsigned int i = 0; i < N; ++i) s_utf16 += "\x20\xAC\xd8\x52\xdf\x62";
 
   s_utf16 += std::string("\x00/\x00>", 4);
 
   xml_document doc;
-  CHECK(doc.load_buffer(&s_utf16[0], s_utf16.length(), parse_default,
-                        encoding_utf16_be));
+  CHECK(doc.load_buffer(&s_utf16[0], s_utf16.length(), parse_default, encoding_utf16_be));
 
   std::string s_utf8 = "<";
 
-  for (unsigned int j = 0; j < N; ++j)
-    s_utf8 += "\xE2\x82\xAC\xF0\xA4\xAD\xA2";
+  for(unsigned int j = 0; j < N; ++j) s_utf8 += "\xE2\x82\xAC\xF0\xA4\xAD\xA2";
 
   s_utf8 += " />\n";
 
-  CHECK(test_write_narrow(doc, format_default, encoding_utf8, s_utf8.c_str(),
-                          s_utf8.length()));
+  CHECK(test_write_narrow(doc, format_default, encoding_utf8, s_utf8.c_str(), s_utf8.length()));
 }
 
 TEST(write_encoding_huge_invalid) {
   size_t wcharsize = sizeof(wchar_t);
 
-  if (wcharsize == 2) {
+  if(wcharsize == 2) {
     const unsigned int N = 16000;
 
     // make a large utf16 name consisting of leading surrogate chars
     std::basic_string<wchar_t> s_utf16;
 
-    for (unsigned int i = 0; i < N; ++i)
-      s_utf16 += static_cast<wchar_t>(0xd852);
+    for(unsigned int i = 0; i < N; ++i) s_utf16 += static_cast<wchar_t>(0xd852);
 
     xml_document doc;
     doc.append_child().set_name(s_utf16.c_str());
@@ -268,24 +241,20 @@ TEST(write_encoding_huge) {
   // internal buffer size, so will need split correction)
   std::string s_utf8 = "<";
 
-  for (unsigned int i = 0; i < N; ++i)
-    s_utf8 += "\xE2\x82\xAC";
+  for(unsigned int i = 0; i < N; ++i) s_utf8 += "\xE2\x82\xAC";
 
   s_utf8 += "/>";
 
   xml_document doc;
-  CHECK(doc.load_buffer(&s_utf8[0], s_utf8.length(), parse_default,
-                        encoding_utf8));
+  CHECK(doc.load_buffer(&s_utf8[0], s_utf8.length(), parse_default, encoding_utf8));
 
   std::string s_utf16 = std::string("\x00<", 2);
 
-  for (unsigned int j = 0; j < N; ++j)
-    s_utf16 += "\x20\xAC";
+  for(unsigned int j = 0; j < N; ++j) s_utf16 += "\x20\xAC";
 
   s_utf16 += std::string("\x00 \x00/\x00>\x00\n", 8);
 
-  CHECK(test_write_narrow(doc, format_default, encoding_utf16_be,
-                          s_utf16.c_str(), s_utf16.length()));
+  CHECK(test_write_narrow(doc, format_default, encoding_utf16_be, s_utf16.c_str(), s_utf16.length()));
 }
 
 TEST(write_encoding_huge_invalid) {
@@ -294,16 +263,14 @@ TEST(write_encoding_huge_invalid) {
   // make a large utf8 name consisting of non-leading chars
   std::string s_utf8;
 
-  for (unsigned int i = 0; i < N; ++i)
-    s_utf8 += "\x82";
+  for(unsigned int i = 0; i < N; ++i) s_utf8 += "\x82";
 
   xml_document doc;
   doc.append_child().set_name(s_utf8.c_str());
 
   std::string s_utf16 = std::string("\x00<\x00 \x00/\x00>\x00\n", 10);
 
-  CHECK(test_write_narrow(doc, format_default, encoding_utf16_be,
-                          s_utf16.c_str(), s_utf16.length()));
+  CHECK(test_write_narrow(doc, format_default, encoding_utf16_be, s_utf16.c_str(), s_utf16.length()));
 }
 #endif
 
@@ -316,14 +283,13 @@ TEST(write_unicode_escape) {
   CHECK(doc.load_buffer(s_utf8, sizeof(s_utf8), parse_default, encoding_utf8));
 
   CHECK(write_narrow(doc, format_default, encoding_utf8) ==
-        "<\xE2\x82\xAC "
-        "\xC2\xA2=\"&quot;\xF0\xA4\xAD\xA2&#10;&quot;\">&amp;&#20;"
-        "\xF0\xA4\xAD\xA2&lt;</\xE2\x82\xAC>\n");
+      "<\xE2\x82\xAC "
+      "\xC2\xA2=\"&quot;\xF0\xA4\xAD\xA2&#10;&quot;\">&amp;&#20;"
+      "\xF0\xA4\xAD\xA2&lt;</\xE2\x82\xAC>\n");
 }
 
 #ifdef PUGIXML_WCHAR_MODE
-static bool test_write_unicode_invalid(const wchar_t *name,
-                                       const char *expected) {
+static bool test_write_unicode_invalid(const wchar_t* name, const char* expected) {
   xml_document doc;
   doc.append_child(node_pcdata).set_value(name);
 
@@ -333,29 +299,28 @@ static bool test_write_unicode_invalid(const wchar_t *name,
 TEST(write_unicode_invalid_utf16) {
   size_t wcharsize = sizeof(wchar_t);
 
-  if (wcharsize == 2) {
+  if(wcharsize == 2) {
     // check non-terminated degenerate handling
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
     CHECK(test_write_unicode_invalid(L"a\uda1d", "a"));
     CHECK(test_write_unicode_invalid(L"a\uda1d_", "a_"));
-#else
+#  else
     CHECK(test_write_unicode_invalid(L"a\xda1d", "a"));
     CHECK(test_write_unicode_invalid(L"a\xda1d_", "a_"));
-#endif
+#  endif
 
     // check incorrect leading code
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
     CHECK(test_write_unicode_invalid(L"a\ude24", "a"));
     CHECK(test_write_unicode_invalid(L"a\ude24_", "a_"));
-#else
+#  else
     CHECK(test_write_unicode_invalid(L"a\xde24", "a"));
     CHECK(test_write_unicode_invalid(L"a\xde24_", "a_"));
-#endif
+#  endif
   }
 }
 #else
-static bool test_write_unicode_invalid(const char *name,
-                                       const wchar_t *expected) {
+static bool test_write_unicode_invalid(const char* name, const wchar_t* expected) {
   xml_document doc;
   doc.append_child(node_pcdata).set_value(name);
 
@@ -398,12 +363,13 @@ TEST(write_no_name_element) {
   root.append_child();
   root.append_child().append_child(node_pcdata).set_value(STR("text"));
 
-  CHECK_NODE(doc, STR("<:anonymous><:anonymous "
-                      "/><:anonymous>text</:anonymous></:anonymous>"));
+  CHECK_NODE(doc,
+      STR("<:anonymous><:anonymous "
+          "/><:anonymous>text</:anonymous></:anonymous>"));
   CHECK_NODE_EX(doc,
-                STR("<:anonymous>\n\t<:anonymous "
-                    "/>\n\t<:anonymous>text</:anonymous>\n</:anonymous>\n"),
-                STR("\t"), format_default);
+      STR("<:anonymous>\n\t<:anonymous "
+          "/>\n\t<:anonymous>text</:anonymous>\n</:anonymous>\n"),
+      STR("\t"), format_default);
 }
 
 TEST(write_no_name_pi) {

@@ -3,7 +3,7 @@
 
 namespace mtca4u {
 
-class PowerMonitor {};
+  class PowerMonitor {};
 
 } // namespace mtca4u
 

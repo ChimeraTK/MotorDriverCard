@@ -4,8 +4,8 @@
 
 int main() {
   pugi::xml_document doc;
-  if (!doc.load("<node><description>Simple node</description><param name='id' "
-                "value='123'/></node>"))
+  if(!doc.load("<node><description>Simple node</description><param name='id' "
+               "value='123'/></node>"))
     return -1;
 
   //[code_modify_remove

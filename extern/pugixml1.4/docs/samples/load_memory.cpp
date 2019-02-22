@@ -18,15 +18,14 @@ int main() {
     //]
 
     std::cout << "Load result: " << result.description()
-              << ", mesh name: " << doc.child("mesh").attribute("name").value()
-              << std::endl;
+              << ", mesh name: " << doc.child("mesh").attribute("name").value() << std::endl;
   }
 
   {
     //[code_load_memory_buffer_inplace
     // You can use load_buffer_inplace to load document from mutable memory
     // block; the block's lifetime must exceed that of document
-    char *buffer = new char[size];
+    char* buffer = new char[size];
     memcpy(buffer, source, size);
 
     // The block can be allocated by any method; the block is modified during
@@ -35,8 +34,7 @@ int main() {
 
     //<-
     std::cout << "Load result: " << result.description()
-              << ", mesh name: " << doc.child("mesh").attribute("name").value()
-              << std::endl;
+              << ", mesh name: " << doc.child("mesh").attribute("name").value() << std::endl;
     //->
     // You have to destroy the block yourself after the document is no longer
     // used
@@ -50,8 +48,7 @@ int main() {
     // block and to pass the ownership of this block The block has to be
     // allocated via pugixml allocation function - using i.e. operator new here
     // is incorrect
-    char *buffer =
-        static_cast<char *>(pugi::get_memory_allocation_function()(size));
+    char* buffer = static_cast<char*>(pugi::get_memory_allocation_function()(size));
     memcpy(buffer, source, size);
 
     // The block will be deleted by the document
@@ -59,21 +56,18 @@ int main() {
     //]
 
     std::cout << "Load result: " << result.description()
-              << ", mesh name: " << doc.child("mesh").attribute("name").value()
-              << std::endl;
+              << ", mesh name: " << doc.child("mesh").attribute("name").value() << std::endl;
   }
 
   {
     //[code_load_memory_string
     // You can use load to load document from null-terminated strings, for
     // example literals:
-    pugi::xml_parse_result result =
-        doc.load("<mesh name='sphere'><bounds>0 0 1 1</bounds></mesh>");
+    pugi::xml_parse_result result = doc.load("<mesh name='sphere'><bounds>0 0 1 1</bounds></mesh>");
     //]
 
     std::cout << "Load result: " << result.description()
-              << ", mesh name: " << doc.child("mesh").attribute("name").value()
-              << std::endl;
+              << ", mesh name: " << doc.child("mesh").attribute("name").value() << std::endl;
   }
 }
 

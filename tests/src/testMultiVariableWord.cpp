@@ -17,7 +17,7 @@ using namespace mtca4u;
 /** Class with three variables, not connected and not at bytes 0 and 31.
  */
 class ThreeVariablesNotConnectedWord : public MultiVariableWord {
-public:
+ public:
   ADD_VARIABLE(First, 2, 15);
   ADD_VARIABLE(Second, 18, 23);
   ADD_VARIABLE(Third, 26, 28);
@@ -44,7 +44,7 @@ public:
 /** Class with three variables, contiguous, bytes 0 and 31.
  */
 class ThreeVariablesContiguousEdgesWord : public MultiVariableWord {
-public:
+ public:
   ADD_VARIABLE(First, 0, 14);
   ADD_VARIABLE(Second, 15, 18);
   ADD_VARIABLE(Third, 19, 31);
@@ -67,7 +67,7 @@ public:
 /** Class with single bit variables, not contiguous, bytes 0 and 31.
  */
 class SingleBitNotConnectedWord : public MultiVariableWord {
-public:
+ public:
   ADD_VARIABLE(First, 0, 0);
   ADD_VARIABLE(Second, 15, 15);
   ADD_VARIABLE(Third, 31, 31);
@@ -80,8 +80,9 @@ public:
  *  The tests should be run in the order stated here.
  *  Order dependencies are implemented in the teste suite.
  */
-template <class T> class MultiVariableWordTest {
-public:
+template<class T>
+class MultiVariableWordTest {
+ public:
   MultiVariableWordTest();
 
   /** Testing the input mask is static because it does not require an instance
@@ -103,42 +104,33 @@ public:
 
   void testGetSubWord();
 
-private:
+ private:
   T _testWord;
   std::list<unsigned int> patterns;
 
-  void testSetSubWordWithPattern(unsigned int initalDataWord,
-                                 unsigned int first, unsigned int second,
-                                 unsigned int third,
-                                 unsigned int expectedDataWord);
+  void testSetSubWordWithPattern(unsigned int initalDataWord, unsigned int first, unsigned int second,
+      unsigned int third, unsigned int expectedDataWord);
 
   void testGetSubWordWithPattern(unsigned int dataWord,
-                                 unsigned int expectedFirst,
-                                 unsigned int expectedSecond,
-                                 unsigned int expectedThird);
+      unsigned int expectedFirst,
+      unsigned int expectedSecond,
+      unsigned int expectedThird);
 };
 
-template <class T> class MultiVariableWordTestSuite : public test_suite {
-public:
-  MultiVariableWordTestSuite(std::string testSuiteName)
-      : test_suite(testSuiteName) {
+template<class T>
+class MultiVariableWordTestSuite : public test_suite {
+ public:
+  MultiVariableWordTestSuite(std::string testSuiteName) : test_suite(testSuiteName) {
     // add member function test cases to a test suite
-    boost::shared_ptr<MultiVariableWordTest<T>> multiVariableWord(
-        new MultiVariableWordTest<T>);
+    boost::shared_ptr<MultiVariableWordTest<T>> multiVariableWord(new MultiVariableWordTest<T>);
 
-    test_case *inputMaskTestCase =
-        BOOST_TEST_CASE(&MultiVariableWordTest<T>::testInputMask);
-    test_case *outputMaskTestCase =
-        BOOST_TEST_CASE(&MultiVariableWordTest<T>::testOutputMask);
-    test_case *equalsOperatorTestCase =
-        BOOST_TEST_CASE(&MultiVariableWordTest<T>::testEqualsOperator);
+    test_case* inputMaskTestCase = BOOST_TEST_CASE(&MultiVariableWordTest<T>::testInputMask);
+    test_case* outputMaskTestCase = BOOST_TEST_CASE(&MultiVariableWordTest<T>::testOutputMask);
+    test_case* equalsOperatorTestCase = BOOST_TEST_CASE(&MultiVariableWordTest<T>::testEqualsOperator);
 
-    test_case *getSetTestCase = BOOST_CLASS_TEST_CASE(
-        &MultiVariableWordTest<T>::testGetSetDataWord, multiVariableWord);
-    test_case *setSubWordTestCase = BOOST_CLASS_TEST_CASE(
-        &MultiVariableWordTest<T>::testSetSubWord, multiVariableWord);
-    test_case *getSubWordTestCase = BOOST_CLASS_TEST_CASE(
-        &MultiVariableWordTest<T>::testGetSubWord, multiVariableWord);
+    test_case* getSetTestCase = BOOST_CLASS_TEST_CASE(&MultiVariableWordTest<T>::testGetSetDataWord, multiVariableWord);
+    test_case* setSubWordTestCase = BOOST_CLASS_TEST_CASE(&MultiVariableWordTest<T>::testSetSubWord, multiVariableWord);
+    test_case* getSubWordTestCase = BOOST_CLASS_TEST_CASE(&MultiVariableWordTest<T>::testGetSubWord, multiVariableWord);
 
     setSubWordTestCase->depends_on(getSetTestCase);
     setSubWordTestCase->depends_on(inputMaskTestCase);
@@ -156,25 +148,23 @@ public:
   }
 };
 
-test_suite *init_unit_test_suite(int /*argc*/, char * /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
   framework::master_test_suite().p_name.value = "MultiVariableWordTest";
 
   framework::master_test_suite().add(
-      new MultiVariableWordTestSuite<ThreeVariablesNotConnectedWord>(
-          "ThreeVariablesNotConnectedWord test suite"));
+      new MultiVariableWordTestSuite<ThreeVariablesNotConnectedWord>("ThreeVariablesNotConnectedWord test suite"));
+  framework::master_test_suite().add(new MultiVariableWordTestSuite<ThreeVariablesContiguousEdgesWord>(
+      "ThreeVariablesContiguousEdgesWord test suite"));
   framework::master_test_suite().add(
-      new MultiVariableWordTestSuite<ThreeVariablesContiguousEdgesWord>(
-          "ThreeVariablesContiguousEdgesWord test suite"));
-  framework::master_test_suite().add(
-      new MultiVariableWordTestSuite<SingleBitNotConnectedWord>(
-          "SingleBitNotConnectedWord test suite"));
+      new MultiVariableWordTestSuite<SingleBitNotConnectedWord>("SingleBitNotConnectedWord test suite"));
 
   return 0;
 }
 
 // The implementations of the individual tests
 
-template <class T> void MultiVariableWordTest<T>::testInputMask() {
+template<class T>
+void MultiVariableWordTest<T>::testInputMask() {
   // we test some start values somewhere 'in the middle' plus 0 and 31 (edge
   // values, special cases) plus 1 and 30 (to avoid off by one errors), in all
   // combinations
@@ -195,7 +185,8 @@ template <class T> void MultiVariableWordTest<T>::testInputMask() {
   BOOST_CHECK(INPUT_MASK(1, 30) == 0x3FFFFFFF);
 }
 
-template <class T> void MultiVariableWordTest<T>::testOutputMask() {
+template<class T>
+void MultiVariableWordTest<T>::testOutputMask() {
   // Test the same cases as input mask
   BOOST_CHECK(OUTPUT_MASK(4, 14) == 0x7FF0);
   BOOST_CHECK(OUTPUT_MASK(4, 15) == 0xFFF0);
@@ -214,7 +205,8 @@ template <class T> void MultiVariableWordTest<T>::testOutputMask() {
   BOOST_CHECK(OUTPUT_MASK(1, 30) == 0x7FFFFFFE);
 }
 
-template <class T> void MultiVariableWordTest<T>::testEqualsOperator() {
+template<class T>
+void MultiVariableWordTest<T>::testEqualsOperator() {
   T firstWord;
   firstWord.setDataWord(25);
   T secondWord;
@@ -226,10 +218,11 @@ template <class T> void MultiVariableWordTest<T>::testEqualsOperator() {
   BOOST_CHECK((firstWord == thirdWord) == false);
 }
 
-template <class T>
+template<class T>
 MultiVariableWordTest<T>::MultiVariableWordTest() : _testWord(), patterns() {}
 
-template <class T> void MultiVariableWordTest<T>::testGetSetDataWord() {
+template<class T>
+void MultiVariableWordTest<T>::testGetSetDataWord() {
   // this test has to be the first one, so we can check on the initial value 0
   // as a first step.
   BOOST_CHECK(_testWord.getDataWord() == 0);
@@ -262,7 +255,7 @@ template <class T> void MultiVariableWordTest<T>::testGetSetDataWord() {
 // variable content) to test the cropping (only the bits belonging to the
 // variable must be overwritten)
 
-template <>
+template<>
 void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testSetSubWord() {
   BOOST_CHECK_THROW(_testWord.setSecond(0x40), mtca4u::MotorDriverException);
   BOOST_CHECK_NO_THROW(_testWord.setSecond(0x3F));
@@ -272,9 +265,8 @@ void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testSetSubWord() {
   testSetSubWordWithPattern(0xAAAAAAAA, 0x1555, 0x3F, 0x2, 0xAAFE5556);
 }
 
-template <>
-void MultiVariableWordTest<
-    ThreeVariablesContiguousEdgesWord>::testSetSubWord() {
+template<>
+void MultiVariableWordTest<ThreeVariablesContiguousEdgesWord>::testSetSubWord() {
   BOOST_CHECK_THROW(_testWord.setSecond(0x10), mtca4u::MotorDriverException);
   BOOST_CHECK_NO_THROW(_testWord.setSecond(0xF));
   testSetSubWordWithPattern(0x00000000, 0, 0x5, 0x1FFF, 0xFFFA8000);
@@ -283,7 +275,7 @@ void MultiVariableWordTest<
   testSetSubWordWithPattern(0xAAAAAAAA, 0x5555, 0xF, 0x0AAA, 0x5557D555);
 }
 
-template <>
+template<>
 void MultiVariableWordTest<SingleBitNotConnectedWord>::testSetSubWord() {
   BOOST_CHECK_THROW(_testWord.setSecond(0x2), mtca4u::MotorDriverException);
   BOOST_CHECK_NO_THROW(_testWord.setSecond(0x1));
@@ -294,7 +286,7 @@ void MultiVariableWordTest<SingleBitNotConnectedWord>::testSetSubWord() {
 }
 
 // we start from the initial patterns and extraxt the sub words
-template <>
+template<>
 void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testGetSubWord() {
   testGetSubWordWithPattern(0, 0, 0, 0);
   testGetSubWordWithPattern(0xFFFFFFFF, 0x3FFF, 0x3F, 0x7);
@@ -302,16 +294,15 @@ void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testGetSubWord() {
   testGetSubWordWithPattern(0xAAAAAAAA, 0x2AAA, 0x2A, 0x2);
 }
 
-template <>
-void MultiVariableWordTest<
-    ThreeVariablesContiguousEdgesWord>::testGetSubWord() {
+template<>
+void MultiVariableWordTest<ThreeVariablesContiguousEdgesWord>::testGetSubWord() {
   testGetSubWordWithPattern(0, 0, 0, 0);
   testGetSubWordWithPattern(0xFFFFFFFF, 0x7FFF, 0xF, 0x1FFF);
   testGetSubWordWithPattern(0x55555555, 0x5555, 0xA, 0xAAA);
   testGetSubWordWithPattern(0xAAAAAAAA, 0x2AAA, 0x5, 0x1555);
 }
 
-template <>
+template<>
 void MultiVariableWordTest<SingleBitNotConnectedWord>::testGetSubWord() {
   testGetSubWordWithPattern(0, 0, 0, 0);
   testGetSubWordWithPattern(0xFFFFFFFF, 0x1, 0x1, 0x1);
@@ -319,34 +310,27 @@ void MultiVariableWordTest<SingleBitNotConnectedWord>::testGetSubWord() {
   testGetSubWordWithPattern(0xAAAAAAAA, 0x0, 0x1, 0x1);
 }
 
-template <class T>
-void MultiVariableWordTest<T>::testSetSubWordWithPattern(
-    unsigned int initalDataWord, unsigned int first, unsigned int second,
-    unsigned int third, unsigned int expectedDataWord) {
+template<class T>
+void MultiVariableWordTest<T>::testSetSubWordWithPattern(unsigned int initalDataWord, unsigned int first,
+    unsigned int second, unsigned int third, unsigned int expectedDataWord) {
   _testWord.setDataWord(initalDataWord);
   _testWord.setFirst(first);
   _testWord.setSecond(second);
   _testWord.setThird(third);
 
   std::stringstream errorMessage;
-  errorMessage << std::hex << "0x" << _testWord.getDataWord()
-               << " != " << expectedDataWord;
-  BOOST_CHECK_MESSAGE(_testWord.getDataWord() == expectedDataWord,
-                      errorMessage.str());
+  errorMessage << std::hex << "0x" << _testWord.getDataWord() << " != " << expectedDataWord;
+  BOOST_CHECK_MESSAGE(_testWord.getDataWord() == expectedDataWord, errorMessage.str());
 }
 
-template <class T>
+template<class T>
 void MultiVariableWordTest<T>::testGetSubWordWithPattern(
-    unsigned int dataWord, unsigned int expectedFirst,
-    unsigned int expectedSecond, unsigned int expectedThird) {
+    unsigned int dataWord, unsigned int expectedFirst, unsigned int expectedSecond, unsigned int expectedThird) {
   _testWord.setDataWord(dataWord);
 
   std::stringstream errorMessage;
   errorMessage << std::hex << "test pattern 0x" << dataWord;
-  BOOST_CHECK_MESSAGE(_testWord.getFirst() == expectedFirst,
-                      errorMessage.str());
-  BOOST_CHECK_MESSAGE(_testWord.getSecond() == expectedSecond,
-                      errorMessage.str());
-  BOOST_CHECK_MESSAGE(_testWord.getThird() == expectedThird,
-                      errorMessage.str());
+  BOOST_CHECK_MESSAGE(_testWord.getFirst() == expectedFirst, errorMessage.str());
+  BOOST_CHECK_MESSAGE(_testWord.getSecond() == expectedSecond, errorMessage.str());
+  BOOST_CHECK_MESSAGE(_testWord.getThird() == expectedThird, errorMessage.str());
 }

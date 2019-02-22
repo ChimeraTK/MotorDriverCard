@@ -30,9 +30,8 @@ int main() {
   // <call>hey</call>
   // </foo>
   doc.save(std::cout, "\t",
-           pugi::format_default &
-               ~pugi::format_indent); // can also pass "" instead of indentation
-                                      // string for the same effect
+      pugi::format_default & ~pugi::format_indent); // can also pass "" instead of indentation
+                                                    // string for the same effect
   std::cout << std::endl;
 
   // raw output; prints

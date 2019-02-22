@@ -1,6 +1,6 @@
 #ifndef PUGIXML_NO_XPATH
 
-#include "common.hpp"
+#  include "common.hpp"
 
 TEST(xpath_xalan_boolean_1) {
   xml_node c;
@@ -85,8 +85,7 @@ TEST(xpath_xalan_boolean_3) {
   CHECK_XPATH_BOOLEAN(c, STR("'0'=true()"), true);
 }
 
-TEST_XML(xpath_xalan_boolean_4,
-         "<avj><a>foo</a><b>bar</b><c>foobar</c><d>foo</d></avj>") {
+TEST_XML(xpath_xalan_boolean_4, "<avj><a>foo</a><b>bar</b><c>foobar</c><d>foo</d></avj>") {
   CHECK_XPATH_BOOLEAN(doc, STR("avj/*='foo'"), true);
   CHECK_XPATH_BOOLEAN(doc, STR("not(avj/*='foo')"), false);
   CHECK_XPATH_BOOLEAN(doc, STR("avj/*!='foo'"), true);
@@ -99,8 +98,8 @@ TEST_XML(xpath_xalan_boolean_4,
 }
 
 TEST_XML(xpath_xalan_boolean_5,
-         "<doc><j l='12' w='33'>first</j><j l='17' w='45'>second</j><j l='16' "
-         "w='78'>third</j><j l='12' w='33'>fourth</j></doc>") {
+    "<doc><j l='12' w='33'>first</j><j l='17' w='45'>second</j><j l='16' "
+    "w='78'>third</j><j l='12' w='33'>fourth</j></doc>") {
   xml_node c = doc.child(STR("doc"));
 
   CHECK_XPATH_BOOLEAN(c, STR("j[@l='12'] = j[@w='33']"), true);
@@ -113,9 +112,7 @@ TEST_XML(xpath_xalan_boolean_5,
   CHECK_XPATH_BOOLEAN(c, STR("j[@l='16'] != j[@w='78']"), false);
 }
 
-TEST_XML(
-    xpath_xalan_boolean_6,
-    "<doc><avj><good><b>12</b><c>34</c><d>56</d><e>78</e></good></avj></doc>") {
+TEST_XML(xpath_xalan_boolean_6, "<doc><avj><good><b>12</b><c>34</c><d>56</d><e>78</e></good></avj></doc>") {
   xml_node c = doc.child(STR("doc"));
 
   CHECK_XPATH_BOOLEAN(c, STR("avj/good/*=34"), true);
@@ -129,8 +126,9 @@ TEST_XML(
   CHECK_XPATH_BOOLEAN(c, STR("not(34!=avj/good/*)"), false);
 }
 
-TEST_XML(xpath_xalan_boolean_7, "<doc><avj><bool><b>true</b><c></c><d>false?</"
-                                "d><e>1</e><f>0</f></bool></avj></doc>") {
+TEST_XML(xpath_xalan_boolean_7,
+    "<doc><avj><bool><b>true</b><c></c><d>false?</"
+    "d><e>1</e><f>0</f></bool></avj></doc>") {
   xml_node c = doc.child(STR("doc"));
 
   CHECK_XPATH_BOOLEAN(c, STR("avj/bool/*=true()"), true);
@@ -179,8 +177,7 @@ TEST_XML(xpath_xalan_math_1, "<a>3</a>") {
   CHECK_XPATH_NUMBER(c, STR("2*3"), 6);
   CHECK_XPATH_NUMBER(c, STR("3+6"), 9);
   CHECK_XPATH_NUMBER(c, STR("3-1"), 2);
-  CHECK_XPATH_NUMBER_NAN(
-      doc, STR("a-1")); // a-1 is a name test, not arithmetic expression
+  CHECK_XPATH_NUMBER_NAN(doc, STR("a-1")); // a-1 is a name test, not arithmetic expression
   CHECK_XPATH_NUMBER(doc, STR("a -1"), 2);
   CHECK_XPATH_NUMBER(c, STR("6 div 2"), 3);
   CHECK_XPATH_NUMBER(c, STR("5 mod 2"), 1);
@@ -193,10 +190,10 @@ TEST_XML(xpath_xalan_math_1, "<a>3</a>") {
   CHECK_XPATH_BOOLEAN(c, STR("number(true())=1"), true);
   CHECK_XPATH_BOOLEAN(c, STR("number(false())=0"), true);
 
-#ifndef MSVC6_NAN_BUG
+#  ifndef MSVC6_NAN_BUG
   CHECK_XPATH_BOOLEAN(c, STR("number('xxx')=number('xxx')"), false);
   CHECK_XPATH_BOOLEAN(c, STR("number('xxx')=0"), false);
-#endif
+#  endif
 
   CHECK_XPATH_NUMBER(doc, STR("floor(a)"), 3);
   CHECK_XPATH_NUMBER(c, STR("floor(1.9)"), 1);
@@ -234,8 +231,8 @@ TEST_XML(xpath_xalan_math_2, "<a>3</a>") {
 }
 
 TEST_XML(xpath_xalan_math_3,
-         "<doc><n v='1'/><n>2</n><n v='3'/><n>4</n><n "
-         "v='5'>5</n><e>17</e><e>-5</e><e>8</e><e>-37</e></doc>") {
+    "<doc><n v='1'/><n>2</n><n v='3'/><n>4</n><n "
+    "v='5'>5</n><e>17</e><e>-5</e><e>8</e><e>-37</e></doc>") {
   CHECK_XPATH_NUMBER(doc, STR("sum(doc/x)"), 0);
   CHECK_XPATH_NUMBER_NAN(doc, STR("sum(doc/n)"));
   CHECK_XPATH_NUMBER(doc, STR("sum(doc/n[text()])"), 11);
@@ -244,9 +241,9 @@ TEST_XML(xpath_xalan_math_3,
 }
 
 TEST_XML(xpath_xalan_math_4,
-         "<doc><n1 a='1'>2</n1><n2 "
-         "a='2'>3</n2><n1-n2>123</n1-n2><n-1>72</n-1><n-2>12</n-2><div "
-         "a='2'>5</div><mod a='5'>2</mod></doc>") {
+    "<doc><n1 a='1'>2</n1><n2 "
+    "a='2'>3</n2><n1-n2>123</n1-n2><n-1>72</n-1><n-2>12</n-2><div "
+    "a='2'>5</div><mod a='5'>2</mod></doc>") {
   xml_node c = doc.child(STR("doc"));
 
   CHECK_XPATH_NUMBER(c, STR("n1*n2"), 6);
@@ -280,28 +277,25 @@ TEST_XML(xpath_xalan_math_4,
   CHECK_XPATH_BOOLEAN(c, STR("1 div -0 = 1 div 0"), false);
   CHECK_XPATH_BOOLEAN(c, STR("1 div -0 = -1 div 0"), true);
 
-#ifndef MSVC6_NAN_BUG
+#  ifndef MSVC6_NAN_BUG
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 >= 0"), false);
   CHECK_XPATH_BOOLEAN(c, STR("0 div 0 < 0"), false);
-#endif
+#  endif
 
   CHECK_XPATH_NUMBER(c, STR("n1 mod n2"), 2);
   CHECK_XPATH_NUMBER(c, STR("div mod mod"), 1);
   CHECK_XPATH_NUMBER(c, STR("div/@a mod mod/@a"), 2);
 
   CHECK_XPATH_BOOLEAN(c,
-                      STR("(5 mod 2 = 1) and (5 mod -2 = 1) and (-5 mod 2 = "
-                          "-1) and (-5 mod -2 = -1)"),
-                      true);
+      STR("(5 mod 2 = 1) and (5 mod -2 = 1) and (-5 mod 2 = "
+          "-1) and (-5 mod -2 = -1)"),
+      true);
 }
 
 TEST(xpath_xalan_math_5) {
   xml_node c;
 
-  CHECK_XPATH_NUMBER(
-      c,
-      STR("(((((('3'+5)*(3)+((('2')+2)*('1' - 6)))-('4' - '2'))+(-(4-6)))))"),
-      4);
+  CHECK_XPATH_NUMBER(c, STR("(((((('3'+5)*(3)+((('2')+2)*('1' - 6)))-('4' - '2'))+(-(4-6)))))"), 4);
   CHECK_XPATH_NUMBER(c, STR("1*1*2*2*2*3*3*1*1*1*0.5*0.5"), 18);
   CHECK_XPATH_NUMBER(c, STR("1440 div 2 div 2 div 6"), 60);
   CHECK_XPATH_NUMBER(c, STR("1440 div 2 div 2 div 6 div 10"), 6);
@@ -314,10 +308,10 @@ TEST(xpath_xalan_math_5) {
   CHECK_XPATH_NUMBER_NAN(c, STR("2 div number('xxx')"));
   CHECK_XPATH_NUMBER_NAN(c, STR("number('xxx') div 3"));
 
-#ifndef __BORLANDC__ // BCC fmod does not propagate NaN correctly
+#  ifndef __BORLANDC__ // BCC fmod does not propagate NaN correctly
   CHECK_XPATH_NUMBER_NAN(c, STR("2 mod number('xxx')"));
   CHECK_XPATH_NUMBER_NAN(c, STR("number('xxx') mod 3"));
-#endif
+#  endif
 
   CHECK_XPATH_NUMBER_NAN(c, STR("floor(number('xxx'))"));
   CHECK_XPATH_NUMBER_NAN(c, STR("ceiling(number('xxx'))"));
@@ -392,22 +386,16 @@ TEST(xpath_xalan_math_9) {
   CHECK_XPATH_STRING(c, STR("string(number('0.0004'))"), STR("0.0004"));
   CHECK_XPATH_STRING(c, STR("string(-1 * number('0.0004'))"), STR("-0.0004"));
 
-  CHECK_XPATH_STRING(c, STR("string(number('0.0000000000001'))"),
-                     STR("0.0000000000001"));
-  CHECK_XPATH_STRING(c, STR("string(-1 * number('0.0000000000001'))"),
-                     STR("-0.0000000000001"));
+  CHECK_XPATH_STRING(c, STR("string(number('0.0000000000001'))"), STR("0.0000000000001"));
+  CHECK_XPATH_STRING(c, STR("string(-1 * number('0.0000000000001'))"), STR("-0.0000000000001"));
 
-  CHECK_XPATH_STRING(c, STR("string(number('0.0000000000000000000000000001'))"),
-                     STR("0.0000000000000000000000000001"));
+  CHECK_XPATH_STRING(c, STR("string(number('0.0000000000000000000000000001'))"), STR("0.0000000000000000000000000001"));
   CHECK_XPATH_STRING(
-      c, STR("string(-1 * number('0.0000000000000000000000000001'))"),
-      STR("-0.0000000000000000000000000001"));
+      c, STR("string(-1 * number('0.0000000000000000000000000001'))"), STR("-0.0000000000000000000000000001"));
 
-  CHECK_XPATH_STRING(c, STR("string(number('0.0000000000001000000000000001'))"),
-                     STR("0.0000000000001000000000000001"));
+  CHECK_XPATH_STRING(c, STR("string(number('0.0000000000001000000000000001'))"), STR("0.0000000000001000000000000001"));
   CHECK_XPATH_STRING(
-      c, STR("string(-1 * number('0.0000000000001000000000000001'))"),
-      STR("-0.0000000000001000000000000001"));
+      c, STR("string(-1 * number('0.0000000000001000000000000001'))"), STR("-0.0000000000001000000000000001"));
 
   CHECK_XPATH_STRING(c, STR("string(number('0.0012'))"), STR("0.0012"));
   CHECK_XPATH_STRING(c, STR("string(-1 * number('0.0012'))"), STR("-0.0012"));

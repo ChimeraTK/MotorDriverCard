@@ -14,13 +14,13 @@
 class MotorConfigWidget : public QWidget {
   Q_OBJECT
 
-public:
+ public:
   /** The constructor has no special parameters, except for
    *  the parent of the widget.
    */
-  MotorConfigWidget(QWidget *parent_ = NULL);
-  MotorConfigWidget(MotorConfigWidget const &) = delete;
-  MotorConfigWidget &operator=(MotorConfigWidget const &) = delete;
+  MotorConfigWidget(QWidget* parent_ = NULL);
+  MotorConfigWidget(MotorConfigWidget const&) = delete;
+  MotorConfigWidget& operator=(MotorConfigWidget const&) = delete;
 
   /** Get access to the config calculated from the chip parameters.
    */
@@ -39,14 +39,13 @@ public:
   /** Assign an expert panel which is updated with the newly calculated
    * parameters
    */
-  void setMotorExpertPanel(ParametersPanel *motorExpertPanel,
-                           QTabWidget *expertTabWidget, int tabIndex);
+  void setMotorExpertPanel(ParametersPanel* motorExpertPanel, QTabWidget* expertTabWidget, int tabIndex);
 
-private slots:
+ private slots:
   void recalculateChipParameters();
   void setMotorExpertTabEnabled(bool enabled);
 
-private:
+ private:
   ParametersCalculator::ChipParameters _chipParameters;
   void updateChipParameters();
   void updateMotorExpertPanel();
@@ -55,8 +54,8 @@ private:
   Ui::MotorConfigWidgetForm _motorConfigWidgetForm;
 
   // Only needed to update and enable/disable the expert settings
-  ParametersPanel *_motorExpertPanel;
-  QTabWidget *_expertTabWidget;
+  ParametersPanel* _motorExpertPanel;
+  QTabWidget* _expertTabWidget;
   int _tabIndex;
 };
 

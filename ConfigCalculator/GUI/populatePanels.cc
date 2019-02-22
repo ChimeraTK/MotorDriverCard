@@ -3,16 +3,14 @@
 #include "MotorDriverCardConfig.h"
 #include "ParametersPanel.h"
 
-#define ADD_TMC249_PARAMETER(parameter, extraText)                             \
-  parametersPanel->addParameter(#parameter, defaultConfig.parameter.getDATA(), \
-                                extraText)
-#define ADD_TMC260_PARAMETER(parameter, extraText)                             \
-  parametersPanel->addParameter(                                               \
-      #parameter, defaultConfig.parameter.getPayloadData(), extraText)
-#define ADD_INT_PARAMETER(parameter, extraText)                                \
+#define ADD_TMC249_PARAMETER(parameter, extraText)                                                                     \
+  parametersPanel->addParameter(#parameter, defaultConfig.parameter.getDATA(), extraText)
+#define ADD_TMC260_PARAMETER(parameter, extraText)                                                                     \
+  parametersPanel->addParameter(#parameter, defaultConfig.parameter.getPayloadData(), extraText)
+#define ADD_INT_PARAMETER(parameter, extraText)                                                                        \
   parametersPanel->addParameter(#parameter, defaultConfig.parameter, extraText)
 
-void populateMotorExpertPanel(ParametersPanel *parametersPanel) {
+void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
   mtca4u::MotorControlerConfig defaultConfig;
   ADD_TMC249_PARAMETER(accelerationThresholdData, "");
   // ADD_INT_PARAMETER(actualPosition,"");
@@ -38,7 +36,7 @@ void populateMotorExpertPanel(ParametersPanel *parametersPanel) {
   ADD_TMC260_PARAMETER(stallGuardControlData, "(*)");
 }
 
-void populateDriverCardExpertPanel(ParametersPanel *parametersPanel) {
+void populateDriverCardExpertPanel(ParametersPanel* parametersPanel) {
   mtca4u::MotorDriverCardConfig defaultConfig;
   ADD_INT_PARAMETER(controlerSpiWaitingTime, "");
   ADD_INT_PARAMETER(coverDatagram, "");

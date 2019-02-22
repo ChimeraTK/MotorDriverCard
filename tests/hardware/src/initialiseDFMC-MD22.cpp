@@ -7,8 +7,8 @@
 
 using namespace mtca4u;
 
-int main(int argc, char *argv[]) {
-  if (argc != 4) {
+int main(int argc, char* argv[]) {
+  if(argc != 4) {
     std::cout << argv[0]
               << " just creates an instance of MotorDirverCardImpl, which "
                  "initialises all registers."
@@ -17,8 +17,7 @@ int main(int argc, char *argv[]) {
                  "and turn off the drivers."
               << std::endl
               << std::endl;
-    std::cout << "Usage: " << argv[0] << " dmapFile moduleName motorConfig.xml"
-              << std::endl;
+    std::cout << "Usage: " << argv[0] << " dmapFile moduleName motorConfig.xml" << std::endl;
     return -1;
   }
 
@@ -26,10 +25,8 @@ int main(int argc, char *argv[]) {
   std::string motorConfigFileName = argv[3];
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias =
-      ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
+  std::string deviceAlias = ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
 
-  (void)mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-      deviceAlias, moduleName, motorConfigFileName);
+  (void)mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, moduleName, motorConfigFileName);
 }

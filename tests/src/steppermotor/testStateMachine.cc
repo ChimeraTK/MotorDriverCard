@@ -13,12 +13,11 @@ using namespace boost::unit_test_framework;
 using namespace ChimeraTK::MotorDriver::utility;
 
 class DerivedStateMachine : public StateMachine {
-
-public:
+ public:
   DerivedStateMachine();
   ~DerivedStateMachine();
 
-protected:
+ protected:
   static StateMachine::Event initEvent;
   static StateMachine::Event userEvent1;
   static StateMachine::Event userEvent2;
@@ -51,9 +50,9 @@ protected:
   std::atomic<bool> _isCorrectRequestedState;
   std::atomic<int> _counter;
 
-private:
+ private:
   // To be used inside the callbacks which are guarded, so no locking here
-  void assertRequestedState(StateMachine::State *referenceState);
+  void assertRequestedState(StateMachine::State* referenceState);
 };
 
 StateMachine::Event DerivedStateMachine::initEvent("initEvent");
@@ -62,51 +61,38 @@ StateMachine::Event DerivedStateMachine::userEvent2("userEvent2");
 StateMachine::Event DerivedStateMachine::userEvent3("userEvent3");
 
 DerivedStateMachine::DerivedStateMachine()
-    : StateMachine(), _firstState("firstState"), _secondState("secondState"),
-      _thirdState("thirdState"), _fourthState("fourthState"),
-      _fifthState("fifthState"), _state1to2Event("changeState1"),
-      _state2to3Event("changeState2"), _state3to1Event("changeState3"),
-      _state1to4Event("changeState4"), _transitionAllowed(false),
-      _isCorrectCurrentState(false), _isCorrectRequestedState(false),
-      _counter(0) {
-
-  _initState.setTransition(
-      DerivedStateMachine::initEvent, &_firstState,
+: StateMachine(), _firstState("firstState"), _secondState("secondState"), _thirdState("thirdState"),
+  _fourthState("fourthState"), _fifthState("fifthState"), _state1to2Event("changeState1"),
+  _state2to3Event("changeState2"), _state3to1Event("changeState3"), _state1to4Event("changeState4"),
+  _transitionAllowed(false), _isCorrectCurrentState(false), _isCorrectRequestedState(false), _counter(0) {
+  _initState.setTransition(DerivedStateMachine::initEvent, &_firstState,
       std::bind(&DerivedStateMachine::actionIdleToFirstState, this),
       std::bind(&DerivedStateMachine::actionFirstStateExit, this));
   _firstState.setTransition(
-      DerivedStateMachine::userEvent1, &_thirdState,
-      std::bind(&DerivedStateMachine::actionExtern1, this));
+      DerivedStateMachine::userEvent1, &_thirdState, std::bind(&DerivedStateMachine::actionExtern1, this));
   _firstState.setTransition(
-      _state1to2Event, &_secondState,
-      std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
+      _state1to2Event, &_secondState, std::bind(&DerivedStateMachine::actionFirstToSecondState, this));
   _firstState.setTransition(
-      _state1to4Event, &_fourthState,
-      std::bind(&DerivedStateMachine::actionFirstToFourthState, this));
+      _state1to4Event, &_fourthState, std::bind(&DerivedStateMachine::actionFirstToFourthState, this));
   _secondState.setTransition(
-      DerivedStateMachine::userEvent2, &_firstState,
-      std::bind(&DerivedStateMachine::actionExtern2, this));
+      DerivedStateMachine::userEvent2, &_firstState, std::bind(&DerivedStateMachine::actionExtern2, this));
   _thirdState.setTransition(
-      DerivedStateMachine::userEvent3, &_firstState,
-      std::bind(&DerivedStateMachine::actionThirdToFirstState, this));
+      DerivedStateMachine::userEvent3, &_firstState, std::bind(&DerivedStateMachine::actionThirdToFirstState, this));
 }
 
 DerivedStateMachine::~DerivedStateMachine() {}
 
-void DerivedStateMachine::assertRequestedState(
-    StateMachine::State *referenceState) {
-
-  if (_requestedState == nullptr) {
+void DerivedStateMachine::assertRequestedState(StateMachine::State* referenceState) {
+  if(_requestedState == nullptr) {
     _isCorrectRequestedState.exchange(referenceState == nullptr);
-  } else {
-    _isCorrectRequestedState.exchange(referenceState != nullptr &&
-                                      referenceState->getName() ==
-                                          _requestedState->getName());
+  }
+  else {
+    _isCorrectRequestedState.exchange(
+        referenceState != nullptr && referenceState->getName() == _requestedState->getName());
   }
 }
 
 void DerivedStateMachine::actionIdleToFirstState() {
-
   _asyncActionActive.exchange(true);
   std::thread asyncActionIdleToFirst([this] {
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
@@ -117,17 +103,17 @@ void DerivedStateMachine::actionIdleToFirstState() {
 }
 
 void DerivedStateMachine::actionFirstToSecondState() {
-
   // Wait for main test thread, check current and requested state
-  if (_currentState->getName() == "firstState") {
+  if(_currentState->getName() == "firstState") {
     _isCorrectCurrentState.exchange(true);
-  } else {
+  }
+  else {
     _isCorrectCurrentState.exchange(false);
   }
   assertRequestedState(&_secondState);
 
   _transitionAllowed.exchange(false);
-  while (!_transitionAllowed.load()) {
+  while(!_transitionAllowed.load()) {
   }
 
   _transitionAllowed.exchange(false);
@@ -139,12 +125,15 @@ void DerivedStateMachine::actionFirstStateExit() {
   assertRequestedState(nullptr);
 }
 
-void DerivedStateMachine::actionExtern1() { _counter.fetch_add(1); }
+void DerivedStateMachine::actionExtern1() {
+  _counter.fetch_add(1);
+}
 
-void DerivedStateMachine::actionExtern2() { _counter.fetch_add(2); }
+void DerivedStateMachine::actionExtern2() {
+  _counter.fetch_add(2);
+}
 
 void DerivedStateMachine::actionThirdToFirstState() {
-
   _asyncActionActive.exchange(true);
   std::thread asyncAction3rdTo1st([this] {
     std::lock_guard<std::mutex> lck(_stateMachineMutex);
@@ -157,7 +146,6 @@ void DerivedStateMachine::actionThirdToFirstState() {
 }
 
 void DerivedStateMachine::actionFirstToFourthState() {
-
   _counter.fetch_add(14);
   moveToRequestedState();
 }
@@ -166,7 +154,6 @@ BOOST_AUTO_TEST_SUITE(StateMachineTestSuite)
 
 // Test of the base state machine provided by the StateMachine class
 BOOST_FIXTURE_TEST_CASE(testBaseStateMachine, StateMachine) {
-
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "initState");
 
   // Default-constructed event should be undefined
@@ -176,7 +163,6 @@ BOOST_FIXTURE_TEST_CASE(testBaseStateMachine, StateMachine) {
 }
 
 BOOST_FIXTURE_TEST_CASE(testDerivedStateMachine, DerivedStateMachine) {
-
   _transitionAllowed.exchange(true);
 
   // noEvent triggers transition from idle to first state
@@ -184,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(testDerivedStateMachine, DerivedStateMachine) {
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(initEvent));
 
   // Wait until the async task sets the flag to false
-  while (_transitionAllowed.load()) {
+  while(_transitionAllowed.load()) {
   }
 
   // Now, we should be in first state, second state should be requested
@@ -197,7 +183,7 @@ BOOST_FIXTURE_TEST_CASE(testDerivedStateMachine, DerivedStateMachine) {
 
   // Wait for the async task to finish, we should then be in second state and
   // the requested state pointer should be reset
-  while (_asyncActionActive.load() == true) {
+  while(_asyncActionActive.load() == true) {
   }
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "secondState");
   BOOST_CHECK(_isCorrectRequestedState.load());
@@ -218,7 +204,7 @@ BOOST_FIXTURE_TEST_CASE(testDerivedStateMachine, DerivedStateMachine) {
   _counter.store(0);
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(DerivedStateMachine::userEvent3));
 
-  while (_asyncActionActive.load() == true) {
+  while(_asyncActionActive.load() == true) {
   }
 
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "fourthState");

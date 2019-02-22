@@ -12,59 +12,59 @@
 #include <string>
 
 namespace mtca4u {
-using namespace ChimeraTK;
+  using namespace ChimeraTK;
 
-class StepperMotorError;
-class LinearStepperMotorError;
+  class StepperMotorError;
+  class LinearStepperMotorError;
 
-class StepperMotorErrorTypes {
-public:
-  static const StepperMotorError M_NO_ERROR;
-  static const StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
-  static const StepperMotorError M_COMMUNICATION_LOST;
-  static const StepperMotorError M_NO_REACTION_ON_COMMAND;
-  static const StepperMotorError M_HARDWARE_NOT_CONNECTED;
-  virtual ~StepperMotorErrorTypes() {}
-};
+  class StepperMotorErrorTypes {
+   public:
+    static const StepperMotorError M_NO_ERROR;
+    static const StepperMotorError M_CONFIG_ERROR_MIN_POS_GRATER_EQUAL_TO_MAX;
+    static const StepperMotorError M_COMMUNICATION_LOST;
+    static const StepperMotorError M_NO_REACTION_ON_COMMAND;
+    static const StepperMotorError M_HARDWARE_NOT_CONNECTED;
+    virtual ~StepperMotorErrorTypes() {}
+  };
 
-class LinearStepperMotorErrorTypes : public StepperMotorErrorTypes {
-public:
-  static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
-};
+  class LinearStepperMotorErrorTypes : public StepperMotorErrorTypes {
+   public:
+    static const LinearStepperMotorError M_BOTH_END_SWITCH_ON;
+  };
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// StepperMotorError class
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // StepperMotorError class
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-class StepperMotorError : public GeneralStatus {
-public:
-  // default constructor
-  StepperMotorError();
-  // constructor with params
-  StepperMotorError(int id);
-  // copy constructor
-  StepperMotorError(const StepperMotorError &error);
+  class StepperMotorError : public GeneralStatus {
+   public:
+    // default constructor
+    StepperMotorError();
+    // constructor with params
+    StepperMotorError(int id);
+    // copy constructor
+    StepperMotorError(const StepperMotorError& error);
 
-  virtual std::string asString() const;
-};
+    virtual std::string asString() const;
+  };
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// LinearStepperMotorError class
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // LinearStepperMotorError class
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-class LinearStepperMotorError : public StepperMotorError {
-public:
-  // default constructor
-  LinearStepperMotorError();
-  // constructor with params
-  LinearStepperMotorError(int id);
-  // copy constructor
-  LinearStepperMotorError(const LinearStepperMotorError &error);
+  class LinearStepperMotorError : public StepperMotorError {
+   public:
+    // default constructor
+    LinearStepperMotorError();
+    // constructor with params
+    LinearStepperMotorError(int id);
+    // copy constructor
+    LinearStepperMotorError(const LinearStepperMotorError& error);
 
-  virtual std::string asString() const;
-};
+    virtual std::string asString() const;
+  };
 } // namespace mtca4u
 
 #endif /* STEPPER_MOTOR_ERROR_H */

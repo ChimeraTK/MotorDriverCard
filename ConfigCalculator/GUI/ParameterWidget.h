@@ -13,20 +13,19 @@
  *  plus convenience getter (and setter?).
  */
 class ParameterWidget : public QWidget {
-public:
-  ParameterWidget(QWidget *parent_, std::string const &parameterName,
-                  uint32_t defaultValue = 0xDEADBEEF);
-  ParameterWidget(ParameterWidget const &) = delete;
-  ParameterWidget &operator=(ParameterWidget const &) = delete;
+ public:
+  ParameterWidget(QWidget* parent_, std::string const& parameterName, uint32_t defaultValue = 0xDEADBEEF);
+  ParameterWidget(ParameterWidget const&) = delete;
+  ParameterWidget& operator=(ParameterWidget const&) = delete;
 
   uint32_t getValue();
   void setValue(uint32_t value);
 
-protected:
-  QHBoxLayout *horizontalLayout;
-  QLabel *label;
-  HexSpinBox *parameterSpinBox;
-  QLabel *defaultValueLabel;
+ protected:
+  QHBoxLayout* horizontalLayout;
+  QLabel* label;
+  HexSpinBox* parameterSpinBox;
+  QLabel* defaultValueLabel;
 };
 
 #endif // _PARAMETER_WIDGET_H_

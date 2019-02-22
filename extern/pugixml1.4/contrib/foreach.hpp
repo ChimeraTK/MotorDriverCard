@@ -16,24 +16,30 @@
  */
 
 namespace boost {
-template <typename> struct range_mutable_iterator;
-template <typename> struct range_const_iterator;
+  template<typename>
+  struct range_mutable_iterator;
+  template<typename>
+  struct range_const_iterator;
 
-template <> struct range_mutable_iterator<pugi::xml_node> {
-  typedef pugi::xml_node::iterator type;
-};
+  template<>
+  struct range_mutable_iterator<pugi::xml_node> {
+    typedef pugi::xml_node::iterator type;
+  };
 
-template <> struct range_const_iterator<pugi::xml_node> {
-  typedef pugi::xml_node::iterator type;
-};
+  template<>
+  struct range_const_iterator<pugi::xml_node> {
+    typedef pugi::xml_node::iterator type;
+  };
 
-template <> struct range_mutable_iterator<pugi::xml_document> {
-  typedef pugi::xml_document::iterator type;
-};
+  template<>
+  struct range_mutable_iterator<pugi::xml_document> {
+    typedef pugi::xml_document::iterator type;
+  };
 
-template <> struct range_const_iterator<pugi::xml_document> {
-  typedef pugi::xml_document::iterator type;
-};
+  template<>
+  struct range_const_iterator<pugi::xml_document> {
+    typedef pugi::xml_document::iterator type;
+  };
 } // namespace boost
 
 /*
@@ -43,15 +49,9 @@ template <> struct range_const_iterator<pugi::xml_document> {
  */
 
 namespace pugi {
-inline xml_object_range<xml_node_iterator>
-children(const pugi::xml_node &node) {
-  return node.children();
-}
+  inline xml_object_range<xml_node_iterator> children(const pugi::xml_node& node) { return node.children(); }
 
-inline xml_object_range<xml_attribute_iterator>
-attributes(const pugi::xml_node &node) {
-  return node.attributes();
-}
+  inline xml_object_range<xml_attribute_iterator> attributes(const pugi::xml_node& node) { return node.attributes(); }
 } // namespace pugi
 
 #endif

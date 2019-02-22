@@ -3,9 +3,13 @@
 #include <new>
 
 //[code_custom_memory_management_decl
-void *custom_allocate(size_t size) { return new (std::nothrow) char[size]; }
+void* custom_allocate(size_t size) {
+  return new(std::nothrow) char[size];
+}
 
-void custom_deallocate(void *ptr) { delete[] static_cast<char *>(ptr); }
+void custom_deallocate(void* ptr) {
+  delete[] static_cast<char*>(ptr);
+}
 //]
 
 int main() {

@@ -21,10 +21,8 @@ BOOST_AUTO_TEST_SUITE(MotorDriverCardFactoryTestSuite)
 BOOST_AUTO_TEST_CASE(testInstance) {
 #pragma GCC diagnostic pop
   // check that the singleton pattern works
-  mtca4u::MotorDriverCardFactory const &instance1 =
-      mtca4u::MotorDriverCardFactory::instance();
-  mtca4u::MotorDriverCardFactory const &instance2 =
-      mtca4u::MotorDriverCardFactory::instance();
+  mtca4u::MotorDriverCardFactory const& instance1 = mtca4u::MotorDriverCardFactory::instance();
+  mtca4u::MotorDriverCardFactory const& instance2 = mtca4u::MotorDriverCardFactory::instance();
 
   BOOST_CHECK(&instance1 == &instance2);
 }
@@ -35,17 +33,14 @@ BOOST_AUTO_TEST_CASE(testGetSetDMapFilePath) {
 #pragma GCC diagnostic pop
   // make sure there is something different set than the one we want to test
   // we have to use real files, otherwise we get an exception here.
-  ChimeraTK::BackendFactory::getInstance().setDMapFilePath(
-      "MD22_on_DAMC2.dmap");
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("MD22_on_DAMC2.dmap");
   // check that you can read it through the MotorDriverCardFactory interface
-  BOOST_CHECK(mtca4u::MotorDriverCardFactory::getDeviceaccessDMapFilePath() ==
-              "MD22_on_DAMC2.dmap");
+  BOOST_CHECK(mtca4u::MotorDriverCardFactory::getDeviceaccessDMapFilePath() == "MD22_on_DAMC2.dmap");
 
   // set using the MotorDriverCardFactory's interface
   mtca4u::MotorDriverCardFactory::setDeviceaccessDMapFilePath("dummies.dmap");
   // check that it arrived correctly in the BackendFactory
-  BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() ==
-              "dummies.dmap");
+  BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() == "dummies.dmap");
 }
 
 #pragma GCC diagnostic push
@@ -64,26 +59,22 @@ BOOST_AUTO_TEST_CASE(testCreate) {
 
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe1 =
       // MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH,
-      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-          DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
   BOOST_CHECK(true);
   boost::shared_ptr<mtca4u::MotorDriverCard> md22_dummy1 =
-      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-          DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
   BOOST_CHECK(motorDriverCard_PCIe1.get() != md22_dummy1.get());
   // there is one instance here and one in the factory
   BOOST_CHECK(md22_dummy1.use_count() == 2);
   boost::shared_ptr<mtca4u::MotorDriverCard> md22_dummy2 =
-      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-          DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
 
   BOOST_CHECK(md22_dummy1.get() == md22_dummy2.get());
   // there are two instances here, and one in the factory
   BOOST_CHECK(md22_dummy1.use_count() == 3);
 
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe2 =
-      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-          DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
 
   BOOST_CHECK(motorDriverCard_PCIe1.get() == motorDriverCard_PCIe2.get());
   // there are two instances here, and one in the factory
@@ -97,8 +88,7 @@ BOOST_AUTO_TEST_CASE(testCreateDummy) {
   mtca4u::MotorDriverCardFactory::instance().setDummyMode(true);
   boost::shared_ptr<mtca4u::MotorDriverCardDummy> motorDriverCardDummy =
       boost::dynamic_pointer_cast<mtca4u::MotorDriverCardDummy>(
-          mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-              "/dummy/MotorDriverCard",
+          mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard("/dummy/MotorDriverCard",
 
               MODULE_NAME_0, "alsoIrrelevant"));
 

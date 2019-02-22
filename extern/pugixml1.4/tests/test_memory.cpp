@@ -5,18 +5,18 @@
 #include <string>
 
 namespace {
-int allocate_count = 0;
-int deallocate_count = 0;
+  int allocate_count = 0;
+  int deallocate_count = 0;
 
-void *allocate(size_t size) {
-  ++allocate_count;
-  return new char[size];
-}
+  void* allocate(size_t size) {
+    ++allocate_count;
+    return new char[size];
+  }
 
-void deallocate(void *ptr) {
-  ++deallocate_count;
-  delete[] reinterpret_cast<char *>(ptr);
-}
+  void deallocate(void* ptr) {
+    ++deallocate_count;
+    delete[] reinterpret_cast<char*>(ptr);
+  }
 } // namespace
 
 TEST(memory_custom_memory_management) {
@@ -78,7 +78,7 @@ TEST(memory_large_allocations) {
     CHECK(allocate_count == 0 && deallocate_count == 0);
 
     // initial fill
-    for (size_t i = 0; i < 128; ++i) {
+    for(size_t i = 0; i < 128; ++i) {
       std::basic_string<pugi::char_t> s(i * 128, 'x');
 
       CHECK(doc.append_child(node_pcdata).set_value(s.c_str()));
@@ -87,18 +87,18 @@ TEST(memory_large_allocations) {
     CHECK(allocate_count > 0 && deallocate_count == 0);
 
     // grow-prune loop
-    while (doc.first_child()) {
+    while(doc.first_child()) {
       pugi::xml_node node;
 
       // grow
-      for (node = doc.first_child(); node; node = node.next_sibling()) {
+      for(node = doc.first_child(); node; node = node.next_sibling()) {
         std::basic_string<pugi::char_t> s = node.value();
 
         CHECK(node.set_value((s + s).c_str()));
       }
 
       // prune
-      for (node = doc.first_child(); node;) {
+      for(node = doc.first_child(); node;) {
         pugi::xml_node next = node.next_sibling().next_sibling();
 
         node.parent().remove_child(node);
@@ -107,13 +107,10 @@ TEST(memory_large_allocations) {
       }
     }
 
-    CHECK(allocate_count ==
-          deallocate_count +
-              1); // only one live page left (it waits for new allocations)
+    CHECK(allocate_count == deallocate_count + 1); // only one live page left (it waits for new allocations)
 
     char buffer;
-    CHECK(doc.load_buffer_inplace(&buffer, 0, parse_fragment,
-                                  get_native_encoding()));
+    CHECK(doc.load_buffer_inplace(&buffer, 0, parse_fragment, get_native_encoding()));
 
     CHECK(allocate_count == deallocate_count); // no live pages left
   }
@@ -131,19 +128,18 @@ TEST(memory_string_allocate_increasing) {
 
   std::basic_string<char_t> s = STR("ab");
 
-  for (int i = 0; i < 17; ++i) {
+  for(int i = 0; i < 17; ++i) {
     doc.append_child(node_pcdata).set_value(s.c_str());
 
     s += s;
   }
 
-  std::string result =
-      save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
+  std::string result = save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
 
   CHECK(result.size() == 262143);
   CHECK(result[0] == 'x');
 
-  for (size_t j = 1; j < result.size(); ++j) {
+  for(size_t j = 1; j < result.size(); ++j) {
     CHECK(result[j] == (j % 2 ? 'a' : 'b'));
   }
 }
@@ -153,10 +149,9 @@ TEST(memory_string_allocate_decreasing) {
 
   std::basic_string<char_t> s = STR("ab");
 
-  for (int i = 0; i < 17; ++i)
-    s += s;
+  for(int i = 0; i < 17; ++i) s += s;
 
-  for (int j = 0; j < 17; ++j) {
+  for(int j = 0; j < 17; ++j) {
     s.resize(s.size() / 2);
 
     doc.append_child(node_pcdata).set_value(s.c_str());
@@ -164,13 +159,12 @@ TEST(memory_string_allocate_decreasing) {
 
   doc.append_child(node_pcdata).set_value(STR("x"));
 
-  std::string result =
-      save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
+  std::string result = save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
 
   CHECK(result.size() == 262143);
   CHECK(result[result.size() - 1] == 'x');
 
-  for (size_t k = 0; k + 1 < result.size(); ++k) {
+  for(size_t k = 0; k + 1 < result.size(); ++k) {
     CHECK(result[k] == (k % 2 ? 'b' : 'a'));
   }
 }
@@ -184,18 +178,17 @@ TEST(memory_string_allocate_increasing_inplace) {
 
   std::basic_string<char_t> s = STR("ab");
 
-  for (int i = 0; i < 17; ++i) {
+  for(int i = 0; i < 17; ++i) {
     node.set_value(s.c_str());
 
     s += s;
   }
 
-  std::string result =
-      save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
+  std::string result = save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
 
   CHECK(result.size() == 131072);
 
-  for (size_t j = 0; j < result.size(); ++j) {
+  for(size_t j = 0; j < result.size(); ++j) {
     CHECK(result[j] == (j % 2 ? 'b' : 'a'));
   }
 }
@@ -207,10 +200,9 @@ TEST(memory_string_allocate_decreasing_inplace) {
 
   std::basic_string<char_t> s = STR("ab");
 
-  for (int i = 0; i < 17; ++i)
-    s += s;
+  for(int i = 0; i < 17; ++i) s += s;
 
-  for (int j = 0; j < 17; ++j) {
+  for(int j = 0; j < 17; ++j) {
     s.resize(s.size() / 2);
 
     node.set_value(s.c_str());
@@ -218,8 +210,7 @@ TEST(memory_string_allocate_decreasing_inplace) {
 
   node.set_value(STR("x"));
 
-  std::string result =
-      save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
+  std::string result = save_narrow(doc, format_no_declaration | format_raw, encoding_utf8);
 
   CHECK(result == "x");
 }

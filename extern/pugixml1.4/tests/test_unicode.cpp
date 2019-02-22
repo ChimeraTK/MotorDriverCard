@@ -1,20 +1,22 @@
 #ifndef PUGIXML_NO_STL
 
-#include "common.hpp"
+#  include "common.hpp"
 
-#include <string>
+#  include <string>
 
 // letters taken from http://www.utf8-chartable.de/
 
-TEST(as_wide_empty) { CHECK(as_wide("") == L""); }
+TEST(as_wide_empty) {
+  CHECK(as_wide("") == L"");
+}
 
 TEST(as_wide_valid_basic) {
   // valid 1-byte, 2-byte and 3-byte inputs
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
   CHECK(as_wide("?\xd0\x80\xe2\x80\xbd") == L"?\u0400\u203D");
-#else
+#  else
   CHECK(as_wide("?\xd0\x80\xe2\x80\xbd") == L"?\x0400\x203D");
-#endif
+#  endif
 }
 
 TEST(as_wide_valid_astral) {
@@ -23,13 +25,12 @@ TEST(as_wide_valid_astral) {
 
   size_t wcharsize = sizeof(wchar_t);
 
-  if (wcharsize == 4) {
-    CHECK(b4.size() == 3 && b4[0] == wchar_cast(0x97624) && b4[1] == L' ' &&
-          b4[2] == wchar_cast(0x1003ff));
-  } else {
-    CHECK(b4.size() == 5 && b4[0] == wchar_cast(0xda1d) &&
-          b4[1] == wchar_cast(0xde24) && b4[2] == L' ' &&
-          b4[3] == wchar_cast(0xdbc0) && b4[4] == wchar_cast(0xdfff));
+  if(wcharsize == 4) {
+    CHECK(b4.size() == 3 && b4[0] == wchar_cast(0x97624) && b4[1] == L' ' && b4[2] == wchar_cast(0x1003ff));
+  }
+  else {
+    CHECK(b4.size() == 5 && b4[0] == wchar_cast(0xda1d) && b4[1] == wchar_cast(0xde24) && b4[2] == L' ' &&
+        b4[3] == wchar_cast(0xdbc0) && b4[4] == wchar_cast(0xdfff));
   }
 }
 
@@ -69,22 +70,24 @@ TEST(as_wide_string) {
   CHECK(as_wide(s) == L"abcd");
 }
 
-TEST(as_utf8_empty) { CHECK(as_utf8(L"") == ""); }
+TEST(as_utf8_empty) {
+  CHECK(as_utf8(L"") == "");
+}
 
 TEST(as_utf8_valid_basic) {
   // valid 1-byte, 2-byte and 3-byte outputs
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
   CHECK(as_utf8(L"?\u0400\u203D") == "?\xd0\x80\xe2\x80\xbd");
-#else
+#  else
   CHECK(as_utf8(L"?\x0400\x203D") == "?\xd0\x80\xe2\x80\xbd");
-#endif
+#  endif
 }
 
 TEST(as_utf8_valid_astral) {
   // valid 4-byte output
   size_t wcharsize = sizeof(wchar_t);
 
-  if (wcharsize == 4) {
+  if(wcharsize == 4) {
     std::basic_string<wchar_t> s;
     s.resize(3);
     s[0] = wchar_cast(0x97624);
@@ -92,38 +95,37 @@ TEST(as_utf8_valid_astral) {
     s[2] = wchar_cast(0x1003ff);
 
     CHECK(as_utf8(s.c_str()) == "\xf2\x97\x98\xa4 \xf4\x80\x8f\xbf");
-  } else {
-#ifdef U_LITERALS
-    CHECK(as_utf8(L"\uda1d\ude24 \udbc0\udfff") ==
-          "\xf2\x97\x98\xa4 \xf4\x80\x8f\xbf");
-#else
-    CHECK(as_utf8(L"\xda1d\xde24 \xdbc0\xdfff") ==
-          "\xf2\x97\x98\xa4 \xf4\x80\x8f\xbf");
-#endif
+  }
+  else {
+#  ifdef U_LITERALS
+    CHECK(as_utf8(L"\uda1d\ude24 \udbc0\udfff") == "\xf2\x97\x98\xa4 \xf4\x80\x8f\xbf");
+#  else
+    CHECK(as_utf8(L"\xda1d\xde24 \xdbc0\xdfff") == "\xf2\x97\x98\xa4 \xf4\x80\x8f\xbf");
+#  endif
   }
 }
 
 TEST(as_utf8_invalid) {
   size_t wcharsize = sizeof(wchar_t);
 
-  if (wcharsize == 2) {
+  if(wcharsize == 2) {
     // check non-terminated degenerate handling
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
     CHECK(as_utf8(L"a\uda1d") == "a");
     CHECK(as_utf8(L"a\uda1d_") == "a_");
-#else
+#  else
     CHECK(as_utf8(L"a\xda1d") == "a");
     CHECK(as_utf8(L"a\xda1d_") == "a_");
-#endif
+#  endif
 
     // check incorrect leading code
-#ifdef U_LITERALS
+#  ifdef U_LITERALS
     CHECK(as_utf8(L"a\ude24") == "a");
     CHECK(as_utf8(L"a\ude24_") == "a_");
-#else
+#  else
     CHECK(as_utf8(L"a\xde24") == "a");
     CHECK(as_utf8(L"a\xde24_") == "a_");
-#endif
+#  endif
   }
 }
 

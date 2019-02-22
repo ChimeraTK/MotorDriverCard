@@ -1,12 +1,12 @@
 #ifndef PUGIXML_NO_XPATH
 
-#include <string.h> // because Borland's STL is braindead, we have to include <string.h> _before_ <string> in order to get memcmp
+#  include <string.h> // because Borland's STL is braindead, we have to include <string.h> _before_ <string> in order to get memcmp
 
-#include "common.hpp"
+#  include "common.hpp"
 
-#include "helpers.hpp"
+#  include "helpers.hpp"
 
-#include <string>
+#  include <string>
 
 TEST_XML(xpath_api_select_nodes, "<node><head/><foo/><foo/><tail/></node>") {
   xpath_node_set ns1 = doc.select_nodes(STR("node/foo"));
@@ -18,8 +18,7 @@ TEST_XML(xpath_api_select_nodes, "<node><head/><foo/><foo/><tail/></node>") {
   xpath_node_set_tester(ns2, "ns2") % 4 % 5;
 }
 
-TEST_XML(xpath_api_select_single_node,
-         "<node><head/><foo id='1'/><foo/><tail/></node>") {
+TEST_XML(xpath_api_select_single_node, "<node><head/><foo id='1'/><foo/><tail/></node>") {
   xpath_node n1 = doc.select_single_node(STR("node/foo"));
 
   xpath_query q(STR("node/foo"));
@@ -32,10 +31,8 @@ TEST_XML(xpath_api_select_single_node,
 
   CHECK(!n3);
 
-  xpath_node n4 =
-      doc.select_single_node(STR("node/head/following-sibling::foo"));
-  xpath_node n5 =
-      doc.select_single_node(STR("node/tail/preceding-sibling::foo"));
+  xpath_node n4 = doc.select_single_node(STR("node/head/following-sibling::foo"));
+  xpath_node n5 = doc.select_single_node(STR("node/tail/preceding-sibling::foo"));
 
   CHECK(n4.node().attribute(STR("id")).as_int() == 1);
   CHECK(n5.node().attribute(STR("id")).as_int() == 1);
@@ -47,8 +44,7 @@ TEST_XML(xpath_api_node_bool_ops, "<node attr='value'/>") {
 }
 
 TEST_XML(xpath_api_node_eq_ops, "<node attr='value'/>") {
-  generic_eq_ops_test(doc.select_single_node(STR("node")),
-                      doc.select_single_node(STR("node/@attr")));
+  generic_eq_ops_test(doc.select_single_node(STR("node")), doc.select_single_node(STR("node/@attr")));
 }
 
 TEST_XML(xpath_api_node_accessors, "<node attr='value'/>") {
@@ -69,7 +65,7 @@ TEST_XML(xpath_api_node_accessors, "<node attr='value'/>") {
   CHECK(attr.parent() == doc.child(STR("node")));
 }
 
-inline void xpath_api_node_accessors_helper(const xpath_node_set &set) {
+inline void xpath_api_node_accessors_helper(const xpath_node_set& set) {
   CHECK(set.size() == 2);
   CHECK(set.type() == xpath_node_set::type_sorted);
   CHECK(!set.empty());
@@ -140,39 +136,35 @@ TEST_XML(xpath_api_evaluate, "<node attr='3'/>") {
   CHECK(q.evaluate_number(doc) == 3);
 
   char_t string[3];
-  CHECK(q.evaluate_string(string, 3, doc) == 2 && string[0] == '3' &&
-        string[1] == 0);
+  CHECK(q.evaluate_string(string, 3, doc) == 2 && string[0] == '3' && string[1] == 0);
 
-#ifndef PUGIXML_NO_STL
+#  ifndef PUGIXML_NO_STL
   CHECK(q.evaluate_string(doc) == STR("3"));
-#endif
+#  endif
 
   xpath_node_set ns = q.evaluate_node_set(doc);
-  CHECK(ns.size() == 1 &&
-        ns[0].attribute() == doc.child(STR("node")).attribute(STR("attr")));
+  CHECK(ns.size() == 1 && ns[0].attribute() == doc.child(STR("node")).attribute(STR("attr")));
 }
 
 TEST_XML(xpath_api_evaluate_attr, "<node attr='3'/>") {
   xpath_query q(STR("."));
-  xpath_node n(doc.child(STR("node")).attribute(STR("attr")),
-               doc.child(STR("node")));
+  xpath_node n(doc.child(STR("node")).attribute(STR("attr")), doc.child(STR("node")));
 
   CHECK(q.evaluate_boolean(n));
   CHECK(q.evaluate_number(n) == 3);
 
   char_t string[3];
-  CHECK(q.evaluate_string(string, 3, n) == 2 && string[0] == '3' &&
-        string[1] == 0);
+  CHECK(q.evaluate_string(string, 3, n) == 2 && string[0] == '3' && string[1] == 0);
 
-#ifndef PUGIXML_NO_STL
+#  ifndef PUGIXML_NO_STL
   CHECK(q.evaluate_string(n) == STR("3"));
-#endif
+#  endif
 
   xpath_node_set ns = q.evaluate_node_set(n);
   CHECK(ns.size() == 1 && ns[0] == n);
 }
 
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
 TEST_XML(xpath_api_evaluate_fail, "<node attr='3'/>") {
   xpath_query q(STR(""));
 
@@ -181,27 +173,28 @@ TEST_XML(xpath_api_evaluate_fail, "<node attr='3'/>") {
 
   CHECK(q.evaluate_string(0, 0, doc) == 1); // null terminator
 
-#ifndef PUGIXML_NO_STL
+#    ifndef PUGIXML_NO_STL
   CHECK(q.evaluate_string(doc).empty());
-#endif
+#    endif
 
   CHECK(q.evaluate_node_set(doc).empty());
 }
-#endif
+#  endif
 
 TEST(xpath_api_evaluate_node_set_fail) {
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
   CHECK_XPATH_NODESET(xml_node(), STR("1"));
-#else
+#  else
   try {
     xpath_query q(STR("1"));
 
     q.evaluate_node_set(xml_node());
 
     CHECK_FORCE_FAIL("Expected exception");
-  } catch (const xpath_exception &) {
   }
-#endif
+  catch(const xpath_exception&) {
+  }
+#  endif
 }
 
 TEST(xpath_api_evaluate_string) {
@@ -212,39 +205,39 @@ TEST(xpath_api_evaluate_string) {
   // test for enough space
   std::basic_string<char_t> s0 = base;
   CHECK(q.evaluate_string(&s0[0], 16, xml_node()) == 11 &&
-        memcmp(&s0[0], STR("0123456789\0xxxxx"), 16 * sizeof(char_t)) == 0);
+      memcmp(&s0[0], STR("0123456789\0xxxxx"), 16 * sizeof(char_t)) == 0);
 
   // test for just enough space
   std::basic_string<char_t> s1 = base;
   CHECK(q.evaluate_string(&s1[0], 11, xml_node()) == 11 &&
-        memcmp(&s1[0], STR("0123456789\0xxxxx"), 16 * sizeof(char_t)) == 0);
+      memcmp(&s1[0], STR("0123456789\0xxxxx"), 16 * sizeof(char_t)) == 0);
 
   // test for just not enough space
   std::basic_string<char_t> s2 = base;
   CHECK(q.evaluate_string(&s2[0], 10, xml_node()) == 11 &&
-        memcmp(&s2[0], STR("012345678\0xxxxxx"), 16 * sizeof(char_t)) == 0);
+      memcmp(&s2[0], STR("012345678\0xxxxxx"), 16 * sizeof(char_t)) == 0);
 
   // test for not enough space
   std::basic_string<char_t> s3 = base;
   CHECK(q.evaluate_string(&s3[0], 5, xml_node()) == 11 &&
-        memcmp(&s3[0], STR("0123\0xxxxxxxxxxx"), 16 * sizeof(char_t)) == 0);
+      memcmp(&s3[0], STR("0123\0xxxxxxxxxxx"), 16 * sizeof(char_t)) == 0);
 
   // test for single character buffer
   std::basic_string<char_t> s4 = base;
   CHECK(q.evaluate_string(&s4[0], 1, xml_node()) == 11 &&
-        memcmp(&s4[0], STR("\0xxxxxxxxxxxxxxx"), 16 * sizeof(char_t)) == 0);
+      memcmp(&s4[0], STR("\0xxxxxxxxxxxxxxx"), 16 * sizeof(char_t)) == 0);
 
   // test for empty buffer
   std::basic_string<char_t> s5 = base;
   CHECK(q.evaluate_string(&s5[0], 0, xml_node()) == 11 &&
-        memcmp(&s5[0], STR("xxxxxxxxxxxxxxxx"), 16 * sizeof(char_t)) == 0);
+      memcmp(&s5[0], STR("xxxxxxxxxxxxxxxx"), 16 * sizeof(char_t)) == 0);
   CHECK(q.evaluate_string(0, 0, xml_node()) == 11);
 }
 
 TEST(xpath_api_return_type) {
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
   CHECK(xpath_query(STR("")).return_type() == xpath_type_none);
-#endif
+#  endif
 
   CHECK(xpath_query(STR("node")).return_type() == xpath_type_node_set);
   CHECK(xpath_query(STR("1")).return_type() == xpath_type_number);
@@ -259,14 +252,14 @@ TEST(xpath_api_query_bool) {
   CHECK((!q) == false);
 }
 
-#ifdef PUGIXML_NO_EXCEPTIONS
+#  ifdef PUGIXML_NO_EXCEPTIONS
 TEST(xpath_api_query_bool_fail) {
   xpath_query q(STR(""));
 
   CHECK((q ? true : false) == false);
   CHECK((!q) == true);
 }
-#endif
+#  endif
 
 TEST(xpath_api_query_result) {
   xpath_query q(STR("node"));
@@ -278,15 +271,16 @@ TEST(xpath_api_query_result) {
 }
 
 TEST(xpath_api_query_result_fail) {
-#ifndef PUGIXML_NO_EXCEPTIONS
+#  ifndef PUGIXML_NO_EXCEPTIONS
   try {
-#endif
+#  endif
     xpath_query q(STR("//foo/child::/bar"));
 
-#ifndef PUGIXML_NO_EXCEPTIONS
+#  ifndef PUGIXML_NO_EXCEPTIONS
     CHECK_FORCE_FAIL("Expected exception");
-  } catch (const xpath_exception &q) {
-#endif
+  }
+  catch(const xpath_exception& q) {
+#  endif
     xpath_parse_result result = q.result();
 
     CHECK(!result);
@@ -294,18 +288,19 @@ TEST(xpath_api_query_result_fail) {
     CHECK(result.description() == result.error);
     CHECK(result.offset == 13);
 
-#ifndef PUGIXML_NO_EXCEPTIONS
+#  ifndef PUGIXML_NO_EXCEPTIONS
   }
-#endif
+#  endif
 }
 
-#ifndef PUGIXML_NO_EXCEPTIONS
+#  ifndef PUGIXML_NO_EXCEPTIONS
 TEST(xpath_api_exception_what) {
   try {
     xpath_query q(STR(""));
 
     CHECK_FORCE_FAIL("Expected exception");
-  } catch (const xpath_exception &e) {
+  }
+  catch(const xpath_exception& e) {
     CHECK(e.what()[0] != 0);
   }
 }
@@ -319,7 +314,8 @@ TEST(xpath_api_node_set_ctor_out_of_memory) {
     xpath_node_set ns(data, data + 2);
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
+  }
+  catch(const std::bad_alloc&) {
   }
 }
 
@@ -333,12 +329,12 @@ TEST(xpath_api_node_set_copy_ctor_out_of_memory) {
     xpath_node_set copy = ns;
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
+  }
+  catch(const std::bad_alloc&) {
   }
 }
 
-TEST_XML(xpath_api_node_set_assign_out_of_memory_preserve,
-         "<node><a/><b/></node>") {
+TEST_XML(xpath_api_node_set_assign_out_of_memory_preserve, "<node><a/><b/></node>") {
   xpath_node_set ns = doc.select_nodes(STR("node/*"));
   CHECK(ns.size() == 2);
 
@@ -351,12 +347,13 @@ TEST_XML(xpath_api_node_set_assign_out_of_memory_preserve,
     ns = nsall;
 
     CHECK_FORCE_FAIL("Expected out of memory exception");
-  } catch (const std::bad_alloc &) {
+  }
+  catch(const std::bad_alloc&) {
   }
 
   CHECK(ns.size() == 2 && ns[0] == doc.child(STR("node")).child(STR("a")) &&
-        ns[1] == doc.child(STR("node")).child(STR("b")));
+      ns[1] == doc.child(STR("node")).child(STR("b")));
 }
-#endif
+#  endif
 
 #endif

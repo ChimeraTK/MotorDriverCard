@@ -13,30 +13,24 @@ BOOST_AUTO_TEST_SUITE(MotorReferenceSwitchDataTestSuite)
 BOOST_AUTO_TEST_CASE(testBitValues) {
 #pragma GCC diagnostic pop
 
-  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(
-                  &MotorReferenceSwitchData::setPositiveSwitchActive,
-                  &MotorReferenceSwitchData::getPositiveSwitchActive) ==
-              0x00000001);
-  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(
-                  &MotorReferenceSwitchData::setNegativeSwitchActive,
-                  &MotorReferenceSwitchData::getNegativeSwitchActive) ==
-              0x00000002);
-  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(
-                  &MotorReferenceSwitchData::setSwitchesActiveWord,
-                  &MotorReferenceSwitchData::getSwitchesActiveWord) ==
-              0x00000003);
-  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(
-                  &MotorReferenceSwitchData::setPositiveSwitchEnabled,
-                  &MotorReferenceSwitchData::getPositiveSwitchEnabled) ==
-              0x00010000);
-  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(
-                  &MotorReferenceSwitchData::setNegativeSwitchEnabled,
-                  &MotorReferenceSwitchData::getNegativeSwitchEnabled) ==
-              0x00020000);
-  BOOST_CHECK(createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(
-                  &MotorReferenceSwitchData::setSwitchesEnabledWord,
-                  &MotorReferenceSwitchData::getSwitchesEnabledWord) ==
-              0x00030000);
+  BOOST_CHECK(
+      createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(&MotorReferenceSwitchData::setPositiveSwitchActive,
+          &MotorReferenceSwitchData::getPositiveSwitchActive) == 0x00000001);
+  BOOST_CHECK(
+      createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(&MotorReferenceSwitchData::setNegativeSwitchActive,
+          &MotorReferenceSwitchData::getNegativeSwitchActive) == 0x00000002);
+  BOOST_CHECK(
+      createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(&MotorReferenceSwitchData::setSwitchesActiveWord,
+          &MotorReferenceSwitchData::getSwitchesActiveWord) == 0x00000003);
+  BOOST_CHECK(
+      createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(&MotorReferenceSwitchData::setPositiveSwitchEnabled,
+          &MotorReferenceSwitchData::getPositiveSwitchEnabled) == 0x00010000);
+  BOOST_CHECK(
+      createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(&MotorReferenceSwitchData::setNegativeSwitchEnabled,
+          &MotorReferenceSwitchData::getNegativeSwitchEnabled) == 0x00020000);
+  BOOST_CHECK(
+      createOutputMaskUsingSetterGetter<MotorReferenceSwitchData>(&MotorReferenceSwitchData::setSwitchesEnabledWord,
+          &MotorReferenceSwitchData::getSwitchesEnabledWord) == 0x00030000);
 }
 
 #pragma GCC diagnostic push

@@ -14,25 +14,25 @@
 class QtMotorConfigCalculator : public QWidget {
   Q_OBJECT
 
-public:
+ public:
   /** The constructor expects no parameters except for the
    *  parent widget.
    */
-  QtMotorConfigCalculator(QWidget *parent_ = NULL);
-  QtMotorConfigCalculator(QtMotorConfigCalculator const &) = delete;
-  QtMotorConfigCalculator &operator=(QtMotorConfigCalculator const &) = delete;
+  QtMotorConfigCalculator(QWidget* parent_ = NULL);
+  QtMotorConfigCalculator(QtMotorConfigCalculator const&) = delete;
+  QtMotorConfigCalculator& operator=(QtMotorConfigCalculator const&) = delete;
 
-private:
-  QVBoxLayout *verticalLayout;
-  QTabWidget *motorTabWidget;
-  QPushButton *writeButton;
+ private:
+  QVBoxLayout* verticalLayout;
+  QTabWidget* motorTabWidget;
+  QPushButton* writeButton;
 
-  QTabWidget *expertTabWidget;
-  std::vector<MotorConfigWidget *> motorConfigWidgets;
-  std::vector<ParametersPanel *> motorExpertWidgets;
-  ParametersPanel *cardExpertWidget;
+  QTabWidget* expertTabWidget;
+  std::vector<MotorConfigWidget*> motorConfigWidgets;
+  std::vector<ParametersPanel*> motorExpertWidgets;
+  ParametersPanel* cardExpertWidget;
 
-private slots:
+ private slots:
   /** Get the file name via dialogue and perform the writing.
    */
   void write();
