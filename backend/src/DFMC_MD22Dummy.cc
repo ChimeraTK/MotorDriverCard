@@ -32,6 +32,13 @@ namespace mtca4u {
   DFMC_MD22Dummy::DriverSPI::DriverSPI() : addressSpace(0), bar(0), pcieWriteAddress(0), pcieSyncAddress(0) {}
 
   void DFMC_MD22Dummy::open() {
+    // Do not re-run the opend sequence if the backend has already been opened.
+    // It can interfere with code in the other thread, which has already opened the backend,
+    // and for intance reset the SPI handshake registers in a running transaction
+    if(_opened) {
+      return;
+    }
+
     DummyBackend::open();
     setPCIeRegistersForTesting(); // some of them will be overwritten if a
     // defined behavior exists for them
