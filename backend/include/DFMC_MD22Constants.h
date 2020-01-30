@@ -48,6 +48,7 @@ namespace mtca4u { namespace dfmc_md22 {
   std::string const ENDSWITCH_ENABLE_SUFFIX = "VOLTAGE_EN";
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
+  // FIXME This is confusing: Verify that WORD_PROJ_VERSION was incremented in  2261
   std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME"; // Added as support for newer FW > r2261
   std::string const POS_ENDSW_CALIB_SUFFIX  = "CAL_END_SW_POS";
   std::string const NEG_ENDSW_CALIB_SUFFIX  = "CAL_END_SW_NEG";

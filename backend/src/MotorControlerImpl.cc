@@ -92,12 +92,7 @@ namespace mtca4u {
     _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
     _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
-    //FIXME Can be removed? See below
-//    _calibrationTime{device->getScalarRegisterAccessor<int32_t>(
-//        moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
-    //FIXME Might use this with newer FW, but needs checking if old FW stays supported
-    _calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName,
-                     CALIBRATION_TIME_SUFFIX)},
+    _calibrationTime{},
     _endSwithPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
@@ -162,7 +157,7 @@ namespace mtca4u {
       _calibrationData.negEndSwitchTolerance   = _calibratedNegativeEndSwitchTol;
     }
     else{
-      // Keep behaviour for older FW
+      // Keep behaviour for older FW, the time stamp is written to WORD_PROJ_USER
       _calibrationTime.replace(
         device->getScalarRegisterAccessor<int32_t>(moduleName + "/" + PROJECT_USER_REGISTER_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw}));
     }
@@ -454,10 +449,14 @@ namespace mtca4u {
 
     _calibrationData = calibData;
 
+    _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
+    _calibrationTime.write();
+
+//    _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
+//    _calibratedPositiveEndSwitchPos.write();
+
     // Store in memory, if supported
     if(_hasCalibrationFWRegisters){
-      _calibrationTime = static_cast<int32_t>(calibData.calibrationTime);
-      _calibrationTime.write();
       _calibratedPositiveEndSwitchPos = calibData.posEndSwitchCalibration;
       _calibratedPositiveEndSwitchPos.write();
       _calibratedNegativeEndSwitchPos = calibData.negEndSwitchCalibration;
