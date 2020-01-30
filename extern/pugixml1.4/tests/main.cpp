@@ -1,21 +1,21 @@
-#include "test.hpp"
 #include "allocator.hpp"
+#include "test.hpp"
 
+#include <assert.h>
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <float.h>
-#include <assert.h>
 
 #include <string>
 
 #ifndef PUGIXML_NO_EXCEPTIONS
-#   include <exception>
+#  include <exception>
 #endif
 
 #ifdef _WIN32_WCE
-#   undef DebugBreak
-#   pragma warning(disable: 4201) // nonstandard extension used: nameless struct/union
-#   include <windows.h>
+#  undef DebugBreak
+#  pragma warning(disable : 4201) // nonstandard extension used: nameless struct/union
+#  include <windows.h>
 #endif
 
 test_runner* test_runner::_tests = 0;
@@ -27,155 +27,144 @@ const char* test_runner::_temp_path;
 static size_t g_memory_total_size = 0;
 static size_t g_memory_total_count = 0;
 
-static void* custom_allocate(size_t size)
-{
-	if (test_runner::_memory_fail_threshold > 0 && test_runner::_memory_fail_threshold < g_memory_total_size + size)
-		return 0;
-	else
-	{
-		void* ptr = memory_allocate(size);
+static void* custom_allocate(size_t size) {
+  if(test_runner::_memory_fail_threshold > 0 && test_runner::_memory_fail_threshold < g_memory_total_size + size)
+    return 0;
+  else {
+    void* ptr = memory_allocate(size);
 
-		g_memory_total_size += memory_size(ptr);
-		g_memory_total_count++;
-		
-		return ptr;
-	}
+    g_memory_total_size += memory_size(ptr);
+    g_memory_total_count++;
+
+    return ptr;
+  }
 }
 
-static void custom_deallocate(void* ptr)
-{
-	assert(ptr);
+static void custom_deallocate(void* ptr) {
+  assert(ptr);
 
-	g_memory_total_size -= memory_size(ptr);
-	g_memory_total_count--;
-	
-	memory_deallocate(ptr);
+  g_memory_total_size -= memory_size(ptr);
+  g_memory_total_count--;
+
+  memory_deallocate(ptr);
 }
 
-static void replace_memory_management()
-{
-	// create some document to touch original functions
-	{
-		pugi::xml_document doc;
-		doc.append_child().set_name(STR("node"));
-	}
+static void replace_memory_management() {
+  // create some document to touch original functions
+  {
+    pugi::xml_document doc;
+    doc.append_child().set_name(STR("node"));
+  }
 
-	// replace functions
-	pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
+  // replace functions
+  pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
 }
 
 #if defined(_MSC_VER) && _MSC_VER > 1200 && _MSC_VER < 1400 && !defined(__INTEL_COMPILER) && !defined(__DMC__)
-#include <exception>
+#  include <exception>
 
-namespace std
-{
-	_CRTIMP2 _Prhand _Raise_handler;
-	_CRTIMP2 void __cdecl _Throw(const exception&) {}
-}
+namespace std {
+  _CRTIMP2 _Prhand _Raise_handler;
+  _CRTIMP2 void __cdecl _Throw(const exception&) {}
+} // namespace std
 #endif
 
-static bool run_test(test_runner* test)
-{
+static bool run_test(test_runner* test) {
 #ifndef PUGIXML_NO_EXCEPTIONS
-	try
-	{
+  try {
 #endif
-		g_memory_total_size = 0;
-		g_memory_total_count = 0;
-		test_runner::_memory_fail_threshold = 0;
-	
-		pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
-		
+    g_memory_total_size = 0;
+    g_memory_total_count = 0;
+    test_runner::_memory_fail_threshold = 0;
+
+    pugi::set_memory_management_functions(custom_allocate, custom_deallocate);
+
 #ifdef _MSC_VER
-#	pragma warning(push)
-#	pragma warning(disable: 4611) // interaction between _setjmp and C++ object destruction is non-portable
-#   pragma warning(disable: 4793) // function compiled as native: presence of '_setjmp' makes a function unmanaged
+#  pragma warning(push)
+#  pragma warning(disable : 4611) // interaction between _setjmp and C++ object
+                                  // destruction is non-portable
+#  pragma warning(disable : 4793) // function compiled as native: presence of
+                                  // '_setjmp' makes a function unmanaged
 #endif
 
-		volatile int result = setjmp(test_runner::_failure_buffer);
-	
+    volatile int result = setjmp(test_runner::_failure_buffer);
+
 #ifdef _MSC_VER
-#	pragma warning(pop)
+#  pragma warning(pop)
 #endif
 
-		if (result)
-		{
-			printf("Test %s failed: %s\n", test->_name, test_runner::_failure_message);
-			return false;
-		}
+    if(result) {
+      printf("Test %s failed: %s\n", test->_name, test_runner::_failure_message);
+      return false;
+    }
 
-		test->run();
+    test->run();
 
-		if (g_memory_total_size != 0 || g_memory_total_count != 0)
-		{
-			printf("Test %s failed: memory leaks found (%u bytes in %u allocations)\n", test->_name, static_cast<unsigned int>(g_memory_total_size), static_cast<unsigned int>(g_memory_total_count));
-			return false;
-		}
+    if(g_memory_total_size != 0 || g_memory_total_count != 0) {
+      printf("Test %s failed: memory leaks found (%u bytes in %u allocations)\n", test->_name,
+          static_cast<unsigned int>(g_memory_total_size), static_cast<unsigned int>(g_memory_total_count));
+      return false;
+    }
 
-		return true;
+    return true;
 #ifndef PUGIXML_NO_EXCEPTIONS
-	}
-	catch (const std::exception& e)
-	{
-		printf("Test %s failed: exception %s\n", test->_name, e.what());
-		return false;
-	}
-	catch (...)
-	{
-		printf("Test %s failed for unknown reason\n", test->_name);
-		return false;
-	}
+  }
+  catch(const std::exception& e) {
+    printf("Test %s failed: exception %s\n", test->_name, e.what());
+    return false;
+  }
+  catch(...) {
+    printf("Test %s failed for unknown reason\n", test->_name);
+    return false;
+  }
 #endif
 }
 
 #if defined(__CELLOS_LV2__) && defined(PUGIXML_NO_EXCEPTIONS) && !defined(__SNC__)
-#include <exception>
+#  include <exception>
 
-void std::exception::_Raise() const
-{
-	abort();
+void std::exception::_Raise() const {
+  abort();
 }
 #endif
 
-int main(int, char** argv)
-{
+int main(int, char** argv) {
 #ifdef __BORLANDC__
-	_control87(MCW_EM | PC_53, MCW_EM | MCW_PC);
+  _control87(MCW_EM | PC_53, MCW_EM | MCW_PC);
 #endif
 
-	// setup temp path as the executable folder
-	std::string temp = argv[0];
-	std::string::size_type slash = temp.find_last_of("\\/");
-	temp.erase((slash != std::string::npos) ? slash + 1 : 0);
+  // setup temp path as the executable folder
+  std::string temp = argv[0];
+  std::string::size_type slash = temp.find_last_of("\\/");
+  temp.erase((slash != std::string::npos) ? slash + 1 : 0);
 
-	test_runner::_temp_path = temp.c_str();
-	
-	replace_memory_management();
+  test_runner::_temp_path = temp.c_str();
 
-	unsigned int total = 0;
-	unsigned int passed = 0;
+  replace_memory_management();
 
-	test_runner* test = 0; // gcc3 "variable might be used uninitialized in this function" bug workaround
+  unsigned int total = 0;
+  unsigned int passed = 0;
 
-	for (test = test_runner::_tests; test; test = test->_next)
-	{
-		total++;
-		passed += run_test(test);
-	}
+  test_runner* test = 0; // gcc3 "variable might be used uninitialized in this
+                         // function" bug workaround
 
-	unsigned int failed = total - passed;
+  for(test = test_runner::_tests; test; test = test->_next) {
+    total++;
+    passed += run_test(test);
+  }
 
-	if (failed != 0)
-		printf("FAILURE: %u out of %u tests failed.\n", failed, total);
-	else
-		printf("Success: %u tests passed.\n", total);
+  unsigned int failed = total - passed;
 
-	return failed;
+  if(failed != 0)
+    printf("FAILURE: %u out of %u tests failed.\n", failed, total);
+  else
+    printf("Success: %u tests passed.\n", total);
+
+  return failed;
 }
 
 #ifdef _WIN32_WCE
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
-{
-	return main(0, NULL);
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+  return main(0, NULL);
 }
 #endif

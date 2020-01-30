@@ -1,11 +1,11 @@
 #ifndef MOTOR_DRIVER_CARD_CONFIG_DEFAULTS
 #define MOTOR_DRIVER_CARD_CONFIG_DEFAULTS
 
-// This file should only be included for testing/debugging. It should not be necessary 
-// to use these constants in any production code (except for the MotorDriverCardConfig 
-// implementation of course).
+// This file should only be included for testing/debugging. It should not be
+// necessary to use these constants in any production code (except for the
+// MotorDriverCardConfig implementation of course).
 
-namespace mtca4u{
+namespace mtca4u {
 
   // controler registers
   unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000122;
@@ -14,7 +14,6 @@ namespace mtca4u{
   // spi communication parametes
   unsigned int const CONTROLER_SPI_WAITING_TIME_DEFAULT = 50; // microseconds
 
-}// namespace mtca4u
-
+} // namespace mtca4u
 
 #endif // MOTOR_DRIVER_CARD_CONFIG_DEFAULTS

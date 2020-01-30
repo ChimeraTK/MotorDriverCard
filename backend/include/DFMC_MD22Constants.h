@@ -5,16 +5,15 @@
 
 #include "TMC429Constants.h"
 
-namespace mtca4u{
-
-namespace dfmc_md22{
+namespace mtca4u { namespace dfmc_md22 {
 
   int32_t const MINIMAL_FIRMWARE_VERSION = 0x02020000;
   int32_t const MIN_FW_VERSION_WITH_CALIB_BACKUP = 0x02030000;
   int32_t const PROJECT_ID = 0x0;
   int32_t const PROJECT_MAGIC_NUMBER = 0x50524F4A;
 
-  /// @todo FIXME This has to be WORD_PROJ_VERSION in the project, but how to identify the project?
+  /// @todo FIXME This has to be WORD_PROJ_VERSION in the project, but how to
+  /// identify the project?
   std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM";
   std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID";
   std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION";
@@ -35,7 +34,7 @@ namespace dfmc_md22{
   uint32_t const N_MOTORS_MAX = 2;
 
   std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
-  
+
   std::string const SPI_WRITE_SUFFIX = "SPI_WRITE";
   std::string const SPI_SYNC_SUFFIX = "SPI_SYNC";
   std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
@@ -60,16 +59,11 @@ namespace dfmc_md22{
   /// Creates a string dependent on the motor ID and register name suffix.
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.
   /// FIXME: get the 'off by one' consistent
-  inline std::string createMotorRegisterName( unsigned int motorID, std::string registerNameSuffix ){
-      return std::string( MOTOR_REGISTER_PREFIX)
-        + boost::lexical_cast<std::string>(motorID + 1) + "_"
-        + registerNameSuffix;
+  inline std::string createMotorRegisterName(unsigned int motorID, std::string registerNameSuffix) {
+    return std::string(MOTOR_REGISTER_PREFIX) + boost::lexical_cast<std::string>(motorID + 1) + "_" +
+        registerNameSuffix;
   }
 
-  
-}// namespace dfmc_md22
+}} // namespace mtca4u::dfmc_md22
 
-}//namespace mtac4u
-
-
-#endif// MTCA4U_DMFC_MD22_CONSTANTS_H
+#endif // MTCA4U_DMFC_MD22_CONSTANTS_H

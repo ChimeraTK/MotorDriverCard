@@ -14,26 +14,26 @@
 
 class StepperMotorWithReferenceTestFixture;
 
-namespace ChimeraTK {
-namespace MotorDriver{
+namespace ChimeraTK { namespace MotorDriver {
 
   /// Helper class for endswitch polarity
-  enum class Sign{NEGATIVE = -1, POSITIVE = 1};
+  enum class Sign { NEGATIVE = -1, POSITIVE = 1 };
 
   struct StepperMotorParameters;
   enum class ExitStatus;
   enum class Error;
 
   /**
-   *  @brief This class provides the user interface for a linear stepper motor stage with end switches.
+   *  @brief This class provides the user interface for a linear stepper motor
+   * stage with end switches.
    */
-  class LinearStepperMotor : public BasicStepperMotor{
-  public:
+  class LinearStepperMotor : public BasicStepperMotor {
+   public:
     /**
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    LinearStepperMotor(const StepperMotorParameters &);
+    LinearStepperMotor(const StepperMotorParameters&);
 
     /**
      * @brief  Destructor of the class object
@@ -41,45 +41,49 @@ namespace MotorDriver{
     virtual ~LinearStepperMotor();
 
     /**
-     *  @brief Simple calibration of the linear stage by defining the actual position in steps.
+     *  @brief Simple calibration of the linear stage by defining the actual
+     * position in steps.
      *
-     *  This function only sets the actual position to a defined value. The end switch positions will not be defined.\n
-     *  This is useful in applications where the stage can not move through the full range between the end switches.\n
-     *  This function will result in the calibration mode being CalibrationMode::SIMPLE.\n
+     *  This function only sets the actual position to a defined value. The end
+     * switch positions will not be defined.\n This is useful in applications
+     * where the stage can not move through the full range between the end
+     * switches.\n This function will result in the calibration mode being
+     * CalibrationMode::SIMPLE.\n
      */
     virtual ExitStatus setActualPositionInSteps(int actualPositionInSteps);
-
 
     /**
      * @brief Translate axis of the linear stage by offset translationInSteps
      *
-     * The actual position and calibrated values of the end switch positions are shifted by
-     * the given offset. The resulting new position will be truncated if the calculated value
-     * exceeds the numeric limits of an int.
+     * The actual position and calibrated values of the end switch positions are
+     * shifted by the given offset. The resulting new position will be truncated
+     * if the calculated value exceeds the numeric limits of an int.
      */
     virtual ExitStatus translateAxisInSteps(int translationInSteps);
-
 
     virtual bool hasHWReferenceSwitches();
 
     /**
      *  @brief Calibration of the linear stage.
      *
-     *  This initiates a drive through the full range between both end switches and determines their position.\n
-     *  The negative end switch will be defined as zero. The resulting coordinates can later be translated by the
+     *  This initiates a drive through the full range between both end switches
+     * and determines their position.\n The negative end switch will be defined as
+     * zero. The resulting coordinates can later be translated by the
      *  translateAxis() routines.\n
      *
-     *  On success, this function will result in the calibration mode being CalibrationMode::FULL.\n
+     *  On success, this function will result in the calibration mode being
+     * CalibrationMode::FULL.\n
      */
     virtual ExitStatus calibrate();
 
     /**
      *  @brief Determines the standard deviation of the end switch position.
      *
-     *  The standard deviation is determined by running into each end switch multiple times.\n
-     *  If this has been called on system setup, getError() will return Error::CALIBRATION_LOST\n
-     *  error when an end switch is activated and the actual position is not within a 3 sigma band around the\n
-     *  calibrated end switch position.\n
+     *  The standard deviation is determined by running into each end switch
+     * multiple times.\n If this has been called on system setup, getError() will
+     * return Error::CALIBRATION_LOST\n error when an end switch is activated and
+     * the actual position is not within a 3 sigma band around the\n calibrated
+     * end switch position.\n
      */
     virtual ExitStatus determineTolerance();
 
@@ -122,26 +126,26 @@ namespace MotorDriver{
      */
     virtual CalibrationMode getCalibrationMode();
 
-    //friend class utility::StepperMotorWithReferenceStateMachine;
+    // friend class utility::StepperMotorWithReferenceStateMachine;
     friend class ::StepperMotorWithReferenceTestFixture;
 
-  protected:
-
+   protected:
     /**
      * StateMachine subclass specific to this implementation of the StepperMotor
      */
-    class StateMachine : public BasicStepperMotor::StateMachine{
-
+    class StateMachine : public BasicStepperMotor::StateMachine {
       friend class LinearStepperMotor;
-    public:
-     StateMachine(LinearStepperMotor &stepperMotorWithReference);
+
+     public:
+      StateMachine(LinearStepperMotor& stepperMotorWithReference);
       virtual ~StateMachine();
 
       static const Event calibEvent;
       static const Event calcToleranceEvent;
 
       friend class ::StepperMotorWithReferenceTestFixture;
-    protected:
+
+     protected:
       State _calibrating;
       State _calculatingTolerance;
       LinearStepperMotor& _motor;
@@ -160,14 +164,13 @@ namespace MotorDriver{
       int getPositionEndSwitch(Sign sign);
     };
 
-
     virtual bool motorActive();
     virtual bool limitsOK(int newPositionInSteps);
     virtual ExitStatus checkNewPosition(int newPositionInSteps);
     virtual bool verifyMoveAction();
 
-
-    /// Loads end switch calibration from the HW and sets the calibration mode accordingly.
+    /// Loads end switch calibration from the HW and sets the calibration mode
+    /// accordingly.
     virtual void loadEndSwitchCalibration();
 
     /// True if end switch is activated, checks for error
@@ -183,6 +186,5 @@ namespace MotorDriver{
     std::atomic<float> _tolerancePositiveEndSwitch;
     std::atomic<float> _toleranceNegativeEndSwitch;
   };
-}
-}
+}}     // namespace ChimeraTK::MotorDriver
 #endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */

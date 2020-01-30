@@ -6,13 +6,13 @@
 #include "MotorControlerConfig.h"
 #include "TMC429Words.h"
 
-namespace mtca4u{
+namespace mtca4u {
 
-  /** This configuration contains start values for all data words that 
+  /** This configuration contains start values for all data words that
    *  can be written to the MotorDriverImpl class, and configurations for
    *  the MotorDrivers is contains.
-   */  
-  struct MotorDriverCardConfig{
+   */
+  struct MotorDriverCardConfig {
     unsigned int coverDatagram;
     CoverPositionAndLength coverPositionAndLength;
     unsigned int datagramHighWord;
@@ -23,13 +23,13 @@ namespace mtca4u{
     StepperMotorGlobalParameters stepperMotorGlobalParameters;
 
     unsigned int controlerSpiWaitingTime;
-    
-    std::vector< MotorControlerConfig > motorControlerConfigurations;
 
-    MotorDriverCardConfig(); 
+    std::vector<MotorControlerConfig> motorControlerConfigurations;
+
+    MotorDriverCardConfig();
 
     bool operator==(MotorDriverCardConfig const& right) const;
   };
-}// namespace mtca4u
+} // namespace mtca4u
 
 #endif // MOTOR_DRIVER_CARD_CONFIG_H

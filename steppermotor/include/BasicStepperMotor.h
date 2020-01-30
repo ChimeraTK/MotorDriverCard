@@ -8,42 +8,39 @@
  * Created on April 8, 2014, 11:49 AM
  */
 
-
 #ifndef CHIMERATK_BASIC_STEPPER_MOTOR_H
-#define	CHIMERATK_BASIC_STEPPER_MOTOR_H
+#define CHIMERATK_BASIC_STEPPER_MOTOR_H
 
-#include "StepperMotor.h"
 #include "StateMachine.h"
+#include "StepperMotor.h"
 
-#include <string>
 #include <atomic>
+#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 #include <boost/thread.hpp>
 #include <memory>
-#include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
+#include <string>
 
-
-namespace mtca4u{
+namespace mtca4u {
   class MotorDriverCard;
   class MotorControler;
-}
+} // namespace mtca4u
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
 
-namespace ChimeraTK {
-namespace MotorDriver {
+namespace ChimeraTK { namespace MotorDriver {
 
   /**
    *  @class BasicStepperMotor
    *  @brief This class implements the basic implementation stepper motor.
    */
-  class BasicStepperMotor : public StepperMotor{
-  public:
+  class BasicStepperMotor : public StepperMotor {
+   public:
     /**
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    BasicStepperMotor(const StepperMotorParameters & parameters);
+    BasicStepperMotor(const StepperMotorParameters& parameters);
 
     /**
      * @brief  Destructor of the class object
@@ -63,7 +60,8 @@ namespace MotorDriver {
     virtual ExitStatus moveRelativeInSteps(int delta);
 
     /**
-     * @brief Sets the target position in arbitrary units (according to the scaling).
+     * @brief Sets the target position in arbitrary units (according to the
+     * scaling).
      *
      *        If the autostart flag is set to true, this will initiate movement,
      *        otherwise movement needs to be triggered by calling start().
@@ -96,19 +94,21 @@ namespace MotorDriver {
     virtual void stop();
 
     /**
-     * @brief Immediately interrupt the current action, return the motor to idle and disable it.
+     * @brief Immediately interrupt the current action, return the motor to idle
+     * and disable it.
      *
-     * Note: As an effect of stopping the motor as fast as possible, the real motor position and the controller's step counter
-     *       will lose synchronization. Hence, calibration will be lost after calling this method.
+     * Note: As an effect of stopping the motor as fast as possible, the real
+     * motor position and the controller's step counter will lose synchronization.
+     * Hence, calibration will be lost after calling this method.
      */
     virtual void emergencyStop();
 
     /**
      * @brief Reset error state
      *
-     * Depending on the event that caused the error, this will set the motor to disabled\n
-     * (if power supply is disabled, e.g. after emergency stop) or idle state (e.g. some \n
-     * action failed, but power supply is enabled).
+     * Depending on the event that caused the error, this will set the motor to
+     * disabled\n (if power supply is disabled, e.g. after emergency stop) or idle
+     * state (e.g. some \n action failed, but power supply is enabled).
      */
     virtual void resetError();
 
@@ -182,28 +182,35 @@ namespace MotorDriver {
 
     /**
      * @brief set actual position in units of the motor respect to some reference
-     * @param actualPositionInUnits In order to use the motor an absolute scale must be defined.
+     * @param actualPositionInUnits In order to use the motor an absolute scale
+     * must be defined.
      *
-     * This can be done defining the position of the motor respect to an external reference (actual position).\n
-     * In addition to that, the conversion between steps and unit must provided through the method setStepperMotorUnitsConverter.
+     * This can be done defining the position of the motor respect to an external
+     * reference (actual position).\n In addition to that, the conversion between
+     * steps and unit must provided through the method
+     * setStepperMotorUnitsConverter.
      */
     virtual ExitStatus setActualPosition(float actualPositionInUnits);
 
     /**
      * @brief set actual position in steps of the motor respect to some reference
-     * @param actualPositionInSteps In order to use the motor an absolute scale must be defined.
+     * @param actualPositionInSteps In order to use the motor an absolute scale
+     * must be defined.
      *
-     * This can be done defining the position of the motor respect to an external reference (actual position).
+     * This can be done defining the position of the motor respect to an external
+     * reference (actual position).
      */
     virtual ExitStatus setActualPositionInSteps(int actualPositionInSteps);
 
-    /**@brief translate the reference axis of the motor. This operation will translate also the software limits
+    /**@brief translate the reference axis of the motor. This operation will
+     * translate also the software limits
      * @param translationInSteps translation value in steps
      */
 
     virtual ExitStatus translateAxisInSteps(int translationInSteps);
 
-    /**@brief translate the reference axis of the motor. This operation will translate also the software limits
+    /**@brief translate the reference axis of the motor. This operation will
+     * translate also the software limits
      * @param translationInUnits translation value in unit
      */
 
@@ -229,8 +236,8 @@ namespace MotorDriver {
      *  @brief Set the actual encoder position to a reference value.
      *
      *  Analogous to setActualPosition() which sets the motor driver's internal\n
-     *  step counter to a reference value, this function can be used to define a reference\n
-     *  for the encoder output.
+     *  step counter to a reference value, this function can be used to define a
+     * reference\n for the encoder output.
      */
     virtual ExitStatus setActualEncoderPosition(double referencePosition);
 
@@ -249,9 +256,11 @@ namespace MotorDriver {
 
     // FIXME This can be constant after construction?
     /**
-     * @brief set the steps-units converter. Per default each instance has a 1:1 converter
+     * @brief set the steps-units converter. Per default each instance has a 1:1
+     * converter
      */
-    virtual ExitStatus setStepperMotorUnitsConverter(std::shared_ptr<utility::MotorStepsConverter> stepperMotorUnitsConverter);
+    virtual ExitStatus setStepperMotorUnitsConverter(
+        std::shared_ptr<utility::MotorStepsConverter> stepperMotorUnitsConverter);
 
     // FIXME This can be constant after construction?
     /**
@@ -261,16 +270,17 @@ namespace MotorDriver {
 
     /**
      * Check if the system is in idle and it returns true is it is so.
-     * If in idle any action required by the user can be executed like move or move relative.
+     * If in idle any action required by the user can be executed like move or
+     * move relative.
      */
     virtual bool isSystemIdle();
 
     /**
-     * @brief actions are executed asynchronous, so using this function one can block the program in case an action is being executed
-     * and waiting until this will be terminated and the system is back to idle.
+     * @brief actions are executed asynchronous, so using this function one can
+     * block the program in case an action is being executed and waiting until
+     * this will be terminated and the system is back to idle.
      */
     virtual void waitForIdle();
-
 
     /**
      * @brief Returns the state of the stepper motor's state machine
@@ -278,11 +288,11 @@ namespace MotorDriver {
     virtual std::string getState();
 
     /**
-     * @brief Return error code for the motor. The error code is not a bit-field.\n
-     * 0 - NO_ERROR\n
-     * 1 - ACTION_ERROR if any of the action started by the user was not successful\n
-     * 2 - MOVE_INTERUPTED if the motion of the motor was interrupted, e.g. a software/hardware limit was hit.\n
-     * 3 - CALIBRATION_LOST if calibration is lost.\n
+     * @brief Return error code for the motor. The error code is not a
+     * bit-field.\n 0 - NO_ERROR\n 1 - ACTION_ERROR if any of the action started
+     * by the user was not successful\n 2 - MOVE_INTERUPTED if the motion of the
+     * motor was interrupted, e.g. a software/hardware limit was hit.\n 3 -
+     * CALIBRATION_LOST if calibration is lost.\n
      */
     virtual Error getError();
 
@@ -292,7 +302,8 @@ namespace MotorDriver {
     virtual bool isCalibrated();
 
     /**
-     * @brief function returns time last calibration, 0 if no calibration was performed about booting the hardware.
+     * @brief function returns time last calibration, 0 if no calibration was
+     * performed about booting the hardware.
      */
 
     virtual uint32_t getCalibrationTime();
@@ -310,13 +321,15 @@ namespace MotorDriver {
 
     /**
      * @brief Sets the autostart flag.
-     *        Allows automatic start of movement on change of target position if set to true.
+     *        Allows automatic start of movement on change of target position if
+     * set to true.
      */
     virtual void setAutostart(bool autostart);
 
     /**
      * @brief Returns the value of the autostart flag.
-     *        If true, movement is initiated automatically on change of the target position.
+     *        If true, movement is initiated automatically on change of the target
+     * position.
      */
     virtual bool getAutostart();
 
@@ -351,7 +364,6 @@ namespace MotorDriver {
      */
     virtual double getUserSpeedLimit();
 
-
     /**
      * @brief Returns True if the motor is moving and false if at
      * standstill. This command is reliable as long as the motor is not
@@ -361,7 +373,8 @@ namespace MotorDriver {
 
     /**
      * @brief enabling full stepping movement.
-     * The target position is rounded to the next full step value before it is written to the register of the controller chip.
+     * The target position is rounded to the next full step value before it is
+     * written to the register of the controller chip.
      *
      */
     void enableFullStepping(bool enable = true);
@@ -373,19 +386,19 @@ namespace MotorDriver {
 
     virtual bool hasHWReferenceSwitches();
 
-    virtual ExitStatus calibrate() ;
+    virtual ExitStatus calibrate();
 
-    virtual ExitStatus determineTolerance() ;
+    virtual ExitStatus determineTolerance();
 
-    virtual float getPositiveEndReference() ;
+    virtual float getPositiveEndReference();
 
-    virtual int getPositiveEndReferenceInSteps() ;
+    virtual int getPositiveEndReferenceInSteps();
 
-    virtual float getNegativeEndReference() ;
+    virtual float getNegativeEndReference();
 
-    virtual int getNegativeEndReferenceInSteps() ;
+    virtual int getNegativeEndReferenceInSteps();
 
-    virtual float getTolerancePositiveEndSwitch() ;
+    virtual float getTolerancePositiveEndSwitch();
 
     virtual float getToleranceNegativeEndSwitch();
 
@@ -397,24 +410,20 @@ namespace MotorDriver {
 
     virtual bool isNegativeEndSwitchEnabled();
 
-    virtual CalibrationMode getCalibrationMode() ;
+    virtual CalibrationMode getCalibrationMode();
 
-
-
-//    /friend class StateMachine;
+    //    /friend class StateMachine;
     friend class ::StepperMotorChimeraTKFixture;
 
-  protected:
-
+   protected:
     /**
      * StateMachine subclass specific to this implementation
      */
-    class  StateMachine : public utility::StateMachine{
-
+    class StateMachine : public utility::StateMachine {
       friend class BasicStepperMotor;
 
-    public:
-      StateMachine(BasicStepperMotor &stepperMotor);
+     public:
+      StateMachine(BasicStepperMotor& stepperMotor);
       virtual ~StateMachine();
       static const Event initialEvent;
       static const Event moveEvent;
@@ -426,13 +435,14 @@ namespace MotorDriver {
       static const Event disableEvent;
       static const Event resetToIdleEvent;
       static const Event resetToDisableEvent;
-    protected:
+
+     protected:
       State _moving;
       State _idle;
       State _disabled;
       State _error;
-      BasicStepperMotor &_stepperMotor;
-      boost::shared_ptr<mtca4u::MotorControler> &_motorControler;
+      BasicStepperMotor& _stepperMotor;
+      boost::shared_ptr<mtca4u::MotorControler>& _motorControler;
       void getActionCompleteEvent();
       void waitForStandstill();
       void actionIdleToMove();
@@ -443,7 +453,6 @@ namespace MotorDriver {
       void actionEmergencyStop();
       void actionResetError();
     }; // class StateMachine
-
 
     BasicStepperMotor();
 
@@ -481,8 +490,8 @@ namespace MotorDriver {
 
     int _encoderPositionOffset;
     std::atomic<int> _targetPositionInSteps;
-    int  _maxPositionLimitInSteps;
-    int  _minPositionLimitInSteps;
+    int _maxPositionLimitInSteps;
+    int _minPositionLimitInSteps;
     bool _autostart;
     bool _softwareLimitsEnabled;
 
@@ -493,7 +502,6 @@ namespace MotorDriver {
     std::atomic<CalibrationMode> _calibrationMode;
 
   }; // class BasicStepperMotor
-}// namespace motordriver
-}// namespace ChimeraTK
+}}   // namespace ChimeraTK::MotorDriver
 
-#endif	/* CHIMERATK_BASIC_STEPPER_MOTOR_H */
+#endif /* CHIMERATK_BASIC_STEPPER_MOTOR_H */

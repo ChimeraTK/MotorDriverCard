@@ -4,9 +4,7 @@
 
 using namespace mtca4u;
 
-int main( )
-{
+int main() {
   MotorDriverCardConfigXML::write("MotorDriverCardConfig_default.xml", MotorDriverCardConfig());
   return 0;
 }
-

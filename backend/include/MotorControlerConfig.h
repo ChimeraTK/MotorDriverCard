@@ -1,19 +1,18 @@
 #ifndef MTCA4U_MOTOR_CONTROLER_CONFIG_H
 #define MTCA4U_MOTOR_CONTROLER_CONFIG_H
 
-#include "TMC429Words.h"
 #include "TMC260Words.h"
+#include "TMC429Words.h"
 
-namespace mtca4u
-{
-  /** This configuration contains start values for all data words that 
+namespace mtca4u {
+  /** This configuration contains start values for all data words that
    *  can be written to the MotorControler class. Please note that the IDX field
    *  of the TMC429 words are ignored. It is replaced by the motor ID when the
    *  settings are applied, so settings can be reused for several motors.
    */
-  struct MotorControlerConfig{
+  struct MotorControlerConfig {
     AccelerationThresholdData accelerationThresholdData;
- //   int actualPosition;
+    //   int actualPosition;
     ChopperControlData chopperControlData;
     CoolStepControlData coolStepControlData;
     uint32_t decoderReadoutMode;
@@ -30,8 +29,8 @@ namespace mtca4u
     ProportionalityFactorData proportionalityFactorData;
     ReferenceConfigAndRampModeData referenceConfigAndRampModeData;
     StallGuardControlData stallGuardControlData;
-    int targetPosition; //want it? need it in the config?
-    int targetVelocity; //want it? need it in the config?
+    int targetPosition; // want it? need it in the config?
+    int targetVelocity; // want it? need it in the config?
 
     unsigned int driverSpiWaitingTime; //< in microseconds
 
@@ -39,10 +38,10 @@ namespace mtca4u
      */
     MotorControlerConfig();
 
-    bool operator==(MotorControlerConfig const & right) const;
-    bool operator!=(MotorControlerConfig const & right) const;
- };
-  
-}// namespace mtca4u
+    bool operator==(MotorControlerConfig const& right) const;
+    bool operator!=(MotorControlerConfig const& right) const;
+  };
 
-#endif //MTCA4U_MOTOR_CONTROLER_CONFIG_H
+} // namespace mtca4u
+
+#endif // MTCA4U_MOTOR_CONTROLER_CONFIG_H

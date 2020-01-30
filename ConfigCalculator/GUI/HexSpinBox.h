@@ -22,12 +22,12 @@
 class HexData {
   static const int dataType = 0;
 
-public:
+ public:
   /**
    * Holds the entered value (for which we need the hex representation)
    */
   double value;
-  HexData() : value(0) {};
+  HexData() : value(0){};
 };
 
 /*
@@ -43,18 +43,18 @@ class HexSpinBox : public QDoubleSpinBox {
   Q_OBJECT
   QRegExpValidator* _validator;
 
-public:
+ public:
   /**
    * The class can register itself with a parent widget through the constructor.
    */
   HexSpinBox(QWidget* parent_ = 0);
 
-private:
+ private:
   // Disable copy constructor and assignment operator
   Q_DISABLE_COPY(HexSpinBox)
   ~HexSpinBox();
 
-protected:
+ protected:
   /**
    * This method defines the displayed representation of the value in the
    * spinbox. The current code displays the value which is internally stored as

@@ -3,9 +3,7 @@
 
 #include <stdint.h>
 
-namespace mtca4u{
-
-namespace tmc429{
+namespace mtca4u { namespace tmc429 {
 
   uint32_t const SMDA_COMMON = 0x3;
   uint32_t const JDX_DATAGRAM_LOW_WORD = 0x0;
@@ -21,7 +19,7 @@ namespace tmc429{
   // = 0xA through = 0xD not defined;
   uint32_t const JDX_REFERENCE_SWITCH = 0xE;
   uint32_t const JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS = 0xF;
-  
+
   uint32_t const IDX_TARGET_POSITION = 0x0;
   uint32_t const IDX_ACTUAL_POSITION = 0x1;
   uint32_t const IDX_MINIMUM_VELOCITY = 0x2;
@@ -38,15 +36,11 @@ namespace tmc429{
   uint32_t const IDX_DELTA_X_REFERENCE_TOLERANCE = 0xD;
   uint32_t const IDX_POSITION_LATCHED = 0xE;
   uint32_t const IDX_MICRO_STEP_COUNT = 0xF;
-  
+
   uint32_t const RW_WRITE = 0;
   uint32_t const RW_READ = 1;
 
-  inline uint32_t spiAddressFromSmdaIdxJdx( uint32_t smda, uint32_t idxJdx ){
-    return ((smda << 4) + idxJdx);
-  }
-}// namespace tmc429
+  inline uint32_t spiAddressFromSmdaIdxJdx(uint32_t smda, uint32_t idxJdx) { return ((smda << 4) + idxJdx); }
+}} // namespace mtca4u::tmc429
 
-}// namespace mtca4u
-
-#endif// CHIMERATK_TMC429_CONSTANTS_H
+#endif // CHIMERATK_TMC429_CONSTANTS_H

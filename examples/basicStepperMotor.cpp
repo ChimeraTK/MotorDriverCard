@@ -17,8 +17,7 @@ static const std::string stepperMotorConfigFile("VT21-MotorDriverCardConfig.xml"
 
 using namespace ChimeraTK::MotorDriver;
 
-int main(){
-
+int main() {
   //TODO Easy waz to define dmap path
 //  std::string deviceFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(deviceName).deviceName);
 //  std::string mapFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(deviceName).mapFileName);
@@ -28,27 +27,22 @@ int main(){
   param.motorType = StepperMotorType::BASIC;
   param.deviceName = deviceName;
   param.moduleName = moduleName;
-  param.driverId   = 0U; /* MotorDriverCard provides two channels [0, 1] */
+  param.driverId = 0U; /* MotorDriverCard provides two channels [0, 1] */
   param.configFileName = stepperMotorConfigFile;
-
 
   // Create a StepperMotor instance using the factory
   auto stepperMotor = StepperMotorFactory::instance().create(param);
 
-
   // Motor does not have a position reference yet,
   // i.e is not calibrated
-  if(stepperMotor->getCalibrationMode() == CalibrationMode::NONE){
+  if(stepperMotor->getCalibrationMode() == StepperMotorCalibrationMode::NONE) {
     std::cout << "Motor is not yet calibrated" << std::endl;
   }
-
 
   // Define current positon as zero
   stepperMotor->setActualPosition(0.f);
 
-
-  std::cout << "Current motor positon: "
-            << stepperMotor->getCurrentPosition() << std::endl;
+  std::cout << "Current motor positon: " << stepperMotor->getCurrentPosition() << std::endl;
 
   return 0;
 }

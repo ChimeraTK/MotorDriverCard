@@ -18,40 +18,35 @@ namespace ChimeraTK {
   /** The type of exception thrown by StepperMotor.
    *
    */
-  class StepperMotorException: public std::exception {
-  public:
+  class StepperMotorException : public std::exception {
+   public:
     /** The different error types of the StepperMotor.
      */
-    enum ExceptionID {NOT_VALID_CONVERTER, FEATURE_NOT_AVAILABLE};
+    enum ExceptionID { NOT_VALID_CONVERTER, FEATURE_NOT_AVAILABLE };
 
-    protected:
-      std::string  _message;      /**< exception description*/
-      ExceptionID  _id;           /**< exception ID*/
+   protected:
+    std::string _message; /**< exception description*/
+    ExceptionID _id;      /**< exception ID*/
 
-  public:
+   public:
     /** The constuctor gets a message and an ID as arguments.
      */
-    StepperMotorException(const std::string & message, ExceptionID id):
-      _message(message), _id(id) {}
+    StepperMotorException(const std::string& message, ExceptionID id) : _message(message), _id(id) {}
 
     /** What returns the expection message.
      */
-  virtual const char* what() const throw(){
-      return _message.c_str();
-    }
+    virtual const char* what() const throw() { return _message.c_str(); }
 
     /** Returns the ID to progammatically distinguish the exceptions.
      */
-    virtual ExceptionID getID() const{
-      return _id;
-    }
+    virtual ExceptionID getID() const { return _id; }
 
-    virtual ~StepperMotorException() throw(){}
+    virtual ~StepperMotorException() throw() {}
   };
 
-}// namespace ChimeraTk
+} // namespace ChimeraTK
 
-namespace mtca4u{
+namespace mtca4u {
   using namespace ChimeraTK;
 }
 

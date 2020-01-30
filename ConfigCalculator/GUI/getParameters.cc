@@ -3,16 +3,16 @@
 
 // simple data types and MultiVariableWord have different syntax
 // MultiVariableWord:
-#define SET_FIELD(fieldName) config.fieldName.setDataWord( (*parametersPanel)[#fieldName])
+#define SET_FIELD(fieldName) config.fieldName.setDataWord((*parametersPanel)[#fieldName])
 // simple data types can use the assignment operator
 #define ASSIGN_FIELD(fieldName) config.fieldName = (*parametersPanel)[#fieldName]
 
-mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel *parametersPanel){
+mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel) {
   mtca4u::MotorControlerConfig config;
   SET_FIELD(accelerationThresholdData);
-  //ASSIGN_FIELD(actualPosition);
-  SET_FIELD( chopperControlData );
-  SET_FIELD( coolStepControlData );
+  // ASSIGN_FIELD(actualPosition);
+  SET_FIELD(chopperControlData);
+  SET_FIELD(coolStepControlData);
   ASSIGN_FIELD(decoderReadoutMode);
   SET_FIELD(dividersAndMicroStepResolutionData);
   SET_FIELD(driverConfigData);
@@ -34,7 +34,7 @@ mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel *parametersPanel
   return config;
 }
 
-mtca4u::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel *parametersPanel){
+mtca4u::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel) {
   mtca4u::MotorDriverCardConfig config;
   ASSIGN_FIELD(controlerSpiWaitingTime);
   ASSIGN_FIELD(coverDatagram);
