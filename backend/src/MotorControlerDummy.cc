@@ -13,10 +13,9 @@ namespace mtca4u {
     _positiveEndSwitchEnabled(true), _negativeEndSwitchEnabled(true), _motorCurrentEnabled(false),
     _endSwitchPowerEnabled(false), _positiveEndSwitchPosition(10000), _negativeEndSwitchPosition(-10000),
     _userSpeedLimit(100000), /* some arbitatry high value */
-    _id(id), _blockMotor(false), _bothEndSwitchesAlwaysOn(false), _userMicroStepSize(4), _isFullStepping(false) {
-	_blockMotor(false),
-	_calibrationData()
-    {
+    _id(id), _blockMotor(false), _bothEndSwitchesAlwaysOn(false), _userMicroStepSize(4), _isFullStepping(false),
+    _calibrationData()
+  {
     MotorControlerDummy::_positiveEndSwitchPosition = 10000;
     MotorControlerDummy::_negativeEndSwitchPosition = -10000;
   }

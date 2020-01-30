@@ -92,17 +92,20 @@ namespace mtca4u {
     _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
     _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
-    _calibrationTime{device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
-    //_calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName,
-    // CALIBRATION_TIME_SUFFIX)}, // Might use this with newer FW
+    //FIXME Can be removed? See below
+//    _calibrationTime{device->getScalarRegisterAccessor<int32_t>(
+//        moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
+    //FIXME Might use this with newer FW, but needs checking if old FW stays supported
+    _calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName,
+                     CALIBRATION_TIME_SUFFIX)},
     _endSwithPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
     _controlerSPI(controlerSPI), converter24bits(24), converter12bits(12), _moveOnlyFullStep(false),
-    _userMicroStepSize(0), _localTargetPosition(0) {
-      _calibrationData(),
-      _hasCalibrationFWRegisters(false)
+    _userMicroStepSize(0), _localTargetPosition(0),
+    _calibrationData(),
+    _hasCalibrationFWRegisters(false)
+  {
     setAccelerationThresholdData(motorControlerConfig.accelerationThresholdData);
     // setActualPosition( motorControlerConfig.actualPosition );
     setChopperControlData(motorControlerConfig.chopperControlData);
