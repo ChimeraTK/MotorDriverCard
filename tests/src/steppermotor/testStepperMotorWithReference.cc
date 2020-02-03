@@ -65,6 +65,7 @@ class StepperMotorWithReferenceTestFixture {
   bool getMoveInterrupted();
   bool getToleranceCalcFailed();
   bool getToleranceCalculated();
+  bool calibrationDataMatches(mtca4u::MotorControler::CalibrationData);
 
  protected:
   StepperMotorParameters _stepperMotorParameters;
@@ -172,8 +173,19 @@ bool StepperMotorWithReferenceTestFixture::getToleranceCalculated() {
   return _stepperMotor->_toleranceCalculated.load();
 }
 
+bool StepperMotorWithReferenceTestFixture::calibrationDataMatches(mtca4u::MotorControler::CalibrationData ref){
+
+  auto calibData{_motorControlerDummy->getCalibrationData()};
+  bool match = calibData.calibrationTime == ref.calibrationTime;
+  match = match && calibData.posEndSwitchCalibration == ref.posEndSwitchCalibration;
+  match = match && calibData.negEndSwitchCalibration == ref.negEndSwitchCalibration;
+  match = match && (calibData.posEndSwitchTolerance - ref.posEndSwitchTolerance < 1e-6f);
+  match = match && (calibData.negEndSwitchTolerance - ref.negEndSwitchTolerance < 1e-6f);
+  return match;
+}
+
 /**
- * Perfroms calibration which requires moving the motor up to the positive
+ * Performs calibration which requires moving the motor up to the positive
  * and back to the negative end switch
  *
  * Notes:
@@ -276,6 +288,39 @@ void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest() 
 
 BOOST_FIXTURE_TEST_SUITE(StepperMotorWithReferenceTest, StepperMotorWithReferenceTestFixture)
 
+BOOST_AUTO_TEST_CASE(testStartupOnCalibratedHardware){
+
+  // Only configure calibration time -> StepperMotor should come up with mode SIMPLE
+  mtca4u::MotorControler::CalibrationData calibrationReference{};
+  calibrationReference.calibrationTime = 21U;
+  _motorControlerDummy->setCalibrationData(calibrationReference);
+
+  _stepperMotor = std::make_shared<LinearStepperMotor>(_stepperMotorParameters);
+
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::SIMPLE);
+  BOOST_CHECK_EQUAL(_stepperMotor->getCalibrationTime(), calibrationReference.calibrationTime);
+
+  // Fully configure dummy calibration
+  calibrationReference = {
+    42U, // time
+    POS_POSITIVE_ENDSWITCH_STEPPERMOTOR,
+    POS_NEGATIVE_ENDSWITCH_STEPPERMOTOR,
+    1e-3f, // pos. endswitch tolerance
+    1e-3f  // neg. endswitch tolerance
+  };
+
+  _motorControlerDummy->setCalibrationData(calibrationReference);
+
+  _stepperMotor = std::make_shared<LinearStepperMotor>(_stepperMotorParameters);
+
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
+
+  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), calibrationReference.posEndSwitchCalibration);
+  BOOST_CHECK_EQUAL(_stepperMotor->getNegativeEndReferenceInSteps(), calibrationReference.negEndSwitchCalibration);
+  BOOST_CHECK_CLOSE(_stepperMotor->getTolerancePositiveEndSwitch(), calibrationReference.posEndSwitchTolerance, 1e-6);
+  BOOST_CHECK_CLOSE(_stepperMotor->getToleranceNegativeEndSwitch(), calibrationReference.negEndSwitchTolerance, 1e-6);
+}
+
 BOOST_AUTO_TEST_CASE(testCalibrate) {
   // Test calibration w/ disabled end switches
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
@@ -295,8 +340,13 @@ BOOST_AUTO_TEST_CASE(testCalibrate) {
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
 
   BOOST_CHECK(waitForState("idle"));
+
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  // MotorControler should still have default-constructed calibration data
+  auto calibrationReference{mtca4u::MotorControler::CalibrationData{}};
+  BOOST_CHECK(calibrationDataMatches(calibrationReference));
 
   // Test calibration w/ disabled positive end switch
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
@@ -314,6 +364,7 @@ BOOST_AUTO_TEST_CASE(testCalibrate) {
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK(calibrationDataMatches(calibrationReference));
 
   // Test calibration w/ disabled negative end switch
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
@@ -329,6 +380,8 @@ BOOST_AUTO_TEST_CASE(testCalibrate) {
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
   BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK(calibrationDataMatches(calibrationReference));
+
 
   // Test calibration w/ end switches enabled
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
@@ -362,6 +415,17 @@ BOOST_AUTO_TEST_CASE(testCalibrate) {
   BOOST_CHECK_EQUAL(getCalibrationFailed(), false);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
   BOOST_CHECK(_stepperMotor->getError() == Error::NO_ERROR);
+
+  calibrationReference = mtca4u::MotorControler::CalibrationData{
+    _stepperMotor->getCalibrationTime(),
+    POS_POSITIVE_ENDSWITCH_STEPPERMOTOR,
+    POS_NEGATIVE_ENDSWITCH_STEPPERMOTOR,
+    .0f, // Tolerances not determined in this test
+    .0f
+  };
+  BOOST_CHECK(calibrationDataMatches(calibrationReference));
+
+
   BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), 0);
   while(!_stepperMotor->isSystemIdle()) {
   }
