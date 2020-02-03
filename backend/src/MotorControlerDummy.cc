@@ -352,6 +352,7 @@ namespace mtca4u {
     _negativeEndSwitchEnabled = true;
     _bothEndSwitchesAlwaysOn = false;
     _blockMotor = false;
+    _calibrationData = CalibrationData{};
   }
 
   void MotorControlerDummy::setMotorCurrentEnabled(bool enable) {

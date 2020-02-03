@@ -19,7 +19,7 @@ namespace ChimeraTK { namespace MotorDriver {
   LinearStepperMotor::LinearStepperMotor(const StepperMotorParameters& parameters)
   : BasicStepperMotor(), _positiveEndSwitchEnabled(false), _negativeEndSwitchEnabled(false), _calibrationFailed(false),
     _toleranceCalcFailed(false), _toleranceCalculated(false),
-    _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
+    _calibNegativeEndSwitchInSteps(std::numeric_limits<int>::min()),
     _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()), _tolerancePositiveEndSwitch(0),
     _toleranceNegativeEndSwitch(0) {
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(

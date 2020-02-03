@@ -46,7 +46,7 @@ namespace mtca4u {
     {
       uint32_t calibrationTime = 0U;
       int32_t posEndSwitchCalibration = std::numeric_limits<int32_t>::max();
-      int32_t negEndSwitchCalibration = -std::numeric_limits<int32_t>::max();
+      int32_t negEndSwitchCalibration = std::numeric_limits<int32_t>::min();
       float posEndSwitchTolerance = 0;
       float negEndSwitchTolerance = 0;
     };
