@@ -38,34 +38,65 @@ FIND_PATH(DOOCS_DIR libDOOCSapi.so
   /export/doocs/lib
 )
 if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";zmq;")
-  FIND_PATH(DOOCS_DIR_ZMQ libDOOCSdzmq.so
+  FIND_PATH(DOOCS_DIR_zmq libDOOCSdzmq.so
     ${DOOCS_DIR}
   )
   set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DOOCSdzmq)
+  set(COMPONENT_DIRS ${COMPONENT_DIRS} DOOCS_DIR_zmq)
 endif()
 
 if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";dapi;")
-  FIND_PATH(DOOCS_DIR_DAPI libDOOCSdapi.so
+  FIND_PATH(DOOCS_DIR_dapi libDOOCSdapi.so
     ${DOOCS_DIR}
   )
   set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DOOCSdapi)
+  set(COMPONENT_DIRS ${COMPONENT_DIRS} DOOCS_DIR_dapi)
 endif()
 
 if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";server;")
-  FIND_PATH(DOOCS_DIR_SERVER libEqServer.so
+  FIND_PATH(DOOCS_DIR_server libEqServer.so
     ${DOOCS_DIR}
   )
   set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} EqServer)
+  set(COMPONENT_DIRS ${COMPONENT_DIRS} DOOCS_DIR_server)
 endif()
 
 if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";ddaq;")
-  FIND_PATH(DOOCS_DIR_SERVER libDOOCSddaq.so
+  FIND_PATH(DOOCS_DIR_ddaq libDOOCSddaq.so
     ${DOOCS_DIR}
   )
   set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DOOCSddaq timinginfo daqevstat DAQFSM TTF2XML xerces-c BM TTF2evutl)
+  set(COMPONENT_DIRS ${COMPONENT_DIRS} DOOCS_DIR_ddaq)
 endif()
 
-set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DOOCSapi nsl dl pthread m rt ldap gul)
+if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";daqreader;")
+  FIND_PATH(DOOCS_DIR_daqreader libDAQReader.so
+    ${DOOCS_DIR}
+  )
+  set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DAQReader)
+  set(COMPONENT_DIRS ${COMPONENT_DIRS} DOOCS_DIR_daqreader)
+endif()
+
+if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";eqdaqdatalib;")
+  FIND_PATH(DOOCS_DIR_eqdaqdatalib libDAQsvrutil.so
+    ${DOOCS_DIR}
+  )
+  set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DAQsvrutil)
+  set(COMPONENT_DIRS ${COMPONENT_DIRS} DOOCS_DIR_eqdaqdatalib)
+endif()
+
+#This is for the transition only. The logic is not bullet proof, but in almost all cases
+#if there is libgul14.so, it means DOOCS brought it and needs it.
+FIND_LIBRARY(LIB_GULOLD libgul.so ${DOOCS_DIR})
+FIND_LIBRARY(LIB_GUL14 libgul14.so ${DOOCS_DIR})
+if ("${LIB_GUL14}" MATCHES "LIB_GUL14-NOTFOUND")
+  set(LIB_GUL "gul")
+else()
+  set(LIB_GUL "gul14")
+endif()
+
+set(DOOCS_LIBRARIES ${DOOCS_LIBRARIES} DOOCSapi nsl dl pthread m rt ldap ${LIB_GUL})
+message("DOOCS_LIBRARIES ${DOOCS_LIBRARIES}")
 
 # now set the required variables based on the determined DOOCS_DIR
 set(DOOCS_INCLUDE_DIRS ${DOOCS_DIR}/include)
@@ -77,16 +108,10 @@ set(DOOCS_LINK_FLAGS "${DOOCS_LINKER_FLAGS}")
 
 # extract DOOCS version from librar so symlink. Note: This is platform dependent and only works
 # if DOOCS was installed from the Debian pagackes. Find a better version detection scheme!
-execute_process(COMMAND bash -c "readelf -d ${DOOCS_DIR}/libDOOCSapi.so | grep SONAME | sed -e 's/^.*Library soname: \\[libDOOCSapi\\.so\\.//' -e 's/\\]$//'"
+execute_process(COMMAND bash -c "env LANG=C readelf -d ${DOOCS_DIR}/libDOOCSapi.so | grep SONAME | sed -e 's/^.*Library soname: \\[libDOOCSapi\\.so\\.//' -e 's/\\]$//'"
                 OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE DOOCS_VERSION)
 
 # use a macro provided by CMake to check if all the listed arguments are valid and set DOOCS_FOUND accordingly
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(DOOCS REQUIRED_VARS DOOCS_DIR VERSION_VAR DOOCS_VERSION )
-if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";server;")
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(DOOCS REQUIRED_VARS DOOCS_DIR_SERVER VERSION_VAR DOOCS_VERSION )
-endif()
-if (";${DOOCS_FIND_COMPONENTS};" MATCHES ";zmq;")
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(DOOCS REQUIRED_VARS DOOCS_DIR_ZMQ VERSION_VAR DOOCS_VERSION )
-endif()
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(DOOCS REQUIRED_VARS DOOCS_DIR ${COMPONENT_DIRS} VERSION_VAR DOOCS_VERSION )
 
