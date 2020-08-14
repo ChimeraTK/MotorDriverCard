@@ -24,22 +24,12 @@ message("${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_SOVERSION}")
 #We need the build name to be part of the libraries full version name
 set(${PROJECT_NAME}_FULL_LIBRARY_VERSION ${${PROJECT_NAME}_SOVERSION}.${${PROJECT_NAME}_PATCH_VERSION})
  
-# Set the build type to Release if none is specified
-# Force it into Release if "None" is specified (needed to overrule dkpg_buildpackage)
-if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
-      FORCE)
-endif(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "None")
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_build_to_release.cmake)
+INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_flags.cmake)
 
-#Technically we only need c++11 in the MotorDriverCard interface. For consistency in libraries that also use deviceaccess, which needs c++14, we also set
-#the c++ version to 14. No harm done, as it is used for the compilation anyway.
-set(${PROJECT_NAME}_CXX_FLAGS "-std=c++14")
+#Don't ask me why this is explicitly needed. Seems to be our only project where we explicitly have to enable it.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
-#use -DCMAKE_BUILD_TYPE=Debug then configuring to turn on the coverage tests (and debug symbols)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fPIC -Wextra -Wshadow -pedantic -Wuninitialized -Weffc++")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 --coverage")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
@@ -52,7 +42,7 @@ else(SUPPRESS_AUTO_DOC_BUILD)
     set(DOC_DEPENDENCY ALL)
 endif(SUPPRESS_AUTO_DOC_BUILD)
 
-FIND_PACKAGE(ChimeraTK-DeviceAccess 01.00 REQUIRED)
+FIND_PACKAGE(ChimeraTK-DeviceAccess 02.00 REQUIRED)
 include_directories(SYSTEM ${ChimeraTK-DeviceAccess_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-DeviceAccess_CXX_FLAGS}")
 
