@@ -46,10 +46,10 @@ if(TESTING_IS_ENABLED)
 
 endif(TESTING_IS_ENABLED)
 
-FIND_PACKAGE(Qt4)
+FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Gui)
 
-if(QT4_FOUND)
+if(Qt5_FOUND)
   add_subdirectory(GUI)
-else(QT4_FOUND)
-  message("    QT4 not found. Graphical user interface will not be build.")
-endif(QT4_FOUND)
+else()
+  message("    QT5 not found. Graphical user interface will not be build.")
+endif()

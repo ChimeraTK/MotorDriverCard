@@ -1,23 +1,17 @@
-/*
- * HexSpinBox.h
- *
- *  Created on: Feb 12, 2015
- *      Author: varghese
- */
-
 #ifndef SOURCE_DIRECTORY__HEXSPINBOX_H_
 #define SOURCE_DIRECTORY__HEXSPINBOX_H_
 
-#include <qspinbox.h>
-#include <qvalidator.h>
+#include <QSpinBox>
+#include <QValidator>
+// The HexDataType is defined in a common file together with other types to
+// avoid collisions (although at the time of writing there are no other types)
+#include "VariantUserTypes.h"
 
 /**
  * The HexData class is the custom datatype that we have introduced to represent
  * hex values. This class is registered with the Qt framework as a user defined
  * type. The table spinbox delegate class uses the class to identify hex data
  * items and create HexSpinboxes accordingly
- * TODO: extract to a base class and derive custom types from the base class (in
- * case the table needs to support other custom datatypes)
  */
 class HexData {
   static const int dataType = 0;
@@ -27,7 +21,13 @@ class HexData {
    * Holds the entered value (for which we need the hex representation)
    */
   double value;
-  HexData() : value(0){};
+  HexData(double v = 0) : value(v){};
+  /** Overloaded constructor for std::string to avoid template specialisation as
+   *  there is no implicit conversion from std::string to double.
+   *  Generally this conversion does not make sense, so we initialise class with
+   * 0.
+   */
+  HexData(std::string) : value(0) {}
 };
 
 /*
@@ -39,7 +39,7 @@ Q_DECLARE_METATYPE(HexData)
  * This class defines the properties of the spinbox that is used to accept the
  * hex values from the user.
  */
-class HexSpinBox : public QDoubleSpinBox {
+class HexSpinBox : public QSpinBox {
   Q_OBJECT
   QRegExpValidator* _validator;
 
@@ -47,12 +47,12 @@ class HexSpinBox : public QDoubleSpinBox {
   /**
    * The class can register itself with a parent widget through the constructor.
    */
-  HexSpinBox(QWidget* parent_ = 0);
+  HexSpinBox(QWidget* parent_ = nullptr);
 
  private:
   // Disable copy constructor and assignment operator
   Q_DISABLE_COPY(HexSpinBox)
-  ~HexSpinBox();
+  ~HexSpinBox() override;
 
  protected:
   /**
@@ -60,19 +60,19 @@ class HexSpinBox : public QDoubleSpinBox {
    * spinbox. The current code displays the value which is internally stored as
    * an integer datatype as the corresponding hexadecimal string.
    */
-  QString textFromValue(double value_) const;
+  QString textFromValue(int value_) const override;
 
   /**
    * Defines how the user input text (in the spinbox) is converted into the
    * corresponding integer value
    */
-  double valueFromText(const QString& text_) const;
+  int valueFromText(const QString& text_) const override;
 
   /**
    * Code is used to restrict user input (in the spinbox) to valid hexadecimal
    * characters.
    */
-  QValidator::State validate(QString& text_, int& pos_) const;
+  QValidator::State validate(QString& text_, int& pos_) const override;
 };
 
 #endif /* SOURCE_DIRECTORY__HEXSPINBOX_H_ */

@@ -8,7 +8,7 @@ ParameterWidget::ParameterWidget(QWidget* parent_, std::string const& parameterN
   horizontalLayout->addWidget(label);
 
   parameterSpinBox = new HexSpinBox(this);
-  parameterSpinBox->setRange(0x0000000, 0xFFFFFFFFL);
+  parameterSpinBox->setRange(0x80000000, 0x7FFFFFFF);
   parameterSpinBox->setValue(defaultValue);
   horizontalLayout->addWidget(parameterSpinBox);
 

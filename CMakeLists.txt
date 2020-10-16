@@ -33,14 +33,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
-#use -DSUPPRESS_AUTO_DOC_BUILD=true to suppress to create the doc with every
-#build. The 'make doc' target will still exist
-if(SUPPRESS_AUTO_DOC_BUILD)
-    unset(DOC_DEPENDENCY)
-    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/doc)  # otherwise make install might fail
-else(SUPPRESS_AUTO_DOC_BUILD)
-    set(DOC_DEPENDENCY ALL)
-endif(SUPPRESS_AUTO_DOC_BUILD)
+include(cmake/enable_doxygen_documentation.cmake)
 
 FIND_PACKAGE(ChimeraTK-DeviceAccess 02.00 REQUIRED)
 include_directories(SYSTEM ${ChimeraTK-DeviceAccess_INCLUDE_DIRS})
@@ -228,19 +221,3 @@ set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enabl
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
 add_subdirectory(ConfigCalculator) 
-
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-
-  # The write_default_config target is defined in the ConfigCalculator subdirectory
-  # the 
-  add_custom_target(doc ${DOC_DEPENDENCY}
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    DEPENDS MotorDriverCardDefaultConfig.xml
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/doc/ DESTINATION share/doc/${PROJECT_NAME}-${${PROJECT_NAME}_SOVERSION} )
-else(DOXYGEN_FOUND)
-  message("Doxygen not found, documentation cannot be build.")
-endif(DOXYGEN_FOUND)
