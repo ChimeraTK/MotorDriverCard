@@ -35,7 +35,7 @@ SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 include(cmake/enable_doxygen_documentation.cmake)
 
-FIND_PACKAGE(ChimeraTK-DeviceAccess 02.00 REQUIRED)
+FIND_PACKAGE(ChimeraTK-DeviceAccess 01.11 REQUIRED)
 include_directories(SYSTEM ${ChimeraTK-DeviceAccess_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-DeviceAccess_CXX_FLAGS}")
 
