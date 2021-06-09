@@ -4,24 +4,9 @@
 
 namespace ChimeraTK {
 
-  GeneralStatus::GeneralStatus() : _id(0) {}
-
   GeneralStatus::GeneralStatus(int id) : _id(id) {}
 
-  // copy constructor
-
-  GeneralStatus::GeneralStatus(const GeneralStatus& status) : _id(status._id) {}
-
   GeneralStatus::~GeneralStatus() {}
-
-  GeneralStatus& GeneralStatus::operator=(const GeneralStatus& other) {
-    // boost::lock_guard<boost::mutex> lock_guard(mutex);
-    if(this != &other) {
-      _id = other._id;
-    }
-
-    return *this;
-  }
 
   bool GeneralStatus::operator==(GeneralStatus const& right) const {
     if(_id != right._id) {

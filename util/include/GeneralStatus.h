@@ -12,12 +12,7 @@ namespace ChimeraTK {
     // std::string name;
     // boost::mutex mutex;
    public:
-    GeneralStatus();
-    GeneralStatus(int id);
-    // copy constructor
-    GeneralStatus(const GeneralStatus& status);
-    // assigment operator
-    GeneralStatus& operator=(const GeneralStatus& other);
+    GeneralStatus(int id = 0);
     virtual ~GeneralStatus();
 
     bool operator==(GeneralStatus const& right) const;

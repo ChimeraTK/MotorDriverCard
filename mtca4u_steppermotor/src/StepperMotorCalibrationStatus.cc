@@ -16,11 +16,6 @@ namespace mtca4u {
 
   StepperMotorCalibrationStatus::StepperMotorCalibrationStatus() : GeneralStatus(1) {}
 
-  StepperMotorCalibrationStatus::StepperMotorCalibrationStatus(int id) : GeneralStatus(id) {}
-
-  StepperMotorCalibrationStatus::StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus& error)
-  : GeneralStatus(error) {}
-
   std::string StepperMotorCalibrationStatus::asString() const {
     std::ostringstream stream;
 

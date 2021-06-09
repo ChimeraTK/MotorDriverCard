@@ -22,10 +22,6 @@ namespace mtca4u {
 
   StepperMotorError::StepperMotorError() : GeneralStatus(1) {}
 
-  StepperMotorError::StepperMotorError(int id) : GeneralStatus(id) {}
-
-  StepperMotorError::StepperMotorError(const StepperMotorError& error) : GeneralStatus(error) {}
-
   std::string StepperMotorError::asString() const {
     std::ostringstream stream;
 
@@ -57,12 +53,6 @@ namespace mtca4u {
   // LinearStepperMotorError class definition
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  LinearStepperMotorError::LinearStepperMotorError() : StepperMotorError(1) {}
-
-  LinearStepperMotorError::LinearStepperMotorError(int id) : StepperMotorError(id) {}
-
-  LinearStepperMotorError::LinearStepperMotorError(const LinearStepperMotorError& error) : StepperMotorError(error) {}
 
   std::string LinearStepperMotorError::asString() const {
     std::ostringstream stream;

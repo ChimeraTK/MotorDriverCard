@@ -31,14 +31,12 @@ namespace mtca4u {
 
   class StepperMotorStatus : public GeneralStatus {
    public:
-    // default constructor
+    // default constructor uses different default value thatn GeneralStatus
     StepperMotorStatus();
-    // param constructor
-    StepperMotorStatus(int id);
-    // copy constructor
-    StepperMotorStatus(const StepperMotorStatus& status);
-    // overload of asString method
-    virtual std::string asString() const;
+    // inherit the other constructors
+    using GeneralStatus::GeneralStatus;
+
+    std::string asString() const override;
   };
 
   class LinearStepperMotorStatusTypes : public StepperMotorStatusTypes {
@@ -49,15 +47,11 @@ namespace mtca4u {
 
   class LinearStepperMotorStatus : public StepperMotorStatus {
    public:
-    // default constructor
-    LinearStepperMotorStatus();
-    // param constructor
-    LinearStepperMotorStatus(int id);
-    // copy constructor
-    LinearStepperMotorStatus(const LinearStepperMotorStatus& status);
+    // inherit all constructors
+    using StepperMotorStatus::StepperMotorStatus;
 
     // overload of asString method
-    virtual std::string asString() const;
+    std::string asString() const override;
   };
 
 } // namespace mtca4u

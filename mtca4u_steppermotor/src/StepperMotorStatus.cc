@@ -9,14 +9,7 @@ namespace mtca4u {
   // LinearStepperMotorStatus class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  LinearStepperMotorStatus::LinearStepperMotorStatus() : StepperMotorStatus(1) {}
-
-  LinearStepperMotorStatus::LinearStepperMotorStatus(int id) : StepperMotorStatus(id) {}
-
-  LinearStepperMotorStatus::LinearStepperMotorStatus(const LinearStepperMotorStatus& status)
-  : StepperMotorStatus(status) {}
-
-  // overload of asString method
+  // override of asString method
 
   std::string LinearStepperMotorStatus::asString() const {
     std::ostringstream stream;
@@ -53,11 +46,7 @@ namespace mtca4u {
 
   StepperMotorStatus::StepperMotorStatus() : GeneralStatus(1) {}
 
-  StepperMotorStatus::StepperMotorStatus(int id) : GeneralStatus(id) {}
-
-  StepperMotorStatus::StepperMotorStatus(const StepperMotorStatus& status) : GeneralStatus(status) {}
-
-  // overload of asString method
+  // override of asString method
 
   std::string StepperMotorStatus::asString() const {
     std::ostringstream stream;
