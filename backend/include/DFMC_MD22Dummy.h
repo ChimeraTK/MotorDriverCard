@@ -150,10 +150,10 @@ namespace mtca4u {
 
     // members
     std::vector<unsigned int> _controlerSpiAddressSpace;
-    uint32_t _controlerSpiWriteAddress;
-    uint32_t _controlerSpiBar;
-    uint32_t _controlerSpiReadbackAddress;
-    uint32_t _controlerSpiSyncAddress;
+    uint64_t _controlerSpiWriteAddress;
+    uint64_t _controlerSpiBar;
+    uint64_t _controlerSpiReadbackAddress;
+    uint64_t _controlerSpiSyncAddress;
     bool _powerIsUp;
 
     // internal and helper functions
@@ -189,9 +189,9 @@ namespace mtca4u {
     struct DriverSPI {
       /// each driver has it's own address space vector<uint>
       std::vector<unsigned int> addressSpace;
-      unsigned int bar;
-      unsigned int pcieWriteAddress;
-      unsigned int pcieSyncAddress;
+      uint64_t bar;
+      uint64_t pcieWriteAddress;
+      uint64_t pcieSyncAddress;
       DriverSPI();
     };
 

@@ -27,14 +27,12 @@ namespace mtca4u {
 
   class StepperMotorCalibrationStatus : public GeneralStatus {
    public:
-    // default constructor
+    // default constructor uses different default value than GeneralStatus
     StepperMotorCalibrationStatus();
-    // param constructor
-    StepperMotorCalibrationStatus(int id);
-    // copy constructor
-    StepperMotorCalibrationStatus(const StepperMotorCalibrationStatus& status);
+    // inherit the other constructors
+    using GeneralStatus::GeneralStatus;
 
-    virtual std::string asString() const;
+    std::string asString() const override;
   };
 
 } // namespace mtca4u

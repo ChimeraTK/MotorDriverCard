@@ -39,14 +39,11 @@ namespace mtca4u {
 
   class StepperMotorError : public GeneralStatus {
    public:
-    // default constructor
+    using GeneralStatus::GeneralStatus;
+    // default constructor uses diffeent default value than the GeneralStatus
     StepperMotorError();
-    // constructor with params
-    StepperMotorError(int id);
-    // copy constructor
-    StepperMotorError(const StepperMotorError& error);
 
-    virtual std::string asString() const;
+    std::string asString() const override;
   };
 
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -56,14 +53,10 @@ namespace mtca4u {
 
   class LinearStepperMotorError : public StepperMotorError {
    public:
-    // default constructor
-    LinearStepperMotorError();
-    // constructor with params
-    LinearStepperMotorError(int id);
-    // copy constructor
-    LinearStepperMotorError(const LinearStepperMotorError& error);
+    // just inherit all constructors
+    using StepperMotorError::StepperMotorError;
 
-    virtual std::string asString() const;
+    std::string asString() const override;
   };
 } // namespace mtca4u
 

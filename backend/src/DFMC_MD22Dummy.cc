@@ -103,11 +103,11 @@ namespace mtca4u {
   }
 
   void DFMC_MD22Dummy::setPCIeRegistersForTesting() {
-    for(std::map<uint8_t, std::vector<int32_t>>::iterator barIter = _barContents.begin(); barIter != _barContents.end();
-        ++barIter) {
-      for(unsigned int i = 0; i < barIter->second.size(); ++i) {
-        unsigned int address = sizeof(uint32_t) * i;
-        barIter->second[i] = 3 * address * address + 17;
+    for(std::map<uint64_t, std::vector<int32_t>>::iterator barIter = _barContents.begin();
+        barIter != _barContents.end(); ++barIter) {
+      for(size_t i = 0; i < barIter->second.size(); ++i) {
+        uint64_t address = sizeof(uint32_t) * i;
+        barIter->second[i] = static_cast<int32_t>(3 * address * address + 17);
       }
     }
 
