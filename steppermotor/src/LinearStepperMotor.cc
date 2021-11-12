@@ -207,6 +207,16 @@ namespace ChimeraTK { namespace MotorDriver {
   CalibrationMode LinearStepperMotor::getCalibrationMode() { return _calibrationMode.load(); }
 
   void LinearStepperMotor::loadEndSwitchCalibration() {
+    /*
+    Added return to the method to disable it.
+    This method is not working, because storing positive and negative end switches (reference switch) is not implemented in backend library
+    Check ticket: https://github.com/ChimeraTK/MotorDriverCard/issues/9
+    Missing implementation is causing inconsistency in state of the object. Motor pretends to be calibrated, but values are not restored correctly after software restart.
+    TODO - Handling of end switches requires additional discussion in the future - ex. evaluation of data from registers could be useful.
+    */
+    return;
+    //
+
     LockGuard guard(_mutex);
 
     if(_motorControler->getCalibrationTime() != 0) {
