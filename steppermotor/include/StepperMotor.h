@@ -48,6 +48,8 @@ namespace ChimeraTK { namespace MotorDriver {
     /// steps.
     std::shared_ptr<utility::EncoderStepsConverter> encoderUnitsConverter{
         std::make_shared<utility::EncoderStepsConverterTrivia>()};
+    /// A encoder can operate in a defined readout mode - '0' - Heidenhain, '1' - Incremental
+    unsigned int encoderReadoutMode{0U};
   };
 
   /**
@@ -252,6 +254,10 @@ namespace ChimeraTK { namespace MotorDriver {
      */
     virtual ExitStatus setActualEncoderPosition(double referencePosition) = 0;
 
+    virtual unsigned int getEncoderReadoutMode() = 0; ///< Get the decoder readout mode
+
+    virtual void setEncoderReadoutMode(unsigned int encoderReadoutMode = 0) = 0;
+
     /**
      * Return target motor position in the arbitrary units.
      * @return float - target position of motor in arbitrary units.
@@ -270,8 +276,8 @@ namespace ChimeraTK { namespace MotorDriver {
      * @brief set the steps-units converter. Per default each instance has a 1:1
      * converter
      */
-    virtual ExitStatus setStepperMotorUnitsConverter(std::shared_ptr<utility::MotorStepsConverter>
-            stepperMotorUnitsConverter) = 0;
+    virtual ExitStatus setStepperMotorUnitsConverter(
+        std::shared_ptr<utility::MotorStepsConverter> stepperMotorUnitsConverter) = 0;
 
     // FIXME This can be constant after construction?
     /**

@@ -27,6 +27,7 @@ namespace ChimeraTK { namespace MotorDriver {
     _mutex(), _stateMachine(), _errorMode(Error::NO_ERROR), _calibrationMode(CalibrationMode::NONE) {
     _stateMachine.reset(new StateMachine(*this));
     initStateMachine();
+    _motorControler->setDecoderReadoutMode(parameters.encoderReadoutMode);
   }
 
   BasicStepperMotor::BasicStepperMotor()
@@ -574,4 +575,11 @@ namespace ChimeraTK { namespace MotorDriver {
   }
 
   CalibrationMode BasicStepperMotor::getCalibrationMode() { return _calibrationMode.load(); }
+
+  unsigned int BasicStepperMotor::getEncoderReadoutMode() { return _motorControler->getDecoderReadoutMode(); }
+
+  void BasicStepperMotor::setEncoderReadoutMode(unsigned int decoderReadoutMode) {
+    _motorControler->setDecoderReadoutMode(decoderReadoutMode);
+  }
+
 }} // namespace ChimeraTK::MotorDriver

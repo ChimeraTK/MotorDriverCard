@@ -48,6 +48,13 @@ namespace ChimeraTK { namespace MotorDriver {
   }
 
   bool LinearStepperMotor::limitsOK(int newPositionInSteps) {
+    /*
+      if(_calibrationMode.load() != CalibrationMode::NONE &&
+        (newPositionInSteps < _calibNegativeEndSwitchInSteps.load() ||
+            newPositionInSteps > _calibPositiveEndSwitchInSteps.load()))
+      return false;
+    return BasicStepperMotor::limitsOK(newPositionInSteps);
+    */
     if(newPositionInSteps >= _calibNegativeEndSwitchInSteps.load() &&
         newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
       return BasicStepperMotor::limitsOK(newPositionInSteps);
