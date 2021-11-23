@@ -65,7 +65,10 @@ namespace mtca4u {
     virtual void setMicroStepCount(unsigned int microStepCount) = 0;
 
     virtual void setEnabled(bool enable = true) = 0; ///< @deprecated Use setMotorCurrentEnabled instead.
-    virtual void setDecoderReadoutMode(unsigned int decoderReadoutMode) = 0;
+
+    [[deprecated(
+        "Method will be removed in the future. Use motor driver xml file to set encoder readout mode.  ")]] virtual void
+        setDecoderReadoutMode(unsigned int decoderReadoutMode) = 0;
 
     virtual void enableFullStepping(bool enable = true) = 0;
     virtual bool isFullStepping() = 0;

@@ -234,8 +234,6 @@ namespace ChimeraTK { namespace MotorDriver {
 
     virtual unsigned int getEncoderReadoutMode(); ///< Get the decoder readout mode
 
-    virtual void setEncoderReadoutMode(unsigned int encoderReadoutMode);
-
     /**
      *  @brief Set the actual encoder position to a reference value.
      *

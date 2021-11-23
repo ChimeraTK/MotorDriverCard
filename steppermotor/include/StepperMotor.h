@@ -48,8 +48,6 @@ namespace ChimeraTK { namespace MotorDriver {
     /// steps.
     std::shared_ptr<utility::EncoderStepsConverter> encoderUnitsConverter{
         std::make_shared<utility::EncoderStepsConverterTrivia>()};
-    /// A encoder can operate in a defined readout mode - '0' - Heidenhain, '1' - Incremental
-    unsigned int encoderReadoutMode{0U};
   };
 
   /**
@@ -255,8 +253,6 @@ namespace ChimeraTK { namespace MotorDriver {
     virtual ExitStatus setActualEncoderPosition(double referencePosition) = 0;
 
     virtual unsigned int getEncoderReadoutMode() = 0; ///< Get the decoder readout mode
-
-    virtual void setEncoderReadoutMode(unsigned int encoderReadoutMode = 0) = 0;
 
     /**
      * Return target motor position in the arbitrary units.
