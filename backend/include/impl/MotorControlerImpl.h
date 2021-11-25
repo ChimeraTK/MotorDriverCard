@@ -238,7 +238,9 @@ namespace mtca4u {
     ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderReadoutMode;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _decoderPosition;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _calibrationTime;
-    ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwithPowerIndicator;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchPositive;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchNegative;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchPowerIndicator;
 
     mtca4u::SPIviaPCIe _driverSPI;
     boost::shared_ptr<mtca4u::TMC429SPI> _controlerSPI;

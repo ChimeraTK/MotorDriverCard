@@ -92,11 +92,10 @@ namespace mtca4u {
     _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
     _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
-    _calibrationTime{device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + CALIBRATION_TIME, 0, {ChimeraTK::AccessMode::raw})},
-    //_calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName,
-    // CALIBRATION_TIME_SUFFIX)}, // Might use this with newer FW
-    _endSwithPowerIndicator{},
+    _calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)},
+    _endSwitchPositive{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_POSITIVE_SUFFIX)},
+    _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)},
+    _endSwitchPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
     _controlerSPI(controlerSPI), converter24bits(24), converter12bits(12), _moveOnlyFullStep(false),
@@ -127,11 +126,11 @@ namespace mtca4u {
     setEnabled(motorControlerConfig.enabled);
     try {
       // this must throw on mapfile not having this register
-      _endSwithPowerIndicator.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, ENDSWITCH_ENABLE_SUFFIX));
+      _endSwitchPowerIndicator.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, ENDSWITCH_ENABLE_SUFFIX));
     }
     catch(std::exception& a) {
       // ignore exception when creating the accessor with the consequence that
-      // _endSwithPowerIndicator stays uninitialized. This happens when the
+      // _endSwitchPowerIndicator stays uninitialized. This happens when the
       // library is used with old firmware that does not have the
       // WORD_M1_VOLTAGE_EN register in the mapfile. Methods using this accessor
       // have to check its isInitialised() method prior to using it.
@@ -406,21 +405,27 @@ namespace mtca4u {
   }
 
   void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
-    // TODO
-    (void)calibratedPosition;
+    lock_guard guard(_mutex);
+    _endSwitchPositive = calibratedPosition;
+    _endSwitchPositive.write();
   }
 
   int MotorControlerImpl::getPositiveReferenceSwitchCalibration() {
-    return 0; // TODO
+    lock_guard guard(_mutex);
+    _endSwitchPositive.read();
+    return _endSwitchPositive;
   }
 
   void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition) {
-    // TODO
-    (void)calibratedPosition;
+    lock_guard guard(_mutex);
+    _endSwitchNegative = calibratedPosition;
+    _endSwitchNegative.write();
   }
 
   int MotorControlerImpl::getNegativeReferenceSwitchCalibration() {
-    return 0; // TODO
+    lock_guard guard(_mutex);
+    _endSwitchNegative.read();
+    return _endSwitchNegative;
   }
 
   bool MotorControlerImpl::targetPositionReached() {
@@ -570,22 +575,22 @@ namespace mtca4u {
 
   void MotorControlerImpl::setEndSwitchPowerEnabled(bool enable) {
     lock_guard guard(_mutex);
-    if(!_endSwithPowerIndicator.isInitialised()) {
+    if(!_endSwitchPowerIndicator.isInitialised()) {
       return; // Meaning we are on an old firmware that does not support this
               // register. Do nothing
     }
-    _endSwithPowerIndicator = (enable ? 3 : 0);
-    _endSwithPowerIndicator.write();
+    _endSwitchPowerIndicator = (enable ? 3 : 0);
+    _endSwitchPowerIndicator.write();
   }
 
   bool MotorControlerImpl::isEndSwitchPowerEnabled() {
     lock_guard guard(_mutex);
-    if(!_endSwithPowerIndicator.isInitialised()) {
+    if(!_endSwitchPowerIndicator.isInitialised()) {
       return false; // taking a convenient default to make logic easier in
       // StepperMotor getEnabled . With the old firmware status of the end
       // switches is a don't care condition anyway
     }
-    return readRegisterAccessor(_endSwithPowerIndicator);
+    return readRegisterAccessor(_endSwitchPowerIndicator);
   }
 
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
