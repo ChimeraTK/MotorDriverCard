@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
   std::string deviceName;
   if(argc >= 4) {
-    deviceName = argv[2];
+    deviceName = argv[3];
   }
   else {
     deviceName = "DFMC-MD22";
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
   std::string configFileNameName;
   if(argc >= 5) {
-    configFileNameName = argv[3];
+    configFileNameName = argv[4];
   }
   else {
     configFileNameName = "VT21-MotorDriverCardConfig.xml";
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 
   int motorDriverId;
   if(argc >= 6) {
-    motorDriverId = boost::lexical_cast<int>(argv[4]);
+    motorDriverId = boost::lexical_cast<int>(argv[5]);
   }
   else {
     motorDriverId = 0;
