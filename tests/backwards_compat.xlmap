@@ -1,0 +1,378 @@
+<logicalNameMap>
+    <redirectedRegister name="WORD_RESET_N">
+      <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+      <targetRegister>/WORD_RESET_N</targetRegister>
+    </redirectedRegister>
+    <module name="MD22_0">
+      <redirectedRegister name="WORD_PROJ_MAGIC_NUM">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_MAGIC_NUM</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_ID">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_ID</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_VERSION">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_VERSION</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_DATE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_DATE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_RESERVED">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_RESERVED</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_RESET">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_RESET</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_NEXT">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_NEXT</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_SPI_WRITE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_CTRL_SPI_WRITE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_SPI_READBACK">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_CTRL_SPI_READBACK</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_SPI_SYNC">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_CTRL_SPI_SYNC</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_STATUS_BITS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_CTRL_STATUS_BITS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_SPI_WRITE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_SPI_WRITE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_SPI_SYNC">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_SPI_SYNC</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_ACTUAL_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_ACTUAL_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_V_ACTUAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_V_ACTUAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_ACT_ACCEL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_ACT_ACCEL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_MSTEP_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_MSTEP_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_SGUARD_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_SGUARD_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CoolStep_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_CoolStep_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_STATUS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_STATUS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_ENABLE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_ENABLE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_DEK_MUX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_DEK_MUX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_DEK_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M1_DEK_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_SPI_WRITE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_SPI_WRITE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_SPI_SYNC">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_SPI_SYNC</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_ACTUAL_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_ACTUAL_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_V_ACTUAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_V_ACTUAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_ACT_ACCEL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_ACT_ACCEL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_MSTEP_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_MSTEP_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_SGUARD_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_SGUARD_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CoolStep_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_CoolStep_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_STATUS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_STATUS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_ENABLE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_ENABLE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_DEK_MUX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_DEK_MUX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_DEK_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_M2_DEK_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_TX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_I2C_FMC_TX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_RX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_I2C_FMC_RX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_ADR">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_I2C_FMC_ADR</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_CMD">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_I2C_FMC_CMD</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_USER">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CAL_TIME">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CAL_END_SW_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CAL_END_SW_NEG">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CAL_TIME">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CAL_END_SW_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CAL_END_SW_NEG">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_0/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+    </module>
+    <module name="MD22_1">
+      <redirectedRegister name="WORD_PROJ_MAGIC_NUM">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_MAGIC_NUM</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_ID">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_ID</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_VERSION">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_VERSION</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_DATE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_DATE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_RESERVED">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_RESERVED</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_RESET">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_RESET</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_NEXT">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_NEXT</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_SPI_WRITE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_CTRL_SPI_WRITE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_SPI_READBACK">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_CTRL_SPI_READBACK</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_SPI_SYNC">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_CTRL_SPI_SYNC</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_CTRL_STATUS_BITS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_CTRL_STATUS_BITS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_SPI_WRITE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_SPI_WRITE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_SPI_SYNC">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_SPI_SYNC</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_ACTUAL_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_ACTUAL_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_V_ACTUAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_V_ACTUAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_ACT_ACCEL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_ACT_ACCEL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_MSTEP_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_MSTEP_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_SGUARD_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_SGUARD_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CoolStep_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_CoolStep_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_STATUS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_STATUS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_ENABLE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_ENABLE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_DEK_MUX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_DEK_MUX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_DEK_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M1_DEK_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_SPI_WRITE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_SPI_WRITE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_SPI_SYNC">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_SPI_SYNC</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_ACTUAL_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_ACTUAL_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_V_ACTUAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_V_ACTUAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_ACT_ACCEL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_ACT_ACCEL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_MSTEP_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_MSTEP_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_SGUARD_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_SGUARD_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CoolStep_VAL">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_CoolStep_VAL</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_STATUS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_STATUS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_ENABLE">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_ENABLE</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_DEK_MUX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_DEK_MUX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_DEK_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_M2_DEK_POS</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_TX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_I2C_FMC_TX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_RX">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_I2C_FMC_RX</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_ADR">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_I2C_FMC_ADR</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_I2C_FMC_CMD">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_I2C_FMC_CMD</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_PROJ_USER">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CAL_TIME">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CAL_END_SW_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M1_CAL_END_SW_NEG">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CAL_TIME">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CAL_END_SW_POS">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+      <redirectedRegister name="WORD_M2_CAL_END_SW_NEG">
+        <targetDevice>CONTROLLER_TESTS_OLD_MAPFILE_RAW</targetDevice>
+        <targetRegister>MD22_1/WORD_PROJ_USER</targetRegister>
+      </redirectedRegister>
+    </module>
+</logicalNameMap>

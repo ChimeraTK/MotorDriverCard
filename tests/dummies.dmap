@@ -1,5 +1,6 @@
 CONTROLLER_TESTS_NEW_MAPFILE (dfmcmd22dummy:NEW_MAPFILE_INST?map=newer_firmware_mapfile.map&module=MD22_0)
-CONTROLLER_TESTS_OLD_MAPFILE (dfmcmd22dummy:OLD_MAPFILE_INST?map=DFMC_MD22_test.mapp&module=MD22_0)
+CONTROLLER_TESTS_OLD_MAPFILE_RAW (dfmcmd22dummy:OLD_MAPFILE_INST?map=DFMC_MD22_test.mapp&module=MD22_0)
+CONTROLLER_TESTS_OLD_MAPFILE (logicalNameMap?map=backwards_compat.xlmap)
 DFMC_MD22 (dfmcmd22dummy:GENERIC_INST?map=newer_firmware_mapfile.map&module=MD22_0)
 DFMC_MD22_PERSISTENT_BACKEND (dfmcmd22dummy:instance1?map=newer_firmware_mapfile.map&module=MD22_0)
 BROKEN_PLAIN_DUMMY (dummy?map=DFMC_MD22_broken.mapp)
