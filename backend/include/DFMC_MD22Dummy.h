@@ -141,7 +141,7 @@ namespace mtca4u {
     uint32_t readTMC260Register(uint32_t motorID, TMC260Register configuredRegister);
 
     static boost::shared_ptr<ChimeraTK::DeviceBackend> createInstance(
-        std::string host, std::string interface, std::list<std::string> parameters, std::string mapFileName);
+        std::string address, std::map<std::string, std::string> parameters);
 
    private:
     // callback functions
@@ -222,8 +222,9 @@ namespace mtca4u {
 #ifdef _DEBUG
       std::cout << "DFMC_MD22DummyRegisterer" << std::endl;
 #endif
+
       ChimeraTK::BackendFactory::getInstance().registerBackendType(
-          "dfmc_md22dummy", "", &DFMC_MD22Dummy::createInstance, CHIMERATK_DEVICEACCESS_VERSION);
+          "dfmcmd22dummy", &DFMC_MD22Dummy::createInstance, {"map", "module"});
     }
   };
 

@@ -407,30 +407,16 @@ namespace mtca4u {
   }
 
   boost::shared_ptr<ChimeraTK::DeviceBackend> DFMC_MD22Dummy::createInstance(
-      std::string /*host*/, std::string instance, std::list<std::string> parameters, std::string) {
+      std::string address, std::map<std::string, std::string> parameters) {
 #ifdef _DEBUG
     std::cout << "DFMC_MD22Dummy createInstance" << std::endl;
 #endif
-    if(parameters.size() < 1) {
-      throw std::runtime_error("DFMC_MD22Dummy: No mapfile has been specified in "
-                               "the sdm parameter list");
+
+    if(parameters.find("map") == parameters.end()) {
+      throw new ChimeraTK::logic_error("DFMC_MD22Dummy: No mapfile has been specified");
     }
 
-    std::string tmc429ControllerModuleName("");
-    std::string mapFile("");
-    auto it = parameters.begin();
-
-    mapFile = *it;
-    if((it = std::next(it)) != parameters.end()) { // optional parameter
-      tmc429ControllerModuleName = *it;
-    }
-
-    // when the backend factory is used to create the DFMC_MD22Dummy, mapfile path
-    // in the dmap file is relative to the dmap file location. Converting the
-    // relative mapFile path to an absolute path avoids issues when the dmap file
-    // is not in the working directory of the application.
-    return (
-        returnInstance<DFMC_MD22Dummy>(instance, convertPathRelativeToDmapToAbs(mapFile), tmc429ControllerModuleName));
+    return returnInstance<DFMC_MD22Dummy>(address, convertPathRelativeToDmapToAbs(parameters["map"]), parameters["module"]);
   }
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;

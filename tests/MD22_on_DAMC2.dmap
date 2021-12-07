@@ -1,2 +1,2 @@
-DFMC-MD22 /dev/pciedevs4 md22_damc2_r1066.mapp
-DFMC-MD22-DUMMY DFMC_MD22_test.mapp DFMC_MD22_test.mapp
+DFMC-MD22 (pci:pciedevs4?map=md22_damc2_r1066.mapp)
+DFMC-MD22-DUMMY (dfmcmd22dummy?map=DFMC_MD22_test.mapp)
