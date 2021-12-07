@@ -11,7 +11,7 @@ using namespace boost::unit_test_framework;
 #include "StepperMotor.h"
 #include "StepperMotorException.h"
 #include "TMC429Constants.h"
-#include <ChimeraTK/DMapFilesParser.h>
+#include "testConfigConstants.h"
 #include <ChimeraTK/Utilities.h>
 
 #include <boost/thread.hpp>
@@ -20,9 +20,7 @@ using namespace mtca4u;
 
 // static const unsigned int THE_ID = 17;
 
-static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-static const std::string dmapPath(".");
 static const std::string moduleName("");
 static TMC429OutputWord readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md22);
 static StallGuardControlData readDFMCDummyMotor0CurrentScale(boost::shared_ptr<DFMC_MD22Dummy>& dfmc_md2);
@@ -109,24 +107,15 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
 }
 
 StepperMotorTest::StepperMotorTest() : _stepperMotor(), _motorControlerDummy(), _testUnitConveter() {
-  std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
-  std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
-
   _testUnitConveter.reset(new TestUnitConveter);
 
-  //_motorControlerDummy =
-  // boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,
-  // mapFileName, moduleName,
-  // stepperMotorDeviceConfigFile)->getMotorControler(0));
   MotorDriverCardFactory::instance().setDummyMode();
   _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(
       MotorDriverCardFactory::instance()
-          .createMotorDriverCard(deviceFileName, moduleName, stepperMotorDeviceConfigFile)
+          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
           ->getMotorControler(0));
 
-  //_stepperMotor.reset(new StepperMotor(stepperMotorDeviceName, moduleName, 0,
-  // stepperMotorDeviceConfigFile, dmapPath));
-  _stepperMotor.reset(new mtca4u::StepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor.reset(new mtca4u::StepperMotor(DUMMY_DEVICE_FILE_NAME, moduleName, 0, stepperMotorDeviceConfigFile));
 
   //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);

@@ -24,16 +24,14 @@ using namespace boost::unit_test_framework;
 #include "MotorDriverCardFactory.h"
 #include "MotorDriverException.h"
 #include "StepperMotorException.h"
+#include "testConfigConstants.h"
 #include "TMC429Constants.h"
 
-#include <ChimeraTK/DMapFilesParser.h>
 #include <ChimeraTK/Utilities.h>
 
 using namespace ChimeraTK::MotorDriver;
 
-static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-static const std::string dmapPath(".");
 static const std::string moduleName("");
 
 // Position of end switches
@@ -74,12 +72,10 @@ class StepperMotorWithReferenceTestFixture {
 
 StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
 : _stepperMotorParameters(), _stepperMotor(), _motorControlerDummy() {
-  std::string deviceFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
-  std::string mapFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();
   _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(
       mtca4u::MotorDriverCardFactory::instance()
-          .createMotorDriverCard(deviceFileName, moduleName, stepperMotorDeviceConfigFile)
+          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
           ->getMotorControler(0));
 
   // Define dummy end switches and reset the dummy
@@ -88,7 +84,7 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
   _motorControlerDummy->resetInternalStateToDefaults();
 
   // Create the StepperMotor object
-  _stepperMotorParameters.deviceName = stepperMotorDeviceName;
+  _stepperMotorParameters.deviceName = DUMMY_DEVICE_FILE_NAME;
   _stepperMotorParameters.moduleName = moduleName;
   _stepperMotorParameters.configFileName = stepperMotorDeviceConfigFile;
   _stepperMotor = std::make_shared<LinearStepperMotor>(_stepperMotorParameters);

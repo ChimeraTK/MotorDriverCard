@@ -14,4 +14,6 @@ const std::string CONFIG_FILE("VT21-MotorDriverCardConfig.xml");
 
 const std::string BROKEN_DUMMY_DEV_ALIAS("BROKEN_PLAIN_DUMMY");
 
+static const std::string DUMMY_DEVICE_FILE_NAME{"/dummy/MotorDriverCard"};
+
 #endif // MTCA4U_TEST_MD22_CONFIG_CONSTANTS_H

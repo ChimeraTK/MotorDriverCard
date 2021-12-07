@@ -16,9 +16,7 @@ using namespace mtca4u;
 
 // static const unsigned int THE_ID = 17;
 
-static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-static const std::string dmapPath(".");
 static const std::string moduleName("");
 
 class TestUnitConveter : public StepperMotorUnitsConverter {
@@ -83,24 +81,15 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
 }
 
 LinearStepperMotorTest::LinearStepperMotorTest() : _stepperMotor(), _motorControlerDummy(), _testUnitConveter() {
-  // std::string
-  // deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).dev_file);
-  std::string deviceFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
-  std::string mapFileName(DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
-
   _testUnitConveter.reset(new TestUnitConveter);
 
-  //_motorControlerDummy =
-  // boost::dynamic_pointer_cast<MotorControlerDummy>(MotorDriverCardFactory::instance().createMotorDriverCard(deviceFileName,
-  // mapFileName, moduleName,
-  // stepperMotorDeviceConfigFile)->getMotorControler(0));
   MotorDriverCardFactory::instance().setDummyMode();
   _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(
       MotorDriverCardFactory::instance()
-          .createMotorDriverCard(deviceFileName, moduleName, stepperMotorDeviceConfigFile)
+          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
           ->getMotorControler(0));
 
-  _stepperMotor.reset(new LinearStepperMotor(stepperMotorDeviceName, moduleName, 0, stepperMotorDeviceConfigFile));
+  _stepperMotor.reset(new LinearStepperMotor(DUMMY_DEVICE_FILE_NAME, moduleName, 0, stepperMotorDeviceConfigFile));
 
   //!!!! CHANGE THIS FOR LINEAR STEPER MOTOR TESTS
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(true);

@@ -18,12 +18,10 @@ using namespace boost::unit_test_framework;
 #include "StepperMotor.h"
 #include "StepperMotorException.h"
 #include "TMC429Constants.h"
-#include <ChimeraTK/DMapFilesParser.h>
+#include "testConfigConstants.h"
 #include <ChimeraTK/Utilities.h>
 
-static const std::string stepperMotorDeviceName("STEPPER-MOTOR-DUMMY");
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-static const std::string dmapPath(".");
 static const std::string moduleName("");
 // static mtca4u::TMC429OutputWord
 // readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>&
@@ -78,21 +76,19 @@ class StepperMotorChimeraTKFixture {
 // Fixture for common setup
 StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture()
 : _stepperMotor(), _motorControlerDummy(), _testUnitConverter() {
-  std::string deviceFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).deviceName);
-  std::string mapFileName(ChimeraTK::DMapFilesParser(dmapPath).getdMapFileElem(stepperMotorDeviceName).mapFileName);
 
   _testUnitConverter = std::make_unique<TestUnitConverter>();
 
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();
   _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(
       mtca4u::MotorDriverCardFactory::instance()
-          .createMotorDriverCard(deviceFileName, moduleName, stepperMotorDeviceConfigFile)
+          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
           ->getMotorControler(0));
 
   // Omit the optional 5th argument for the units converter here so we get the
   // default 1:1 converter for the encoder readout
   StepperMotorParameters parameters;
-  parameters.deviceName = stepperMotorDeviceName;
+  parameters.deviceName = DUMMY_DEVICE_FILE_NAME;
   parameters.moduleName = moduleName;
   parameters.configFileName = stepperMotorDeviceConfigFile;
   _stepperMotor = std::make_unique<BasicStepperMotor>(parameters);
@@ -152,7 +148,7 @@ BOOST_AUTO_TEST_CASE(testStepperMotorFactory) {
   StepperMotorFactory& inst = StepperMotorFactory::instance();
 
   StepperMotorParameters parametersBasicMotor;
-  parametersBasicMotor.deviceName = stepperMotorDeviceName;
+  parametersBasicMotor.deviceName = DUMMY_DEVICE_FILE_NAME;
   parametersBasicMotor.moduleName = moduleName;
   parametersBasicMotor.configFileName = stepperMotorDeviceConfigFile;
   parametersBasicMotor.motorUnitsConverter = std::move(_testUnitConverter);
@@ -164,7 +160,7 @@ BOOST_AUTO_TEST_CASE(testStepperMotorFactory) {
 
   StepperMotorParameters parametersLinearMotor;
   parametersLinearMotor.motorType = StepperMotorType::LINEAR;
-  parametersLinearMotor.deviceName = stepperMotorDeviceName;
+  parametersLinearMotor.deviceName = DUMMY_DEVICE_FILE_NAME;
   parametersLinearMotor.moduleName = moduleName;
   parametersLinearMotor.driverId = 1U; /* Motor with ID 0 already exists */
   parametersLinearMotor.configFileName = stepperMotorDeviceConfigFile;
@@ -185,7 +181,7 @@ BOOST_AUTO_TEST_CASE(testUnitsConverterInitialization) {
       std::make_unique<utility::ScalingEncoderStepsConverter>(10.);
 
   StepperMotorParameters parameters;
-  parameters.deviceName = stepperMotorDeviceName;
+  parameters.deviceName = DUMMY_DEVICE_FILE_NAME;
   parameters.moduleName = moduleName;
   parameters.driverId = 1U;
   parameters.configFileName = stepperMotorDeviceConfigFile;
