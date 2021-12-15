@@ -4,7 +4,7 @@ project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
 set(${PROJECT_NAME}_MINOR_VERSION 12)
-set(${PROJECT_NAME}_PATCH_VERSION 00)
+set(${PROJECT_NAME}_PATCH_VERSION 01)
 set(${PROJECT_NAME}_VERSION
   ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
 set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
@@ -88,7 +88,7 @@ add_subdirectory(mtca4u_steppermotor)
 
 MACRO( COPY_MAPPING_FILES )
   foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp
-           mtcadummy_DFMC_MD22_mock.map mtcadummy_DFMC_MD22_mock.mapp MD22_on_DAMC2.dmap dummies.dmap newer_firmware_mapfile.map)
+           mtcadummy_DFMC_MD22_mock.map mtcadummy_DFMC_MD22_mock.mapp MD22_on_DAMC2.dmap dummies.dmap newer_firmware_mapfile.map backwards_compat.xlmap)
     FILE(COPY tests/${MAPPING_FILE} DESTINATION ${PROJECT_BINARY_DIR})
   endforeach()
   foreach( HW_CONFIG_FILE VT21-MotorDriverCardConfig.xml md22_damc2_r1066.mapp )
