@@ -87,10 +87,8 @@ namespace mtca4u {
 
   class MotorControlerTest {
    public:
-    MotorControlerTest(boost::shared_ptr<MotorControler> const& motorControler,
-        boost::shared_ptr<ChimeraTK::RegisterInfoMap>& registerMapping,
-        boost::shared_ptr<DFMC_MD22Dummy>
-            dummyDevice);
+    MotorControlerTest(
+        boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
     // getID() is tested in the MotorDriver card, where
     // different ID are known. This test is for just one
     // Motor with one ID, which is now known to be ok.
@@ -142,7 +140,6 @@ namespace mtca4u {
 
    private:
     boost::shared_ptr<MotorControlerImpl> _motorControler;
-    boost::shared_ptr<ChimeraTK::RegisterInfoMap> _registerMapping;
     boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
     template<class T>
@@ -171,15 +168,12 @@ namespace mtca4u {
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
 
    public:
-    MotorControlerTestSuite(std::string const& mapFileName, unsigned int motorId)
+    MotorControlerTestSuite(unsigned int motorId)
     : test_suite(" MotorControler test suite" + std::to_string(motorId)), _motorDriverCard() {
       ChimeraTK::setDMapFilePath("./dummies.dmap");
 
       std::list<std::string> parameters;
       parameters.push_back(MODULE_NAME_0);
-
-      ChimeraTK::MapFileParser fileParser;
-      boost::shared_ptr<ChimeraTK::RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
           ChimeraTK::BackendFactory::getInstance().createBackend("DFMC_MD22"));
@@ -196,7 +190,7 @@ namespace mtca4u {
       dummyDevice->setRegistersForTesting();
 
       boost::shared_ptr<MotorControlerTest> motorControlerTest(
-          new MotorControlerTest(_motorDriverCard->getMotorControler(motorId), registerMapping, dummyDevice));
+          new MotorControlerTest(_motorDriverCard->getMotorControler(motorId), dummyDevice));
 
       ADD_GET_SET_TEST(ActualPosition);
       ADD_GET_SET_TEST(ActualVelocity);
@@ -250,12 +244,9 @@ namespace mtca4u {
     } // constructor
   };  // test suite
 
-  MotorControlerTest::MotorControlerTest(boost::shared_ptr<MotorControler> const& motorControler,
-      boost::shared_ptr<ChimeraTK::RegisterInfoMap>& registerMapping,
-      boost::shared_ptr<DFMC_MD22Dummy>
-          dummyDevice)
-  : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)), _registerMapping(registerMapping),
-    _dummyDevice(dummyDevice) {}
+  MotorControlerTest::MotorControlerTest(
+      boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
+  : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)), _dummyDevice(dummyDevice) {}
 
   DEFINE_SIGNED_GET_SET_TEST(ActualPosition, mtca4u::tmc429::IDX_ACTUAL_POSITION, 24)
   DEFINE_SIGNED_GET_SET_TEST(ActualVelocity, mtca4u::tmc429::IDX_ACTUAL_VELOCITY, 12)
@@ -313,8 +304,7 @@ namespace mtca4u {
 
   unsigned int MotorControlerTest::testWordFromPCIeSuffix(std::string const& registerSuffix) {
     std::string registerName = createMotorRegisterName(_motorControler->getID(), registerSuffix);
-    ChimeraTK::RegisterInfoMap::RegisterInfo registerInfo;
-    _registerMapping->getRegisterInfo(registerName, registerInfo, MODULE_NAME_0);
+    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / registerName);
     return testWordFromPCIeAddress(registerInfo.address);
   }
 
@@ -470,8 +460,7 @@ namespace mtca4u {
   }
 
   void MotorControlerTest::testTargetPositionReached() {
-    ChimeraTK::RegisterInfoMap::RegisterInfo registerInfo;
-    _registerMapping->getRegisterInfo(CONTROLER_STATUS_BITS_ADDRESS_STRING, registerInfo, MODULE_NAME_0);
+    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLER_STATUS_BITS_ADDRESS_STRING);
 
     TMC429StatusWord expectedControlerStatus(testWordFromPCIeAddress(registerInfo.address));
 
@@ -480,8 +469,7 @@ namespace mtca4u {
   }
 
   void MotorControlerTest::testGetReferenceSwitchBit() {
-    ChimeraTK::RegisterInfoMap::RegisterInfo registerInfo;
-    _registerMapping->getRegisterInfo(CONTROLER_STATUS_BITS_ADDRESS_STRING, registerInfo, MODULE_NAME_0);
+    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLER_STATUS_BITS_ADDRESS_STRING);
 
     TMC429StatusWord expectedControlerStatus(testWordFromPCIeAddress(registerInfo.address));
 
@@ -560,8 +548,8 @@ namespace mtca4u {
 test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
   framework::master_test_suite().p_name.value = "MotorControler test suite";
 
-  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(MAP_FILE_NAME, 0));
-  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(MAP_FILE_NAME, 1));
+  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(0));
+  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(1));
 
   return nullptr;
 }

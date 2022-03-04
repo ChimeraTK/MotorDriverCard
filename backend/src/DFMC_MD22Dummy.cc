@@ -14,12 +14,6 @@ using namespace mtca4u::dfmc_md22;
 #include "TMC429Words.h"
 using namespace mtca4u::tmc429;
 
-#define DEFINE_ADDRESS_RANGE(NAME, ADDRESS_STRING, MOD_NAME)                                                           \
-  _registerMapping->getRegisterInfo(ADDRESS_STRING, registerInformation, MOD_NAME);                                    \
-  AddressRange NAME(registerInformation.bar, registerInformation.address, registerInformation.nBytes)
-
-//#define MODULE_NAME_0 "MD220"
-
 namespace mtca4u {
 
   DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const& mapFileName, std::string const& tmc429ControllerModuleName)
@@ -47,12 +41,12 @@ namespace mtca4u {
 
     setControlerSpiRegistersForOperation();
 
-    ChimeraTK::RegisterInfoMap::RegisterInfo registerInformation;
-    DEFINE_ADDRESS_RANGE(controlerSpiWriteAddressRange, CONTROLER_SPI_WRITE_ADDRESS_STRING, _moduleName);
+    auto registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_WRITE_ADDRESS_STRING);
+    AddressRange controlerSpiWriteAddressRange(registerInformation);
     _controlerSpiWriteAddress = registerInformation.address;
     _controlerSpiBar = registerInformation.bar;
 
-    _registerMapping->getRegisterInfo(CONTROLER_SPI_READBACK_ADDRESS_STRING, registerInformation, _moduleName);
+    registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_READBACK_ADDRESS_STRING);
     if(_controlerSpiBar != registerInformation.bar) {
       throw MotorDriverException(
           "SPI write and readback address must be in the same bar", MotorDriverException::SPI_ERROR);
@@ -60,7 +54,7 @@ namespace mtca4u {
     _controlerSpiReadbackAddress = registerInformation.address;
     setReadOnly(registerInformation.bar, registerInformation.address, registerInformation.nElements);
 
-    _registerMapping->getRegisterInfo(CONTROLER_SPI_SYNC_ADDRESS_STRING, registerInformation, _moduleName);
+    registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_SYNC_ADDRESS_STRING);
     if(_controlerSpiBar != registerInformation.bar) {
       throw MotorDriverException("SPI write and sync address must be in the same bar", MotorDriverException::SPI_ERROR);
     }
@@ -71,24 +65,22 @@ namespace mtca4u {
 
     _driverSPIs.resize(N_MOTORS_MAX);
     for(unsigned int id = 0; id < N_MOTORS_MAX; ++id) {
-      DEFINE_ADDRESS_RANGE(
-          actualPositionAddressRange, createMotorRegisterName(id, ACTUAL_POSITION_SUFFIX), _moduleName);
-      setReadOnly(actualPositionAddressRange);
-      DEFINE_ADDRESS_RANGE(
-          actualVelocityAddressRange, createMotorRegisterName(id, ACTUAL_VELOCITY_SUFFIX), _moduleName);
-      setReadOnly(actualVelocityAddressRange);
-      DEFINE_ADDRESS_RANGE(
-          actualAccelerationAddressRange, createMotorRegisterName(id, ACTUAL_ACCELETATION_SUFFIX), _moduleName);
-      setReadOnly(actualAccelerationAddressRange);
-      DEFINE_ADDRESS_RANGE(
-          microStepCountAddressRange, createMotorRegisterName(id, MICRO_STEP_COUNT_SUFFIX), _moduleName);
-      setReadOnly(microStepCountAddressRange);
+      setReadOnly(AddressRange(
+          _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, ACTUAL_POSITION_SUFFIX))));
+      setReadOnly(AddressRange(
+          _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, ACTUAL_VELOCITY_SUFFIX))));
+      setReadOnly(AddressRange(
+          _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, ACTUAL_ACCELETATION_SUFFIX))));
+      setReadOnly(AddressRange(
+          _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, MICRO_STEP_COUNT_SUFFIX))));
 
       _driverSPIs[id].addressSpace.resize(tmc260::SIZE_OF_SPI_ADDRESS_SPACE, 0);
       setDriverSpiRegistersForTesting(id);
 
-      DEFINE_ADDRESS_RANGE(driverSpiWriteAddressRange, createMotorRegisterName(id, SPI_WRITE_SUFFIX), _moduleName);
-      DEFINE_ADDRESS_RANGE(driverSpiSyncAddressRange, createMotorRegisterName(id, SPI_SYNC_SUFFIX), _moduleName);
+      auto driverSpiWriteAddressRange =
+          AddressRange(_registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, SPI_WRITE_SUFFIX)));
+      auto driverSpiSyncAddressRange =
+          AddressRange(_registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, SPI_SYNC_SUFFIX)));
       if(driverSpiWriteAddressRange.bar != driverSpiSyncAddressRange.bar) {
         throw MotorDriverException(
             "SPI write and sync address must be in the same bar", MotorDriverException::SPI_ERROR);
@@ -137,12 +129,10 @@ namespace mtca4u {
   }
 
   void DFMC_MD22Dummy::setConstantPCIeRegister(std::string registerName, int32_t content) {
-    ChimeraTK::RegisterInfoMap::RegisterInfo registerInformation; // variable neede in the DEFINE_ADDRESS_RANGE macro
-    DEFINE_ADDRESS_RANGE(addressRange, registerName, _moduleName);
+    auto addressRange = AddressRange(_registerMap.getBackendRegister(_moduleName / registerName));
     size_t addressIndex = addressRange.offset / sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;
-    // only set the one word we modified as constant. The address range might be
-    // larger
+    // only set the one word we modified as constant. The address range might be larger
     setReadOnly(addressRange.bar, addressRange.offset, 1);
   }
 
@@ -364,8 +354,8 @@ namespace mtca4u {
   void DFMC_MD22Dummy::writeControlerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix) {
     unsigned int controlerSpiAddress = spiAddressFromSmdaIdxJdx(ID, IDX);
     std::string registerName = createMotorRegisterName(ID, suffix);
-    ChimeraTK::RegisterInfoMap::RegisterInfo registerInformation;
-    _registerMapping->getRegisterInfo(registerName, registerInformation, _moduleName);
+
+    auto registerInformation = _registerMap.getBackendRegister(_moduleName / registerName);
     writeRegisterWithoutCallback(
         registerInformation.bar, registerInformation.address, _controlerSpiAddressSpace[controlerSpiAddress]);
   }

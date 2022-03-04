@@ -60,7 +60,6 @@ namespace mtca4u {
    private:
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
     boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-    boost::shared_ptr<RegisterInfoMap> _registerMapping;
     std::string _mapFileName;
     std::string _moduleName;
 
@@ -99,14 +98,12 @@ namespace mtca4u {
   };
 
   MotorDriverCardTest::MotorDriverCardTest(std::string const& mapFileName, std::string const& moduleName)
-  : _motorDriverCard(), _dummyDevice(), _registerMapping(), _mapFileName(mapFileName), _moduleName(moduleName) {}
+  : _motorDriverCard(), _dummyDevice(), _mapFileName(mapFileName), _moduleName(moduleName) {}
 
   void MotorDriverCardTest::testConstructor() {
     _dummyDevice =
         boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
     boost::shared_ptr<Device> device(new Device());
-    MapFileParser fileParser;
-    _registerMapping = fileParser.parse(_mapFileName);
 
     MotorDriverCardConfig motorDriverCardConfig;
     motorDriverCardConfig.coverDatagram = asciiToInt("DTGR");
@@ -255,8 +252,7 @@ namespace mtca4u {
   }
 
   void MotorDriverCardTest::testGetStatusWord() {
-    RegisterInfoMap::RegisterInfo registerInfo;
-    _registerMapping->getRegisterInfo(CONTROLER_STATUS_BITS_ADDRESS_STRING, registerInfo, _moduleName);
+    auto registerInfo = _dummyDevice->getRegisterInfo(_moduleName / CONTROLER_STATUS_BITS_ADDRESS_STRING);
 
     unsigned int expectedContent = testWordFromPCIeAddress(registerInfo.address);
 

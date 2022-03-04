@@ -205,7 +205,7 @@ namespace mtca4u {
     unsigned int _microsecondsControllerSpiDelay;
     unsigned int _microsecondsDriverSpiDelay;
 
-    std::string _moduleName;
+    ChimeraTK::RegisterPath _moduleName;
 
     bool checkStatusOfRWBit(const TMC429InputWord& inputSPMessage, uint32_t bitStatus);
     TMC429OutputWord frameTMC429SPIResponse(TMC429InputWord& inputSpi);

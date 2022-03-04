@@ -17,7 +17,7 @@ using namespace boost::unit_test_framework;
 
 class SPIviaPCIeTest {
  public:
-  SPIviaPCIeTest(std::string const& mapFileName, std::string const& moduleName);
+  SPIviaPCIeTest(std::string const& moduleName);
   //  static void testConstructors();
 
   void testRead();
@@ -27,7 +27,6 @@ class SPIviaPCIeTest {
  private:
   boost::shared_ptr<mtca4u::DFMC_MD22Dummy> _dummyBackend;
   boost::shared_ptr<ChimeraTK::Device> _device;
-  std::string _mapFileName;
 
   boost::shared_ptr<mtca4u::SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
   boost::shared_ptr<mtca4u::SPIviaPCIe> _writeSPIviaPCIe;     // use a motor address which has debug readback in the
@@ -36,11 +35,10 @@ class SPIviaPCIeTest {
 
 class SPIviaPCIeTestSuite : public test_suite {
  public:
-  SPIviaPCIeTestSuite(std::string const& mapFileName, std::string const& moduleName)
-  : test_suite("SPIviaPCIe test suite") {
+  SPIviaPCIeTestSuite(std::string const& moduleName) : test_suite("SPIviaPCIe test suite") {
     ChimeraTK::setDMapFilePath("./dummies.dmap");
     // create an instance of the test class
-    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest(new SPIviaPCIeTest(mapFileName, moduleName));
+    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest(new SPIviaPCIeTest(moduleName));
 
     // add the tests
     //   add( BOOST_CLASS_TEST_CASE( &SPIviaPCIeTest::testConstructors,
@@ -63,11 +61,11 @@ class SPIviaPCIeTestSuite : public test_suite {
 
 test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
   framework::master_test_suite().p_name.value = "SPIviaPCIe test suite";
-  return new SPIviaPCIeTestSuite(MAP_FILE_NAME, MODULE_NAME_0);
+  return new SPIviaPCIeTestSuite(MODULE_NAME_0);
 }
 
-SPIviaPCIeTest::SPIviaPCIeTest(std::string const& mapFileName, std::string const& moduleName)
-: _dummyBackend(), _device(), _mapFileName(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe() {
+SPIviaPCIeTest::SPIviaPCIeTest(std::string const& moduleName)
+: _dummyBackend(), _device(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe() {
   _dummyBackend = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
       ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
@@ -78,9 +76,6 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const& mapFileName, std::string const
 
   //_dummyBackend->open(mapFileName);
   //_dummyBackend->open();
-
-  ChimeraTK::MapFileParser fileParser;
-  boost::shared_ptr<ChimeraTK::RegisterInfoMap> registerMapping = fileParser.parse(mapFileName);
 
   _device->open(DFMC_ALIAS);
 
