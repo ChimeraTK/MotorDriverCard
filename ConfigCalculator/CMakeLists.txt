@@ -3,9 +3,10 @@ project(ConfigCalculator)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src calculator_library_sources)
+file(GLOB calculator_library_includes ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
 #not a shared library, just link it to all the executables statically
-add_library(${PROJECT_NAME} ${calculator_library_sources})
+add_library(${PROJECT_NAME} ${calculator_library_sources} ${calculator_library_includes})
 target_link_libraries(${PROJECT_NAME} mtca4u-MotorDriverCard)
 target_include_directories(${PROJECT_NAME} PUBLIC ${COMMON_INCLUDE_DIRS})
 

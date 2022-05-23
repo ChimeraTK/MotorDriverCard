@@ -32,7 +32,7 @@ namespace mtca4u {
     boost::mutex _factoryMutex;
 
     /// Map of all devices which have ever been requested.
-    std::map<std::pair<std::string, std::string>, boost::shared_ptr<MotorDriverCard>> _motorDriverCards;
+    std::map<std::pair<std::string, std::string>, boost::weak_ptr<MotorDriverCard>> _motorDriverCards;
     bool _dummyMode;
 
    public:

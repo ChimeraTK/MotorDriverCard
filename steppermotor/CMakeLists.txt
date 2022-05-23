@@ -4,6 +4,7 @@ set(HEADERS StepperMotor.h BasicStepperMotor.h LinearStepperMotor.h)
 
 foreach(HEADER ${HEADERS})
   set(CTK_HEADERS ${CTK_HEADERS} include/${HEADER})
+  set(SOURCES ${SOURCES} include/${HEADER})
 endforeach()
 install(DIRECTORY include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 
