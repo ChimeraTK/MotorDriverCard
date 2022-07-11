@@ -69,6 +69,7 @@ class StepperMotorChimeraTKFixture {
 
  protected:
   std::unique_ptr<StepperMotor> _stepperMotor;
+  boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
@@ -80,10 +81,10 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture()
   _testUnitConverter = std::make_unique<TestUnitConverter>();
 
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();
-  _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(
-      mtca4u::MotorDriverCardFactory::instance()
-          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
-          ->getMotorControler(0));
+  _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+      DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
+  _motorControlerDummy =
+      boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
   // Omit the optional 5th argument for the units converter here so we get the
   // default 1:1 converter for the encoder readout
@@ -145,6 +146,7 @@ bool StepperMotorChimeraTKFixture::waitForState(std::string stateName, unsigned 
 BOOST_FIXTURE_TEST_SUITE(StepperMotorChimeraTKTest, StepperMotorChimeraTKFixture)
 
 BOOST_AUTO_TEST_CASE(testStepperMotorFactory) {
+  std::cout << "testStepperMotorFactory" << std::endl;
   StepperMotorFactory& inst = StepperMotorFactory::instance();
 
   StepperMotorParameters parametersBasicMotor;
@@ -173,6 +175,7 @@ BOOST_AUTO_TEST_CASE(testStepperMotorFactory) {
 }
 
 BOOST_AUTO_TEST_CASE(testUnitsConverterInitialization) {
+  std::cout << "testUnitsConverterInitialization" << std::endl;
   // _stepperMotor was constructed with default 1:1 converter
   int steps = 1000;
   BOOST_CHECK_EQUAL(_stepperMotor->recalculateStepsInUnits(steps), steps);
@@ -199,6 +202,7 @@ BOOST_AUTO_TEST_CASE(testUnitsConverterInitialization) {
 }
 
 BOOST_AUTO_TEST_CASE(testSoftLimits) {
+  std::cout << "testSoftLimits" << std::endl;
   _stepperMotor->waitForIdle();
   BOOST_CHECK(_stepperMotor->getSoftwareLimitsEnabled() == false);
 
@@ -217,6 +221,7 @@ BOOST_AUTO_TEST_CASE(testSoftLimits) {
 }
 
 BOOST_AUTO_TEST_CASE(testEnable) {
+  std::cout << "testEnable" << std::endl;
   BOOST_CHECK_EQUAL(_stepperMotor->getState(), "disabled");
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   _stepperMotor->setEnabled(true);
@@ -235,6 +240,7 @@ BOOST_AUTO_TEST_CASE(testEnable) {
 }
 
 BOOST_AUTO_TEST_CASE(testSetActualPosition) {
+  std::cout << "testSetActualPosition" << std::endl;
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK(_stepperMotor->isCalibrated() == false);
   BOOST_CHECK(_stepperMotor->getCalibrationTime() == 0);
@@ -251,6 +257,7 @@ BOOST_AUTO_TEST_CASE(testSetActualPosition) {
 }
 
 BOOST_AUTO_TEST_CASE(testTranslateAxis) {
+  std::cout << "testTranslateAxis" << std::endl;
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->getMaxPositionLimitInSteps(), 1000);
   BOOST_CHECK_EQUAL(_stepperMotor->getMinPositionLimitInSteps(), -1000);
@@ -274,6 +281,7 @@ BOOST_AUTO_TEST_CASE(testTranslateAxis) {
 }
 
 BOOST_AUTO_TEST_CASE(testMove) {
+  std::cout << "testMove" << std::endl;
   _stepperMotor->setSoftwareLimitsEnabled(true);
   _stepperMotor->setActualPosition(0);
   _stepperMotor->setEnabled(true);
@@ -334,6 +342,7 @@ BOOST_AUTO_TEST_CASE(testMove) {
 }
 
 BOOST_AUTO_TEST_CASE(testMoveRelative) {
+  std::cout << "testMoveRelative" << std::endl;
   _stepperMotor->setActualPosition(30);
   _stepperMotor->setEnabled(true);
 
@@ -352,6 +361,7 @@ BOOST_AUTO_TEST_CASE(testMoveRelative) {
 }
 
 BOOST_AUTO_TEST_CASE(testTargetPositionAndStart) {
+  std::cout << "testTargetPositionAndStart" << std::endl;
   _stepperMotor->setActualPosition(0);
 
   // Don't want to dig through relation of positions between test cases
@@ -392,6 +402,7 @@ BOOST_AUTO_TEST_CASE(testTargetPositionAndStart) {
 }
 
 BOOST_AUTO_TEST_CASE(testStop) {
+  std::cout << "testStop" << std::endl;
   _stepperMotor->setActualPosition(0);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
@@ -408,6 +419,7 @@ BOOST_AUTO_TEST_CASE(testStop) {
 }
 
 BOOST_AUTO_TEST_CASE(testEmergencyStop) {
+  std::cout << "testEmergencyStop" << std::endl;
   _stepperMotor->setActualPosition(0);
 
   BOOST_CHECK_NO_THROW(_stepperMotor->setEnabled(true));
@@ -439,6 +451,7 @@ BOOST_AUTO_TEST_CASE(testEmergencyStop) {
 }
 
 BOOST_AUTO_TEST_CASE(testFullStepping) {
+  std::cout << "testFullStepping" << std::endl;
   _stepperMotor->setActualPosition(0);
 
   _motorControlerDummy->resetInternalStateToDefaults();
@@ -528,6 +541,7 @@ BOOST_AUTO_TEST_CASE(testFullStepping) {
 }
 
 BOOST_AUTO_TEST_CASE(testLocking) {
+  std::cout << "testLocking" << std::endl;
   auto currentPosition = _stepperMotor->getCurrentPositionInSteps();
 
   _stepperMotor->setActualPositionInSteps(0);
@@ -546,6 +560,7 @@ BOOST_AUTO_TEST_CASE(testLocking) {
 }
 
 BOOST_AUTO_TEST_CASE(testDisable) {
+  std::cout << "testDisable" << std::endl;
   _motorControlerDummy->resetInternalStateToDefaults();
   //  _motorControlerDummy->setCalibrationTime(32);
   _stepperMotor->setActualPositionInSteps(0);
@@ -572,7 +587,9 @@ BOOST_AUTO_TEST_CASE(testDisable) {
 }
 
 BOOST_AUTO_TEST_CASE(testConverter) {
+  std::cout << "testConverter" << std::endl;
   // Has the default 1:1 converter
+  _stepperMotor->setActualPositionInSteps(68);
   BOOST_CHECK_CLOSE(_stepperMotor->getCurrentPosition(), 68, 1e-3);
   BOOST_CHECK_CLOSE(_stepperMotor->getMinPositionLimit(), -1000, 1e-3);
   BOOST_CHECK_CLOSE(_stepperMotor->getMaxPositionLimit(), 1000, 1e-3);

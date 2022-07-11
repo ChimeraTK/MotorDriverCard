@@ -64,21 +64,21 @@ BOOST_AUTO_TEST_CASE(testCreate) {
   boost::shared_ptr<mtca4u::MotorDriverCard> md22_dummy1 =
       mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
   BOOST_CHECK(motorDriverCard_PCIe1.get() != md22_dummy1.get());
-  // there is one instance here and one in the factory
-  BOOST_CHECK(md22_dummy1.use_count() == 2);
+  // there is one instance here. The factory has a weak reference
+  BOOST_CHECK_EQUAL(md22_dummy1.use_count(), 1);
   boost::shared_ptr<mtca4u::MotorDriverCard> md22_dummy2 =
       mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
 
-  BOOST_CHECK(md22_dummy1.get() == md22_dummy2.get());
-  // there are two instances here, and one in the factory
-  BOOST_CHECK(md22_dummy1.use_count() == 3);
+  BOOST_CHECK_EQUAL(md22_dummy1.get(), md22_dummy2.get());
+  // there are two instances here, a weak one in the factory
+  BOOST_CHECK_EQUAL(md22_dummy1.use_count(), 2);
 
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe2 =
       mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
 
-  BOOST_CHECK(motorDriverCard_PCIe1.get() == motorDriverCard_PCIe2.get());
-  // there are two instances here, and one in the factory
-  BOOST_CHECK(motorDriverCard_PCIe1.use_count() == 3);
+  BOOST_CHECK_EQUAL(motorDriverCard_PCIe1.get(), motorDriverCard_PCIe2.get());
+  // there are two instances here, a weak one in the factory
+  BOOST_CHECK_EQUAL(motorDriverCard_PCIe1.use_count(), 2);
 }
 
 #pragma GCC diagnostic push
