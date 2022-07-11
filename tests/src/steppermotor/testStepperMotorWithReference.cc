@@ -67,16 +67,17 @@ class StepperMotorWithReferenceTestFixture {
  protected:
   StepperMotorParameters _stepperMotorParameters;
   std::shared_ptr<LinearStepperMotor> _stepperMotor;
+  boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
 };
 
 StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
 : _stepperMotorParameters(), _stepperMotor(), _motorControlerDummy() {
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();
-  _motorControlerDummy = boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(
-      mtca4u::MotorDriverCardFactory::instance()
-          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
-          ->getMotorControler(0));
+  _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+      DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
+  _motorControlerDummy =
+      boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
   // Define dummy end switches and reset the dummy
   _motorControlerDummy->setPositiveEndSwitch(POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);

@@ -58,6 +58,7 @@ class StepperMotorTest {
 
  private:
   boost::shared_ptr<mtca4u::StepperMotor> _stepperMotor;
+  boost::shared_ptr<MotorDriverCard> _motorDriverCard;
   boost::shared_ptr<MotorControlerDummy> _motorControlerDummy;
 
   boost::shared_ptr<TestUnitConveter> _testUnitConveter;
@@ -110,10 +111,9 @@ StepperMotorTest::StepperMotorTest() : _stepperMotor(), _motorControlerDummy(), 
   _testUnitConveter.reset(new TestUnitConveter);
 
   MotorDriverCardFactory::instance().setDummyMode();
-  _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(
-      MotorDriverCardFactory::instance()
-          .createMotorDriverCard(DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile)
-          ->getMotorControler(0));
+  _motorDriverCard = MotorDriverCardFactory::instance().createMotorDriverCard(
+      DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
+  _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
   _stepperMotor.reset(new mtca4u::StepperMotor(DUMMY_DEVICE_FILE_NAME, moduleName, 0, stepperMotorDeviceConfigFile));
 
