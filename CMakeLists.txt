@@ -126,7 +126,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+    set_target_properties(${executableName} PROPERTIES LINK_FLAGS "-Wl,-rpath,${PROJECT_BINARY_DIR} ${ChimeraTK-DeviceAccess_LINK_FLAGS}")
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
     target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
@@ -141,7 +141,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+    set_target_properties(${executableName} PROPERTIES LINK_FLAGS "-Wl,-rpath,${PROJECT_BINARY_DIR} ${ChimeraTK-DeviceAccess_LINK_FLAGS}")
     target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
                           ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
