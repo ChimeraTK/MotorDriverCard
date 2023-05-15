@@ -153,23 +153,12 @@ FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY
 include(GNUInstallDirs)
 #Install the library and the executables
 install(TARGETS ${PROJECT_NAME}
+            EXPORT ${PROJECT_NAME}Targets
             RUNTIME DESTINATION bin
 	    LIBRARY DESTINATION lib
 )
 
-#create the config files by filling the correct variables into the template (*.cmake.in)
-#All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
-# Note: Most of them are empty, but have to be set. The library itself does not include
-# ChimeraTK-DeviceAccess in the headers any more, so most of them are not needed at the 
-# moment.
-set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(${PROJECT_NAME}_LIBRARIES "")
-set(${PROJECT_NAME}_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
-#set(${PROJECT_NAME}_CXX_FLAGS "") #have already been set by enable_cxx11_support
-set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags")
-#no matlab bindings foreseen yet
-#set(${PROJECT_NAME}_MEXFLAGS "-I${CMAKE_INSTALL_PREFIX}/include -L${CMAKE_INSTALL_PREFIX}/lib -l${PROJECT_NAME}")
-
+set(PROVIDES_EXPORTED_TARGETS 1)
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
 add_subdirectory(ConfigCalculator) 
