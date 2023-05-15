@@ -15,3 +15,4 @@ endforeach()
 
 add_library(CTK_OBJECTS OBJECT ${SOURCES})
 target_include_directories(CTK_OBJECTS PUBLIC include ${COMMON_INCLUDE_DIRS})
+set_property(TARGET CTK_OBJECTS PROPERTY POSITION_INDEPENDENT_CODE ON)

@@ -12,8 +12,6 @@ include(cmake/set_default_flags.cmake)
 include(cmake/enable_code_coverage_report.cmake)
 
 #Don't ask me why this is explicitly needed. Seems to be our only project where we explicitly have to enable it.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
@@ -49,19 +47,19 @@ ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 #
 # This is mainly done avoid name conflicts between files of the interfaces
 # First, add common sources
+set(COMMON_INCLUDE_DIRS "")
+set(library_includes "")
 set(subdirs util backend)
 foreach(subdir ${subdirs})
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
   file(GLOB subdir_includes ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/*.h)
-  set(library_includes ${library_includes} ${subdir_includes})
-  #set(SOURCE ${SOURCE} ${sources})
-  #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
-  set(COMMON_INCLUDE_DIRS ${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
-  #set(COMMON_INCLUDE_DIRS ${COMMON_INCLUDE_DIRS} ${subdir}/include/)
+  list(APPEND library_includes ${subdir_includes})
+  list(APPEND COMMON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
 endforeach()
 
 add_library(COMMON_OBJECTS OBJECT ${library_sources} ${library_includes})
 target_include_directories(COMMON_OBJECTS PUBLIC ${COMMON_INCLUDE_DIRS})
+set_property(TARGET COMMON_OBJECTS PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard)
 install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
@@ -69,7 +67,6 @@ install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 # Add  targets for mtca4u and ChimeraTK interfaces
 add_subdirectory(steppermotor)
 add_subdirectory(mtca4u_steppermotor)
-
 
 MACRO( COPY_MAPPING_FILES )
   foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp
@@ -109,7 +106,7 @@ if(TESTING_IS_ENABLED)
 
     add_executable(${executableName} ${testSourceFile})
     target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
-    target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
+    target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include)
 
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
@@ -123,7 +120,7 @@ if(TESTING_IS_ENABLED)
     add_executable(${executableName} ${testSourceFile})
     target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
 
-    target_include_directories(${executableName} PUBLIC steppermotor/include ${COMMON_INCLUDE_DIRS})
+    target_include_directories(${executableName} PUBLIC steppermotor/include)
 
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
@@ -136,22 +133,19 @@ if(TESTING_IS_ENABLED)
 endif(TESTING_IS_ENABLED)
 
 # Define the main library
-add_library(${PROJECT_NAME} SHARED
-              $<TARGET_OBJECTS:MTCA4U_OBJECTS>
-              $<TARGET_OBJECTS:CTK_OBJECTS>
-              $<TARGET_OBJECTS:COMMON_OBJECTS>
-              ${pugixml_sources}
-            )
+add_library(${PROJECT_NAME} SHARED ${pugixml_sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system)
-
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system
+                                      PRIVATE MTCA4U_OBJECTS CTK_OBJECTS COMMON_OBJECTS)
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
+                                                   $<INSTALL_INTERFACE:include>)
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${executableName} ${hardwareTestSourceFile})
-  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
+  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include)
   target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system)
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
