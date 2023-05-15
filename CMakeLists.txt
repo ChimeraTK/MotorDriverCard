@@ -1,31 +1,14 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.6)
 
 project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
-set(${PROJECT_NAME}_MINOR_VERSION 12)
-set(${PROJECT_NAME}_PATCH_VERSION 02)
-set(${PROJECT_NAME}_VERSION
-  ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
-set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
+set(${PROJECT_NAME}_MINOR_VERSION 13)
+set(${PROJECT_NAME}_PATCH_VERSION 00)
 
-#This library depends on deviceaccess, which is likely to change often.
-#We add a build version to the version number to be able to install
-#the same software version of the library linked against different versions
-#of deviceacces (or other dependencies)
-#Note: The environment variable must not contain hyphens, so we just use MotorDriverCard
-#We store it in a variable because we need it later
-set(${PROJECT_NAME}_BUILDVERSION_ENVIRONMENT_VARIABLE_NAME "MotorDriverCard_BUILDVERSION")
-set(${PROJECT_NAME}_BUILDVERSION $ENV{PROJECT_BUILDVERSION}$ENV{${${PROJECT_NAME}_BUILDVERSION_ENVIRONMENT_VARIABLE_NAME}})
-if( ${PROJECT_NAME}_BUILDVERSION )
-  set(${PROJECT_NAME}_SOVERSION "${${PROJECT_NAME}_SOVERSION}${${PROJECT_NAME}_BUILDVERSION}")
-endif( ${PROJECT_NAME}_BUILDVERSION )
-message("${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_SOVERSION}")
-#We need the build name to be part of the libraries full version name
-set(${PROJECT_NAME}_FULL_LIBRARY_VERSION ${${PROJECT_NAME}_SOVERSION}.${${PROJECT_NAME}_PATCH_VERSION})
- 
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_build_to_release.cmake)
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_flags.cmake)
+include(cmake/set_version_numbers.cmake)
+include(cmake/set_default_build_to_release.cmake)
+include(cmake/set_default_flags.cmake)
 
 #Don't ask me why this is explicitly needed. Seems to be our only project where we explicitly have to enable it.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
