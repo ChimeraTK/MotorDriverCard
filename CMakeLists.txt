@@ -156,19 +156,12 @@ foreach( hardwareTestSourceFile ${hardwareTestSources})
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
-#change the install prefix to the source directory in case the user has not specified a destination 
-#i. e. CMAKE_INSTALL_PREFIX is not set manually
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory prefix" FORCE)
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-
-
+include(GNUInstallDirs)
 #Install the library and the executables
 install(TARGETS ${PROJECT_NAME}
             RUNTIME DESTINATION bin
 	    LIBRARY DESTINATION lib
 )
-
 
 #create the config files by filling the correct variables into the template (*.cmake.in)
 #All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
