@@ -9,6 +9,7 @@ set(${PROJECT_NAME}_PATCH_VERSION 00)
 include(cmake/set_version_numbers.cmake)
 include(cmake/set_default_build_to_release.cmake)
 include(cmake/set_default_flags.cmake)
+include(cmake/enable_code_coverage_report.cmake)
 
 #Don't ask me why this is explicitly needed. Seems to be our only project where we explicitly have to enable it.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
@@ -132,20 +133,6 @@ if(TESTING_IS_ENABLED)
   COPY_MAPPING_FILES()
   COPY_XML_FILES()
   FILE(COPY tests/compareXmlOutput.sh DESTINATION ${PROJECT_BINARY_DIR})
-
-  #The make coverage command is only available in debug mode
-  IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    #exclude the 'extern' directory, which contains pugixml which we don't want in the coverage report
-    set(EXCLUDE_FROM_COVERAGE "extern")
-    configure_file(cmake/make_coverage.sh.in
-      ${PROJECT_BINARY_DIR}/make_coverage.sh @ONLY)
-    add_custom_target(coverage
-      ./make_coverage.sh
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT "Generating test coverage documentation" VERBATIM
-      )
-  ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-
 endif(TESTING_IS_ENABLED)
 
 # Define the main library
