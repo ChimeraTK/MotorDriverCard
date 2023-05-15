@@ -26,11 +26,9 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src pugixml_sources)
 #turn off all warnings for the pugixml library. It's not our code.
 set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -w)
 
-FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
-
 #For some reason the system library has to be mentioned explicitly to the linker.
 #This is strange because the thead library has it as a dependency.
-FIND_PACKAGE(Boost COMPONENTS thread system unit_test_framework filesystem REQUIRED)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS thread system unit_test_framework filesystem)
 option(BUILD_TESTS "Build test programs" ON)
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   if(BUILD_TESTS)
@@ -100,7 +98,6 @@ ENDMACRO( COPY_XML_FILES )
 #    are placed in their own subfolder and have to be linked against
 #    the specific objects. All other tests can be linked with the mtca4u objects.
 if(TESTING_IS_ENABLED)
-  include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
 
   # mtca4u interface and backend tests
@@ -110,8 +107,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
-                          ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
     target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
 
     add_test(${executableName} ${executableName})
@@ -124,8 +120,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
-                          ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
 
     target_include_directories(${executableName} PUBLIC steppermotor/include ${COMMON_INCLUDE_DIRS})
 
@@ -161,7 +156,7 @@ add_library(${PROJECT_NAME} SHARED
               ${pugixml_sources}
             )
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system)
 
 
 #hardware test are build but not run as automated tests (yet?).
@@ -170,7 +165,7 @@ foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${executableName} ${hardwareTestSourceFile})
   target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
-  target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+  target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system)
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
