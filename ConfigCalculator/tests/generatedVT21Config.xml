@@ -1,19 +1,19 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <MotorDriverCardConfig>
-	<MotorControlerConfig motorID="0">
-		<Register name="dividersAndMicroStepResolutionData" value="0x6B04" />
-		<Register name="driverControlData" value="0x4" />
-		<Register name="maximumAcceleration" value="0x5BA" />
-		<Register name="maximumVelocity" value="0x576" />
-		<Register name="proportionalityFactorData" value="0xAE06" />
-		<Register name="stallGuardControlData" value="0x10003" />
-	</MotorControlerConfig>
-	<MotorControlerConfig motorID="1">
-		<Register name="dividersAndMicroStepResolutionData" value="0x6B04" />
-		<Register name="driverControlData" value="0x4" />
-		<Register name="maximumAcceleration" value="0x5BA" />
-		<Register name="maximumVelocity" value="0x576" />
-		<Register name="proportionalityFactorData" value="0xAE06" />
-		<Register name="stallGuardControlData" value="0x10003" />
-	</MotorControlerConfig>
+  <MotorControlerConfig motorID="0">
+    <Register name="dividersAndMicroStepResolutionData" value="0x6B04"/>
+    <Register name="driverControlData" value="0x4"/>
+    <Register name="maximumAcceleration" value="0x5BA"/>
+    <Register name="maximumVelocity" value="0x576"/>
+    <Register name="proportionalityFactorData" value="0xAE06"/>
+    <Register name="stallGuardControlData" value="0x10003"/>
+  </MotorControlerConfig>
+  <MotorControlerConfig motorID="1">
+    <Register name="dividersAndMicroStepResolutionData" value="0x6B04"/>
+    <Register name="driverControlData" value="0x4"/>
+    <Register name="maximumAcceleration" value="0x5BA"/>
+    <Register name="maximumVelocity" value="0x576"/>
+    <Register name="proportionalityFactorData" value="0xAE06"/>
+    <Register name="stallGuardControlData" value="0x10003"/>
+  </MotorControlerConfig>
 </MotorDriverCardConfig>
