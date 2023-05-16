@@ -10,11 +10,6 @@ include(cmake/set_version_numbers.cmake)
 include(cmake/set_default_build_to_release.cmake)
 include(cmake/set_default_flags.cmake)
 include(cmake/enable_code_coverage_report.cmake)
-
-#Don't ask me why this is explicitly needed. Seems to be our only project where we explicitly have to enable it.
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-
 include(cmake/enable_doxygen_documentation.cmake)
 
 find_package(ChimeraTK-DeviceAccess 02.04 REQUIRED)
