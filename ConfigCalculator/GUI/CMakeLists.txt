@@ -15,10 +15,6 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}  ${PROJECT_NAME}_SOURCES)
 SET(${PROJECT_NAME}_QOBJECT_HEADERS MotorConfigWidget.h QtMotorConfigCalculator.h HexSpinBox.h)
 SET(${PROJECT_NAME}_FORMS MotorConfigWidget.ui)
 
-include_directories(SYSTEM ${Qt5Core_INCLUDE_DIRS})
-include_directories(SYSTEM ${Qt5Gui_INCLUDE_DIRS})
-include_directories(SYSTEM ${Qt5Widgets_INCLUDE_DIRS})
-
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES}
   ${${PROJECT_NAME}_QOBJECT_HEADERS}
   ${${PROJECT_NAME}_HEADERS_MOC}
@@ -26,9 +22,8 @@ ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES}
   ${${PROJECT_NAME}_RESOURCES_RCC})
 # Link the required Qt libraries componentwise
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} mtca4u-MotorDriverCard ConfigCalculator  Qt5::Core  Qt5::Widgets Qt5::Gui)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC ${COMMON_INLCUDE_DIRS}) 
 
 install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
+        LIBRARY DESTINATION lib
 )

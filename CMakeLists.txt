@@ -1,43 +1,18 @@
-cmake_minimum_required(VERSION 2.8.0)
+cmake_minimum_required(VERSION 3.16)
 
 project(mtca4u-MotorDriverCard)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
-set(${PROJECT_NAME}_MINOR_VERSION 12)
-set(${PROJECT_NAME}_PATCH_VERSION 02)
-set(${PROJECT_NAME}_VERSION
-  ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION}.${${PROJECT_NAME}_PATCH_VERSION})
-set(${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}_MINOR_VERSION})
+set(${PROJECT_NAME}_MINOR_VERSION 13)
+set(${PROJECT_NAME}_PATCH_VERSION 00)
 
-#This library depends on deviceaccess, which is likely to change often.
-#We add a build version to the version number to be able to install
-#the same software version of the library linked against different versions
-#of deviceacces (or other dependencies)
-#Note: The environment variable must not contain hyphens, so we just use MotorDriverCard
-#We store it in a variable because we need it later
-set(${PROJECT_NAME}_BUILDVERSION_ENVIRONMENT_VARIABLE_NAME "MotorDriverCard_BUILDVERSION")
-set(${PROJECT_NAME}_BUILDVERSION $ENV{PROJECT_BUILDVERSION}$ENV{${${PROJECT_NAME}_BUILDVERSION_ENVIRONMENT_VARIABLE_NAME}})
-if( ${PROJECT_NAME}_BUILDVERSION )
-  set(${PROJECT_NAME}_SOVERSION "${${PROJECT_NAME}_SOVERSION}${${PROJECT_NAME}_BUILDVERSION}")
-endif( ${PROJECT_NAME}_BUILDVERSION )
-message("${PROJECT_NAME}_SOVERSION ${${PROJECT_NAME}_SOVERSION}")
-#We need the build name to be part of the libraries full version name
-set(${PROJECT_NAME}_FULL_LIBRARY_VERSION ${${PROJECT_NAME}_SOVERSION}.${${PROJECT_NAME}_PATCH_VERSION})
- 
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_build_to_release.cmake)
-INCLUDE(${CMAKE_SOURCE_DIR}/cmake/set_default_flags.cmake)
-
-#Don't ask me why this is explicitly needed. Seems to be our only project where we explicitly have to enable it.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-
+include(cmake/set_version_numbers.cmake)
+include(cmake/set_default_build_to_release.cmake)
+include(cmake/set_default_flags.cmake)
+include(cmake/enable_code_coverage_report.cmake)
 include(cmake/enable_doxygen_documentation.cmake)
 
-FIND_PACKAGE(ChimeraTK-DeviceAccess 02.04 REQUIRED)
-include_directories(SYSTEM ${ChimeraTK-DeviceAccess_INCLUDE_DIRS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-DeviceAccess_CXX_FLAGS}")
+find_package(ChimeraTK-DeviceAccess 02.04 REQUIRED)
 
 #pugixml now comes with the MotorDriverCard source code
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src)
@@ -45,11 +20,9 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src pugixml_sources)
 #turn off all warnings for the pugixml library. It's not our code.
 set_source_files_properties(${CMAKE_SOURCE_DIR}/extern/pugixml1.4/src/pugixml.cpp PROPERTIES COMPILE_FLAGS -w)
 
-FIND_PACKAGE(Boost COMPONENTS thread REQUIRED)
-
 #For some reason the system library has to be mentioned explicitly to the linker.
 #This is strange because the thead library has it as a dependency.
-FIND_PACKAGE(Boost COMPONENTS thread system unit_test_framework filesystem REQUIRED)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS thread system unit_test_framework filesystem)
 option(BUILD_TESTS "Build test programs" ON)
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
   if(BUILD_TESTS)
@@ -69,19 +42,15 @@ ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 #
 # This is mainly done avoid name conflicts between files of the interfaces
 # First, add common sources
+set(COMMON_INCLUDE_DIRS "")
+set(library_includes "")
 set(subdirs util backend)
 foreach(subdir ${subdirs})
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
   file(GLOB subdir_includes ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/*.h)
-  set(library_includes ${library_includes} ${subdir_includes})
-  #set(SOURCE ${SOURCE} ${sources})
-  #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
-  set(COMMON_INCLUDE_DIRS ${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
-  #set(COMMON_INCLUDE_DIRS ${COMMON_INCLUDE_DIRS} ${subdir}/include/)
+  list(APPEND library_includes ${subdir_includes})
+  list(APPEND COMMON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
 endforeach()
-
-add_library(COMMON_OBJECTS OBJECT ${library_sources} ${library_includes})
-target_include_directories(COMMON_OBJECTS PUBLIC ${COMMON_INCLUDE_DIRS})
 
 install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard)
 install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
@@ -89,7 +58,6 @@ install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 # Add  targets for mtca4u and ChimeraTK interfaces
 add_subdirectory(steppermotor)
 add_subdirectory(mtca4u_steppermotor)
-
 
 MACRO( COPY_MAPPING_FILES )
   foreach( MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp
@@ -119,7 +87,6 @@ ENDMACRO( COPY_XML_FILES )
 #    are placed in their own subfolder and have to be linked against
 #    the specific objects. All other tests can be linked with the mtca4u objects.
 if(TESTING_IS_ENABLED)
-  include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
 
   # mtca4u interface and backend tests
@@ -129,10 +96,8 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    set_target_properties(${executableName} PROPERTIES LINK_FLAGS "-Wl,-rpath,${PROJECT_BINARY_DIR} ${ChimeraTK-DeviceAccess_LINK_FLAGS}")
-    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
-                          ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-    target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
+    target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
+    target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include)
 
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
@@ -144,11 +109,9 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    set_target_properties(${executableName} PROPERTIES LINK_FLAGS "-Wl,-rpath,${PROJECT_BINARY_DIR} ${ChimeraTK-DeviceAccess_LINK_FLAGS}")
-    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY}
-                          ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
 
-    target_include_directories(${executableName} PUBLIC steppermotor/include ${COMMON_INCLUDE_DIRS})
+    target_include_directories(${executableName} PUBLIC steppermotor/include)
 
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
@@ -158,71 +121,35 @@ if(TESTING_IS_ENABLED)
   COPY_MAPPING_FILES()
   COPY_XML_FILES()
   FILE(COPY tests/compareXmlOutput.sh DESTINATION ${PROJECT_BINARY_DIR})
-
-  #The make coverage command is only available in debug mode
-  IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    #exclude the 'extern' directory, which contains pugixml which we don't want in the coverage report
-    set(EXCLUDE_FROM_COVERAGE "extern")
-    configure_file(cmake/make_coverage.sh.in
-      ${PROJECT_BINARY_DIR}/make_coverage.sh @ONLY)
-    add_custom_target(coverage
-      ./make_coverage.sh
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT "Generating test coverage documentation" VERBATIM
-      )
-  ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-
 endif(TESTING_IS_ENABLED)
 
 # Define the main library
-add_library(${PROJECT_NAME} SHARED
-              $<TARGET_OBJECTS:MTCA4U_OBJECTS>
-              $<TARGET_OBJECTS:CTK_OBJECTS>
-              $<TARGET_OBJECTS:COMMON_OBJECTS>
-              ${pugixml_sources}
-            )
+add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} ${pugixml_sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} ${ChimeraTK-DeviceAccess_LIBRARIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system
+                                      PRIVATE MTCA4U_OBJECTS_TARGET CTK_OBJECTS_TARGET)
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
+                                                   $<INSTALL_INTERFACE:include>)
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach( hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${executableName} ${hardwareTestSourceFile})
-  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include ${COMMON_INCLUDE_DIRS})
-  set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
-  target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include)
+  target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system)
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
-#change the install prefix to the source directory in case the user has not specified a destination 
-#i. e. CMAKE_INSTALL_PREFIX is not set manually
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  SET(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} CACHE PATH "Install directory prefix" FORCE)
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-
-
+include(GNUInstallDirs)
 #Install the library and the executables
 install(TARGETS ${PROJECT_NAME}
+            EXPORT ${PROJECT_NAME}Targets
             RUNTIME DESTINATION bin
 	    LIBRARY DESTINATION lib
 )
 
-
-#create the config files by filling the correct variables into the template (*.cmake.in)
-#All variables @VARIABLE@ are replaced with the current values, but they have to be set first....
-# Note: Most of them are empty, but have to be set. The library itself does not include
-# ChimeraTK-DeviceAccess in the headers any more, so most of them are not needed at the 
-# moment.
-set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(${PROJECT_NAME}_LIBRARIES "")
-set(${PROJECT_NAME}_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib")
-#set(${PROJECT_NAME}_CXX_FLAGS "") #have already been set by enable_cxx11_support
-set(${PROJECT_NAME}_LINKER_FLAGS "-Wl,-rpath=${CMAKE_INSTALL_PREFIX}/lib,--enable-new-dtags ${ChimeraTK-DeviceAccess_LINKER_FLAGS}")
-#no matlab bindings foreseen yet
-#set(${PROJECT_NAME}_MEXFLAGS "-I${CMAKE_INSTALL_PREFIX}/include -L${CMAKE_INSTALL_PREFIX}/lib -l${PROJECT_NAME}")
-
+set(PROVIDES_EXPORTED_TARGETS 1)
 include(${CMAKE_SOURCE_DIR}/cmake/create_cmake_config_files.cmake)
 
 add_subdirectory(ConfigCalculator) 

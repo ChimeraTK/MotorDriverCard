@@ -12,16 +12,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${COMMON_INCLUDE_DIRS})
 
 
 add_executable(MotorConfigCalculator executables/ConfigCalculatorCLI.cpp)
-target_link_libraries(MotorConfigCalculator ${PROJECT_NAME})
-set_target_properties(MotorConfigCalculator PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+target_link_libraries(MotorConfigCalculator ${PROJECT_NAME} ChimeraTK::ChimeraTK-DeviceAccess)
 install(TARGETS MotorConfigCalculator
         RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 )
 
 add_executable(write_default_config executables/write_default_config.cpp)
-target_link_libraries(write_default_config ${PROJECT_NAME} mtca4u-MotorDriverCard)
-set_target_properties(write_default_config PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
+target_link_libraries(write_default_config PRIVATE ${PROJECT_NAME} mtca4u-MotorDriverCard ChimeraTK::ChimeraTK-DeviceAccess)
 add_custom_target(MotorDriverCardDefaultConfig.xml ALL write_default_config
   DEPENDS write_default_config)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MotorDriverCardDefaultConfig.xml DESTINATION share/doc/mtca4u-MotorDriverCard-${mtca4u-MotorDriverCard_SOVERSION})
@@ -33,9 +31,9 @@ if(TESTING_IS_ENABLED)
     #NAME_WE means the base name without path and (longest) extension
     get_filename_component(executableName ${testSourceFile} NAME_WE)
     add_executable(${executableName} ${testSourceFile})
-    set_target_properties(${executableName} PROPERTIES LINK_FLAGS ${ChimeraTK-DeviceAccess_LINK_FLAGS})
     target_include_directories(${executableName} PUBLIC ${COMMON_INCLUDE_DIRS})
-    target_link_libraries(${executableName} ${PROJECT_NAME} ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEN_LIBRARY})
+    target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} ChimeraTK::ChimeraTK-DeviceAccess
+        Boost::thread Boost::system Boost::filesystem)
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
