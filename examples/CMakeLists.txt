@@ -17,7 +17,7 @@
 # * You can run the examples directly from the build directory.
 #   $ ./basic
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 # Search for the MotorDriverCard library, set the include path and the
 # required compiler flags.
