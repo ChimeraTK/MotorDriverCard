@@ -1,9 +1,14 @@
 #include "MotorDriverCardConfigXML.h"
+#include "ChimeraTK/Exception.h"
 #include "MotorDriverException.h"
 
 #include <charconv>
+#include <iostream>
 
+#include <libxml/parser.h>
 #include <libxml++/libxml++.h>
+
+#include "schema.h"
 
 namespace detail {
   class NodeFiller {
@@ -27,7 +32,7 @@ namespace detail {
     std::string toHexString(unsigned int value);
 
   };
-}
+} // namespace detail
 
 detail::NodeFiller::NodeFiller(xmlpp::Node* node, bool sparse) : _node(node), _writeAlways(!sparse) {}
 
@@ -51,7 +56,7 @@ void detail::NodeFiller::addParameter(
 void detail::NodeFiller::addParameter(
     std::string const& parameterName, int value, int defaultValue, std::string const& tagName) {
   if(_writeAlways || (value != defaultValue)) {
-    auto parameterNode = _node->add_child(tagName);
+    auto *parameterNode = _node->add_child(tagName);
     parameterNode->set_attribute("name", parameterName);
     // register content of signed is always written as decimal
     parameterNode->set_attribute("value", std::to_string(value));
@@ -71,7 +76,7 @@ void detail::NodeFiller::addParameter(
 void detail::NodeFiller::addParameter(
     std::string const& parameterName, bool value, bool defaultValue, std::string const& tagName) {
   if(_writeAlways || (value != defaultValue)) {
-    auto parameterNode = _node->add_child(tagName);
+    auto *parameterNode = _node->add_child(tagName);
     parameterNode->set_attribute("name", parameterName);
     parameterNode->set_attribute("value", (value ? "true" : "false"));
   }
@@ -185,7 +190,7 @@ namespace mtca4u {
     getFromXml("targetVelocity", controlerConfig.targetVelocity, rootNode, xpathHelper + "Register");
     getFromXml("driverSpiWaitingTime", controlerConfig.driverSpiWaitingTime, rootNode, xpathHelper + "Parameter");
 
-    auto xpath{R"(//Register[@name="maximumAccelleration"])"};
+    const auto *xpath{R"(//Register[@name="maximumAccelleration"])"};
     auto nodes = rootNode->find(xpath);
     if (!nodes.empty()) {
       std::stringstream message;
@@ -213,13 +218,31 @@ namespace mtca4u {
 
   MotorDriverCardConfig MotorDriverCardConfigXML::read(std::string fileName) {
     xmlpp::DomParser parser;
+    xmlpp::RelaxNGValidator validator;
+
+    try {
+      validator.parse_memory(RELAXNG_SCHEMA_STRING);
+    }
+    catch(xmlpp::exception& e) {
+      throw ChimeraTK::logic_error("Invalid RNG schema. Must not happen: " + std::string{e.what()});
+    }
 
     try {
       parser.parse_file(fileName);
+
+      if(validator.get_schema() != nullptr) {
+        validator.validate(parser.get_document());
+      }
+    }
+    catch(xmlpp::validity_error& e) {
+      std::stringstream message;
+      message << "Failed to validate XML file, please check your config";
+      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
     }
     catch(xmlpp::exception& e) {
       std::stringstream message;
-      message << "Could not load XML file \"" << fileName << "\"";
+      message << "Could not load XML file \"" << fileName << "\": " << e.what();
+      std::cerr << message.str() << std::endl;
       throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
     }
 
@@ -227,9 +250,6 @@ namespace mtca4u {
     MotorDriverCardConfig cardConfig;
 
     auto* rootNode = parser.get_document()->get_root_node();
-    if(rootNode->get_name() != "MotorDriverCardConfig") {
-      throw MotorDriverException("Invalid root node", MotorDriverException::XML_ERROR);
-    }
 
     getFromXml("coverDatagram", cardConfig.coverDatagram, rootNode);
     getFromXml("coverPositionAndLength", cardConfig.coverPositionAndLength, rootNode);
@@ -244,9 +264,6 @@ namespace mtca4u {
 
     std::string xPath{"//MotorControlerConfig"};
     auto nodes = rootNode->find(xPath);
-    if(nodes.size() > cardConfig.motorControlerConfigurations.size()) {
-      throw MotorDriverException("Too many Motor controller configurations", MotorDriverException::XML_ERROR);
-    }
 
     for(auto node : nodes) {
       auto element = dynamic_cast<const xmlpp::Element*>(node);

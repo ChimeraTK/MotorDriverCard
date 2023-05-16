@@ -122,13 +122,21 @@ if(TESTING_IS_ENABLED)
   FILE(COPY tests/compareXmlOutput.sh DESTINATION ${PROJECT_BINARY_DIR})
 endif(TESTING_IS_ENABLED)
 
+add_custom_command(
+    PRE_BUILD
+    OUTPUT schema.h
+    COMMAND ${CMAKE_SOURCE_DIR}/build-aux/generate-schema ${CMAKE_SOURCE_DIR}/motorcardconfig.rng schema.h
+    DEPENDS motorcardconfig.rng
+)
+
 # Define the main library
-add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes})
+add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} schema.h)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system PkgConfig::LibXML++
                                       PRIVATE MTCA4U_OBJECTS_TARGET CTK_OBJECTS_TARGET)
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
-                                                   $<INSTALL_INTERFACE:include>)
+                                                   $<INSTALL_INTERFACE:include>
+                                           PRIVATE ${PROJECT_BINARY_DIR})
 
 #hardware test are build but not run as automated tests (yet?).
 aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
