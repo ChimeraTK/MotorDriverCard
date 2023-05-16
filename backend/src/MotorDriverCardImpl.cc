@@ -165,7 +165,7 @@ namespace mtca4u {
                    << MINIMAL_FIRMWARE_VERSION << ", maximum allowed version is 0x" << maxFirmwareVersion << std::dec
                    << ".";
       std::cerr << errorMessage.str() << std::endl;
-      throw ChimeraTK::logic_error(errorMessage.str());
+      throw ChimeraTK::runtime_error(errorMessage.str());
     }
   }
 

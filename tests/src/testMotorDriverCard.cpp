@@ -164,11 +164,11 @@ namespace mtca4u {
     // wrong major (too large by 1):
     _dummyDevice->setFirmwareVersion(dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000);
     BOOST_CHECK_THROW(_motorDriverCard.reset(new MotorDriverCardImpl(device, _moduleName, motorDriverCardConfig)),
-        ChimeraTK::logic_error);
+        ChimeraTK::runtime_error);
 
     _dummyDevice->setFirmwareVersion(dfmc_md22::MINIMAL_FIRMWARE_VERSION - 1);
     BOOST_CHECK_THROW(_motorDriverCard.reset(new MotorDriverCardImpl(device, _moduleName, motorDriverCardConfig)),
-        ChimeraTK::logic_error);
+        ChimeraTK::runtime_error);
 
     _dummyDevice->resetFirmwareVersion();
 
