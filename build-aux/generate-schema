@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cat > $2 <<__EOF
+#pragma once
+
+const char RELAXNG_SCHEMA_STRING[] = R"(
+__EOF
+cat $1 >> $2
+echo ')";' >> $2
