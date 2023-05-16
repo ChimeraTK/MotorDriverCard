@@ -1,10 +1,10 @@
 #include "MotorDriverCardDummy.h"
 
-#include <stdexcept>
-
 #include "DFMC_MD22Constants.h"
 #include "MotorControlerDummy.h"
-#include "MotorDriverException.h"
+
+#include <ChimeraTK/Exception.h>
+
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u {
@@ -24,13 +24,12 @@ namespace mtca4u {
     catch(std::out_of_range& e) {
       std::stringstream errorMessage;
       errorMessage << "motorControlerID " << motorControlerID << " is too large. " << e.what();
-      throw MotorDriverException(errorMessage.str(), MotorDriverException::WRONG_MOTOR_ID);
+      throw ChimeraTK::logic_error(errorMessage.str());
     }
   }
 
   PowerMonitor& MotorDriverCardDummy::getPowerMonitor() {
-    throw MotorDriverException(
-        "getPowerMonitor() is not implemented inMotorDriverCardDummy", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("getPowerMonitor() is not implemented inMotorDriverCardDummy");
   }
 
 } // namespace mtca4u

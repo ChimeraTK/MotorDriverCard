@@ -14,9 +14,7 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
 #include "StepperMotor.h"
-#include "StepperMotorException.h"
 #include "TMC429Constants.h"
 #include "testConfigConstants.h"
 #include <ChimeraTK/Utilities.h>
@@ -158,7 +156,7 @@ BOOST_AUTO_TEST_CASE(testStepperMotorFactory) {
   auto _motor = inst.create(parametersBasicMotor);
 
   BOOST_CHECK_EQUAL(_motor->hasHWReferenceSwitches(), false);
-  BOOST_CHECK_THROW(_motor->isNegativeEndSwitchEnabled(), ChimeraTK::StepperMotorException);
+  BOOST_CHECK_THROW(_motor->isNegativeEndSwitchEnabled(), ChimeraTK::logic_error);
 
   StepperMotorParameters parametersLinearMotor;
   parametersLinearMotor.motorType = StepperMotorType::LINEAR;

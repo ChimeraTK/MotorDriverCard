@@ -6,7 +6,6 @@ using namespace boost::unit_test_framework;
 #include "ChimeraTK/BackendFactory.h"
 #include "DFMC_MD22Dummy.h"
 #include "MotorControlerExpert.h"
-#include "MotorDriverException.h"
 #include "impl/MotorDriverCardImpl.h"
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
@@ -165,11 +164,11 @@ namespace mtca4u {
     // wrong major (too large by 1):
     _dummyDevice->setFirmwareVersion(dfmc_md22::MINIMAL_FIRMWARE_VERSION + 0x1000000);
     BOOST_CHECK_THROW(_motorDriverCard.reset(new MotorDriverCardImpl(device, _moduleName, motorDriverCardConfig)),
-        MotorDriverException);
+        ChimeraTK::logic_error);
 
     _dummyDevice->setFirmwareVersion(dfmc_md22::MINIMAL_FIRMWARE_VERSION - 1);
     BOOST_CHECK_THROW(_motorDriverCard.reset(new MotorDriverCardImpl(device, _moduleName, motorDriverCardConfig)),
-        MotorDriverException);
+        ChimeraTK::logic_error);
 
     _dummyDevice->resetFirmwareVersion();
 
@@ -352,7 +351,7 @@ namespace mtca4u {
     for(unsigned int i = 0; i < N_MOTORS_MAX; ++i) {
       BOOST_CHECK(_motorDriverCard->getMotorControler(i)->getID() == i);
     }
-    BOOST_CHECK_THROW(_motorDriverCard->getMotorControler(N_MOTORS_MAX), MotorDriverException);
+    BOOST_CHECK_THROW(_motorDriverCard->getMotorControler(N_MOTORS_MAX), ChimeraTK::logic_error);
   }
 
   unsigned int MotorDriverCardTest::asciiToInt(std::string text) {

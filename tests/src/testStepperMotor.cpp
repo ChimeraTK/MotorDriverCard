@@ -7,9 +7,7 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Dummy.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
 #include "StepperMotor.h"
-#include "StepperMotorException.h"
 #include "TMC429Constants.h"
 #include "testConfigConstants.h"
 #include <ChimeraTK/Utilities.h>
@@ -579,7 +577,7 @@ void StepperMotorTest::testUnitConverter() {
   BOOST_CHECK(_stepperMotor->recalculateStepsToUnits(-105) == -10.5);
 
   _testUnitConveter.reset();
-  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter), StepperMotorException);
+  BOOST_CHECK_THROW(_stepperMotor->setStepperMotorUnitsConverter(_testUnitConveter), ChimeraTK::logic_error);
 
   _stepperMotor->setStepperMotorUnitsConverterToDefault();
 

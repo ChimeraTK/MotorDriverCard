@@ -1,5 +1,6 @@
 #include "MultiVariableWord.h"
-#include "MotorDriverException.h"
+
+#include "ChimeraTK/Exception.h"
 
 #include <sstream>
 
@@ -26,7 +27,7 @@ namespace mtca4u {
       std::stringstream message;
       message << "Sub word is too large. Input mask is 0x" << std::hex << inputMask << ", sub word is 0x" << subWord
               << "=" << std::dec << subWord;
-      throw MotorDriverException(message.str(), MotorDriverException::OUT_OF_RANGE);
+      throw ChimeraTK::logic_error(message.str());
     }
     _dataWord = (_dataWord & ~(inputMask << offset)) | ((subWord & inputMask) << offset);
   }

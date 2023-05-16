@@ -9,7 +9,6 @@ using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
 #include "DFMC_MD22Dummy.h"
-#include "MotorDriverException.h"
 #include "TMC429Constants.h"
 #include "TMC429Words.h"
 #include "impl/TMC429SPI.h"

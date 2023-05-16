@@ -3,7 +3,8 @@ using namespace boost::unit_test_framework;
 
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardDummy.h"
-#include "MotorDriverException.h"
+
+#include <ChimeraTK/Exception.h>
 
 namespace mtca4u {
 
@@ -42,11 +43,11 @@ namespace mtca4u {
     // this will cause an exception if the cast failed
     BOOST_CHECK(controler1->getID() == 1);
 
-    BOOST_CHECK_THROW(_motorDriverCardDummy.getMotorControler(2), MotorDriverException);
+    BOOST_CHECK_THROW(_motorDriverCardDummy.getMotorControler(2), ChimeraTK::logic_error);
   }
 
   void MotorDriverCardDummyTest::testGetPowerMonitor() {
-    BOOST_CHECK_THROW(_motorDriverCardDummy.getPowerMonitor(), MotorDriverException);
+    BOOST_CHECK_THROW(_motorDriverCardDummy.getPowerMonitor(), ChimeraTK::logic_error);
   }
 
 } // namespace mtca4u

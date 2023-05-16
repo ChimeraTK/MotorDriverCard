@@ -3,8 +3,9 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include "MotorDriverException.h"
 #include "MultiVariableWord.h"
+
+#include <ChimeraTK/Exception.h>
 
 using namespace mtca4u;
 
@@ -257,7 +258,7 @@ void MultiVariableWordTest<T>::testGetSetDataWord() {
 
 template<>
 void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testSetSubWord() {
-  BOOST_CHECK_THROW(_testWord.setSecond(0x40), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_testWord.setSecond(0x40), ChimeraTK::logic_error);
   BOOST_CHECK_NO_THROW(_testWord.setSecond(0x3F));
   testSetSubWordWithPattern(0x00000000, 0, 0x15, 0x7, 0x1C540000);
   testSetSubWordWithPattern(0xFFFFFFFF, 0x3FFF, 0x2A, 0, 0xE3ABFFFF);
@@ -267,7 +268,7 @@ void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testSetSubWord() {
 
 template<>
 void MultiVariableWordTest<ThreeVariablesContiguousEdgesWord>::testSetSubWord() {
-  BOOST_CHECK_THROW(_testWord.setSecond(0x10), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_testWord.setSecond(0x10), ChimeraTK::logic_error);
   BOOST_CHECK_NO_THROW(_testWord.setSecond(0xF));
   testSetSubWordWithPattern(0x00000000, 0, 0x5, 0x1FFF, 0xFFFA8000);
   testSetSubWordWithPattern(0xFFFFFFFF, 0x7FFF, 0xA, 0, 0x00057FFF);
@@ -277,7 +278,7 @@ void MultiVariableWordTest<ThreeVariablesContiguousEdgesWord>::testSetSubWord() 
 
 template<>
 void MultiVariableWordTest<SingleBitNotConnectedWord>::testSetSubWord() {
-  BOOST_CHECK_THROW(_testWord.setSecond(0x2), mtca4u::MotorDriverException);
+  BOOST_CHECK_THROW(_testWord.setSecond(0x2), ChimeraTK::logic_error);
   BOOST_CHECK_NO_THROW(_testWord.setSecond(0x1));
   testSetSubWordWithPattern(0x00000000, 0, 0x1, 0x1, 0x80008000);
   testSetSubWordWithPattern(0xFFFFFFFF, 0x1, 0x0, 0x0, 0x7FFF7FFF);

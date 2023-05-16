@@ -22,8 +22,6 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
-#include "StepperMotorException.h"
 #include "testConfigConstants.h"
 #include "TMC429Constants.h"
 

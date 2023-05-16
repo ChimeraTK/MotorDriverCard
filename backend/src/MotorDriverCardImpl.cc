@@ -4,7 +4,6 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "MotorDriverException.h"
 #include "impl/MotorControlerImpl.h"
 #include "impl/MotorDriverCardImpl.h"
 using namespace mtca4u::tmc429;
@@ -61,7 +60,7 @@ namespace mtca4u {
     catch(std::out_of_range& e) {
       std::stringstream errorMessage;
       errorMessage << "motorControlerID " << motorControlerID << " is too large. " << e.what();
-      throw MotorDriverException(errorMessage.str(), MotorDriverException::WRONG_MOTOR_ID);
+      throw ChimeraTK::logic_error(errorMessage.str());
     }
   }
 
@@ -166,7 +165,7 @@ namespace mtca4u {
                    << MINIMAL_FIRMWARE_VERSION << ", maximum allowed version is 0x" << maxFirmwareVersion << std::dec
                    << ".";
       std::cerr << errorMessage.str() << std::endl;
-      throw MotorDriverException(errorMessage.str(), MotorDriverException::WRONG_FIRMWARE_VERSION);
+      throw ChimeraTK::logic_error(errorMessage.str());
     }
   }
 

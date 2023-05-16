@@ -6,7 +6,6 @@ using namespace boost::unit_test_framework;
 #include "ChimeraTK/BackendFactory.h"
 #include "DFMC_MD22Constants.h"
 #include "DFMC_MD22Dummy.h"
-#include "MotorDriverException.h"
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 #include "impl/SPIviaPCIe.h"
@@ -117,17 +116,7 @@ void SPIviaPCIeTest::testRead() {
 
   // test the error cases. More than 2 timeouts cause an error
   _dummyBackend->causeSpiTimeouts(true, 3);
-  try {
-    _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
-    BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
-  }
-  catch(mtca4u::MotorDriverException& e) {
-    if(e.getID() != mtca4u::MotorDriverException::SPI_TIMEOUT) {
-      BOOST_ERROR(std::string("SPIviaPCIe::read did not throw the right "
-                              "exception ID. Error message: ") +
-          e.what());
-    }
-  }
+  BOOST_CHECK_THROW(_readWriteSPIviaPCIe->read(coverDatagram.getDataWord()), ChimeraTK::runtime_error);
   // up to two timeouts are caught by the backend via retry
   _dummyBackend->causeSpiTimeouts(true, 2);
   BOOST_CHECK_NO_THROW(_readWriteSPIviaPCIe->read(coverDatagram.getDataWord()));
@@ -135,17 +124,8 @@ void SPIviaPCIeTest::testRead() {
   _dummyBackend->causeSpiTimeouts(false);
 
   _dummyBackend->causeSpiErrors(true);
-  try {
-    _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
-    BOOST_ERROR("SPIviaPCIe::read did not throw as expected.");
-  }
-  catch(mtca4u::MotorDriverException& e) {
-    if(e.getID() != mtca4u::MotorDriverException::SPI_ERROR) {
-      BOOST_ERROR(std::string("SPIviaPCIe::read did not throw the right "
-                              "exception ID. Error message: ") +
-          e.what());
-    }
-  }
+
+  BOOST_CHECK_THROW(_readWriteSPIviaPCIe->read(coverDatagram.getDataWord()), ChimeraTK::runtime_error);
   _dummyBackend->causeSpiErrors(false);
 }
 
@@ -167,33 +147,13 @@ void SPIviaPCIeTest::testWrite() {
     // test the error cases
     _dummyBackend->causeSpiTimeouts(true);
     chopperControlData.setPayloadData(chopperControlData.getPayloadData() + 1);
-    try {
-      _writeSPIviaPCIe->write(chopperControlData.getDataWord());
-      BOOST_ERROR("SPIviaPCIe::write did not throw as expected.");
-    }
-    catch(mtca4u::MotorDriverException& e) {
-      if(e.getID() != mtca4u::MotorDriverException::SPI_TIMEOUT) {
-        BOOST_ERROR(std::string("SPIviaPCIe::write did not throw the right "
-                                "exception ID. Error message: ") +
-            e.what());
-      }
-    }
+    BOOST_CHECK_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()), ChimeraTK::runtime_error);
     BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
         chopperControlData.getPayloadData() - 1);
     _dummyBackend->causeSpiTimeouts(false);
 
     _dummyBackend->causeSpiErrors(true);
-    try {
-      _writeSPIviaPCIe->write(chopperControlData.getDataWord());
-      BOOST_ERROR("SPIviaPCIe::write did not throw as expected.");
-    }
-    catch(mtca4u::MotorDriverException& e) {
-      if(e.getID() != mtca4u::MotorDriverException::SPI_ERROR) {
-        BOOST_ERROR(std::string("SPIviaPCIe::write did not throw the right "
-                                "exception ID. Error message: ") +
-            e.what());
-      }
-    }
+    BOOST_CHECK_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()), ChimeraTK::runtime_error);
     BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
         chopperControlData.getPayloadData() - 1);
     _dummyBackend->causeSpiErrors(false);

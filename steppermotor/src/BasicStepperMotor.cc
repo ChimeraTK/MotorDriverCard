@@ -1,15 +1,14 @@
 #include "BasicStepperMotor.h"
 
+#include "MotorControler.h"
+#include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
-#include "StepperMotorException.h"
+
+#include <ChimeraTK/Exception.h>
+
 #include <chrono>
 #include <cmath>
 #include <future>
-
-#include "MotorControler.h"
-#include "MotorDriverCard.h"
-#include "MotorDriverCardConfigXML.h"
-#include "MotorDriverException.h"
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 
@@ -388,7 +387,9 @@ namespace ChimeraTK { namespace MotorDriver {
     return _errorMode.load();
   }
 
-  bool BasicStepperMotor::isCalibrated() { return _calibrationMode.load() != CalibrationMode::NONE; }
+  bool BasicStepperMotor::isCalibrated() {
+    return _calibrationMode.load() != CalibrationMode::NONE;
+  }
 
   uint32_t BasicStepperMotor::getCalibrationTime() {
     LockGuard guard(_mutex);
@@ -430,19 +431,7 @@ namespace ChimeraTK { namespace MotorDriver {
   double BasicStepperMotor::getSafeCurrentLimit() {
     LockGuard guard(_mutex);
 
-    double currentLimit = 0.;
-    /*
-     * While the MotorControlerDummy does not implement
-     * the function, the exception is remapped to not
-     * expose the mtca4u namespace in the interface
-     */
-    try {
-      currentLimit = _motorControler->getMaxCurrentLimit();
-    }
-    catch(mtca4u::MotorDriverException& e) {
-      throw StepperMotorException(e.what(), StepperMotorException::FEATURE_NOT_AVAILABLE);
-    }
-    return currentLimit;
+    return _motorControler->getMaxCurrentLimit();
   }
 
   ExitStatus BasicStepperMotor::setUserCurrentLimit(double currentInAmps) {
@@ -511,70 +500,64 @@ namespace ChimeraTK { namespace MotorDriver {
     }
   }
 
-  bool BasicStepperMotor::hasHWReferenceSwitches() { return false; }
+  bool BasicStepperMotor::hasHWReferenceSwitches() {
+    return false;
+  }
 
   ExitStatus BasicStepperMotor::calibrate() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   ExitStatus BasicStepperMotor::determineTolerance() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   float BasicStepperMotor::getPositiveEndReference() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   int BasicStepperMotor::getPositiveEndReferenceInSteps() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   float BasicStepperMotor::getNegativeEndReference() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   int BasicStepperMotor::getNegativeEndReferenceInSteps() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   float BasicStepperMotor::getTolerancePositiveEndSwitch() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   float BasicStepperMotor::getToleranceNegativeEndSwitch() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   bool BasicStepperMotor::isPositiveReferenceActive() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   bool BasicStepperMotor::isNegativeReferenceActive() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   bool BasicStepperMotor::isPositiveEndSwitchEnabled() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
   bool BasicStepperMotor::isNegativeEndSwitchEnabled() {
-    throw StepperMotorException(
-        "This routine is not available for the BasicStepperMotor", StepperMotorException::FEATURE_NOT_AVAILABLE);
+    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
-  CalibrationMode BasicStepperMotor::getCalibrationMode() { return _calibrationMode.load(); }
+  CalibrationMode BasicStepperMotor::getCalibrationMode() {
+    return _calibrationMode.load();
+  }
 
-  unsigned int BasicStepperMotor::getEncoderReadoutMode() { return _motorControler->getDecoderReadoutMode(); }
+  unsigned int BasicStepperMotor::getEncoderReadoutMode() {
+    return _motorControler->getDecoderReadoutMode();
+  }
 
 }} // namespace ChimeraTK::MotorDriver

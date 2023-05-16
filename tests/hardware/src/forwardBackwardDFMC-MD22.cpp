@@ -4,7 +4,7 @@
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardExpert.h"
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
+
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/DMapFileParser.h>
 #include <ChimeraTK/Device.h>
@@ -158,8 +158,11 @@ int main(int argc, char* argv[]) {
           CHECK_EXIT_ON_SIGNAL
         }
       }
-      catch(mtca4u::MotorDriverException& e) {
-        std::cout << "Problem reading target position" << std::endl;
+      catch(ChimeraTK::logic_error& e) {
+        std::cout << "Problem reading target position: " << e.what() << std::endl;
+      }
+      catch(ChimeraTK::runtime_error& e) {
+        std::cout << "Problem reading target position: " << e.what() << std::endl;
       }
       std::cout << std::endl;
 
@@ -181,8 +184,11 @@ int main(int argc, char* argv[]) {
           CHECK_EXIT_ON_SIGNAL
         }
       }
-      catch(mtca4u::MotorDriverException& e) {
-        std::cout << "Problem reading target position" << std::endl;
+      catch(ChimeraTK::logic_error& e) {
+        std::cout << "Problem reading target position: " << e.what() << std::endl;
+      }
+      catch(ChimeraTK::runtime_error& e) {
+        std::cout << "Problem reading target position: " << e.what() << std::endl;
       }
       std::cout << std::endl;
 
