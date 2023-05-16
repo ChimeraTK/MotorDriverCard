@@ -52,10 +52,6 @@ foreach(subdir ${subdirs})
   list(APPEND COMMON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
 endforeach()
 
-add_library(COMMON_OBJECTS OBJECT ${library_sources} ${library_includes})
-target_include_directories(COMMON_OBJECTS PUBLIC ${COMMON_INCLUDE_DIRS})
-set_property(TARGET COMMON_OBJECTS PROPERTY POSITION_INDEPENDENT_CODE ON)
-
 install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard)
 install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 
@@ -128,10 +124,10 @@ if(TESTING_IS_ENABLED)
 endif(TESTING_IS_ENABLED)
 
 # Define the main library
-add_library(${PROJECT_NAME} SHARED ${pugixml_sources})
+add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} ${pugixml_sources})
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system
-                                      PRIVATE MTCA4U_OBJECTS CTK_OBJECTS COMMON_OBJECTS)
+                                      PRIVATE MTCA4U_OBJECTS CTK_OBJECTS)
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
                                                    $<INSTALL_INTERFACE:include>)
 
