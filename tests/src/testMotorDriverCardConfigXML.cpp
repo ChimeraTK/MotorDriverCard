@@ -254,8 +254,7 @@ void MotorDriverCardConfigXMLTest::testOldInvalidRegister(std::string const& reg
     MotorDriverCardConfigXML::read(fileName);
   }
   catch(MotorDriverException& e) {
-    std::string expectedMessage("Found old, invalid Register name ");
-    expectedMessage += registerName + ". Please update your config file!";
-    BOOST_CHECK(expectedMessage.compare(e.what()) == 0);
+    std::string expectedMessage{"Failed to validate XML file, please check your config"};
+    BOOST_TEST(expectedMessage == e.what());
   }
 }

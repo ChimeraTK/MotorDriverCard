@@ -1,7 +1,206 @@
 #include "MotorDriverCardConfigXML.h"
+#include "ChimeraTK/Exception.h"
 #include "MotorDriverException.h"
 
-#include <pugixml.hpp>
+#include <charconv>
+#include <iostream>
+
+#include <libxml/parser.h>
+#include <libxml++/libxml++.h>
+
+#include "schema.h"
+
+namespace detail {
+  class NodeFiller {
+   public:
+    NodeFiller(xmlpp::Node* node, bool sparse);
+    void addParameter(std::string const& parameterName, unsigned int value, unsigned int defaultValue,
+        std::string const& tagName = "Register");
+    void addParameter(
+        std::string const& parameterName, int value, int defaultValue, std::string const& tagName = "Register");
+    void addParameter(std::string const& registerName, mtca4u::TMC429InputWord const& value,
+        mtca4u::TMC429InputWord const& defaultValue);
+    void addParameter(
+        std::string const& registerName, mtca4u::TMC260Word const& value, mtca4u::TMC260Word const& defaultValue);
+    void addParameter(
+        std::string const& parameterName, bool value, bool defaultValue, std::string const& tagName = "Register");
+
+   private:
+    xmlpp::Node* _node;
+    bool _writeAlways;
+
+    std::string toHexString(unsigned int value);
+
+  };
+} // namespace detail
+
+detail::NodeFiller::NodeFiller(xmlpp::Node* node, bool sparse) : _node(node), _writeAlways(!sparse) {}
+
+void detail::NodeFiller::addParameter(
+    std::string const& parameterName, unsigned int value, unsigned int defaultValue, std::string const& tagName) {
+  if(_writeAlways || (value != defaultValue)) {
+    auto parameterNode = _node->add_child(tagName);
+    parameterNode->set_attribute("name", parameterName);
+
+    std::string valueString;
+    if(tagName == "Register") {
+      valueString = toHexString(value);
+    }
+    else {
+      valueString = std::to_string(value);
+    }
+    parameterNode->set_attribute("value", valueString);
+  }
+}
+
+void detail::NodeFiller::addParameter(
+    std::string const& parameterName, int value, int defaultValue, std::string const& tagName) {
+  if(_writeAlways || (value != defaultValue)) {
+    auto *parameterNode = _node->add_child(tagName);
+    parameterNode->set_attribute("name", parameterName);
+    // register content of signed is always written as decimal
+    parameterNode->set_attribute("value", std::to_string(value));
+  }
+}
+
+void detail::NodeFiller::addParameter(
+    std::string const& registerName, mtca4u::TMC429InputWord const& value, mtca4u::TMC429InputWord const& defaultValue) {
+  addParameter(registerName, value.getDATA(), defaultValue.getDATA());
+}
+
+void detail::NodeFiller::addParameter(
+    std::string const& registerName, mtca4u::TMC260Word const& value, mtca4u::TMC260Word const& defaultValue) {
+  addParameter(registerName, value.getPayloadData(), defaultValue.getPayloadData());
+}
+
+void detail::NodeFiller::addParameter(
+    std::string const& parameterName, bool value, bool defaultValue, std::string const& tagName) {
+  if(_writeAlways || (value != defaultValue)) {
+    auto *parameterNode = _node->add_child(tagName);
+    parameterNode->set_attribute("name", parameterName);
+    parameterNode->set_attribute("value", (value ? "true" : "false"));
+  }
+}
+
+std::string detail::NodeFiller::toHexString(unsigned int value) {
+  std::stringstream s;
+  s << "0x" << std::uppercase << std::hex << value;
+  return s.str();
+}
+
+namespace mtca4u {
+
+  template<typename T>
+  static void getFromXml(
+      const std::string& parameterName, T& value, const xmlpp::Node* parent, const std::string& tagName = "Register") {
+    std::string stringValue{};
+    getFromXml(parameterName, stringValue, parent, tagName);
+    if(stringValue.empty()) {
+      return;
+    }
+
+    auto base = 10;
+    if(stringValue.find("0x") == 0 || stringValue.find("0X") == 0) {
+      base = 16;
+      if(stringValue.size() == 2) {
+        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+      }
+    }
+
+    if constexpr(std::is_base_of_v<TMC260Word, T>) {
+      unsigned int val{};
+
+      auto [_, ec] = std::from_chars(
+          stringValue.data() + (base == 16 ? 2 : 0), stringValue.data() + stringValue.size(), val, base);
+      if(ec != std::errc() || strlen(_) != 0) {
+        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+      }
+      value.setPayloadData(val);
+
+      return;
+    }
+    else if constexpr(std::is_base_of_v<TMC429InputWord, T>) {
+      unsigned int val{};
+
+      auto [_, ec] = std::from_chars(
+          stringValue.data() + (base == 16 ? 2 : 0), stringValue.data() + stringValue.size(), val, base);
+      if(ec != std::errc() || strlen(_) != 0) {
+        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+      }
+      value.setDATA(val);
+
+      return;
+    }
+    else if constexpr(std::is_same_v<T, bool>) {
+      std::transform(stringValue.begin(), stringValue.end(), stringValue.begin(), ::tolower);
+      std::istringstream is(stringValue);
+      is >> std::boolalpha >> value;
+    }
+    else {
+      auto [_, ec] = std::from_chars(
+          stringValue.data() + (base == 16 ? 2 : 0), stringValue.data() + stringValue.size(), value, base);
+      if(ec != std::errc()) {
+        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+      }
+    }
+  }
+
+  template<>
+  void getFromXml(
+      const std::string& parameterName, std::string& value, const xmlpp::Node* parent, const std::string& tagName) {
+    std::string xPath{"//" + tagName + "[@name=\"" + parameterName + "\"]"};
+    auto nodes = parent->find(xPath);
+    if(nodes.empty()) {
+      return;
+    }
+
+    if(nodes.size() != 1) {
+      return;
+    }
+
+    for(const auto* node : nodes) {
+      const auto* element = dynamic_cast<const xmlpp::Element*>(node);
+      value = element->get_attribute_value("value");
+    }
+  }
+
+  MotorControlerConfig controllerConfigFromXml(const xmlpp::Node* rootNode, const std::string& controllerId) {
+    MotorControlerConfig controlerConfig;
+    auto xpathHelper = "MotorControlerConfig[@motorID=" + controllerId + "]/";
+
+    getFromXml(
+        "accelerationThresholdData", controlerConfig.accelerationThresholdData, rootNode, xpathHelper + "Register");
+    getFromXml("chopperControlData", controlerConfig.chopperControlData, rootNode, xpathHelper + "Register");
+    getFromXml("coolStepControlData", controlerConfig.coolStepControlData, rootNode, xpathHelper + "Register");
+    getFromXml("decoderReadoutMode", controlerConfig.decoderReadoutMode, rootNode, xpathHelper + "Register");
+    getFromXml("dividersAndMicroStepResolutionData", controlerConfig.dividersAndMicroStepResolutionData, rootNode, xpathHelper + "Register");
+    getFromXml("driverConfigData", controlerConfig.driverConfigData, rootNode, xpathHelper + "Register");
+    getFromXml("driverControlData", controlerConfig.driverControlData, rootNode, xpathHelper + "Register");
+    getFromXml("enabled", controlerConfig.enabled, rootNode, xpathHelper + "Register");
+    getFromXml("interruptData", controlerConfig.interruptData, rootNode, xpathHelper + "Register");
+    getFromXml("maximumAcceleration", controlerConfig.maximumAcceleration, rootNode, xpathHelper + "Register");
+    getFromXml("maximumVelocity", controlerConfig.maximumVelocity, rootNode, xpathHelper + "Register");
+    getFromXml("microStepCount", controlerConfig.microStepCount, rootNode, xpathHelper + "Register");
+    getFromXml("minimumVelocity", controlerConfig.minimumVelocity, rootNode, xpathHelper + "Register");
+    getFromXml("positionTolerance", controlerConfig.positionTolerance, rootNode, xpathHelper + "Register");
+    getFromXml("proportionalityFactorData", controlerConfig.proportionalityFactorData, rootNode, xpathHelper + "Register");
+    getFromXml("referenceConfigAndRampModeData", controlerConfig.referenceConfigAndRampModeData, rootNode, xpathHelper + "Register");
+    getFromXml("stallGuardControlData", controlerConfig.stallGuardControlData, rootNode, xpathHelper + "Register");
+    getFromXml("targetPosition", controlerConfig.targetPosition, rootNode, xpathHelper + "Register");
+    getFromXml("targetVelocity", controlerConfig.targetVelocity, rootNode, xpathHelper + "Register");
+    getFromXml("driverSpiWaitingTime", controlerConfig.driverSpiWaitingTime, rootNode, xpathHelper + "Parameter");
+
+    const auto *xpath{R"(//Register[@name="maximumAccelleration"])"};
+    auto nodes = rootNode->find(xpath);
+    if (!nodes.empty()) {
+      std::stringstream message;
+      message << "Found old, invalid Register name maximumAccelleration. Please update your config file!";
+      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
+    }
+    return controlerConfig;
+  }
+}
+
 
 #define CARD_CONFIG_ADD_REGISTER(VALUE)                                                                                \
   cardConfigFiller.addParameter(#VALUE, motorDriverCardConfig.VALUE, defaultCardConfig.VALUE)
@@ -18,112 +217,71 @@
 namespace mtca4u {
 
   MotorDriverCardConfig MotorDriverCardConfigXML::read(std::string fileName) {
-    pugi::xml_document doc;
-    if(!doc.load_file(fileName.c_str())) {
+    xmlpp::DomParser parser;
+    xmlpp::RelaxNGValidator validator;
+
+    try {
+      validator.parse_memory(RELAXNG_SCHEMA_STRING);
+    }
+    catch(xmlpp::exception& e) {
+      throw ChimeraTK::logic_error("Invalid RNG schema. Must not happen: " + std::string{e.what()});
+    }
+
+    try {
+      parser.parse_file(fileName);
+
+      if(validator.get_schema() != nullptr) {
+        validator.validate(parser.get_document());
+      }
+    }
+    catch(xmlpp::validity_error& e) {
       std::stringstream message;
-      message << "Could not load XML file \"" << fileName << "\"";
+      message << "Failed to validate XML file, please check your config";
+      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
+    }
+    catch(xmlpp::exception& e) {
+      std::stringstream message;
+      message << "Could not load XML file \"" << fileName << "\": " << e.what();
+      std::cerr << message.str() << std::endl;
       throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
     }
 
     // a config with default values
     MotorDriverCardConfig cardConfig;
 
-    pugi::xml_node cardConfigXML = doc.child("MotorDriverCardConfig");
+    auto* rootNode = parser.get_document()->get_root_node();
 
-    setValueIfFound("coverDatagram", cardConfig.coverDatagram, cardConfigXML);
-    setValueIfFound("coverPositionAndLength", cardConfig.coverPositionAndLength, cardConfigXML);
-    setValueIfFound("datagramHighWord", cardConfig.datagramHighWord, cardConfigXML);
-    setValueIfFound("datagramLowWord", cardConfig.datagramLowWord, cardConfigXML);
-    setValueIfFound("interfaceConfiguration", cardConfig.interfaceConfiguration, cardConfigXML);
-    setValueIfFound("positionCompareInterruptData", cardConfig.positionCompareInterruptData, cardConfigXML);
-    setValueIfFound("positionCompareWord", cardConfig.positionCompareWord, cardConfigXML);
-    setValueIfFound("stepperMotorGlobalParameters", cardConfig.stepperMotorGlobalParameters, cardConfigXML);
-    setValueIfFound("controlerSpiWaitingTime", cardConfig.controlerSpiWaitingTime, cardConfigXML, "Parameter");
+    getFromXml("coverDatagram", cardConfig.coverDatagram, rootNode);
+    getFromXml("coverPositionAndLength", cardConfig.coverPositionAndLength, rootNode);
+    getFromXml("datagramHighWord", cardConfig.datagramHighWord, rootNode);
+    getFromXml("datagramLowWord", cardConfig.datagramLowWord, rootNode);
+    getFromXml("interfaceConfiguration", cardConfig.interfaceConfiguration, rootNode);
+    getFromXml("positionCompareInterruptData", cardConfig.positionCompareInterruptData, rootNode);
+    getFromXml("positionCompareWord", cardConfig.positionCompareWord, rootNode);
+    getFromXml("stepperMotorGlobalParameters", cardConfig.stepperMotorGlobalParameters, rootNode);
+    getFromXml("controlerSpiWaitingTime", cardConfig.controlerSpiWaitingTime, rootNode, "Parameter");
 
-    for(size_t i = 0; i < cardConfig.motorControlerConfigurations.size(); ++i) {
-      std::stringstream motorIDAsString;
-      motorIDAsString << i;
-      pugi::xml_node controlerConfigXML =
-          cardConfigXML.find_child_by_attribute("MotorControlerConfig", "motorID", motorIDAsString.str().c_str());
-      if(controlerConfigXML) {
-        cardConfig.motorControlerConfigurations[i] = parseControlerConfig(controlerConfigXML);
+
+    std::string xPath{"//MotorControlerConfig"};
+    auto nodes = rootNode->find(xPath);
+
+    for(auto node : nodes) {
+      auto element = dynamic_cast<const xmlpp::Element*>(node);
+      auto idString = element->get_attribute_value("motorID");
+      if(idString.empty()) {
+        throw MotorDriverException("Controller config is missing its ID", MotorDriverException::XML_ERROR);
       }
+
+      size_t val{};
+      auto [_, ec] = std::from_chars(idString.data(), idString.data() + idString.size(), val);
+      if(ec != std::errc()) {
+        throw MotorDriverException("Unparseable motor id", MotorDriverException::XML_ERROR);
+      }
+
+      cardConfig.motorControlerConfigurations[val] = controllerConfigFromXml(node, idString);
     }
 
     return cardConfig;
-  }
-
-  void MotorDriverCardConfigXML::setValueIfFound(std::string const& parameterName,
-      unsigned int& parameterContent,
-      pugi::xml_node const& parentNode,
-      std::string const& tagName) {
-    pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", parameterName.c_str());
-    parameterContent = parameterNode.attribute("value").as_uint(parameterContent /* = default vale*/);
-  }
-
-  void MotorDriverCardConfigXML::setValueIfFound(std::string const& parameterName,
-      int& parameterContent,
-      pugi::xml_node const& parentNode,
-      std::string const& tagName) {
-    pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", parameterName.c_str());
-    parameterContent = parameterNode.attribute("value").as_int(parameterContent /* = default vale*/);
-  }
-
-  void MotorDriverCardConfigXML::setValueIfFound(std::string const& parameterName,
-      bool& flag,
-      pugi::xml_node const& parentNode,
-      std::string const& tagName) {
-    pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", parameterName.c_str());
-    flag = parameterNode.attribute("value").as_bool(flag);
-  }
-
-  void MotorDriverCardConfigXML::setValueIfFound(
-      std::string const& registerName, TMC429InputWord& inputWord, pugi::xml_node const& parentNode) {
-    pugi::xml_node registerNode = parentNode.find_child_by_attribute("Register", "name", registerName.c_str());
-    unsigned int readValue = registerNode.attribute("value").as_int(inputWord.getDATA() /* = default vale*/);
-    inputWord.setDATA(readValue);
-  }
-
-  void MotorDriverCardConfigXML::setValueIfFound(
-      std::string const& registerName, TMC260Word& inputWord, pugi::xml_node const& parentNode) {
-    pugi::xml_node registerNode = parentNode.find_child_by_attribute("Register", "name", registerName.c_str());
-    unsigned int readValue = registerNode.attribute("value").as_int(inputWord.getPayloadData() /* = default vale*/);
-    inputWord.setPayloadData(readValue);
-  }
-
-  MotorControlerConfig MotorDriverCardConfigXML::parseControlerConfig(pugi::xml_node const& controlerConfigXML) {
-    MotorControlerConfig controlerConfig;
-
-    setValueIfFound("accelerationThresholdData", controlerConfig.accelerationThresholdData, controlerConfigXML);
-    // setValueIfFound("actualPosition", controlerConfig.actualPosition,
-    // controlerConfigXML);
-    setValueIfFound("chopperControlData", controlerConfig.chopperControlData, controlerConfigXML);
-    setValueIfFound("coolStepControlData", controlerConfig.coolStepControlData, controlerConfigXML);
-    setValueIfFound("decoderReadoutMode", controlerConfig.decoderReadoutMode, controlerConfigXML);
-    setValueIfFound(
-        "dividersAndMicroStepResolutionData", controlerConfig.dividersAndMicroStepResolutionData, controlerConfigXML);
-    setValueIfFound("driverConfigData", controlerConfig.driverConfigData, controlerConfigXML);
-    setValueIfFound("driverControlData", controlerConfig.driverControlData, controlerConfigXML);
-    setValueIfFound("enabled", controlerConfig.enabled, controlerConfigXML);
-    setValueIfFound("interruptData", controlerConfig.interruptData, controlerConfigXML);
-    setValueIfFound("maximumAcceleration", controlerConfig.maximumAcceleration, controlerConfigXML);
-    setValueIfFound("maximumVelocity", controlerConfig.maximumVelocity, controlerConfigXML);
-    setValueIfFound("microStepCount", controlerConfig.microStepCount, controlerConfigXML);
-    setValueIfFound("minimumVelocity", controlerConfig.minimumVelocity, controlerConfigXML);
-    setValueIfFound("positionTolerance", controlerConfig.positionTolerance, controlerConfigXML);
-    setValueIfFound("proportionalityFactorData", controlerConfig.proportionalityFactorData, controlerConfigXML);
-    setValueIfFound(
-        "referenceConfigAndRampModeData", controlerConfig.referenceConfigAndRampModeData, controlerConfigXML);
-    setValueIfFound("stallGuardControlData", controlerConfig.stallGuardControlData, controlerConfigXML);
-    setValueIfFound("targetPosition", controlerConfig.targetPosition, controlerConfigXML);
-    setValueIfFound("targetVelocity", controlerConfig.targetVelocity, controlerConfigXML);
-    setValueIfFound("driverSpiWaitingTime", controlerConfig.driverSpiWaitingTime, controlerConfigXML, "Parameter");
-
-    // A parameter name has changed. As we do not use a validating parser we have
-    // to manually check that the old name is not there so we don't accidentally
-    // ignore a parameter that is meant to be set.
-    checkForOldInvalidTagName("maximumAccelleration", controlerConfigXML);
-    return controlerConfig;
   }
 
   void MotorDriverCardConfigXML::write(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig) {
@@ -136,12 +294,12 @@ namespace mtca4u {
 
   void MotorDriverCardConfigXML::write(
       std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig, bool sparse) {
-    pugi::xml_document doc;
-    pugi::xml_node cardConfigXML = doc.append_child("MotorDriverCardConfig");
+    xmlpp::Document doc;
+    auto rootNode = doc.create_root_node("MotorDriverCardConfig");
 
     MotorDriverCardConfig defaultCardConfig;
 
-    NodeFiller cardConfigFiller(cardConfigXML, sparse);
+    detail::NodeFiller cardConfigFiller(rootNode, sparse);
 
     CARD_CONFIG_ADD_REGISTER(coverDatagram);
     CARD_CONFIG_ADD_REGISTER(coverPositionAndLength);
@@ -161,10 +319,10 @@ namespace mtca4u {
         continue;
       }
 
-      pugi::xml_node controlerConfigXML = cardConfigXML.append_child("MotorControlerConfig");
-      controlerConfigXML.append_attribute("motorID") = i;
+      auto controllerConfigNode = rootNode->add_child("MotorControlerConfig");
+      controllerConfigNode->set_attribute("motorID", std::to_string(i));
 
-      NodeFiller controlerConfigFiller(controlerConfigXML, sparse);
+      detail::NodeFiller controlerConfigFiller(controllerConfigNode, sparse);
 
       CONTROLER_CONFIG_ADD_REGISTER(accelerationThresholdData);
       // CONTROLER_CONFIG_ADD_REGISTER( actualPosition );
@@ -189,90 +347,13 @@ namespace mtca4u {
       CONTROLER_CONFIG_ADD_PARAMETER(driverSpiWaitingTime);
     }
 
-    if(!doc.save_file(fileName.c_str())) {
+    try {
+      doc.write_to_file_formatted(fileName ,"UTF-8");
+    }
+    catch(xmlpp::exception& ex) {
       std::stringstream message;
-      message << "Could not write XML file \"" << fileName << "\"";
+      message << "Could not write XML file \"" << fileName << "\": " << ex.what();
       throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
     }
   }
-
-  void MotorDriverCardConfigXML::checkForOldInvalidTagName(
-      std::string const& parameterName, pugi::xml_node const& parentNode, std::string const& tagName) {
-    pugi::xml_node parameterNode = parentNode.find_child_by_attribute(tagName.c_str(), "name", parameterName.c_str());
-    if(parameterNode) {
-      std::stringstream message;
-      message << "Found old, invalid " << tagName << " name " << parameterName << ". Please update your config file!";
-      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
-    }
-  }
-
-  MotorDriverCardConfigXML::NodeFiller::NodeFiller(pugi::xml_node& node, bool sparse)
-  : _node(node), _writeAlways(!sparse) {}
-
-  void MotorDriverCardConfigXML::NodeFiller::addParameter(
-      std::string const& parameterName, unsigned int value, unsigned int defaultValue, std::string const& tagName) {
-    if(_writeAlways || (value != defaultValue)) {
-      pugi::xml_node parameterNode = _node.append_child(tagName.c_str());
-      parameterNode.append_attribute("name") = parameterName.c_str();
-      // register contents is written as hex, other parameters are written as
-      // decimal
-      std::string valueString;
-      if(tagName == "Register") {
-        valueString = toHexString(value);
-      }
-      else {
-        valueString = toDecString(value);
-      }
-      parameterNode.append_attribute("value") = valueString.c_str();
-    }
-  }
-
-  void MotorDriverCardConfigXML::NodeFiller::addParameter(
-      std::string const& parameterName, int value, int defaultValue, std::string const& tagName) {
-    if(_writeAlways || (value != defaultValue)) {
-      pugi::xml_node parameterNode = _node.append_child(tagName.c_str());
-      parameterNode.append_attribute("name") = parameterName.c_str();
-      // register content of signed is always written as decimal
-      parameterNode.append_attribute("value") = toDecString(value).c_str();
-    }
-  }
-
-  void MotorDriverCardConfigXML::NodeFiller::addParameter(
-      std::string const& registerName, TMC429InputWord const& value, TMC429InputWord const& defaultValue) {
-    addParameter(registerName, value.getDATA(), defaultValue.getDATA());
-  }
-
-  void MotorDriverCardConfigXML::NodeFiller::addParameter(
-      std::string const& registerName, TMC260Word const& value, TMC260Word const& defaultValue) {
-    addParameter(registerName, value.getPayloadData(), defaultValue.getPayloadData());
-  }
-
-  void MotorDriverCardConfigXML::NodeFiller::addParameter(
-      std::string const& parameterName, bool value, bool defaultValue, std::string const& tagName) {
-    if(_writeAlways || (value != defaultValue)) {
-      pugi::xml_node parameterNode = _node.append_child(tagName.c_str());
-      parameterNode.append_attribute("name") = parameterName.c_str();
-      parameterNode.append_attribute("value") = (value ? "true" : "false");
-    }
-  }
-
-  std::string MotorDriverCardConfigXML::NodeFiller::toHexString(unsigned int value) {
-    std::stringstream s;
-    s << "0x" << std::uppercase << std::hex << value;
-    return s.str();
-  }
-
-  template<class T>
-  std::string MotorDriverCardConfigXML::NodeFiller::toDecString(T value) {
-    std::stringstream s;
-    s << std::dec << value;
-    return s.str();
-  }
-
-  //  std::string MotorDriverCardConfigXML::NodeFiller::toDecString(int value){
-  //    std::stringstream s;
-  //    s << std::dec << value;
-  //    return s.str();
-  //  }
-
 } // namespace mtca4u

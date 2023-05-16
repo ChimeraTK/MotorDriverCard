@@ -1,0 +1,73 @@
+<element name="MotorDriverCardConfig" xmlns="http://relaxng.org/ns/structure/1.0">
+  <interleave>
+    <zeroOrMore>
+      <element name="Register">
+        <attribute name="name">
+          <choice>
+            <value>coverDatagram</value>
+            <value>coverPositionAndLength</value>
+            <value>datagramHighWord</value>
+            <value>datagramLowWord</value>
+            <value>interfaceConfiguration</value>
+            <value>positionCompareInterruptData</value>
+            <value>positionCompareWord</value>
+            <value>stepperMotorGlobalParameters</value>
+          </choice>
+        </attribute>
+        <attribute name="value"><text /></attribute>
+      </element>
+    </zeroOrMore>
+    <optional>
+      <element name="Parameter">
+        <attribute name="name">
+            <value>controlerSpiWaitingTime</value>
+        </attribute>
+        <attribute name="value"><text /></attribute>
+      </element>
+    </optional>
+    <zeroOrMore>
+      <element name="MotorControlerConfig">
+        <attribute name="motorID"><text /></attribute>
+        <interleave>
+          <zeroOrMore>
+            <element name="Register">
+              <attribute name="name">
+                <choice>
+                  <value>accelerationThresholdData</value>
+                  <value>chopperControlData</value>
+                  <value>coolStepControlData</value>
+                  <value>decoderReadoutMode</value>
+                  <value>dividersAndMicroStepResolutionData</value>
+                  <value>driverConfigData</value>
+                  <value>driverControlData</value>
+                  <value>enabled</value>
+                  <value>interruptData</value>
+                  <value>maximumAcceleration</value>
+                  <value>maximumVelocity</value>
+                  <value>microStepCount</value>
+                  <value>minimumVelocity</value>
+                  <value>positionTolerance</value>
+                  <value>proportionalityFactorData</value>
+                  <value>referenceConfigAndRampModeData</value>
+                  <value>stallGuardControlData</value>
+                  <value>targetPosition</value>
+                  <value>targetVelocity</value>
+                  <value>driverSpiWaitingTime</value>
+                </choice>
+              </attribute>
+              <attribute name="value"><text /></attribute>
+            </element>
+          </zeroOrMore>
+          <optional>
+            <element name="Parameter">
+              <attribute name="name">
+                  <value>driverSpiWaitingTime</value>
+              </attribute>
+              <attribute name="value"><text /></attribute>
+            </element>
+          </optional>          
+        </interleave>
+      </element>
+    </zeroOrMore>
+  </interleave>
+</element>

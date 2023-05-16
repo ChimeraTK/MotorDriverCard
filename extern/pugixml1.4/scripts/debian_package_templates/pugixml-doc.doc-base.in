@@ -1,9 +1,0 @@
-Document: pugixml
-Title: Pugixml API Manual
-Author: Arseny Kapoulkine
-Abstract: This manual describes the APIs given by libpugixml@pugixml_DEBVERSION@
-Section: Programming/C++
-
-Format: HTML
-Index: /usr/share/doc/pugixml-doc/manual.html
-Files: /usr/share/doc/pugixml-doc/manual/*.html /usr/share/doc/pugixml-doc/quickstart.html
