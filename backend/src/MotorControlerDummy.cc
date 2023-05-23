@@ -1,5 +1,6 @@
 #include "MotorControlerDummy.h"
-#include "MotorDriverException.h"
+
+#include "ChimeraTK/Exception.h"
 
 #include <iostream>
 
@@ -61,9 +62,13 @@ namespace mtca4u {
     }
   }
 
-  void MotorControlerDummy::enableFullStepping(bool enable) { _isFullStepping = enable; }
+  void MotorControlerDummy::enableFullStepping(bool enable) {
+    _isFullStepping = enable;
+  }
 
-  bool MotorControlerDummy::isFullStepping() { return _isFullStepping; }
+  bool MotorControlerDummy::isFullStepping() {
+    return _isFullStepping;
+  }
 
   bool MotorControlerDummy::isMotorMoving() {
     lock_guard guard(_motorControllerDummyMutex);
@@ -130,18 +135,15 @@ namespace mtca4u {
   }
 
   void MotorControlerDummy::setActualVelocity(int /*stepsPerFIXME*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setActualVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setActualVelocity() is not implemented yet!");
   }
 
   void MotorControlerDummy::setActualAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setActualAcceleration() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setActualAcceleration() is not implemented yet!");
   }
 
   void MotorControlerDummy::setMicroStepCount(unsigned int /*microStepCount*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setMicroStepCount() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setMicroStepCount() is not implemented yet!");
   }
 
   void MotorControlerDummy::setEnabled(bool enable) {
@@ -150,9 +152,8 @@ namespace mtca4u {
   }
 
   void MotorControlerDummy::setDecoderReadoutMode(unsigned int /*decoderReadoutMode*/) {
-    throw MotorDriverException("MotorControlerDummy::setDecoderReadoutMode(): The Decoder readout mode "
-                               "cannot be changed for the dummy motor!",
-        MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setDecoderReadoutMode(): The Decoder readout mode "
+                                 "cannot be changed for the dummy motor!");
   }
 
   bool MotorControlerDummy::isEnabled() {
@@ -243,63 +244,52 @@ namespace mtca4u {
   }
 
   void MotorControlerDummy::setMinimumVelocity(unsigned int /*stepsPerFIXME*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setMinimumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setMinimumVelocity() is not implemented yet!");
   }
 
   unsigned int MotorControlerDummy::getMinimumVelocity() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getMinimumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getMinimumVelocity() is not implemented yet!");
   }
 
   void MotorControlerDummy::setMaximumVelocity(unsigned int /*stepsPerFIXME*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setMaximumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setMaximumVelocity() is not implemented yet!");
   }
 
   unsigned int MotorControlerDummy::getMaximumVelocity() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getMaximumVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getMaximumVelocity() is not implemented yet!");
   }
 
   void MotorControlerDummy::setTargetVelocity(int /*stepsPerFIXME*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setTargetVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setTargetVelocity() is not implemented yet!");
   }
 
   int MotorControlerDummy::getTargetVelocity() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getTargetVelocity() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getTargetVelocity() is not implemented yet!");
   }
 
   void MotorControlerDummy::setMaximumAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setMaximumAcceleration() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setMaximumAcceleration() is not implemented yet!");
   }
 
   unsigned int MotorControlerDummy::getMaximumAcceleration() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getMaximumAcceleration() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getMaximumAcceleration() is not implemented yet!");
   }
 
   void MotorControlerDummy::setPositionTolerance(unsigned int /*steps*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setPositionTolerance() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setPositionTolerance() is not implemented yet!");
   }
 
   unsigned int MotorControlerDummy::getPositionTolerance() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getPositionTolerance() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getPositionTolerance() is not implemented yet!");
   }
 
   void MotorControlerDummy::setPositionLatched(unsigned int /*steps*/) {
-    throw MotorDriverException(
-        "MotorControlerDummy::setPositionLatched() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setPositionLatched() is not implemented yet!");
   }
 
   unsigned int MotorControlerDummy::getPositionLatched() {
-    throw MotorDriverException(
-        "MotorControlerDummy:getPositionLatched() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error(
+        "MotorControlerDummy:getPositionLatched() is not implemented yet!");
   }
 
   bool MotorControlerDummy::targetPositionReached() {
@@ -319,8 +309,8 @@ namespace mtca4u {
   }
 
   double MotorControlerDummy::getMaxSpeedCapability() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getMaxSpeedCapability() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error(
+        "MotorControlerDummy::getMaxSpeedCapability() is not implemented yet!");
   }
 
   double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {
@@ -329,20 +319,19 @@ namespace mtca4u {
     return _userSpeedLimit;
   }
 
-  double MotorControlerDummy::getUserSpeedLimit() { return _userSpeedLimit; }
+  double MotorControlerDummy::getUserSpeedLimit() {
+    return _userSpeedLimit;
+  }
 
   double MotorControlerDummy::setUserCurrentLimit(double currentLimit) {
     (void)currentLimit; // To suppress parameter unused warning.
-    throw MotorDriverException(
-        "MotorControlerDummy::setUserCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::setUserCurrentLimit() is not implemented yet!");
   }
   double MotorControlerDummy::getUserCurrentLimit() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getUserCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getUserCurrentLimit() is not implemented yet!");
   }
   double MotorControlerDummy::getMaxCurrentLimit() {
-    throw MotorDriverException(
-        "MotorControlerDummy::getMaxCurrentLimit() is not implemented yet!", MotorDriverException::NOT_IMPLEMENTED);
+    throw ChimeraTK::logic_error("MotorControlerDummy::getMaxCurrentLimit() is not implemented yet!");
   }
 
   void MotorControlerDummy::resetInternalStateToDefaults() {

@@ -1,5 +1,5 @@
 #include "MotorDriverCardConfigXML.h"
-#include "MotorDriverException.h"
+#include <ChimeraTK/Exception.h>
 using namespace mtca4u;
 
 #include <boost/test/included/unit_test.hpp>
@@ -142,7 +142,7 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest()
 }
 
 void MotorDriverCardConfigXMLTest::testInvalidInput() {
-  BOOST_CHECK_THROW(MotorDriverCardConfigXML::read("invalid.xml"), MotorDriverException);
+  BOOST_CHECK_THROW(MotorDriverCardConfigXML::read("invalid.xml"), ChimeraTK::logic_error);
 }
 
 void MotorDriverCardConfigXMLTest::testReadMinimal() {
@@ -238,7 +238,7 @@ void MotorDriverCardConfigXMLTest::testWrite() {
 
 void MotorDriverCardConfigXMLTest::testInvalidOutput() {
   BOOST_CHECK_THROW(
-      MotorDriverCardConfigXML::write("/some/not/existing/file.xml", completeCardConfig), MotorDriverException);
+      MotorDriverCardConfigXML::write("/some/not/existing/file.xml", completeCardConfig), ChimeraTK::logic_error);
 }
 
 void MotorDriverCardConfigXMLTest::testOldInvalidRegister(std::string const& registerName) {
@@ -248,12 +248,12 @@ void MotorDriverCardConfigXMLTest::testOldInvalidRegister(std::string const& reg
   //  the exception)
 
   std::string fileName = OLD_INVALID_XML_PREFIX + registerName + OLD_INVALID_XML_SUFFIX;
-  BOOST_CHECK_THROW(MotorDriverCardConfigXML::read(fileName), MotorDriverException);
+  BOOST_CHECK_THROW(MotorDriverCardConfigXML::read(fileName), ChimeraTK::logic_error);
 
   try {
     MotorDriverCardConfigXML::read(fileName);
   }
-  catch(MotorDriverException& e) {
+  catch(ChimeraTK::logic_error& e) {
     std::string expectedMessage{"Failed to validate XML file, please check your config"};
     BOOST_TEST(expectedMessage == e.what());
   }

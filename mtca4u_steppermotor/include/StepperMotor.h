@@ -18,13 +18,11 @@
 #include "MotorControler.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardConfigXML.h"
-#include "MotorDriverException.h"
 
 // Stepper Motor includes
 #include "Logger.h"
 #include "StepperMotorCalibrationStatus.h"
 #include "StepperMotorError.h"
-#include "StepperMotorException.h"
 #include "StepperMotorStatus.h"
 #include "StepperMotorUtil.h"
 

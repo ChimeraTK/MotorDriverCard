@@ -1,10 +1,10 @@
 #include "StepperMotor.h"
 #include "MotorDriverCardFactory.h"
-#include "MotorDriverException.h"
-#include "StepperMotorException.h"
 #include <chrono>
 #include <cmath>
 #include <future>
+
+#include <ChimeraTK/Exception.h>
 
 namespace mtca4u {
 
@@ -183,8 +183,7 @@ namespace mtca4u {
   void StepperMotor::setStepperMotorUnitsConverter(
       boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) {
     if(!stepperMotorUnitsConverter) {
-      throw StepperMotorException(
-          std::string("empty shared pointer for the unit converter"), StepperMotorException::NOT_VALID_CONVERTER);
+      throw ChimeraTK::logic_error("empty shared pointer for the unit converter");
     }
     _stepperMotorUnitsConverter = stepperMotorUnitsConverter;
   }

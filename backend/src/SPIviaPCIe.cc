@@ -1,6 +1,6 @@
 #include "impl/SPIviaPCIe.h"
 #include "DFMC_MD22Constants.h"
-#include "MotorDriverException.h"
+
 #include <cerrno>
 #include <ctime>
 
@@ -86,12 +86,10 @@ namespace mtca4u {
       case SPI_SYNC_OK:
         break;
       case SPI_SYNC_REQUESTED:
-        throw MotorDriverException(
-            std::string("Timeout writing via SPI, ") + errorDetails.str(), MotorDriverException::SPI_TIMEOUT);
+        throw ChimeraTK::runtime_error("Timeout writing via SPI, " + errorDetails.str());
       case SPI_SYNC_ERROR:
       default:
-        throw MotorDriverException(
-            std::string("Error writing via SPI, ") + errorDetails.str(), MotorDriverException::SPI_ERROR);
+        throw ChimeraTK::runtime_error("Error writing via SPI, " + errorDetails.str());
     }
   }
 
@@ -117,8 +115,8 @@ namespace mtca4u {
     if(nanosleep(&sleepTime, &remainingTime)) {
       if(errno == EFAULT) {
         std::stringstream errorMessage;
-        errorMessage << "Error sleeping " << microSeconds << " micro seconds!";
-        throw(MotorDriverException(errorMessage.str(), MotorDriverException::SPI_TIMEOUT));
+        errorMessage << "MotorDriver SPI handshake: Error sleeping " << microSeconds << " micro seconds!";
+        throw ChimeraTK::runtime_error(errorMessage.str());
       }
     }
   }

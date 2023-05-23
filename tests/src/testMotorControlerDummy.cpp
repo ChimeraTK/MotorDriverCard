@@ -4,15 +4,17 @@
 using namespace boost::unit_test_framework;
 
 #include "MotorControlerDummy.h"
-#include "MotorDriverException.h"
+
+#include <ChimeraTK/Exception.h>
+
 using namespace mtca4u;
 
 // A macro to declare tests for an unimplemented get/set pair.
 // It is checked that the MotorDriverException is thrown
 #define DECLARE_GET_SET_THROW_TEST(NAME)                                                                               \
   void testGetSet##NAME() {                                                                                            \
-    BOOST_CHECK_THROW(_motorControlerDummy.get##NAME(), MotorDriverException);                                         \
-    BOOST_CHECK_THROW(_motorControlerDummy.set##NAME(0), MotorDriverException);                                        \
+    BOOST_CHECK_THROW(_motorControlerDummy.get##NAME(), ChimeraTK::logic_error);                                       \
+    BOOST_CHECK_THROW(_motorControlerDummy.set##NAME(0), ChimeraTK::logic_error);                                      \
   }
 
 static const unsigned int THE_ID = 17;
@@ -162,12 +164,12 @@ void MotorControlerDummyTest::testGetSetActualVelocity() {
   _motorControlerDummy.moveTowardsTarget(1);
   BOOST_CHECK(_motorControlerDummy.getActualVelocity() == 0);
 
-  BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0), MotorDriverException);
+  BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0), ChimeraTK::logic_error);
 }
 
 void MotorControlerDummyTest::testGetSetActualAcceleration() {
   BOOST_CHECK(_motorControlerDummy.getActualAcceleration() == 0);
-  BOOST_CHECK_THROW(_motorControlerDummy.setActualAcceleration(0), MotorDriverException);
+  BOOST_CHECK_THROW(_motorControlerDummy.setActualAcceleration(0), ChimeraTK::logic_error);
 }
 
 void MotorControlerDummyTest::testGetSetMicroStepCount() {
@@ -176,7 +178,7 @@ void MotorControlerDummyTest::testGetSetMicroStepCount() {
   // Does this make sense? Check the data sheet.
   _motorControlerDummy.setActualPosition(5000);
   BOOST_CHECK(_motorControlerDummy.getMicroStepCount() == 543);
-  BOOST_CHECK_THROW(_motorControlerDummy.setMicroStepCount(0), MotorDriverException);
+  BOOST_CHECK_THROW(_motorControlerDummy.setMicroStepCount(0), ChimeraTK::logic_error);
 }
 
 void MotorControlerDummyTest::testGetStatus() {
@@ -195,7 +197,7 @@ void MotorControlerDummyTest::testGetStatus() {
 void MotorControlerDummyTest::testGetSetDecoderReadoutMode() {
   BOOST_CHECK(_motorControlerDummy.getDecoderReadoutMode() == MotorControler::DecoderReadoutMode::HEIDENHAIN);
   BOOST_CHECK_THROW(_motorControlerDummy.setDecoderReadoutMode(MotorControler::DecoderReadoutMode::INCREMENTAL),
-      MotorDriverException);
+      ChimeraTK::logic_error);
 }
 
 void MotorControlerDummyTest::testGetDecoderPosition() {

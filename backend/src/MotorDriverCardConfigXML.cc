@@ -1,13 +1,12 @@
 #include "MotorDriverCardConfigXML.h"
 #include "ChimeraTK/Exception.h"
-#include "MotorDriverException.h"
 
+#include "ChimeraTK/Exception.h"
+#include <libxml++/libxml++.h>
 #include <charconv>
 #include <iostream>
 
 #include <libxml/parser.h>
-#include <libxml++/libxml++.h>
-
 #include "schema.h"
 
 namespace detail {
@@ -103,7 +102,7 @@ namespace mtca4u {
     if(stringValue.find("0x") == 0 || stringValue.find("0X") == 0) {
       base = 16;
       if(stringValue.size() == 2) {
-        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+        throw ChimeraTK::logic_error("Invalid XML");
       }
     }
 
@@ -113,7 +112,7 @@ namespace mtca4u {
       auto [_, ec] = std::from_chars(
           stringValue.data() + (base == 16 ? 2 : 0), stringValue.data() + stringValue.size(), val, base);
       if(ec != std::errc() || strlen(_) != 0) {
-        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+        throw ChimeraTK::logic_error("Invalid XML");
       }
       value.setPayloadData(val);
 
@@ -125,7 +124,7 @@ namespace mtca4u {
       auto [_, ec] = std::from_chars(
           stringValue.data() + (base == 16 ? 2 : 0), stringValue.data() + stringValue.size(), val, base);
       if(ec != std::errc() || strlen(_) != 0) {
-        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+        throw ChimeraTK::logic_error("Invalid XML");
       }
       value.setDATA(val);
 
@@ -140,7 +139,7 @@ namespace mtca4u {
       auto [_, ec] = std::from_chars(
           stringValue.data() + (base == 16 ? 2 : 0), stringValue.data() + stringValue.size(), value, base);
       if(ec != std::errc()) {
-        throw MotorDriverException("Invalid XML", MotorDriverException::XML_ERROR);
+        throw ChimeraTK::logic_error("Invalid XML");
       }
     }
   }
@@ -195,7 +194,7 @@ namespace mtca4u {
     if (!nodes.empty()) {
       std::stringstream message;
       message << "Found old, invalid Register name maximumAccelleration. Please update your config file!";
-      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
+      throw ChimeraTK::logic_error(message.str());
     }
     return controlerConfig;
   }
@@ -237,13 +236,12 @@ namespace mtca4u {
     catch(xmlpp::validity_error& e) {
       std::stringstream message;
       message << "Failed to validate XML file, please check your config";
-      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
+      throw ChimeraTK::logic_error(message.str());
     }
     catch(xmlpp::exception& e) {
       std::stringstream message;
       message << "Could not load XML file \"" << fileName << "\": " << e.what();
-      std::cerr << message.str() << std::endl;
-      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
+      throw ChimeraTK::logic_error(message.str());
     }
 
     // a config with default values
@@ -269,13 +267,13 @@ namespace mtca4u {
       auto element = dynamic_cast<const xmlpp::Element*>(node);
       auto idString = element->get_attribute_value("motorID");
       if(idString.empty()) {
-        throw MotorDriverException("Controller config is missing its ID", MotorDriverException::XML_ERROR);
+        throw ChimeraTK::logic_error("Controller config is missing its ID");
       }
 
       size_t val{};
       auto [_, ec] = std::from_chars(idString.data(), idString.data() + idString.size(), val);
       if(ec != std::errc()) {
-        throw MotorDriverException("Unparseable motor id", MotorDriverException::XML_ERROR);
+        throw ChimeraTK::logic_error("Unparseable motor id");
       }
 
       cardConfig.motorControlerConfigurations[val] = controllerConfigFromXml(node, idString);
@@ -353,7 +351,7 @@ namespace mtca4u {
     catch(xmlpp::exception& ex) {
       std::stringstream message;
       message << "Could not write XML file \"" << fileName << "\": " << ex.what();
-      throw MotorDriverException(message.str(), MotorDriverException::XML_ERROR);
+      throw ChimeraTK::logic_error(message.str());
     }
   }
 } // namespace mtca4u

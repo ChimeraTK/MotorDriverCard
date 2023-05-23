@@ -1,7 +1,6 @@
 #include "DFMC_MD22Dummy.h"
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
-#include "MotorDriverException.h"
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -48,15 +47,14 @@ namespace mtca4u {
 
     registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_READBACK_ADDRESS_STRING);
     if(_controlerSpiBar != registerInformation.bar) {
-      throw MotorDriverException(
-          "SPI write and readback address must be in the same bar", MotorDriverException::SPI_ERROR);
+      throw ChimeraTK::logic_error("SPI write and readback address must be in the same bar");
     }
     _controlerSpiReadbackAddress = registerInformation.address;
     setReadOnly(registerInformation.bar, registerInformation.address, registerInformation.nElements);
 
     registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_SYNC_ADDRESS_STRING);
     if(_controlerSpiBar != registerInformation.bar) {
-      throw MotorDriverException("SPI write and sync address must be in the same bar", MotorDriverException::SPI_ERROR);
+      throw ChimeraTK::logic_error("SPI write and sync address must be in the same bar");
     }
     _controlerSpiSyncAddress = registerInformation.address;
 
@@ -82,8 +80,7 @@ namespace mtca4u {
       auto driverSpiSyncAddressRange =
           AddressRange(_registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, SPI_SYNC_SUFFIX)));
       if(driverSpiWriteAddressRange.bar != driverSpiSyncAddressRange.bar) {
-        throw MotorDriverException(
-            "SPI write and sync address must be in the same bar", MotorDriverException::SPI_ERROR);
+        throw ChimeraTK::logic_error("SPI write and sync address must be in the same bar");
       }
 
       _driverSPIs[id].bar = static_cast<unsigned int>(driverSpiWriteAddressRange.bar);
