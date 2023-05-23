@@ -115,7 +115,7 @@ namespace mtca4u {
     if(nanosleep(&sleepTime, &remainingTime)) {
       if(errno == EFAULT) {
         std::stringstream errorMessage;
-        errorMessage << "Error sleeping " << microSeconds << " micro seconds!";
+        errorMessage << "MotorDriver SPI handshake: Error sleeping " << microSeconds << " micro seconds!";
         throw ChimeraTK::runtime_error(errorMessage.str());
       }
     }
