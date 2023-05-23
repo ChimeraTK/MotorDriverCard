@@ -158,9 +158,6 @@ int main(int argc, char* argv[]) {
           CHECK_EXIT_ON_SIGNAL
         }
       }
-      catch(ChimeraTK::logic_error& e) {
-        std::cout << "Problem reading target position: " << e.what() << std::endl;
-      }
       catch(ChimeraTK::runtime_error& e) {
         std::cout << "Problem reading target position: " << e.what() << std::endl;
       }
@@ -183,9 +180,6 @@ int main(int argc, char* argv[]) {
           }
           CHECK_EXIT_ON_SIGNAL
         }
-      }
-      catch(ChimeraTK::logic_error& e) {
-        std::cout << "Problem reading target position: " << e.what() << std::endl;
       }
       catch(ChimeraTK::runtime_error& e) {
         std::cout << "Problem reading target position: " << e.what() << std::endl;
