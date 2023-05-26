@@ -117,6 +117,10 @@ if(TESTING_IS_ENABLED)
   
   add_test(compareXmlOutput ${PROJECT_BINARY_DIR}/compareXmlOutput.sh)
 
+  # Make compareXmlOutput depend on testMotorDriverCardConfigXML having run in parallel tests
+  set_tests_properties(testMotorDriverCardConfigXML PROPERTIES FIXTURES_SETUP XmlResultFiles)
+  set_tests_properties(compareXmlOutput PROPERTIES FIXTURES_REQUIRED XmlResultFiles)
+
   COPY_MAPPING_FILES()
   COPY_XML_FILES()
   FILE(COPY tests/compareXmlOutput.sh DESTINATION ${PROJECT_BINARY_DIR})
