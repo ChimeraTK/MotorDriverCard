@@ -14,15 +14,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${COMMON_INCLUDE_DIRS})
 add_executable(MotorConfigCalculator executables/ConfigCalculatorCLI.cpp)
 target_link_libraries(MotorConfigCalculator ${PROJECT_NAME} ChimeraTK::ChimeraTK-DeviceAccess)
 install(TARGETS MotorConfigCalculator
-        RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 add_executable(write_default_config executables/write_default_config.cpp)
 target_link_libraries(write_default_config PRIVATE ${PROJECT_NAME} mtca4u-MotorDriverCard ChimeraTK::ChimeraTK-DeviceAccess)
 add_custom_target(MotorDriverCardDefaultConfig.xml ALL write_default_config
   DEPENDS write_default_config)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MotorDriverCardDefaultConfig.xml DESTINATION share/doc/mtca4u-MotorDriverCard-${mtca4u-MotorDriverCard_SOVERSION})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MotorDriverCardDefaultConfig.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/mtca4u-MotorDriverCard-${mtca4u-MotorDriverCard_SOVERSION})
 
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tests/include)

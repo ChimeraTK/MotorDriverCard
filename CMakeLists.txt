@@ -49,8 +49,8 @@ foreach(subdir ${subdirs})
   list(APPEND COMMON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
 endforeach()
 
-install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION include/mtca4u/MotorDriverCard)
-install(DIRECTORY util/include/ DESTINATION include/ChimeraTK/MotorDriverCard)
+install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mtca4u/MotorDriverCard)
+install(DIRECTORY util/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ChimeraTK/MotorDriverCard)
 
 # Add  targets for mtca4u and ChimeraTK interfaces
 add_subdirectory(steppermotor)
@@ -152,8 +152,8 @@ include(GNUInstallDirs)
 #Install the library and the executables
 install(TARGETS ${PROJECT_NAME}
             EXPORT ${PROJECT_NAME}Targets
-            RUNTIME DESTINATION bin
-	    LIBRARY DESTINATION lib
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 set(PROVIDES_EXPORTED_TARGETS 1)
