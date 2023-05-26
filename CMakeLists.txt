@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(mtca4u-MotorDriverCard)
 
+include(GNUInstallDirs)
+
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
 set(${PROJECT_NAME}_MINOR_VERSION 13)
 set(${PROJECT_NAME}_PATCH_VERSION 01)
@@ -152,7 +154,6 @@ foreach( hardwareTestSourceFile ${hardwareTestSources})
 endforeach( hardwareTestSourceFile )
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR}) 
 
-include(GNUInstallDirs)
 #Install the library and the executables
 install(TARGETS ${PROJECT_NAME}
             EXPORT ${PROJECT_NAME}Targets
