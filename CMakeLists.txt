@@ -138,7 +138,7 @@ add_custom_command(
 # Define the main library
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} schema.h)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system PkgConfig::LibXML++
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system
                                       PRIVATE PkgConfig::LibXML++ MTCA4U_OBJECTS_TARGET CTK_OBJECTS_TARGET)
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
                                                    $<INSTALL_INTERFACE:include>
