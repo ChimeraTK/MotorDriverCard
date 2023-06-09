@@ -80,7 +80,7 @@ namespace mtca4u {
      * bus
      */
 
-    unsigned int _spiWaitingTime;
+    boost::chrono::microseconds _spiWaitingTime;
     // store module name for debug purposes
     std::string _moduleName;
     // store these two register names for debug output (exception messages)

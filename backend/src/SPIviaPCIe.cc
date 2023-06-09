@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 #include "impl/SPIviaPCIe.h"
 #include "DFMC_MD22Constants.h"
 
@@ -64,7 +67,7 @@ namespace mtca4u {
 
       for(size_t syncCounter = 0; (_synchronisationRegister == SPI_SYNC_REQUESTED) && (syncCounter < 10);
           ++syncCounter) {
-        sleepMicroSeconds(_spiWaitingTime);
+        boost::this_thread::sleep_for(_spiWaitingTime);
 
         _synchronisationRegister.read();
       }
@@ -104,31 +107,14 @@ namespace mtca4u {
     return static_cast<uint32_t>(_readbackRegister);
   }
 
-  void SPIviaPCIe::sleepMicroSeconds(unsigned int microSeconds) {
-    timespec sleepTime;
-    sleepTime.tv_sec = microSeconds / 1000000;
-    sleepTime.tv_nsec = (microSeconds % 1000000) * 1000;
-
-    timespec remainingTime;
-    remainingTime.tv_sec = 0;
-    remainingTime.tv_nsec = 0;
-    if(nanosleep(&sleepTime, &remainingTime)) {
-      if(errno == EFAULT) {
-        std::stringstream errorMessage;
-        errorMessage << "MotorDriver SPI handshake: Error sleeping " << microSeconds << " micro seconds!";
-        throw ChimeraTK::runtime_error(errorMessage.str());
-      }
-    }
-  }
-
   void SPIviaPCIe::setSpiWaitingTime(unsigned int microSeconds) {
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
-    _spiWaitingTime = microSeconds;
+    _spiWaitingTime = boost::chrono::microseconds(microSeconds);
   }
 
   unsigned int SPIviaPCIe::getSpiWaitingTime() const {
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
-    return _spiWaitingTime;
+    return static_cast<unsigned int>(_spiWaitingTime.count());
   }
 
 } // namespace mtca4u
