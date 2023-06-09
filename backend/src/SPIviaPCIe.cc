@@ -2,39 +2,27 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "impl/SPIviaPCIe.h"
+
 #include "DFMC_MD22Constants.h"
+
+#include <ChimeraTK/Device.h>
+
+#include <boost/thread/locks.hpp>
 
 #include <cerrno>
 #include <ctime>
-
-#include <ChimeraTK/Device.h>
-#include <boost/thread/locks.hpp>
 
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u {
 
-  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device,
-      std::string const& moduleName,
-      std::string const& writeRegisterName,
-      std::string const& syncRegisterName,
-      unsigned int spiWaitingTime)
-  : _writeRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
-    _synchronisationRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + syncRegisterName, 0, {ChimeraTK::AccessMode::raw})),
-    // will always return the last written word
-    _readbackRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
-    _spiWaitingTime(spiWaitingTime), _moduleName(moduleName), _writeRegisterName(writeRegisterName),
-    _syncRegisterName(syncRegisterName), _spiMutex() {}
+  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+      std::string const& writeRegisterName, std::string const& syncRegisterName, unsigned int spiWaitingTime)
+  : SPIviaPCIe(device, moduleName, writeRegisterName, syncRegisterName, writeRegisterName, spiWaitingTime) {}
 
-  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device,
-      std::string const& moduleName,
-      std::string const& writeRegisterName,
-      std::string const& syncRegisterName,
-      std::string const& readbackRegisterName,
-      unsigned int spiWaitingTime)
+  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+      std::string const& writeRegisterName, std::string const& syncRegisterName,
+      std::string const& readbackRegisterName, unsigned int spiWaitingTime)
   : _writeRegister(device->getScalarRegisterAccessor<int32_t>(
         moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
     _synchronisationRegister(device->getScalarRegisterAccessor<int32_t>(
@@ -42,12 +30,12 @@ namespace mtca4u {
     _readbackRegister(device->getScalarRegisterAccessor<int32_t>(
         moduleName + "/" + readbackRegisterName, 0, {ChimeraTK::AccessMode::raw})),
     _spiWaitingTime(spiWaitingTime), _moduleName(moduleName), _writeRegisterName(writeRegisterName),
-    _syncRegisterName(syncRegisterName), _spiMutex() {}
+    _syncRegisterName(syncRegisterName) {}
 
   void SPIviaPCIe::write(int32_t spiCommand) {
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
 
-    // try three times to mittigate effects of a firmware bug
+    // try three times to mitigate effects of a firmware bug
     for(int i = 0; i < 3; ++i) {
       if(i > 0) {
         std::cerr << "Warning, SPI handshake timed out. Retrying..." << std::endl;

@@ -362,7 +362,7 @@ namespace mtca4u {
 
   MotorReferenceSwitchData MotorControlerImpl::retrieveReferenceSwitchStatus() {
     // the bit pattern for the active flags
-    unsigned int bitMask = 0x3 << 2 * _id;
+    unsigned int bitMask = 0x3U << 2 * _id;
 
     unsigned int commonReferenceSwitchWord = _controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
     unsigned int dataWord = (commonReferenceSwitchWord & bitMask) >> 2 * _id;
