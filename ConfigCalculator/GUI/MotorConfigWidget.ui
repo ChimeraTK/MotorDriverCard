@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>608</width>
-    <height>447</height>
+    <height>618</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,30 +32,33 @@
         <string>Input Parameters</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="1" column="0">
-         <widget class="QLabel" name="nStepsPerTurnLabel">
+        <item row="0" column="0">
+         <widget class="QLabel" name="iMaxLabel">
           <property name="text">
-           <string>Full steps per turn</string>
+           <string>Max. coil current</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QSpinBox" name="nStepsPerTurn">
+        <item row="5" column="1">
+         <widget class="QSpinBox" name="systemClock">
+          <property name="suffix">
+           <string> MHz</string>
+          </property>
           <property name="minimum">
            <number>1</number>
           </property>
           <property name="maximum">
-           <number>10000</number>
+           <number>32</number>
           </property>
           <property name="value">
-           <number>200</number>
+           <number>32</number>
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="maxRPMLabel">
+        <item row="1" column="0">
+         <widget class="QLabel" name="nStepsPerTurnLabel">
           <property name="text">
-           <string>Maximum velocity </string>
+           <string>Full steps per turn</string>
           </property>
          </widget>
         </item>
@@ -75,39 +78,10 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="timeToVMaxLabel">
+        <item row="7" column="0">
+         <widget class="QLabel" name="negativeEndSwitchLabel">
           <property name="text">
-           <string>Time to max. velocity</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QDoubleSpinBox" name="timeToVMax">
-          <property name="suffix">
-           <string> s</string>
-          </property>
-          <property name="decimals">
-           <number>4</number>
-          </property>
-          <property name="minimum">
-           <double>0.000100000000000</double>
-          </property>
-          <property name="maximum">
-           <double>9.999900000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.001000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.500000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="microstepsLabel">
-          <property name="text">
-           <string>Microsteps</string>
+           <string>Negative end switch is</string>
           </property>
          </widget>
         </item>
@@ -153,46 +127,34 @@
           </item>
          </widget>
         </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="timeToVMaxLabel">
+          <property name="text">
+           <string>Time to max. velocity</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QComboBox" name="positiveEndSwitchComboBox">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Enabled</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Disabled</string>
+           </property>
+          </item>
+         </widget>
+        </item>
         <item row="5" column="0">
          <widget class="QLabel" name="systemClockLabel">
           <property name="text">
            <string>System clock</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QSpinBox" name="systemClock">
-          <property name="suffix">
-           <string> MHz</string>
-          </property>
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>32</number>
-          </property>
-          <property name="value">
-           <number>32</number>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0" colspan="2">
-         <widget class="QCheckBox" name="positiveSwitchCheckBox">
-          <property name="text">
-           <string>Positive end switch enabled</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0" colspan="2">
-         <widget class="QCheckBox" name="negativeSwitchCheckBox">
-          <property name="text">
-           <string>Negative end switch enabled</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -215,10 +177,76 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="iMaxLabel">
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="timeToVMax">
+          <property name="suffix">
+           <string> s</string>
+          </property>
+          <property name="decimals">
+           <number>4</number>
+          </property>
+          <property name="minimum">
+           <double>0.000100000000000</double>
+          </property>
+          <property name="maximum">
+           <double>9.999900000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.001000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.500000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="maxRPMLabel">
           <property name="text">
-           <string>Max. coil current</string>
+           <string>Maximum velocity </string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="positiveSwitchOnOffLabel">
+          <property name="text">
+           <string>Positive end switch is</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="microstepsLabel">
+          <property name="text">
+           <string>Microsteps</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QComboBox" name="negativeEndSwitchComboBox">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>Enabled</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Disabled</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="nStepsPerTurn">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10000</number>
+          </property>
+          <property name="value">
+           <number>200</number>
           </property>
          </widget>
         </item>
@@ -231,12 +259,14 @@
        <zorder>microstepsLabel</zorder>
        <zorder>systemClockLabel</zorder>
        <zorder>systemClock</zorder>
-       <zorder>positiveSwitchCheckBox</zorder>
-       <zorder>negativeSwitchCheckBox</zorder>
        <zorder>microsteps</zorder>
        <zorder>timeToVMax</zorder>
        <zorder>iMax</zorder>
        <zorder>iMaxLabel</zorder>
+       <zorder>positiveSwitchOnOffLabel</zorder>
+       <zorder>positiveEndSwitchComboBox</zorder>
+       <zorder>negativeEndSwitchLabel</zorder>
+       <zorder>negativeEndSwitchComboBox</zorder>
       </widget>
      </item>
      <item>
