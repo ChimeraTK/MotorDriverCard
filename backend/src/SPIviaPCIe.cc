@@ -37,10 +37,6 @@ namespace mtca4u {
 
     // try three times to mitigate effects of a firmware bug
     for(int i = 0; i < 3; ++i) {
-      if(i > 0) {
-        std::cerr << "Warning, SPI handshake timed out. Retrying..." << std::endl;
-      }
-
       // Implement the write handshake
       // 1. write 0xff to the synch register
       _synchronisationRegister = SPI_SYNC_REQUESTED;

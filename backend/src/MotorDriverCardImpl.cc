@@ -1,6 +1,4 @@
 #include <boost/shared_ptr.hpp>
-#include <cerrno>
-#include <ctime>
 #include <sstream>
 #include <stdexcept>
 
@@ -164,7 +162,6 @@ namespace mtca4u {
                    << "Current firmware is 0x" << std::hex << firmwareVersion << ", minumum required version is 0x"
                    << MINIMAL_FIRMWARE_VERSION << ", maximum allowed version is 0x" << maxFirmwareVersion << std::dec
                    << ".";
-      std::cerr << errorMessage.str() << std::endl;
       throw ChimeraTK::runtime_error(errorMessage.str());
     }
   }
