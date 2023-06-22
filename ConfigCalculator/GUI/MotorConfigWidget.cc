@@ -36,11 +36,16 @@ MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
 
   connect(_motorConfigWidgetForm.systemClock, SIGNAL(valueChanged(int)), this, SLOT(recalculateChipParameters()));
 
-  connect(_motorConfigWidgetForm.positiveSwitchCheckBox, SIGNAL(stateChanged(int)), this,
-      SLOT(recalculateChipParameters()));
+  connect(_motorConfigWidgetForm.positiveEndSwitchComboBox,
+          SIGNAL(currentIndexChanged(int)),
+          this,
+          SLOT(recalculateChipParameters()));
 
-  connect(_motorConfigWidgetForm.negativeSwitchCheckBox, SIGNAL(stateChanged(int)), this,
-      SLOT(recalculateChipParameters()));
+  connect(_motorConfigWidgetForm.negativeEndSwitchComboBox,
+          SIGNAL(currentIndexChanged(int)),
+          this,
+          SLOT(recalculateChipParameters()));
+
   connect(
       _motorConfigWidgetForm.motorEnabledCheckBox, SIGNAL(toggled(bool)), this, SLOT(setMotorExpertTabEnabled(bool)));
 }
@@ -133,23 +138,24 @@ void MotorConfigWidget::setMotorEnabled(bool motorEnabled) {
   _motorConfigWidgetForm.motorEnabledCheckBox->setChecked(motorEnabled);
 }
 
-ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig() {
-  if(_motorConfigWidgetForm.positiveSwitchCheckBox->isChecked()) {
-    if(_motorConfigWidgetForm.negativeSwitchCheckBox->isChecked()) {
-      return ConfigCalculator::USE_BOTH;
+ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig()
+{
+  auto negativeEnabled = _motorConfigWidgetForm.negativeEndSwitchComboBox->currentIndex() == 0;
+  auto positiveEnabled = _motorConfigWidgetForm.positiveEndSwitchComboBox->currentIndex() == 0;
+
+  if (positiveEnabled) {
+    if (negativeEnabled) {
+        return ConfigCalculator::USE_BOTH;
     }
-    else {
-      return ConfigCalculator::IGNORE_NEGATIVE;
-    }
+
+    return ConfigCalculator::IGNORE_NEGATIVE;
   }
-  else {
-    if(_motorConfigWidgetForm.negativeSwitchCheckBox->isChecked()) {
-      return ConfigCalculator::IGNORE_POSITIVE;
-    }
-    else {
-      return ConfigCalculator::IGNORE_BOTH;
-    }
+
+  if (negativeEnabled) {
+    return ConfigCalculator::IGNORE_POSITIVE;
   }
+
+  return ConfigCalculator::IGNORE_BOTH;
 }
 
 void MotorConfigWidget::setMotorExpertPanel(ParametersPanel* motorExpertPanel,

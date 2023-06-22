@@ -28,6 +28,24 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
     }
   }
 
+
+  auto horizontalLayout = new QHBoxLayout(this);
+  auto endSwitchConfiguration = new QLabel(this);
+  endSwitchConfiguration->setText("All end switches are active when");
+  horizontalLayout->addWidget(endSwitchConfiguration);
+  auto endSwitchConfigurationCombo = new QComboBox(this);
+  endSwitchConfigurationCombo->insertItem(0, "High (default)");
+  endSwitchConfigurationCombo->insertItem(1, "Low");
+  horizontalLayout->addWidget(endSwitchConfigurationCombo);
+  auto motorTabVerticalLayout = new QVBoxLayout(this);
+  motorTabVerticalLayout->addLayout(horizontalLayout);
+  motorTabVerticalLayout->addWidget(motorTabWidget);
+
+  connect(endSwitchConfigurationCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateCardExpertPanel(int)));
+
+  auto basicConfigurationWidget = new QWidget(this);
+  basicConfigurationWidget->setLayout(motorTabVerticalLayout);
+
   // next: create the expert tab
   expertTabWidget = new QTabWidget(this);
 
@@ -56,7 +74,9 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
     motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget, expertTabWidget, motorID + 1);
   }
 
-  mainTabWidget->addTab(motorTabWidget, "Basic Configuration");
+
+
+  mainTabWidget->addTab(basicConfigurationWidget, "Basic Configuration");
   mainTabWidget->addTab(expertTabWidget, "Expert Settings");
   verticalLayout->addWidget(mainTabWidget);
 
@@ -86,4 +106,12 @@ void QtMotorConfigCalculator::write() {
   }
 
   mtca4u::MotorDriverCardConfigXML::writeSparse(fileName.toStdString(), cardConfig);
+}
+
+void QtMotorConfigCalculator::updateCardExpertPanel(int index)
+{
+  mtca4u::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
+  cardConfig.interfaceConfiguration.setInv_ref(index);
+  cardExpertWidget->setParameter("interfaceConfiguration",
+                                 cardConfig.interfaceConfiguration.getDATA());
 }
