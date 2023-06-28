@@ -250,7 +250,7 @@ namespace mtca4u {
     ADD_VARIABLE(PulseDivider, 12, 15);
 
     /// Constructor to initialise the IDX correctly
-    DividersAndMicroStepResolutionData(unsigned int data = 0) {
+    DividersAndMicroStepResolutionData(unsigned int data = 0U) {
       setIDX_JDX(tmc429::IDX_DIVIDERS_AND_MICRO_STEP_RESOLUTION);
       setDATA(data);
     }

@@ -10,6 +10,7 @@
 #ifndef CHIMERATK_STEPPER_MOTOR_UTIL_H
 #define CHIMERATK_STEPPER_MOTOR_UTIL_H
 
+#include <string>
 namespace ChimeraTK { namespace MotorDriver {
 
   /**
@@ -42,6 +43,8 @@ namespace ChimeraTK { namespace MotorDriver {
    */
   enum class ExitStatus { SUCCESS, ERR_SYSTEM_IN_ACTION, ERR_INVALID_PARAMETER, ERR_SYSTEM_NOT_CALIBRATED };
 
+  std::string toString(ExitStatus& status);
+
   /**
    * Enum class describing errors
    *
@@ -50,12 +53,14 @@ namespace ChimeraTK { namespace MotorDriver {
    */
   enum class Error {
     NO_ERROR = 0,
-    ACTION_ERROR = 1 << 0,
-    CALIBRATION_ERROR = 1 << 1,
-    BOTH_END_SWITCHES_ON = 1 << 2,
-    MOVE_INTERRUPTED = 1 << 3,
-    EMERGENCY_STOP = 1 << 4
+    ACTION_ERROR = 1U << 0,
+    CALIBRATION_ERROR = 1U << 1,
+    BOTH_END_SWITCHES_ON = 1U << 2,
+    MOVE_INTERRUPTED = 1U << 3,
+    EMERGENCY_STOP = 1U << 4
   };
+
+  std::string toString(Error& error);
 
   /// Namespace for utility classes related to the StepperMotor
   namespace utility {

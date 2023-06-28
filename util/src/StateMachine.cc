@@ -6,6 +6,8 @@
  */
 
 #include "StateMachine.h"
+#include "StepperMotorUtil.h"
+#include <cassert>
 
 namespace ChimeraTK { namespace MotorDriver { namespace utility {
 
@@ -83,4 +85,40 @@ namespace ChimeraTK { namespace MotorDriver { namespace utility {
       _requestedState = nullptr;
     }
   }
-}}} // namespace ChimeraTK::MotorDriver::utility
+  }
+  std::string toString(ExitStatus& status) {
+  switch(status) {
+    case ExitStatus::ERR_INVALID_PARAMETER:
+      return "Invalid parameter";
+    case ExitStatus::ERR_SYSTEM_IN_ACTION:
+      return "System in action";
+    case ExitStatus::ERR_SYSTEM_NOT_CALIBRATED:
+      return "System not calibrated";
+    case ExitStatus::SUCCESS:
+      return "Success";
+    default:
+      assert(false);
+      return "Unknown Error";
+  }
+  }
+
+  std::string toString(Error& error) {
+    switch(error) {
+      case Error::ACTION_ERROR:
+        return "Error during action";
+      case Error::NO_ERROR:
+        return "No error";
+      case Error::CALIBRATION_ERROR:
+        return "Calibration error";
+      case Error::BOTH_END_SWITCHES_ON:
+        return "Both endswitches on";
+      case Error::MOVE_INTERRUPTED:
+        return "Movement was interrupted";
+      case Error::EMERGENCY_STOP:
+        return "Emergency stop";
+      default:
+        assert(false);
+        return ("Unknown error");
+    }
+  }
+}} // namespace ChimeraTK::MotorDriver

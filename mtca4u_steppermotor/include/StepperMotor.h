@@ -350,7 +350,7 @@ namespace mtca4u {
      * @param currentInAmps Desired driving current in Amps.
      *
      * @return Current used to drive the motor. This will be in the range
-     *         [05625A, 1.8A] and will be closest to the user requested
+     *         [0.5625A, 1.8A] and will be closest to the user requested
      *         value (but not exceed it).
      */
     double setUserCurrentLimit(double currentInAmps);
