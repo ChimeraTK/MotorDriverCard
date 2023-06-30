@@ -8,11 +8,13 @@
 #include "LinearStepperMotor.h"
 #include "MotorControler.h"
 
+#include <ChimeraTK/Exception.h>
+
 #include <mutex>
 
 static const unsigned wakeupPeriodInMilliseconds = 500U;
 
-namespace ChimeraTK { namespace MotorDriver {
+namespace ChimeraTK::MotorDriver {
 
   using utility::StateMachine;
 
@@ -91,8 +93,11 @@ namespace ChimeraTK { namespace MotorDriver {
 
       _motor._calibrationFailed.exchange(true);
       _motor._calibrationMode.exchange(CalibrationMode::NONE);
+
+      return;
     }
-    else {
+
+    try {
       findEndSwitch(Sign::POSITIVE);
       calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
       findEndSwitch(Sign::NEGATIVE);
@@ -120,9 +125,14 @@ namespace ChimeraTK { namespace MotorDriver {
         _motor.resetMotorControllerPositions(0);
       }
     }
+    catch(ChimeraTK::runtime_error& e) {
+      _motor._calibrationFailed.exchange(true);
+      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
+      _motor._calibrationMode.exchange(CalibrationMode::NONE);
+      std::cerr << "===> Runtime error " << e.what() << std::endl;
+    }
 
     _asyncActionActive.exchange(false);
-    return;
   }
 
   void LinearStepperMotor::StateMachine::findEndSwitch(Sign sign) {
@@ -184,7 +194,6 @@ namespace ChimeraTK { namespace MotorDriver {
       }
     }
     _asyncActionActive.exchange(false);
-    return;
   }
 
   int LinearStepperMotor::StateMachine::getPositionEndSwitch(Sign sign) {
@@ -253,4 +262,4 @@ namespace ChimeraTK { namespace MotorDriver {
 
     return sqrt(stdMeasurement);
   }
-}} // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver
