@@ -129,7 +129,6 @@ namespace ChimeraTK::MotorDriver {
       _motor._calibrationFailed.exchange(true);
       _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
       _motor._calibrationMode.exchange(CalibrationMode::NONE);
-      std::cerr << "===> Runtime error " << e.what() << std::endl;
     }
 
     _asyncActionActive.exchange(false);
@@ -167,32 +166,39 @@ namespace ChimeraTK::MotorDriver {
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
+    try {
     // This makes only sense once the motor is fully calibrated
-    if(_motor._calibrationMode != CalibrationMode::FULL) {
+      if(_motor._calibrationMode != CalibrationMode::FULL) {
+        _motor._toleranceCalculated.exchange(false);
+        _motor._toleranceCalcFailed.exchange(true);
+      }
+      else {
+        _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
+        _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
+
+        if(_stopAction.load()) {
+          _motor._toleranceCalculated.exchange(false);
+        }
+        else if(_moveInterrupted.load()) {
+          _motor._toleranceCalculated.exchange(false);
+          _motor._toleranceCalcFailed.exchange(true);
+
+          // TODO include
+          //        _asyncActionActive.exchange(false);
+          //        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+          _motor._errorMode = Error::CALIBRATION_ERROR;
+          //        return;
+        }
+        else {
+          _motor._toleranceCalculated.exchange(true);
+        }
+      }
+    }
+    catch(ChimeraTK::runtime_error&) {
       _motor._toleranceCalculated.exchange(false);
       _motor._toleranceCalcFailed.exchange(true);
     }
-    else {
-      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
-      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
 
-      if(_stopAction.load()) {
-        _motor._toleranceCalculated.exchange(false);
-      }
-      else if(_moveInterrupted.load()) {
-        _motor._toleranceCalculated.exchange(false);
-        _motor._toleranceCalcFailed.exchange(true);
-
-        // TODO include
-        //        _asyncActionActive.exchange(false);
-        //        _motorControler->setTargetPosition(_motorControler->getActualPosition());
-        _motor._errorMode = Error::CALIBRATION_ERROR;
-        //        return;
-      }
-      else {
-        _motor._toleranceCalculated.exchange(true);
-      }
-    }
     _asyncActionActive.exchange(false);
   }
 
