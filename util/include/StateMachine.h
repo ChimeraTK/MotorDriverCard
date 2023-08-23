@@ -1,12 +1,7 @@
-/*
- * StateMachine.h
- *
- *  Created on: Jan 19, 2017
- *      Author: vitimic
- */
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef INCLUDE_STATEMACHINE_H_
-#define INCLUDE_STATEMACHINE_H_
+#pragma once
 
 #include <atomic>
 #include <functional>
@@ -15,11 +10,12 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 struct StateMachineTestFixture;
 
-namespace ChimeraTK { namespace MotorDriver { namespace utility {
+namespace ChimeraTK::MotorDriver::utility {
 
   /**
    * @brief Base class for a state machine
@@ -33,7 +29,7 @@ namespace ChimeraTK { namespace MotorDriver { namespace utility {
      */
     class Event {
      public:
-      Event(std::string eventName) : _eventName(eventName) {}
+      explicit Event(std::string eventName) : _eventName(std::move(eventName)) {}
       Event() = delete;
 
       friend bool operator<(const Event& event1, const Event& event2);
@@ -77,7 +73,7 @@ namespace ChimeraTK { namespace MotorDriver { namespace utility {
       using TransitionTable = std::map<Event, TransitionData>;
 
      public:
-      State(std::string stateName = "");
+      explicit State(std::string stateName = "");
       virtual ~State();
 
       /**
@@ -94,14 +90,15 @@ namespace ChimeraTK { namespace MotorDriver { namespace utility {
        * StateMachine::performTransition. This callback is performed on each call
        *                           to StateMachine::getCurrentState.
        */
-      void setTransition(Event event, State* target, std::function<void(void)> entryCallback,
+      void setTransition(
+          const Event& event, State* target, std::function<void(void)> entryCallback,
           std::function<void(void)> internalCallback = [] {});
-      const TransitionTable& getTransitionTable() const;
+      [[nodiscard]] const TransitionTable& getTransitionTable() const;
       /**
        * @brief getName
        * @return
        */
-      std::string getName() const;
+      [[nodiscard]] std::string getName() const;
 
      protected:
       std::string _stateName;
@@ -113,7 +110,7 @@ namespace ChimeraTK { namespace MotorDriver { namespace utility {
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine();
     State* getCurrentState();
-    void setAndProcessUserEvent(Event event);
+    void setAndProcessUserEvent(const Event& event);
     Event getUserEvent();
 
    protected:
@@ -126,12 +123,11 @@ namespace ChimeraTK { namespace MotorDriver { namespace utility {
     std::atomic<bool> _asyncActionActive;
     std::function<void(void)> _internalEventCallback;
     std::function<void(void)> _requestedInternalCallback;
-    void performTransition(Event event);
+    void performTransition(const Event& event);
     bool hasRequestedState();
     void moveToRequestedState();
   };
 
   bool operator<(const StateMachine::Event& event1, const StateMachine::Event& event2);
 
-}}}    // namespace ChimeraTK::MotorDriver::utility
-#endif /* INCLUDE_STATEMACHINE_H_ */
+} // namespace ChimeraTK::MotorDriver::utility
