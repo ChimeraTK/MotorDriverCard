@@ -11,20 +11,32 @@
 namespace ChimeraTK::MotorDriver {
   namespace utility {
 
+    /********************************************************************************************************************/
+
     bool operator<(const StateMachine::Event& event1, const StateMachine::Event& event2) {
       return event1._eventName < event2._eventName;
     }
+
+    /********************************************************************************************************************/
 
     StateMachine::State::TransitionData::TransitionData(
         State* target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback)
     : targetState(target), entryCallbackAction(std::move(entryCallback)),
       internalCallbackAction(std::move(internalCallback)) {}
 
+    /********************************************************************************************************************/
+
     StateMachine::State::TransitionData::TransitionData(const State::TransitionData& targetAndAction) = default;
+
+    /********************************************************************************************************************/
 
     StateMachine::State::State(std::string stateName) : _stateName(std::move(stateName)) {}
 
+    /********************************************************************************************************************/
+
     StateMachine::State::~State() = default;
+
+    /********************************************************************************************************************/
 
     void StateMachine::State::setTransition(const Event& event, State* target, std::function<void(void)> entryCallback,
         std::function<void(void)> internalCallback) {
@@ -32,19 +44,29 @@ namespace ChimeraTK::MotorDriver {
       _transitionTable.insert({event, transitionData});
     }
 
+    /********************************************************************************************************************/
+
     const StateMachine::State::TransitionTable& StateMachine::State::getTransitionTable() const {
       return _transitionTable;
     }
+
+    /********************************************************************************************************************/
 
     std::string StateMachine::State::getName() const {
       return _stateName;
     }
 
+    /********************************************************************************************************************/
+
     StateMachine::StateMachine()
     : _initState("initState"), _endState("endState"), _currentState(&_initState), _requestedState(nullptr),
       _asyncActionActive(false), _internalEventCallback([] {}), _requestedInternalCallback([] {}) {}
 
+    /********************************************************************************************************************/
+
     StateMachine::~StateMachine() = default;
+
+    /********************************************************************************************************************/
 
     StateMachine::State* StateMachine::getCurrentState() {
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
@@ -53,10 +75,14 @@ namespace ChimeraTK::MotorDriver {
       return _currentState;
     }
 
+    /********************************************************************************************************************/
+
     void StateMachine::setAndProcessUserEvent(const Event& event) {
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
       performTransition(event);
     }
+
+    /********************************************************************************************************************/
 
     void StateMachine::performTransition(const Event& event) {
       auto const& transitionTable = _currentState->getTransitionTable();
@@ -67,17 +93,19 @@ namespace ChimeraTK::MotorDriver {
 
         // Apply new state right away, if no async action active
         if(!_asyncActionActive.load()) {
-          _currentState = _requestedState;
-          _requestedState = nullptr;
-          _internalEventCallback = _requestedInternalCallback;
+          moveToRequestedState();
         }
         (it->second).entryCallbackAction();
       }
     }
 
+    /********************************************************************************************************************/
+
     bool StateMachine::hasRequestedState() {
       return _requestedState != nullptr;
     }
+
+    /********************************************************************************************************************/
 
     void StateMachine::moveToRequestedState() {
       if(_requestedState != nullptr) {
@@ -87,6 +115,8 @@ namespace ChimeraTK::MotorDriver {
       }
     }
   } // namespace utility
+
+  /********************************************************************************************************************/
 
   std::string toString(ExitStatus& status) {
     switch(status) {
@@ -103,6 +133,8 @@ namespace ChimeraTK::MotorDriver {
         return "Unknown Error";
     }
   }
+
+  /********************************************************************************************************************/
 
   std::string toString(Error& error) {
     switch(error) {

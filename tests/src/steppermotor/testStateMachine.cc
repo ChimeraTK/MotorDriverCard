@@ -15,7 +15,7 @@ using namespace ChimeraTK::MotorDriver::utility;
 class DerivedStateMachine : public StateMachine {
  public:
   DerivedStateMachine();
-  ~DerivedStateMachine();
+  ~DerivedStateMachine() override;
 
  protected:
   static StateMachine::Event initEvent;

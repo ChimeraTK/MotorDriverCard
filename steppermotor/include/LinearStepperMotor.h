@@ -171,7 +171,7 @@ namespace ChimeraTK { namespace MotorDriver {
 
     /// Loads end switch calibration from the HW and sets the calibration mode
     /// accordingly.
-    virtual void loadEndSwitchCalibration();
+    void loadEndSwitchCalibration();
 
     /// True if end switch is activated, checks for error
     bool isEndSwitchActive(Sign sign);

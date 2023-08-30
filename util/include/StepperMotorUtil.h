@@ -65,6 +65,8 @@ namespace ChimeraTK { namespace MotorDriver {
   /// Namespace for utility classes related to the StepperMotor
   namespace utility {
 
+    bool checkIfOverflow(int termA, int termB);
+
     /**
      * @brief A generic abstract units converter between an integer value (steps)\n
      *        and a user-defined unit.
@@ -137,6 +139,8 @@ namespace ChimeraTK { namespace MotorDriver {
     using EncoderStepsConverter = UnitsConverter<double>;
     using ScalingEncoderStepsConverter = ScalingUnitsConverter<double>;
     using EncoderStepsConverterTrivia = UnitsConverterTrivia<double>;
+
+
   } // namespace utility
 
 }}     // namespace ChimeraTK::MotorDriver

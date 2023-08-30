@@ -35,7 +35,7 @@ namespace ChimeraTK { namespace MotorDriver {
     loadEndSwitchCalibration();
   }
 
-  LinearStepperMotor::~LinearStepperMotor() {}
+  LinearStepperMotor::~LinearStepperMotor() = default;
 
   bool LinearStepperMotor::motorActive() {
     std::string stateName = _stateMachine->getCurrentState()->getName();
@@ -88,14 +88,13 @@ namespace ChimeraTK { namespace MotorDriver {
 
     // If motor has been calibrated, translate also end switch positions
     if(this->_calibrationMode.load() == CalibrationMode::FULL) {
-      if(checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
-          checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps)) {
+      if(utility::checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
+          utility::checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps)) {
         return ExitStatus::ERR_INVALID_PARAMETER;
       }
-      else {
-        _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
-        _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
-      }
+
+      _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
+      _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
     }
     return ExitStatus::SUCCESS;
   }
@@ -237,6 +236,9 @@ namespace ChimeraTK { namespace MotorDriver {
     bool posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
     bool negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
 
+    std::cerr << "iesa (" << _motorControler->getID() << ")" << (int) sign << " " << posActive
+              << " " << negActive << std::endl;
+
     if(posActive && negActive) {
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
@@ -258,20 +260,9 @@ namespace ChimeraTK { namespace MotorDriver {
     }
 
     if(sign == Sign::POSITIVE) {
-      if(posActive) {
-        return true;
-      }
-      else {
-        return false;
-      }
+      return posActive;
     }
-    else {
-      if(negActive) {
-        return true;
-      }
-      else {
-        return false;
-      }
-    }
+
+    return negActive;
   }
 }} // namespace ChimeraTK::MotorDriver
