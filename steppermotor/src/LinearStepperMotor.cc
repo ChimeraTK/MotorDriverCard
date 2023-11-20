@@ -236,9 +236,6 @@ namespace ChimeraTK { namespace MotorDriver {
     bool posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
     bool negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
 
-    std::cerr << "iesa (" << _motorControler->getID() << ")" << (int) sign << " " << posActive
-              << " " << negActive << std::endl;
-
     if(posActive && negActive) {
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
