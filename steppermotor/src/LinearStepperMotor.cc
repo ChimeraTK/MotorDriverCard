@@ -240,6 +240,13 @@ namespace ChimeraTK { namespace MotorDriver {
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
     }
+    else {
+      // The error mode was BOTH_END_SWITCHES_ON, reset the error mode. Otherwise this will stick unless the application
+      // is re-started.
+      auto expected = Error::BOTH_END_SWITCHES_ON;
+      auto replace = Error::NO_ERROR;
+      _errorMode.compare_exchange_strong(expected, replace);
+    }
 
     if(_toleranceCalculated) {
       if(posActive) {
