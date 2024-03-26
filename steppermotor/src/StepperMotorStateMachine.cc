@@ -45,8 +45,6 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::waitForStandstill() {
-    std::cout << "waitForStandstill called..." << std::endl;
-
     if(!_motorControler->isMotorMoving()) {
       _asyncActionActive.exchange(false);
 
