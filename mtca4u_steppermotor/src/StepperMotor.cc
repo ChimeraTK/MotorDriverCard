@@ -1,17 +1,19 @@
 #include "StepperMotor.h"
+
 #include "MotorDriverCardFactory.h"
+
+#include <ChimeraTK/Exception.h>
+
 #include <chrono>
 #include <cmath>
 #include <future>
 
-#include <ChimeraTK/Exception.h>
+namespace logging = ChimeraTK::MotorDriverCardDetail;
 
 namespace mtca4u {
 
-  StepperMotor::StepperMotor(std::string const& motorDriverCardDeviceName,
-      std::string const& moduleName,
-      unsigned int motorDriverId,
-      std::string motorDriverCardConfigFileName)
+  StepperMotor::StepperMotor(std::string const& motorDriverCardDeviceName, std::string const& moduleName,
+      unsigned int motorDriverId, std::string motorDriverCardConfigFileName)
   : _motorDriverCardDeviceName(motorDriverCardDeviceName), _motorDriverId(motorDriverId),
     _motorDriverCard(MotorDriverCardFactory::instance().createMotorDriverCard(
         motorDriverCardDeviceName, moduleName, motorDriverCardConfigFileName)),
@@ -136,11 +138,17 @@ namespace mtca4u {
   // GETTERS AND SETTERS
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  StepperMotorCalibrationStatus StepperMotor::getCalibrationStatus() { return _motorCalibrationStatus; }
+  StepperMotorCalibrationStatus StepperMotor::getCalibrationStatus() {
+    return _motorCalibrationStatus;
+  }
 
-  void StepperMotor::setSoftwareLimitsEnabled(bool newVal) { _softwareLimitsEnabled = newVal; }
+  void StepperMotor::setSoftwareLimitsEnabled(bool newVal) {
+    _softwareLimitsEnabled = newVal;
+  }
 
-  bool StepperMotor::getSoftwareLimitsEnabled() const { return _softwareLimitsEnabled; }
+  bool StepperMotor::getSoftwareLimitsEnabled() const {
+    return _softwareLimitsEnabled;
+  }
 
   void StepperMotor::setCurrentPositionAs(float newPosition) {
     setCurrentPositionInStepsAs(recalculateUnitsToSteps(newPosition));
@@ -172,13 +180,21 @@ namespace mtca4u {
     }
   }
 
-  float StepperMotor::getTargetPosition() { return this->recalculateStepsToUnits(_targetPositionInSteps); }
+  float StepperMotor::getTargetPosition() {
+    return this->recalculateStepsToUnits(_targetPositionInSteps);
+  }
 
-  int StepperMotor::getTargetPositionInSteps() { return _targetPositionInSteps; }
+  int StepperMotor::getTargetPositionInSteps() {
+    return _targetPositionInSteps;
+  }
 
-  float StepperMotor::getCurrentPosition() { return this->recalculateStepsToUnits(getCurrentPositionInSteps()); }
+  float StepperMotor::getCurrentPosition() {
+    return this->recalculateStepsToUnits(getCurrentPositionInSteps());
+  }
 
-  int StepperMotor::getCurrentPositionInSteps() { return (_motorControler->getActualPosition()); }
+  int StepperMotor::getCurrentPositionInSteps() {
+    return (_motorControler->getActualPosition());
+  }
 
   void StepperMotor::setStepperMotorUnitsConverter(
       boost::shared_ptr<StepperMotorUnitsConverter> stepperMotorUnitsConverter) {
@@ -192,27 +208,49 @@ namespace mtca4u {
     _stepperMotorUnitsConverter.reset(new StepperMotorUnitsConverterTrivia);
   }
 
-  double StepperMotor::setUserSpeedLimit(double newSpeed) { return _motorControler->setUserSpeedLimit(newSpeed); }
+  double StepperMotor::setUserSpeedLimit(double newSpeed) {
+    return _motorControler->setUserSpeedLimit(newSpeed);
+  }
 
-  void StepperMotor::setMaxPositionLimit(float maxPos) { setMaxPositionLimitInSteps(recalculateUnitsToSteps(maxPos)); }
+  void StepperMotor::setMaxPositionLimit(float maxPos) {
+    setMaxPositionLimitInSteps(recalculateUnitsToSteps(maxPos));
+  }
 
-  void StepperMotor::setMaxPositionLimitInSteps(int maxPosInSteps) { _maxPositionLimitInSteps = maxPosInSteps; }
+  void StepperMotor::setMaxPositionLimitInSteps(int maxPosInSteps) {
+    _maxPositionLimitInSteps = maxPosInSteps;
+  }
 
-  void StepperMotor::setMinPositionLimit(float minPos) { setMinPositionLimitInSteps(recalculateUnitsToSteps(minPos)); }
+  void StepperMotor::setMinPositionLimit(float minPos) {
+    setMinPositionLimitInSteps(recalculateUnitsToSteps(minPos));
+  }
 
-  void StepperMotor::setMinPositionLimitInSteps(int minPosInStep) { _minPositionLimitInSteps = minPosInStep; }
+  void StepperMotor::setMinPositionLimitInSteps(int minPosInStep) {
+    _minPositionLimitInSteps = minPosInStep;
+  }
 
-  float StepperMotor::getMaxPositionLimit() { return recalculateStepsToUnits(_maxPositionLimitInSteps); }
+  float StepperMotor::getMaxPositionLimit() {
+    return recalculateStepsToUnits(_maxPositionLimitInSteps);
+  }
 
-  int StepperMotor::getMaxPositionLimitInSteps() { return _maxPositionLimitInSteps; }
+  int StepperMotor::getMaxPositionLimitInSteps() {
+    return _maxPositionLimitInSteps;
+  }
 
-  float StepperMotor::getMinPositionLimit() { return recalculateStepsToUnits(_minPositionLimitInSteps); }
+  float StepperMotor::getMinPositionLimit() {
+    return recalculateStepsToUnits(_minPositionLimitInSteps);
+  }
 
-  int StepperMotor::getMinPositionLimitInSteps() { return _minPositionLimitInSteps; }
+  int StepperMotor::getMinPositionLimitInSteps() {
+    return _minPositionLimitInSteps;
+  }
 
-  StepperMotorStatusAndError StepperMotor::getStatusAndError() { return determineMotorStatusAndError(); }
+  StepperMotorStatusAndError StepperMotor::getStatusAndError() {
+    return determineMotorStatusAndError();
+  }
 
-  bool StepperMotor::getAutostart() { return _autostartFlag; }
+  bool StepperMotor::getAutostart() {
+    return _autostartFlag;
+  }
 
   void StepperMotor::setAutostart(bool autostart) {
     _autostartFlag = autostart;
@@ -237,29 +275,45 @@ namespace mtca4u {
     return (_motorControler->isEndSwitchPowerEnabled() || _motorControler->isMotorCurrentEnabled());
   }
 
-  void StepperMotor::setLogLevel(Logger::LogLevel newLevel) { _logger.setLogLevel(newLevel); }
+  void StepperMotor::setLogLevel(logging::Logger::LogLevel newLevel) {
+    _logger.setLogLevel(newLevel);
+  }
 
-  Logger::LogLevel StepperMotor::getLogLevel() { return _logger.getLogLevel(); }
+  logging::Logger::LogLevel StepperMotor::getLogLevel() {
+    return _logger.getLogLevel();
+  }
 
-  double StepperMotor::getMaxSpeedCapability() { return _motorControler->getMaxSpeedCapability(); }
+  double StepperMotor::getMaxSpeedCapability() {
+    return _motorControler->getMaxSpeedCapability();
+  }
 
   double StepperMotor::setUserCurrentLimit(double currentInAmps) {
     return (_motorControler->setUserCurrentLimit(currentInAmps));
   }
 
-  double StepperMotor::getUserCurrentLimit() { return (_motorControler->getUserCurrentLimit()); }
+  double StepperMotor::getUserCurrentLimit() {
+    return (_motorControler->getUserCurrentLimit());
+  }
 
-  double StepperMotor::getSafeCurrentLimit() { return (_motorControler->getMaxCurrentLimit()); }
+  double StepperMotor::getSafeCurrentLimit() {
+    return (_motorControler->getMaxCurrentLimit());
+  }
 
-  double StepperMotor::getUserSpeedLimit() { return (_motorControler->getUserSpeedLimit()); }
+  double StepperMotor::getUserSpeedLimit() {
+    return (_motorControler->getUserSpeedLimit());
+  }
 
   //  unsigned int StepperMotor::getMicroStepCount(){
   //    return _motorControler->getMicroStepCount();
   //  }
 
-  void StepperMotor::enableFullStepping(bool enable) { _motorControler->enableFullStepping(enable); }
+  void StepperMotor::enableFullStepping(bool enable) {
+    _motorControler->enableFullStepping(enable);
+  }
 
-  bool StepperMotor::isFullStepping() { return _motorControler->isFullStepping(); }
+  bool StepperMotor::isFullStepping() {
+    return _motorControler->isFullStepping();
+  }
 
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // END OF GETTERS AND SETTERS

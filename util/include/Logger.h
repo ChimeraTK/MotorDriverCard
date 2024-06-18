@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-namespace ChimeraTK {
+namespace ChimeraTK { namespace MotorDriverCardDetail {
 
   /**
    * Logger class which provides logging feature with 5 different logging levels.
@@ -167,8 +167,7 @@ namespace ChimeraTK {
 
   extern Logger _logstdout__;
   extern Logger _logstderr__;
-
-} // namespace ChimeraTK
+}} // namespace ChimeraTK::MotorDriverCardDetail
 
 namespace mtca4u {
   using namespace ChimeraTK;
