@@ -1,9 +1,9 @@
+#include "Logger.h"
+
 #include <iosfwd>
 #include <sstream>
 
-#include "Logger.h"
-
-namespace ChimeraTK {
+namespace ChimeraTK { namespace MotorDriverCardDetail {
 
   Logger _logstdout__(Logger::NO_LOGGING, std::cout);
   Logger _logstderr__(Logger::NO_LOGGING, std::cerr);
@@ -14,9 +14,13 @@ namespace ChimeraTK {
 
   Logger::~Logger() {}
 
-  void Logger::setLogLevel(Logger::LogLevel level) { _logLevel = level; }
+  void Logger::setLogLevel(Logger::LogLevel level) {
+    _logLevel = level;
+  }
 
-  Logger::LogLevel Logger::getLogLevel() const { return _logLevel; }
+  Logger::LogLevel Logger::getLogLevel() const {
+    return _logLevel;
+  }
 
   std::ostream& operator<<(std::ostream& out, const Logger& loger) {
     out << "Current logging level: " << loger._logLevel;
@@ -31,7 +35,9 @@ namespace ChimeraTK {
       return _nullStream;
   }
 
-  std::ostream& Logger::operator()() { return _loggingStream; }
+  std::ostream& Logger::operator()() {
+    return _loggingStream;
+  }
 
   const Logger::LogLevel Logger::NO_LOGGING(0);
   const Logger::LogLevel Logger::ERROR(1);
@@ -48,9 +54,13 @@ namespace ChimeraTK {
     return out;
   }
 
-  Logger::LogLevel::operator unsigned int() const { return _level; }
+  Logger::LogLevel::operator unsigned int() const {
+    return _level;
+  }
 
-  Logger::LogLevel::operator std::string() const { return asString(); }
+  Logger::LogLevel::operator std::string() const {
+    return asString();
+  }
 
   std::string Logger::LogLevel::asString() const {
     std::ostringstream stream;
@@ -89,4 +99,4 @@ namespace ChimeraTK {
     }
     return true;
   }
-} // namespace ChimeraTK
+}} // namespace ChimeraTK::MotorDriverCardDetail

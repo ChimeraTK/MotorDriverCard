@@ -1,8 +1,12 @@
 
 
 #include "LinearStepperMotor.h"
+#include "Logger.h"
+
 #include <ChimeraTK/BackendFactory.h>
+
 #include <boost/lexical_cast.hpp>
+
 #include <fstream>
 #include <pthread.h>
 #include <string>
@@ -77,7 +81,7 @@ int main(int argc, char* argv[]) {
   mtca4u::LinearStepperMotor motor(deviceName, moduleName, motorDriverId, configFileNameName);
 
   std::cout << "Change debug stream to the std::cout \n";
-  motor.setLogLevel(mtca4u::Logger::INFO);
+  motor.setLogLevel(ChimeraTK::MotorDriverCardDetail::Logger::INFO);
 
   mtca4u::LinearStepperMotorStatus status(motor.getStatusAndError().status);
   std::cout << "Current motor status is: " << status << "\n";
