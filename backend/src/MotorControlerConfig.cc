@@ -1,4 +1,5 @@
 #include "MotorControlerConfig.h"
+
 #include "MotorControler.h"
 #include "MotorControlerConfigDefaults.h"
 
@@ -33,5 +34,7 @@ namespace mtca4u {
         (targetVelocity == right.targetVelocity) && (driverSpiWaitingTime == right.driverSpiWaitingTime));
   }
 
-  bool MotorControlerConfig::operator!=(MotorControlerConfig const& right) const { return !(*this == right); }
+  bool MotorControlerConfig::operator!=(MotorControlerConfig const& right) const {
+    return !(*this == right);
+  }
 } // namespace mtca4u

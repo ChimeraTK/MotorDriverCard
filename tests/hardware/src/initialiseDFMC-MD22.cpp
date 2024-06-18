@@ -1,8 +1,9 @@
-#include <iostream>
-
 #include "MotorDriverCardFactory.h"
+
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/DMapFileParser.h>
+
+#include <iostream>
 #include <unistd.h>
 
 using namespace mtca4u;

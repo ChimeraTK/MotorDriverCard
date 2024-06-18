@@ -1,4 +1,5 @@
 #include "getParameters.h"
+
 #include "ParametersPanel.h"
 
 // simple data types and MultiVariableWord have different syntax

@@ -30,19 +30,14 @@ namespace mtca4u {
      * this class, so the SPIviaPCIe always stays valid, even if the original
      * shared pointer goes out of scope.
      */
-    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device,
-        std::string const& moduleName,
-        std::string const& writeRegisterName,
-        std::string const& syncRegisterName,
+    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+        std::string const& writeRegisterName, std::string const& syncRegisterName,
         unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
 
     /// Constructor for write and readback.
-    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device,
-        std::string const& moduleName,
-        std::string const& writeRegisterName,
-        std::string const& syncRegisterName,
-        std::string const& readbackRegisterName,
-        unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
+    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+        std::string const& writeRegisterName, std::string const& syncRegisterName,
+        std::string const& readbackRegisterName, unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
 
     uint32_t read(int32_t spiCommand); ///< Write the command and return the readback value.
 

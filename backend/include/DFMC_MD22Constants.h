@@ -1,9 +1,9 @@
 #ifndef MTCA4U_DMFC_MD22_CONSTANTS_H
 #define MTCA4U_DMFC_MD22_CONSTANTS_H
 
-#include <boost/lexical_cast.hpp>
-
 #include "TMC429Constants.h"
+
+#include <boost/lexical_cast.hpp>
 
 namespace mtca4u { namespace dfmc_md22 {
 
@@ -45,7 +45,7 @@ namespace mtca4u { namespace dfmc_md22 {
   std::string const ENDSWITCH_ENABLE_SUFFIX = "VOLTAGE_EN";
   std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
   std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
-  std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME"; // Added as support for newer FW > r2591
+  std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME";          // Added as support for newer FW > r2591
   std::string const END_SWITCH_POSITIVE_SUFFIX = "CAL_END_SW_POS"; // Added as support for newer FW > r2591
   std::string const END_SWITCH_NEGATIVE_SUFFIX = "CAL_END_SW_NEG"; // Added as support for newer FW > r2591
 

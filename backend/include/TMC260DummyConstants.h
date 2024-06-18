@@ -2,6 +2,7 @@
 #define MTCA4U_TMC260_DUMMY_CONSTANTS_H
 
 #include "MultiVariableWord.h"
+
 #include <stdint.h>
 
 namespace mtca4u { namespace tmc260 {

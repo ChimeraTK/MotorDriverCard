@@ -10,13 +10,21 @@ namespace mtca4u {
 
   MultiVariableWord::~MultiVariableWord() {}
 
-  unsigned int MultiVariableWord::getDataWord() const { return _dataWord; }
+  unsigned int MultiVariableWord::getDataWord() const {
+    return _dataWord;
+  }
 
-  void MultiVariableWord::setDataWord(unsigned int dataWord) { _dataWord = dataWord; }
+  void MultiVariableWord::setDataWord(unsigned int dataWord) {
+    _dataWord = dataWord;
+  }
 
-  bool MultiVariableWord::operator==(MultiVariableWord const& right) const { return _dataWord == right._dataWord; }
+  bool MultiVariableWord::operator==(MultiVariableWord const& right) const {
+    return _dataWord == right._dataWord;
+  }
 
-  bool MultiVariableWord::operator!=(MultiVariableWord const& right) const { return _dataWord != right._dataWord; }
+  bool MultiVariableWord::operator!=(MultiVariableWord const& right) const {
+    return _dataWord != right._dataWord;
+  }
 
   unsigned int MultiVariableWord::getSubWord(unsigned int outputMask, unsigned char offset) const {
     return (_dataWord & outputMask) >> offset;

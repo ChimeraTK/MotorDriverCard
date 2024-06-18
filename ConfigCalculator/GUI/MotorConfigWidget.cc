@@ -1,11 +1,12 @@
 #include "MotorConfigWidget.h"
+
 #include "getParameters.h"
+
 #include <cmath>
 #include <list>
+#include <QMessageBox>
 #include <stdexcept>
 #include <string>
-
-#include <QMessageBox>
 
 MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
 : QWidget(parent_),
@@ -36,15 +37,11 @@ MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
 
   connect(_motorConfigWidgetForm.systemClock, SIGNAL(valueChanged(int)), this, SLOT(recalculateChipParameters()));
 
-  connect(_motorConfigWidgetForm.positiveEndSwitchComboBox,
-          SIGNAL(currentIndexChanged(int)),
-          this,
-          SLOT(recalculateChipParameters()));
+  connect(_motorConfigWidgetForm.positiveEndSwitchComboBox, SIGNAL(currentIndexChanged(int)), this,
+      SLOT(recalculateChipParameters()));
 
-  connect(_motorConfigWidgetForm.negativeEndSwitchComboBox,
-          SIGNAL(currentIndexChanged(int)),
-          this,
-          SLOT(recalculateChipParameters()));
+  connect(_motorConfigWidgetForm.negativeEndSwitchComboBox, SIGNAL(currentIndexChanged(int)), this,
+      SLOT(recalculateChipParameters()));
 
   connect(
       _motorConfigWidgetForm.motorEnabledCheckBox, SIGNAL(toggled(bool)), this, SLOT(setMotorExpertTabEnabled(bool)));
@@ -99,8 +96,7 @@ void MotorConfigWidget::updateChipParameters() {
 
   QString warningText;
   for(std::list<std::string>::const_iterator warningIter = _chipParameters.warnings.begin();
-      warningIter != _chipParameters.warnings.end();
-      ++warningIter) {
+      warningIter != _chipParameters.warnings.end(); ++warningIter) {
     warningText += QString(warningIter->c_str()) + "\n";
   }
 
@@ -138,29 +134,27 @@ void MotorConfigWidget::setMotorEnabled(bool motorEnabled) {
   _motorConfigWidgetForm.motorEnabledCheckBox->setChecked(motorEnabled);
 }
 
-ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig()
-{
+ConfigCalculator::EndSwitchConfig MotorConfigWidget::getEndSwitchConfig() {
   auto negativeEnabled = _motorConfigWidgetForm.negativeEndSwitchComboBox->currentIndex() == 0;
   auto positiveEnabled = _motorConfigWidgetForm.positiveEndSwitchComboBox->currentIndex() == 0;
 
-  if (positiveEnabled) {
-    if (negativeEnabled) {
-        return ConfigCalculator::USE_BOTH;
+  if(positiveEnabled) {
+    if(negativeEnabled) {
+      return ConfigCalculator::USE_BOTH;
     }
 
     return ConfigCalculator::IGNORE_NEGATIVE;
   }
 
-  if (negativeEnabled) {
+  if(negativeEnabled) {
     return ConfigCalculator::IGNORE_POSITIVE;
   }
 
   return ConfigCalculator::IGNORE_BOTH;
 }
 
-void MotorConfigWidget::setMotorExpertPanel(ParametersPanel* motorExpertPanel,
-    QTabWidget* expertTabWidget,
-    int tabIndex) {
+void MotorConfigWidget::setMotorExpertPanel(
+    ParametersPanel* motorExpertPanel, QTabWidget* expertTabWidget, int tabIndex) {
   _motorExpertPanel = motorExpertPanel;
   _expertTabWidget = expertTabWidget;
   _tabIndex = tabIndex;

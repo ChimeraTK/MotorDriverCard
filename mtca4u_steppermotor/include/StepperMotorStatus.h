@@ -9,6 +9,7 @@
 #define STEPPER_MOTOR_STATUS_H
 
 #include "GeneralStatus.h"
+
 #include <string>
 
 namespace mtca4u {

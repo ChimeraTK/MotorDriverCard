@@ -1,14 +1,14 @@
 #include "ConfigCalculator.h"
 
-#include <stdexcept>
-
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 
+#include <stdexcept>
+
 using namespace mtca4u;
 
-MotorControlerConfig ConfigCalculator::calculateConfig(ParametersCalculator::ChipParameters const& chipParameters,
-    EndSwitchConfig const& endSwitchConfig) {
+MotorControlerConfig ConfigCalculator::calculateConfig(
+    ParametersCalculator::ChipParameters const& chipParameters, EndSwitchConfig const& endSwitchConfig) {
   // the return value
   MotorControlerConfig motorControlerConfig;
 

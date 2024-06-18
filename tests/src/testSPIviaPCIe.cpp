@@ -1,18 +1,18 @@
-#include <sstream>
-
 #include <boost/test/included/unit_test.hpp>
+
+#include <sstream>
 using namespace boost::unit_test_framework;
 
 #include "ChimeraTK/BackendFactory.h"
 #include "DFMC_MD22Constants.h"
 #include "DFMC_MD22Dummy.h"
+#include "impl/SPIviaPCIe.h"
+#include "testConfigConstants.h"
 #include "TMC260Words.h"
 #include "TMC429Words.h"
-#include "impl/SPIviaPCIe.h"
+
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
-
-#include "testConfigConstants.h"
 
 class SPIviaPCIeTest {
  public:
@@ -58,7 +58,7 @@ class SPIviaPCIeTestSuite : public test_suite {
   }
 };
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "SPIviaPCIe test suite";
   return new SPIviaPCIeTestSuite(MODULE_NAME_0);
 }

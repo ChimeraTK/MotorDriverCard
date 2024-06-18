@@ -3,8 +3,8 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include "TMC429Words.h"
 #include "createOutputMaskUsingSetterGetter.h"
+#include "TMC429Words.h"
 using namespace mtca4u;
 using namespace mtca4u::tmc429;
 

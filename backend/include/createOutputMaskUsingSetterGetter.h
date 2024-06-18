@@ -10,8 +10,8 @@ namespace mtca4u {
    * setter function with this larges possible input word.
    */
   template<class T>
-  unsigned int createOutputMaskUsingSetterGetter(void (T::*setterFunction)(unsigned int),
-      unsigned int (T::*getterFunction)() const) {
+  unsigned int createOutputMaskUsingSetterGetter(
+      void (T::*setterFunction)(unsigned int), unsigned int (T::*getterFunction)() const) {
     T t_max;
     t_max.setDataWord(0xFFFFFFFF); // this basically turns the data word invalid
                                    // because the register bits are all 1

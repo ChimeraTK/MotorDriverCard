@@ -140,7 +140,6 @@ namespace ChimeraTK { namespace MotorDriver {
     using ScalingEncoderStepsConverter = ScalingUnitsConverter<double>;
     using EncoderStepsConverterTrivia = UnitsConverterTrivia<double>;
 
-
   } // namespace utility
 
 }}     // namespace ChimeraTK::MotorDriver

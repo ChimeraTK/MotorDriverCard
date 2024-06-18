@@ -2,6 +2,7 @@
 #define MTCA4U_MOTOR_CONTROLER_DUMMY_H
 
 #include "MotorControler.h"
+
 #include <atomic>
 #include <mutex>
 

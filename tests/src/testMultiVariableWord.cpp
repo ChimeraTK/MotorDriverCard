@@ -1,6 +1,6 @@
-#include <sstream>
-
 #include <boost/test/included/unit_test.hpp>
+
+#include <sstream>
 using namespace boost::unit_test_framework;
 
 #include "MultiVariableWord.h"
@@ -112,10 +112,8 @@ class MultiVariableWordTest {
   void testSetSubWordWithPattern(unsigned int initalDataWord, unsigned int first, unsigned int second,
       unsigned int third, unsigned int expectedDataWord);
 
-  void testGetSubWordWithPattern(unsigned int dataWord,
-      unsigned int expectedFirst,
-      unsigned int expectedSecond,
-      unsigned int expectedThird);
+  void testGetSubWordWithPattern(
+      unsigned int dataWord, unsigned int expectedFirst, unsigned int expectedSecond, unsigned int expectedThird);
 };
 
 template<class T>
@@ -149,7 +147,7 @@ class MultiVariableWordTestSuite : public test_suite {
   }
 };
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MultiVariableWordTest";
 
   framework::master_test_suite().add(

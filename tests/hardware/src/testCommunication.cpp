@@ -1,11 +1,12 @@
-#include <iostream>
-
 #include "MotorControlerExpert.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
+
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/DMapFileParser.h>
+
 #include <ctime>
+#include <iostream>
 #include <unistd.h>
 
 using namespace mtca4u;

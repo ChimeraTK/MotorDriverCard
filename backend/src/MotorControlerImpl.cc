@@ -6,7 +6,9 @@ using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
 
 #include "impl/MotorDriverCardImpl.h"
+
 #include <ChimeraTK/Device.h>
+
 #include <cmath>
 
 // just save some typing...
@@ -94,8 +96,7 @@ namespace mtca4u {
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
     _calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)},
     _endSwitchPositive{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_POSITIVE_SUFFIX)},
-    _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)},
-    _endSwitchPowerIndicator{},
+    _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)}, _endSwitchPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
     _controlerSPI(controlerSPI), converter24bits(24), converter12bits(12), _moveOnlyFullStep(false),
@@ -236,9 +237,13 @@ namespace mtca4u {
     return isMotorCurrentEnabled();
   }
 
-  void MotorControlerImpl::enableFullStepping(bool enable) { _moveOnlyFullStep = enable; }
+  void MotorControlerImpl::enableFullStepping(bool enable) {
+    _moveOnlyFullStep = enable;
+  }
 
-  bool MotorControlerImpl::isFullStepping() { return _moveOnlyFullStep; }
+  bool MotorControlerImpl::isFullStepping() {
+    return _moveOnlyFullStep;
+  }
 
   // DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION,
   // converter24bits )

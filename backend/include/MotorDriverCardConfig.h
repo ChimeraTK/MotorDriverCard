@@ -1,10 +1,10 @@
 #ifndef MOTOR_DRIVER_CARD_CONFIG_H
 #define MOTOR_DRIVER_CARD_CONFIG_H
 
-#include <vector>
-
 #include "MotorControlerConfig.h"
 #include "TMC429Words.h"
+
+#include <vector>
 
 namespace mtca4u {
 

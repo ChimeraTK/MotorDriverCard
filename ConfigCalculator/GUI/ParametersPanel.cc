@@ -1,4 +1,5 @@
 #include "ParametersPanel.h"
+
 #include "ParameterWidget.h"
 
 #include <iostream>
@@ -23,9 +24,8 @@ ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parameter
   outerVerticalLayout->addWidget(asteriskLabel);
 }
 
-void ParametersPanel::addParameter(std::string const& parameterName,
-    uint32_t defaultValue,
-    std::string additionalText) {
+void ParametersPanel::addParameter(
+    std::string const& parameterName, uint32_t defaultValue, std::string additionalText) {
   parametersMap[parameterName] = new ParameterWidget(this, parameterName + " " + additionalText, defaultValue);
 
   verticalLayout->addWidget(parametersMap[parameterName]);

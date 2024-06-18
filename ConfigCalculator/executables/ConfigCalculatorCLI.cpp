@@ -1,9 +1,8 @@
 #include "ConfigCalculator.h"
-
-#include <iostream>
-
 #include "MotorDriverCardConfig.h"
 #include "MotorDriverCardConfigXML.h"
+
+#include <iostream>
 
 int main(int argc, char* argv[]) {
   if((argc < 5) || (argc > 8)) {
@@ -64,8 +63,7 @@ int main(int argc, char* argv[]) {
   if(chipParameters.warnings.size()) {
     std::cout << "\n Warnings during conversion:" << std::endl;
     for(std::list<std::string>::const_iterator it = chipParameters.warnings.begin();
-        it != chipParameters.warnings.end();
-        ++it) {
+        it != chipParameters.warnings.end(); ++it) {
       std::cout << *it << std::endl;
     }
   }
@@ -76,8 +74,7 @@ int main(int argc, char* argv[]) {
   mtca4u::MotorDriverCardConfig cardConfig;
   // set all motor configs to the same, calculated config
   for(std::vector<mtca4u::MotorControlerConfig>::iterator it = cardConfig.motorControlerConfigurations.begin();
-      it != cardConfig.motorControlerConfigurations.end();
-      ++it) {
+      it != cardConfig.motorControlerConfigurations.end(); ++it) {
     *it = motorConfig;
   }
 

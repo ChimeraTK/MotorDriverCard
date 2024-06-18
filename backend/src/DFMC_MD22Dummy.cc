@@ -1,16 +1,17 @@
 #include "DFMC_MD22Dummy.h"
+
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
-
-#include <boost/bind.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/thread/thread.hpp>
 
 #include "TMC260DummyConstants.h"
 #include "TMC260Words.h"
 #include "TMC429DummyConstants.h"
 #include "TMC429Words.h"
+
+#include <boost/bind.hpp>
+#include <boost/lambda/lambda.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/thread/thread.hpp>
 using namespace mtca4u::tmc429;
 
 namespace mtca4u {
@@ -330,7 +331,9 @@ namespace mtca4u {
     // no actions defined at the moment
   }
 
-  bool DFMC_MD22Dummy::isPowerUp() { return _powerIsUp; }
+  bool DFMC_MD22Dummy::isPowerUp() {
+    return _powerIsUp;
+  }
 
   void DFMC_MD22Dummy::powerUp() {
     unsigned int powerDownControlerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_POWER_DOWN);
@@ -378,7 +381,9 @@ namespace mtca4u {
     _causeSpiTimeouts = causeTimeouts;
   }
 
-  void DFMC_MD22Dummy::causeSpiErrors(bool causeErrors) { _causeSpiErrors = causeErrors; }
+  void DFMC_MD22Dummy::causeSpiErrors(bool causeErrors) {
+    _causeSpiErrors = causeErrors;
+  }
 
   bool DFMC_MD22Dummy::checkSpiTimeoutsCounter() {
     bool retVal = _causeSpiTimeouts; // the value before a possible reset.
@@ -403,7 +408,8 @@ namespace mtca4u {
       throw new ChimeraTK::logic_error("DFMC_MD22Dummy: No mapfile has been specified");
     }
 
-    return returnInstance<DFMC_MD22Dummy>(address, convertPathRelativeToDmapToAbs(parameters["map"]), parameters["module"]);
+    return returnInstance<DFMC_MD22Dummy>(
+        address, convertPathRelativeToDmapToAbs(parameters["map"]), parameters["module"]);
   }
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;

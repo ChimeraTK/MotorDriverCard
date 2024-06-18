@@ -1,7 +1,7 @@
 
-#include <sstream>
-
 #include <boost/test/included/unit_test.hpp>
+
+#include <sstream>
 using namespace boost::unit_test_framework;
 
 #include "LinearStepperMotor.h"
@@ -75,7 +75,7 @@ class LinearStepperMotorTestSuite : public test_suite {
   }
 };
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "LinearStepperMotor test suite";
   return new LinearStepperMotorTestSuite;
 }
@@ -88,7 +88,7 @@ LinearStepperMotorTest::LinearStepperMotorTest() : _stepperMotor(), _motorContro
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
   _motorControlerDummy = boost::dynamic_pointer_cast<MotorControlerDummy>(_motorCard
 
-          ->getMotorControler(0));
+                                                                              ->getMotorControler(0));
 
   _stepperMotor.reset(new LinearStepperMotor(DUMMY_DEVICE_FILE_NAME, moduleName, 0, stepperMotorDeviceConfigFile));
 

@@ -267,7 +267,7 @@ namespace ChimeraTK { namespace MotorDriver {
 
     [[nodiscard]] virtual int getTargetPositionInSteps() = 0;
 
-           // FIXME This can be constant after construction?
+    // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter. Per default each instance has a 1:1
      * converter
@@ -275,7 +275,7 @@ namespace ChimeraTK { namespace MotorDriver {
     [[nodiscard]] virtual ExitStatus setStepperMotorUnitsConverter(
         std::shared_ptr<utility::MotorStepsConverter> stepperMotorUnitsConverter) = 0;
 
-           // FIXME This can be constant after construction?
+    // FIXME This can be constant after construction?
     /**
      * @brief set the steps-units converter to the default one
      */

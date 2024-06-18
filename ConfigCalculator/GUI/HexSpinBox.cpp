@@ -6,6 +6,7 @@
  */
 
 #include "HexSpinBox.h"
+
 #include <sstream>
 
 HexSpinBox::HexSpinBox(QWidget* parent_) : QSpinBox(parent_), _validator(nullptr) {
