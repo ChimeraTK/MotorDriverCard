@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
-
 #include "MotorControler.h"
+
 #include <chrono>
 #include <memory>
 #include <thread>
@@ -28,8 +28,8 @@ namespace ChimeraTK::MotorDriver {
     _initState.setTransition(initialEvent, &_disabled, [] {});
     _idle.setTransition(
         moveEvent, &_moving, [this] { actionIdleToMove(); }, [this] { waitForStandstill(); });
-    _idle.setTransition(disableEvent, &_disabled, [this]{actionDisable();});
-    _moving.setTransition(stopEvent, &_idle, [this]{actionMovetoStop(); });
+    _idle.setTransition(disableEvent, &_disabled, [this] { actionDisable(); });
+    _moving.setTransition(stopEvent, &_idle, [this] { actionMovetoStop(); });
     _moving.setTransition(errorEvent, &_error, [] {});
     _moving.setTransition(emergencyStopEvent, &_error, [this] { actionEmergencyStop(); });
     _moving.setTransition(disableEvent, &_disabled, [this] { actionDisable(); });

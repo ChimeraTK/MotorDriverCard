@@ -1,9 +1,10 @@
 #include "QtMotorConfigCalculator.h"
-#include "DFMC_MD22Constants.h"
 
-#include "MotorDriverCardConfigXML.h"
+#include "DFMC_MD22Constants.h"
 #include "getParameters.h"
+#include "MotorDriverCardConfigXML.h"
 #include "populatePanels.h"
+
 #include <QFileDialog>
 
 QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
@@ -27,7 +28,6 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
       motorConfigWidgets[motorID]->setMotorEnabled(false);
     }
   }
-
 
   auto horizontalLayout = new QHBoxLayout(this);
   auto endSwitchConfiguration = new QLabel(this);
@@ -74,8 +74,6 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
     motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget, expertTabWidget, motorID + 1);
   }
 
-
-
   mainTabWidget->addTab(basicConfigurationWidget, "Basic Configuration");
   mainTabWidget->addTab(expertTabWidget, "Expert Settings");
   verticalLayout->addWidget(mainTabWidget);
@@ -108,10 +106,8 @@ void QtMotorConfigCalculator::write() {
   mtca4u::MotorDriverCardConfigXML::writeSparse(fileName.toStdString(), cardConfig);
 }
 
-void QtMotorConfigCalculator::updateCardExpertPanel(int index)
-{
+void QtMotorConfigCalculator::updateCardExpertPanel(int index) {
   mtca4u::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
   cardConfig.interfaceConfiguration.setInv_ref(index);
-  cardExpertWidget->setParameter("interfaceConfiguration",
-                                 cardConfig.interfaceConfiguration.getDATA());
+  cardExpertWidget->setParameter("interfaceConfiguration", cardConfig.interfaceConfiguration.getDATA());
 }

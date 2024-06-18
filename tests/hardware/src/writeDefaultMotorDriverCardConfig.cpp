@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "MotorDriverCardConfigXML.h"
+
+#include <iostream>
 
 using namespace mtca4u;
 

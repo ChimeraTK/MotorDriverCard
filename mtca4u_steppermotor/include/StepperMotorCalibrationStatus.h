@@ -8,6 +8,7 @@
 #define STEPPER_MOTOR_CALIBRATION_STATUS_H
 
 #include "GeneralStatus.h"
+
 #include <string>
 
 namespace mtca4u {

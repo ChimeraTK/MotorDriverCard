@@ -2,10 +2,10 @@
 #define _PARAMETER_WIDGET_H_
 
 #include "HexSpinBox.h"
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QWidget>
-
 #include <stdint.h>
 #include <string>
 

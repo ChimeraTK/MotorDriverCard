@@ -5,6 +5,7 @@
 using namespace boost::unit_test_framework;
 
 #include "StateMachine.h"
+
 #include <atomic>
 #include <functional>
 #include <memory>

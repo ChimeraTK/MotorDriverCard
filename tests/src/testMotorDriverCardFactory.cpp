@@ -5,9 +5,9 @@ using namespace boost::unit_test_framework;
 #include "DFMC_MD22Constants.h"
 #include "MotorDriverCardDummy.h"
 #include "MotorDriverCardFactory.h"
-#include <ChimeraTK/Device.h>
-
 #include "testConfigConstants.h"
+
+#include <ChimeraTK/Device.h>
 
 #include <boost/filesystem.hpp>
 

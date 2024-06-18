@@ -1,25 +1,24 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include <boost/shared_ptr.hpp>
-
 #include "ChimeraTK/BackendFactory.h"
 #include "DFMC_MD22Dummy.h"
-#include "MotorControlerExpert.h"
 #include "impl/MotorDriverCardImpl.h"
+#include "MotorControlerExpert.h"
+
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
+
+#include <boost/shared_ptr.hpp>
 
 using namespace mtca4u::dfmc_md22;
 #include "testWordFromPCIeAddress.h"
 #include "testWordFromSpiAddress.h"
 using namespace mtca4u::tmc429;
 
-#include "MotorDriverCardConfigDefaults.h"
-
-#include "testConfigConstants.h"
-
 #include "DFMC_MD22Constants.h"
+#include "MotorDriverCardConfigDefaults.h"
+#include "testConfigConstants.h"
 
 #define DECLARE_GET_SET_TEST(NAME)                                                                                     \
   void testGet##NAME();                                                                                                \
@@ -368,7 +367,7 @@ namespace mtca4u {
 
 } // namespace mtca4u
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MotorDriverCard test suite";
 
   return new mtca4u::MotorDriverCardTestSuite;

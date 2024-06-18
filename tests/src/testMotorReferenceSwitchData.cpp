@@ -2,8 +2,8 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include "MotorReferenceSwitchData.h"
 #include "createOutputMaskUsingSetterGetter.h"
+#include "MotorReferenceSwitchData.h"
 using namespace mtca4u;
 
 BOOST_AUTO_TEST_SUITE(MotorReferenceSwitchDataTestSuite)

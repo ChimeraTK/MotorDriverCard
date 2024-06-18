@@ -1,9 +1,10 @@
-#include <sstream>
-
 #include "LinearStepperMotor.h"
 #include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
+
 #include <boost/test/included/unit_test.hpp>
+
+#include <sstream>
 
 using namespace boost::unit_test_framework;
 
@@ -27,7 +28,7 @@ class FunctionalTestSuite : public test_suite {
   }
 };
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "functional test suite";
   return new FunctionalTestSuite;
 }

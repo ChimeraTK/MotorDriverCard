@@ -3,6 +3,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/test/included/unit_test.hpp>
+
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -15,8 +16,9 @@ using namespace boost::unit_test_framework;
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
 #include "StepperMotor.h"
-#include "TMC429Constants.h"
 #include "testConfigConstants.h"
+#include "TMC429Constants.h"
+
 #include <ChimeraTK/Utilities.h>
 
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
@@ -75,7 +77,6 @@ class StepperMotorChimeraTKFixture {
 // Fixture for common setup
 StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture()
 : _stepperMotor(), _motorControlerDummy(), _testUnitConverter() {
-
   _testUnitConverter = std::make_unique<TestUnitConverter>();
 
   mtca4u::MotorDriverCardFactory::instance().setDummyMode();

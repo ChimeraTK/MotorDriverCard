@@ -11,17 +11,17 @@
 #include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/test/included/unit_test.hpp>
+
 #include <memory>
 #include <thread>
 using namespace boost::unit_test_framework;
 
-#include "LinearStepperMotor.h"
-#include "StepperMotor.h"
-
 #include "DFMC_MD22Dummy.h"
+#include "LinearStepperMotor.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
+#include "StepperMotor.h"
 #include "testConfigConstants.h"
 #include "TMC429Constants.h"
 

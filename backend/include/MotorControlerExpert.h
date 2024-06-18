@@ -2,7 +2,6 @@
 #define MTCA4U_MOTOR_CONTROLER_EXPERT_H
 
 #include "MotorControler.h"
-
 #include "TMC429Words.h"
 
 #define MCX_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \

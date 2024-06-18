@@ -4,11 +4,12 @@
 #include "MotorDriverCardFactory.h"
 #include "TMC429DummyConstants.h"
 
+#include <ChimeraTK/BackendFactory.h>
+
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
-#include <iostream>
 
-#include <ChimeraTK/BackendFactory.h>
+#include <iostream>
 
 using namespace mtca4u;
 
@@ -70,28 +71,22 @@ class SpiReadWriteThreadStressTest {
   void baseLoop(unsigned int motorID, unsigned int nLoopsMax, CoreFunctionPointer loopCore);
 
   /// write, read and check the results for the TMC249 controller chip
-  void controllerSpiWriteReadCheck(unsigned int loopIndex,
-      boost::shared_ptr<MotorDriverCard>& motorDriverCard,
+  void controllerSpiWriteReadCheck(unsigned int loopIndex, boost::shared_ptr<MotorDriverCard>& motorDriverCard,
       boost::shared_ptr<MotorControlerExpert>& motorControler);
 
-  void writeInterruptRegister(unsigned int loopIndex,
-      boost::shared_ptr<MotorDriverCard>& motorDriverCard,
+  void writeInterruptRegister(unsigned int loopIndex, boost::shared_ptr<MotorDriverCard>& motorDriverCard,
       boost::shared_ptr<MotorControlerExpert>& motorControler);
 
-  void readTargetPosition(unsigned int loopIndex,
-      boost::shared_ptr<MotorDriverCard>& motorDriverCard,
+  void readTargetPosition(unsigned int loopIndex, boost::shared_ptr<MotorDriverCard>& motorDriverCard,
       boost::shared_ptr<MotorControlerExpert>& motorControler);
 
-  void readReferenceSwitchData(unsigned int loopIndex,
-      boost::shared_ptr<MotorDriverCard>& motorDriverCard,
+  void readReferenceSwitchData(unsigned int loopIndex, boost::shared_ptr<MotorDriverCard>& motorDriverCard,
       boost::shared_ptr<MotorControlerExpert>& motorControler);
 
-  void writeCheckStallGuard(unsigned int loopIndex,
-      boost::shared_ptr<MotorDriverCard>& motorDriverCard,
+  void writeCheckStallGuard(unsigned int loopIndex, boost::shared_ptr<MotorDriverCard>& motorDriverCard,
       boost::shared_ptr<MotorControlerExpert>& motorControler);
 
-  void writeDriverControl(unsigned int loopIndex,
-      boost::shared_ptr<MotorDriverCard>& motorDriverCard,
+  void writeDriverControl(unsigned int loopIndex, boost::shared_ptr<MotorDriverCard>& motorDriverCard,
       boost::shared_ptr<MotorControlerExpert>& motorControler);
 
   void preTests();
@@ -302,9 +297,8 @@ void SpiReadWriteThreadStressTest::testAllThreads() {
   printStatus();
 }
 
-void SpiReadWriteThreadStressTest::baseLoop(unsigned int motorID,
-    unsigned int nLoopsMax,
-    CoreFunctionPointer loopCore) {
+void SpiReadWriteThreadStressTest::baseLoop(
+    unsigned int motorID, unsigned int nLoopsMax, CoreFunctionPointer loopCore) {
   boost::shared_ptr<MotorDriverCard> motorDriverCard =
       MotorDriverCardFactory::instance().createMotorDriverCard(_deviceAlias, _moduleName, _motorConfigFileName);
   boost::shared_ptr<MotorControlerExpert> motorControler =

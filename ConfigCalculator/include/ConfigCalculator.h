@@ -22,8 +22,8 @@ class ConfigCalculator {
   /** Calculate a MotorContolerConfig from the chip parameters
    *  and the end switch configuration.
    */
-  static mtca4u::MotorControlerConfig calculateConfig(ParametersCalculator::ChipParameters const& chipParameters,
-      EndSwitchConfig const& endSwitchConfig);
+  static mtca4u::MotorControlerConfig calculateConfig(
+      ParametersCalculator::ChipParameters const& chipParameters, EndSwitchConfig const& endSwitchConfig);
 
  private:
   /** throws std::invalid_argument if the enum is not one of the

@@ -1,4 +1,5 @@
 #include "GeneralStatus.h"
+
 #include <ostream>
 #include <sstream>
 
@@ -24,7 +25,9 @@ namespace ChimeraTK {
     return true;
   }
 
-  GeneralStatus::operator int() const { return _id; }
+  GeneralStatus::operator int() const {
+    return _id;
+  }
 
   std::string GeneralStatus::asString() const {
     std::ostringstream stream;
@@ -38,6 +41,8 @@ namespace ChimeraTK {
     return out;
   }
 
-  int GeneralStatus::getId() const { return _id; }
+  int GeneralStatus::getId() const {
+    return _id;
+  }
 
 } // namespace ChimeraTK

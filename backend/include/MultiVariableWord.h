@@ -46,8 +46,12 @@ unsigned int getVoltage();
  *
  */
 #define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)                                                                    \
-  unsigned int get##VAR_NAME() const { return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT); }               \
-  void set##VAR_NAME(unsigned int word) { return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT); }
+  unsigned int get##VAR_NAME() const {                                                                                 \
+    return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                                    \
+  }                                                                                                                    \
+  void set##VAR_NAME(unsigned int word) {                                                                              \
+    return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                               \
+  }
 
 namespace mtca4u {
 

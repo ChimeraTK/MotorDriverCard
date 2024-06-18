@@ -1,18 +1,18 @@
 #ifndef MTCA4U_MOTOR_CONTROLER_IMPL_H
 #define MTCA4U_MOTOR_CONTROLER_IMPL_H
 
-#include "MotorControlerExpert.h"
-
 #include "memory"
-#include <atomic>
-#include <mutex>
-
 #include "MotorControlerConfig.h"
-#include "SPIviaPCIe.h"
+#include "MotorControlerExpert.h"
 #include "SignedIntConverter.h"
+#include "SPIviaPCIe.h"
 #include "TMC429SPI.h"
+
 #include <ChimeraTK/Device.h>
+
+#include <atomic>
 #include <cstdint>
+#include <mutex>
 
 #define MCI_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
   void set##NAME(unsigned int VARIABLE_IN_UNITS);                                                                      \
@@ -36,10 +36,8 @@ namespace mtca4u {
      * goes out of scope. The config is only used in the constuctor, no reference
      * is kept in the class.
      */
-    MotorControlerImpl(unsigned int ID,
-        boost::shared_ptr<ChimeraTK::Device> const& device,
-        std::string const& moduleName,
-        boost::shared_ptr<TMC429SPI> const& controlerSPI,
+    MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
+        std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
         MotorControlerConfig const& motorControlerConfig);
 
     /// The class is non-copyable

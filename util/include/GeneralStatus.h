@@ -2,6 +2,7 @@
 #define MTCA4U_STATUS_GENERAL_H
 
 #include <boost/thread.hpp>
+
 #include <string>
 
 namespace ChimeraTK {

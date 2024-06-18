@@ -5,6 +5,7 @@
 #include "ParametersCalculator.h"
 #include "ParametersPanel.h"
 #include "ui_MotorConfigWidget.h"
+
 #include <QWidget>
 
 /** A widget that calculates chip parameters

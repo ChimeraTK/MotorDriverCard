@@ -1,17 +1,18 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE TMC429SPITest
 
-#include <sstream>
 #include <boost/shared_ptr.hpp>
-
 #include <boost/test/included/unit_test.hpp>
+
+#include <sstream>
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
 #include "DFMC_MD22Dummy.h"
+#include "impl/TMC429SPI.h"
 #include "TMC429Constants.h"
 #include "TMC429Words.h"
-#include "impl/TMC429SPI.h"
+
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
 
@@ -19,8 +20,8 @@ using namespace mtca4u;
 using namespace mtca4u::dfmc_md22;
 using namespace mtca4u::tmc429;
 
-#include "testWordFromSpiAddress.h"
 #include "testConfigConstants.h"
+#include "testWordFromSpiAddress.h"
 
 class TMC429SPITestFixture {
  public:
@@ -32,23 +33,19 @@ class TMC429SPITestFixture {
   boost::shared_ptr<TMC429SPI> _tmc429Spi;
 };
 
-
 TMC429SPITestFixture::TMC429SPITestFixture()
-  : _dummyDevice{},
-    _mappedDevice{boost::make_shared<ChimeraTK::Device>()},
-    _tmc429Spi{}{
-
+: _dummyDevice{}, _mappedDevice{boost::make_shared<ChimeraTK::Device>()}, _tmc429Spi{} {
   ChimeraTK::setDMapFilePath("./dummies.dmap");
   _dummyDevice =
       boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
-  //we need a mapped device of BaseDevice. Unfortunately this is still really
-  //clumsy to produce/open
+  // we need a mapped device of BaseDevice. Unfortunately this is still really
+  // clumsy to produce/open
   _mappedDevice->open(DFMC_ALIAS);
   _dummyDevice->setRegistersForTesting();
 
   _tmc429Spi = boost::make_shared<TMC429SPI>(_mappedDevice, MODULE_NAME_0, CONTROLER_SPI_WRITE_ADDRESS_STRING,
-                                             CONTROLER_SPI_SYNC_ADDRESS_STRING, CONTROLER_SPI_READBACK_ADDRESS_STRING);
+      CONTROLER_SPI_SYNC_ADDRESS_STRING, CONTROLER_SPI_READBACK_ADDRESS_STRING);
 }
 
 BOOST_FIXTURE_TEST_SUITE(TMC429SPITest, TMC429SPITestFixture)

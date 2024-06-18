@@ -1,14 +1,16 @@
-#include <boost/shared_ptr.hpp>
-#include <sstream>
-#include <stdexcept>
+#include "impl/MotorDriverCardImpl.h"
 
 #include "impl/MotorControlerImpl.h"
-#include "impl/MotorDriverCardImpl.h"
+
+#include <boost/shared_ptr.hpp>
+
+#include <sstream>
+#include <stdexcept>
 using namespace mtca4u::tmc429;
 
-#include <ChimeraTK/Device.h>
-
 #include "DFMC_MD22Constants.h"
+
+#include <ChimeraTK/Device.h>
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u {
@@ -62,7 +64,9 @@ namespace mtca4u {
     }
   }
 
-  PowerMonitor& MotorDriverCardImpl::getPowerMonitor() { return *_powerMonitor; }
+  PowerMonitor& MotorDriverCardImpl::getPowerMonitor() {
+    return *_powerMonitor;
+  }
 
   unsigned int MotorDriverCardImpl::getControlerChipVersion() {
     return _controlerSPI->read(SMDA_COMMON, JDX_CHIP_VERSION).getDATA();
@@ -135,7 +139,9 @@ namespace mtca4u {
     return PositionCompareInterruptData(_controlerSPI->read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());
   }
 
-  void MotorDriverCardImpl::powerDown() { _controlerSPI->write(SMDA_COMMON, JDX_POWER_DOWN, 1); }
+  void MotorDriverCardImpl::powerDown() {
+    _controlerSPI->write(SMDA_COMMON, JDX_POWER_DOWN, 1);
+  }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData() {
     return ReferenceSwitchData(_controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA());

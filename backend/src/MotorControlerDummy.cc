@@ -288,8 +288,7 @@ namespace mtca4u {
   }
 
   unsigned int MotorControlerDummy::getPositionLatched() {
-    throw ChimeraTK::logic_error(
-        "MotorControlerDummy:getPositionLatched() is not implemented yet!");
+    throw ChimeraTK::logic_error("MotorControlerDummy:getPositionLatched() is not implemented yet!");
   }
 
   bool MotorControlerDummy::targetPositionReached() {
@@ -309,8 +308,7 @@ namespace mtca4u {
   }
 
   double MotorControlerDummy::getMaxSpeedCapability() {
-    throw ChimeraTK::logic_error(
-        "MotorControlerDummy::getMaxSpeedCapability() is not implemented yet!");
+    throw ChimeraTK::logic_error("MotorControlerDummy::getMaxSpeedCapability() is not implemented yet!");
   }
 
   double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {

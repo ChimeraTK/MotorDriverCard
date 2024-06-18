@@ -2,8 +2,8 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include "TMC260Words.h"
 #include "createOutputMaskUsingSetterGetter.h"
+#include "TMC260Words.h"
 using namespace mtca4u;
 using namespace mtca4u::tmc260;
 

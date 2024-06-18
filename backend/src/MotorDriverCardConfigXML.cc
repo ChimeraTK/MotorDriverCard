@@ -1,13 +1,12 @@
 #include "MotorDriverCardConfigXML.h"
-#include "ChimeraTK/Exception.h"
 
 #include "ChimeraTK/Exception.h"
+#include "schema.h"
 #include <libxml++/libxml++.h>
+#include <libxml/parser.h>
+
 #include <charconv>
 #include <iostream>
-
-#include <libxml/parser.h>
-#include "schema.h"
 
 namespace detail {
   class NodeFiller {
@@ -29,7 +28,6 @@ namespace detail {
     bool _writeAlways;
 
     std::string toHexString(unsigned int value);
-
   };
 } // namespace detail
 
@@ -55,15 +53,15 @@ void detail::NodeFiller::addParameter(
 void detail::NodeFiller::addParameter(
     std::string const& parameterName, int value, int defaultValue, std::string const& tagName) {
   if(_writeAlways || (value != defaultValue)) {
-    auto *parameterNode = _node->add_child(tagName);
+    auto* parameterNode = _node->add_child(tagName);
     parameterNode->set_attribute("name", parameterName);
     // register content of signed is always written as decimal
     parameterNode->set_attribute("value", std::to_string(value));
   }
 }
 
-void detail::NodeFiller::addParameter(
-    std::string const& registerName, mtca4u::TMC429InputWord const& value, mtca4u::TMC429InputWord const& defaultValue) {
+void detail::NodeFiller::addParameter(std::string const& registerName, mtca4u::TMC429InputWord const& value,
+    mtca4u::TMC429InputWord const& defaultValue) {
   addParameter(registerName, value.getDATA(), defaultValue.getDATA());
 }
 
@@ -75,7 +73,7 @@ void detail::NodeFiller::addParameter(
 void detail::NodeFiller::addParameter(
     std::string const& parameterName, bool value, bool defaultValue, std::string const& tagName) {
   if(_writeAlways || (value != defaultValue)) {
-    auto *parameterNode = _node->add_child(tagName);
+    auto* parameterNode = _node->add_child(tagName);
     parameterNode->set_attribute("name", parameterName);
     parameterNode->set_attribute("value", (value ? "true" : "false"));
   }
@@ -172,7 +170,8 @@ namespace mtca4u {
     getFromXml("chopperControlData", controlerConfig.chopperControlData, rootNode, xpathHelper + "Register");
     getFromXml("coolStepControlData", controlerConfig.coolStepControlData, rootNode, xpathHelper + "Register");
     getFromXml("decoderReadoutMode", controlerConfig.decoderReadoutMode, rootNode, xpathHelper + "Register");
-    getFromXml("dividersAndMicroStepResolutionData", controlerConfig.dividersAndMicroStepResolutionData, rootNode, xpathHelper + "Register");
+    getFromXml("dividersAndMicroStepResolutionData", controlerConfig.dividersAndMicroStepResolutionData, rootNode,
+        xpathHelper + "Register");
     getFromXml("driverConfigData", controlerConfig.driverConfigData, rootNode, xpathHelper + "Register");
     getFromXml("driverControlData", controlerConfig.driverControlData, rootNode, xpathHelper + "Register");
     getFromXml("enabled", controlerConfig.enabled, rootNode, xpathHelper + "Register");
@@ -182,24 +181,25 @@ namespace mtca4u {
     getFromXml("microStepCount", controlerConfig.microStepCount, rootNode, xpathHelper + "Register");
     getFromXml("minimumVelocity", controlerConfig.minimumVelocity, rootNode, xpathHelper + "Register");
     getFromXml("positionTolerance", controlerConfig.positionTolerance, rootNode, xpathHelper + "Register");
-    getFromXml("proportionalityFactorData", controlerConfig.proportionalityFactorData, rootNode, xpathHelper + "Register");
-    getFromXml("referenceConfigAndRampModeData", controlerConfig.referenceConfigAndRampModeData, rootNode, xpathHelper + "Register");
+    getFromXml(
+        "proportionalityFactorData", controlerConfig.proportionalityFactorData, rootNode, xpathHelper + "Register");
+    getFromXml("referenceConfigAndRampModeData", controlerConfig.referenceConfigAndRampModeData, rootNode,
+        xpathHelper + "Register");
     getFromXml("stallGuardControlData", controlerConfig.stallGuardControlData, rootNode, xpathHelper + "Register");
     getFromXml("targetPosition", controlerConfig.targetPosition, rootNode, xpathHelper + "Register");
     getFromXml("targetVelocity", controlerConfig.targetVelocity, rootNode, xpathHelper + "Register");
     getFromXml("driverSpiWaitingTime", controlerConfig.driverSpiWaitingTime, rootNode, xpathHelper + "Parameter");
 
-    const auto *xpath{R"(//Register[@name="maximumAccelleration"])"};
+    const auto* xpath{R"(//Register[@name="maximumAccelleration"])"};
     auto nodes = rootNode->find(xpath);
-    if (!nodes.empty()) {
+    if(!nodes.empty()) {
       std::stringstream message;
       message << "Found old, invalid Register name maximumAccelleration. Please update your config file!";
       throw ChimeraTK::logic_error(message.str());
     }
     return controlerConfig;
   }
-}
-
+} // namespace mtca4u
 
 #define CARD_CONFIG_ADD_REGISTER(VALUE)                                                                                \
   cardConfigFiller.addParameter(#VALUE, motorDriverCardConfig.VALUE, defaultCardConfig.VALUE)
@@ -258,7 +258,6 @@ namespace mtca4u {
     getFromXml("positionCompareWord", cardConfig.positionCompareWord, rootNode);
     getFromXml("stepperMotorGlobalParameters", cardConfig.stepperMotorGlobalParameters, rootNode);
     getFromXml("controlerSpiWaitingTime", cardConfig.controlerSpiWaitingTime, rootNode, "Parameter");
-
 
     std::string xPath{"//MotorControlerConfig"};
     auto nodes = rootNode->find(xPath);
@@ -346,7 +345,7 @@ namespace mtca4u {
     }
 
     try {
-      doc.write_to_file_formatted(fileName ,"UTF-8");
+      doc.write_to_file_formatted(fileName, "UTF-8");
     }
     catch(xmlpp::exception& ex) {
       std::stringstream message;

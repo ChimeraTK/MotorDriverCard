@@ -1,28 +1,28 @@
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include <sstream>
-#include <thread>
-
 #include "DFMC_MD22Constants.h"
 #include "DFMC_MD22Dummy.h"
-#include "MotorDriverCard.h"
 #include "impl/MotorControlerImpl.h"
 #include "impl/MotorDriverCardImpl.h"
+#include "MotorDriverCard.h"
 #include "testWordFromPCIeAddress.h"
+
+#include <sstream>
+#include <thread>
 using namespace mtca4u::dfmc_md22;
 #include "ChimeraTK/BackendFactory.h"
+#include "MotorControlerConfigDefaults.h"
+#include "MotorDriverCardFactory.h"
+#include "testConfigConstants.h"
+#include "testWordFromSpiAddress.h"
 #include "TMC260DummyConstants.h"
 #include "TMC429DummyConstants.h"
-#include "testWordFromSpiAddress.h"
+
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
 #include <ChimeraTK/Utilities.h>
 
-#include "MotorControlerConfigDefaults.h"
-
-#include "MotorDriverCardFactory.h"
-#include "testConfigConstants.h"
 #include <memory>
 #define DECLARE_GET_SET_TEST(NAME)                                                                                     \
   void testGet##NAME();                                                                                                \
@@ -69,7 +69,9 @@ using namespace mtca4u::dfmc_md22;
   }
 
 #define DEFINE_TYPED_GET_SET_TEST(NAME)                                                                                \
-  void MotorControlerTest::testGet##NAME() { testGetTypedData<NAME>(&MotorControlerImpl::get##NAME); }                 \
+  void MotorControlerTest::testGet##NAME() {                                                                           \
+    testGetTypedData<NAME>(&MotorControlerImpl::get##NAME);                                                            \
+  }                                                                                                                    \
   void MotorControlerTest::testSet##NAME() {                                                                           \
     testSetTypedData<NAME>(&MotorControlerImpl::get##NAME, &MotorControlerImpl::set##NAME);                            \
   }
@@ -99,8 +101,8 @@ namespace mtca4u {
 
     // for testing direct read from pcie registers (with default values from the
     // dummy)
-    void testReadPCIeRegister(unsigned int (MotorControlerImpl::*readFunction)(void),
-        std::string const& registerSuffix);
+    void testReadPCIeRegister(
+        unsigned int (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix);
 
     // for reading registers which do not return an int but a MultiVariableWord
     template<class T>
@@ -146,11 +148,10 @@ namespace mtca4u {
     void testGetTypedData(T (MotorControlerImpl::*getterFunction)());
 
     template<class T>
-    void testSetTypedData(T (MotorControlerImpl::*getterFunction)(),
-        void (MotorControlerImpl::*setterFunction)(T const&));
+    void testSetTypedData(
+        T (MotorControlerImpl::*getterFunction)(), void (MotorControlerImpl::*setterFunction)(T const&));
     template<class T>
-    void testGetDriverSpiData(T const& (MotorControlerImpl::*getterFunction)() const,
-        unsigned int driverSpiAddress,
+    void testGetDriverSpiData(T const& (MotorControlerImpl::*getterFunction)() const, unsigned int driverSpiAddress,
         unsigned int configDefault);
     template<class T>
     void testSetDriverSpiData(void (MotorControlerImpl::*setterFunction)(T const&),
@@ -253,8 +254,8 @@ namespace mtca4u {
   DEFINE_GET_SET_TEST(ActualAcceleration, mtca4u::tmc429::IDX_ACTUAL_ACCELERATION, 0xFFFFFF)
   DEFINE_GET_SET_TEST(MicroStepCount, mtca4u::tmc429::IDX_MICRO_STEP_COUNT, 0xAAAAAA)
 
-  void MotorControlerTest::testReadPCIeRegister(unsigned int (MotorControlerImpl::*readFunction)(void),
-      std::string const& registerSuffix) {
+  void MotorControlerTest::testReadPCIeRegister(
+      unsigned int (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix) {
     unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
     std::stringstream message;
     message << "read () " << ((*_motorControler).*readFunction)() << ", expected " << expectedValue << std::endl;
@@ -309,8 +310,8 @@ namespace mtca4u {
   }
 
   template<class T>
-  void MotorControlerTest::testReadTypedPCIeRegister(T (MotorControlerImpl::*readFunction)(void),
-      std::string const& registerSuffix) {
+  void MotorControlerTest::testReadTypedPCIeRegister(
+      T (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix) {
     unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
     std::stringstream message;
     message << "read () " << ((*_motorControler).*readFunction)().getDataWord() << ", expected " << expectedValue
@@ -359,8 +360,8 @@ namespace mtca4u {
   }
 
   template<class T>
-  void MotorControlerTest::testSetTypedData(T (MotorControlerImpl::*getterFunction)(),
-      void (MotorControlerImpl::*setterFunction)(T const&)) {
+  void MotorControlerTest::testSetTypedData(
+      T (MotorControlerImpl::*getterFunction)(), void (MotorControlerImpl::*setterFunction)(T const&)) {
     T typedWord = ((*_motorControler).*getterFunction)();
     unsigned int dataContent = typedWord.getDATA();
     typedWord.setDATA(++dataContent);
@@ -545,7 +546,7 @@ namespace mtca4u {
 
 } // namespace mtca4u
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MotorControler test suite";
 
   framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(0));

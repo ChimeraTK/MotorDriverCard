@@ -1,15 +1,15 @@
-#include <iostream>
-
 #include "MotorControler.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardExpert.h"
 #include "MotorDriverCardFactory.h"
 
 #include <ChimeraTK/BackendFactory.h>
-#include <ChimeraTK/DMapFileParser.h>
 #include <ChimeraTK/Device.h>
+#include <ChimeraTK/DMapFileParser.h>
+
 #include <cerrno>
 #include <ctime>
+#include <iostream>
 #include <signal.h>
 #include <stdexcept>
 #include <unistd.h>

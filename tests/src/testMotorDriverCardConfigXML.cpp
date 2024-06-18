@@ -1,4 +1,5 @@
 #include "MotorDriverCardConfigXML.h"
+
 #include <ChimeraTK/Exception.h>
 using namespace mtca4u;
 

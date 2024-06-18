@@ -150,7 +150,9 @@ namespace ChimeraTK { namespace MotorDriver {
     return _errorMode.load();
   }
 
-  bool LinearStepperMotor::hasHWReferenceSwitches() { return true; }
+  bool LinearStepperMotor::hasHWReferenceSwitches() {
+    return true;
+  }
 
   int LinearStepperMotor::getPositiveEndReferenceInSteps() {
     LockGuard guard(_mutex);
@@ -203,7 +205,9 @@ namespace ChimeraTK { namespace MotorDriver {
     return _negativeEndSwitchEnabled.load();
   }
 
-  CalibrationMode LinearStepperMotor::getCalibrationMode() { return _calibrationMode.load(); }
+  CalibrationMode LinearStepperMotor::getCalibrationMode() {
+    return _calibrationMode.load();
+  }
 
   void LinearStepperMotor::loadEndSwitchCalibration() {
     LockGuard guard(_mutex);

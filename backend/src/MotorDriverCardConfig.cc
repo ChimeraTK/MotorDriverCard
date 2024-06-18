@@ -1,4 +1,5 @@
 #include "MotorDriverCardConfig.h"
+
 #include "MotorDriverCardConfigDefaults.h"
 
 namespace mtca4u {

@@ -2,6 +2,7 @@
 #define MTCA4U_MOTOR_DRIVER_CARD_H
 
 #include "TMC429Words.h"
+
 #include <boost/shared_ptr.hpp>
 
 namespace mtca4u {

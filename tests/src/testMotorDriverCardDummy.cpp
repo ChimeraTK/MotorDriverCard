@@ -52,7 +52,7 @@ namespace mtca4u {
 
 } // namespace mtca4u
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MotorDriverCardDummy test suite";
   return new mtca4u::MotorDriverCardDummyTestSuite;
 }

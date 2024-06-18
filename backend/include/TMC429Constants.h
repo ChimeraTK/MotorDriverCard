@@ -40,7 +40,9 @@ namespace mtca4u { namespace tmc429 {
   uint32_t const RW_WRITE = 0;
   uint32_t const RW_READ = 1;
 
-  inline uint32_t spiAddressFromSmdaIdxJdx(uint32_t smda, uint32_t idxJdx) { return ((smda << 4) + idxJdx); }
+  inline uint32_t spiAddressFromSmdaIdxJdx(uint32_t smda, uint32_t idxJdx) {
+    return ((smda << 4) + idxJdx);
+  }
 }} // namespace mtca4u::tmc429
 
 #endif // CHIMERATK_TMC429_CONSTANTS_H
