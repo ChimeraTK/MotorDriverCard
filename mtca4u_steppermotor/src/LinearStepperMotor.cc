@@ -1,5 +1,8 @@
 #include "LinearStepperMotor.h"
+
 #include <cmath>
+
+namespace logging = ChimeraTK::MotorDriverCardDetail;
 
 #define DEBUG(x)                                                                                                       \
   if(_debugLevel >= x) *_debugStream
@@ -54,9 +57,9 @@ namespace mtca4u {
     // we need to check whether any previously triggered calibration is ongoing -
     // multi thread programs.
     if(_motorCalibrationStatus == StepperMotorCalibrationStatusType::M_CALIBRATION_IN_PROGRESS) {
-      _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Calibration "
-                               "already in progress. Returning. "
-                            << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Calibration "
+                                        "already in progress. Returning. "
+                                     << std::endl;
       return _motorCalibrationStatus;
     }
 
@@ -75,15 +78,15 @@ namespace mtca4u {
 
     if(_motorControler->getReferenceSwitchData().getPositiveSwitchEnabled() == false ||
         _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled() == false) {
-      _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : End switches not available. "
-                               "Calibration not possible. "
-                            << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : End switches not available. "
+                                        "Calibration not possible. "
+                                     << std::endl;
       _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_NOT_AVAILABLE;
       return _motorCalibrationStatus;
     }
 
     // enable the motor
-    _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Enable the motor driver." << std::endl;
+    _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Enable the motor driver." << std::endl;
     _motorControler->setEnabled(true);
 
     // move to negative end switch
@@ -96,11 +99,11 @@ namespace mtca4u {
     //_calibNegativeEndSwitchInUnits =
     // recalculateStepsToUnits(_calibNegativeEndSwitchInSteps);
 
-    _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Negative end "
-                             "switch reached at (in steps): "
-                          << _calibNegativeEndSwitchInSteps << " Sending to positive end switch.\n";
-    _logger(Logger::DETAIL) << "LinearStepperMotor::calibrateMotor : Current position is: "
-                            << _motorControler->getActualPosition() << ". Go to positive end switch.\n";
+    _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Negative end "
+                                      "switch reached at (in steps): "
+                                   << _calibNegativeEndSwitchInSteps << " Sending to positive end switch.\n";
+    _logger(logging::Logger::DETAIL) << "LinearStepperMotor::calibrateMotor : Current position is: "
+                                     << _motorControler->getActualPosition() << ". Go to positive end switch.\n";
 
     // move to positive end switch
     moveToEndSwitch(LinearStepperMotorStatusTypes::M_POSITIVE_END_SWITCHED_ON);
@@ -113,17 +116,18 @@ namespace mtca4u {
     //_calibPositiveEndSwitchInUnits =
     // recalculateStepsToUnits(_calibPositiveEndSwitchInSteps);
 
-    _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Negative end "
-                             "switch is at (steps):  "
-                          << _calibNegativeEndSwitchInSteps
-                          << " Positive end switch at (steps): " << _calibPositiveEndSwitchInSteps << std::endl;
-    //_logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Negative end
+    _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Negative end "
+                                      "switch is at (steps):  "
+                                   << _calibNegativeEndSwitchInSteps
+                                   << " Positive end switch at (steps): " << _calibPositiveEndSwitchInSteps
+                                   << std::endl;
+    //_logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Negative end
     // switch is at (units):  " << _calibNegativeEndSwitchInUnits << " Positive end
     // switch at (units): " << _calibPositiveEndSwitchInUnits << std::endl;
     int newPos = (_calibPositiveEndSwitchInSteps + _calibNegativeEndSwitchInSteps) / 2;
-    _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Sending motor "
-                             "to middle of range:  "
-                          << newPos << std::endl;
+    _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Sending motor "
+                                      "to middle of range:  "
+                                   << newPos << std::endl;
 
     // move to middle of the range
     this->moveToPositionInSteps(newPos);
@@ -132,9 +136,9 @@ namespace mtca4u {
     // between positive and negative end switch positions
     if(_stopMotorCalibration == true) {
       _stopMotorCalibration = false;
-      _logger(Logger::WARNING) << "LinearStepperMotor::calibrateMotor : StepperMotor::calibrateMotor "
-                                  ": Motor stopped by user.\n"
-                               << std::flush;
+      _logger(logging::Logger::WARNING) << "LinearStepperMotor::calibrateMotor : StepperMotor::calibrateMotor "
+                                           ": Motor stopped by user.\n"
+                                        << std::flush;
       _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER;
     }
     else if(statusAndError.status == mtca4u::LinearStepperMotorStatusTypes::M_ERROR) {
@@ -163,20 +167,22 @@ namespace mtca4u {
       // calculate difference between current position and new wanted position
       int delta = getCurrentPosition() - newPositionInSteps;
 
-      _logger(Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Motor "
-                               "calibrated. Recalculating end switches position."
-                            << std::endl;
-      _logger(Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Current position: " << getCurrentPosition()
-                            << ", in steps: " << getCurrentPositionInSteps() << std::endl;
-      _logger(Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Wanted  position: "
-                            << recalculateStepsToUnits(newPositionInSteps) << ", in steps: " << newPositionInSteps
-                            << std::endl;
-      _logger(Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Delta   position: "
-                            << recalculateStepsToUnits(delta) << ", in steps: " << delta << std::endl;
-      _logger(Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : "
-                               "Negative end switch (in steps): "
-                            << _calibNegativeEndSwitchInSteps
-                            << " positive end switch(in steps): " << _calibPositiveEndSwitchInSteps << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Motor "
+                                        "calibrated. Recalculating end switches position."
+                                     << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Current position: "
+                                     << getCurrentPosition() << ", in steps: " << getCurrentPositionInSteps()
+                                     << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Wanted  position: "
+                                     << recalculateStepsToUnits(newPositionInSteps)
+                                     << ", in steps: " << newPositionInSteps << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : Delta   position: "
+                                     << recalculateStepsToUnits(delta) << ", in steps: " << delta << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs : "
+                                        "Negative end switch (in steps): "
+                                     << _calibNegativeEndSwitchInSteps
+                                     << " positive end switch(in steps): " << _calibPositiveEndSwitchInSteps
+                                     << std::endl;
 
       // recalculate hardware end switches position
       //_calibNegativeEndSwitchInUnits -= delta;
@@ -184,10 +190,11 @@ namespace mtca4u {
 
       //_calibPositiveEndSwitchInUnits -= delta;
       _calibPositiveEndSwitchInSteps -= delta;
-      _logger(Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs "
-                               ":Recalculated. Negative end switch (in steps): "
-                            << _calibNegativeEndSwitchInSteps
-                            << " positive end switch(in steps): " << _calibPositiveEndSwitchInSteps << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::setCurrenPositionAs "
+                                        ":Recalculated. Negative end switch (in steps): "
+                                     << _calibNegativeEndSwitchInSteps
+                                     << " positive end switch(in steps): " << _calibPositiveEndSwitchInSteps
+                                     << std::endl;
     }
 
     StepperMotor::setCurrentPositionInStepsAs(newPositionInSteps);
@@ -241,7 +248,9 @@ namespace mtca4u {
     return recalculateStepsToUnits(_calibNegativeEndSwitchInSteps);
   }
 
-  LinearStepperMotorStatusAndError LinearStepperMotor::getStatusAndError() { return determineMotorStatusAndError(); }
+  LinearStepperMotorStatusAndError LinearStepperMotor::getStatusAndError() {
+    return determineMotorStatusAndError();
+  }
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   // END OF GETTERS AND SETTERS
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -280,20 +289,20 @@ namespace mtca4u {
       negativeSwitchStatus = _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
 
       if(positiveSwitchStatus)
-        _logger(Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Positive "
-                                  "end-switch on. "
-                               << std::endl;
+        _logger(logging::Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Positive "
+                                           "end-switch on. "
+                                        << std::endl;
 
       if(negativeSwitchStatus)
-        _logger(Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Negative "
-                                  "end-switch on. "
-                               << std::endl;
+        _logger(logging::Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Negative "
+                                           "end-switch on. "
+                                        << std::endl;
 
       if(positiveSwitchStatus && negativeSwitchStatus) {
         _motorStatus = LinearStepperMotorStatusTypes::M_ERROR;
-        _logger(Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Both end "
-                                  "switches error detected. "
-                               << std::endl;
+        _logger(logging::Logger::ERROR) << "LinearStepperMotor::determineMotorStatusAndError(): Both end "
+                                           "switches error detected. "
+                                        << std::endl;
         _motorError = LinearStepperMotorErrorTypes::M_BOTH_END_SWITCH_ON;
 
         return LinearStepperMotorStatusAndError(_motorStatus, _motorError);
@@ -371,16 +380,18 @@ namespace mtca4u {
       // get current position and send motor to new lower position
       int currentPosition = _motorControler->getActualPosition();
       int newPosInSteps = currentPosition + dir * 500000;
-      _logger(Logger::INFO) << "LinearStepperMotor::calibrateMotor : Current position (steps): " << currentPosition
-                            << " (units): " << recalculateStepsToUnits(currentPosition)
-                            << " New position (steps): " << currentPosition + dir * 500000
-                            << " (units): " << recalculateStepsToUnits(currentPosition + dir * 500000) << std::endl;
+      _logger(logging::Logger::INFO) << "LinearStepperMotor::calibrateMotor : Current position (steps): "
+                                     << currentPosition << " (units): " << recalculateStepsToUnits(currentPosition)
+                                     << " New position (steps): " << currentPosition + dir * 500000
+                                     << " (units): " << recalculateStepsToUnits(currentPosition + dir * 500000)
+                                     << std::endl;
       moveToPositionInSteps(newPosInSteps);
       statusAndError = determineMotorStatusAndError();
 
       if(_stopMotorCalibration == true) {
         _stopMotorCalibration = false;
-        _logger(Logger::WARNING) << "LinearStepperMotor::calibrateMotor : Calibration stopped by user." << std::endl;
+        _logger(logging::Logger::WARNING)
+            << "LinearStepperMotor::calibrateMotor : Calibration stopped by user." << std::endl;
 
         _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_STOPPED_BY_USER;
         return;
@@ -392,16 +403,16 @@ namespace mtca4u {
       }
 
       if(takeFlagInAccount && statusAndError.status == errortargetStatus) {
-        _logger(Logger::ERROR) << "LinearStepperMotor::calibrateMotor : " << (dir == 1 ? "Negative" : "Positive")
-                               << " end switch reached when " << (dir == 1 ? "positive" : "negative")
-                               << " expected. Calibration failed.\n";
+        _logger(logging::Logger::ERROR) << "LinearStepperMotor::calibrateMotor : "
+                                        << (dir == 1 ? "Negative" : "Positive") << " end switch reached when "
+                                        << (dir == 1 ? "positive" : "negative") << " expected. Calibration failed.\n";
         _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED;
         return;
       }
       if(statusAndError.status == LinearStepperMotorStatusTypes::M_ERROR) {
-        _logger(Logger::ERROR) << "LinearStepperMotor::calibrateMotor : Motor in "
-                                  "error state. Error is: "
-                               << statusAndError.error << std::endl;
+        _logger(logging::Logger::ERROR) << "LinearStepperMotor::calibrateMotor : Motor in "
+                                           "error state. Error is: "
+                                        << statusAndError.error << std::endl;
         _motorCalibrationStatus = StepperMotorCalibrationStatusType::M_CALIBRATION_FAILED;
         return;
       }

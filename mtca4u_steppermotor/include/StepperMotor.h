@@ -8,9 +8,10 @@
 #ifndef MTCA4U_STEPPER_MOTOR_H
 #define MTCA4U_STEPPER_MOTOR_H
 
-#include <atomic>
 #include <boost/shared_ptr.hpp> // Boost kept for compatibility with mtca4u implementation and lower layers
 #include <boost/thread.hpp>
+
+#include <atomic>
 #include <memory>
 #include <string>
 
@@ -42,8 +43,8 @@ namespace mtca4u {
     StepperMotorStatus status;
     StepperMotorError error;
 
-    StepperMotorStatusAndError(StepperMotorStatus statusParam = StepperMotorStatus(),
-        StepperMotorError errorParam = StepperMotorError())
+    StepperMotorStatusAndError(
+        StepperMotorStatus statusParam = StepperMotorStatus(), StepperMotorError errorParam = StepperMotorError())
     : status(statusParam), error(errorParam) {}
   };
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -540,7 +541,7 @@ namespace mtca4u {
      * Logger::LogLevel DETAIL;\n
      * Logger::LogLevel FULL_DETAIL;\n
      */
-    void setLogLevel(Logger::LogLevel newLevel);
+    void setLogLevel(MotorDriverCardDetail::Logger::LogLevel newLevel);
 
     /**
      * @brief Get current log level of the motor
@@ -548,7 +549,7 @@ namespace mtca4u {
      *
      * @details
      */
-    Logger::LogLevel getLogLevel();
+    MotorDriverCardDetail::Logger::LogLevel getLogLevel();
 
     void enableFullStepping(bool enable = true);
     bool isFullStepping();
@@ -591,7 +592,7 @@ namespace mtca4u {
     StepperMotorStatus _motorStatus;
     // flag which indicate error in blocking function
     bool _blockingFunctionActive;
-    Logger _logger;
+    MotorDriverCardDetail::Logger _logger;
     mutable boost::mutex _mutex;
   };
 } // namespace mtca4u

@@ -5,6 +5,7 @@
 using namespace boost::unit_test_framework;
 
 #include "Logger.h"
+namespace logging = ChimeraTK::MotorDriverCardDetail;
 
 BOOST_AUTO_TEST_SUITE(LoggerTestSuite)
 
@@ -15,11 +16,11 @@ BOOST_AUTO_TEST_CASE(testFullDetailLevelOfLogger) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
-  logger.setLogLevel(mtca4u::Logger::FULL_DETAIL);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::FULL_DETAIL);
+  logger.setLogLevel(logging::Logger::FULL_DETAIL);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::FULL_DETAIL);
 
   testStream.str(std::string());
   testStream.clear();
@@ -28,32 +29,32 @@ BOOST_AUTO_TEST_CASE(testFullDetailLevelOfLogger) {
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
+  logger(logging::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
+  logger(logging::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" ERROR message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
+  logger(logging::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" WARNING message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::INFO) << " INFO message"; // WILL BE LOGGED
+  logger(logging::Logger::INFO) << " INFO message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" INFO message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::DETAIL) << " DETAIL message"; // WILL BE LOGGED
+  logger(logging::Logger::DETAIL) << " DETAIL message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" DETAIL message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL BE LOGGED
+  logger(logging::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" FULL_DETAIL message") == 0);
 }
 
@@ -64,11 +65,11 @@ BOOST_AUTO_TEST_CASE(testDetailLevelOfLogger) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
-  logger.setLogLevel(mtca4u::Logger::DETAIL);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::DETAIL);
+  logger.setLogLevel(logging::Logger::DETAIL);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::DETAIL);
 
   testStream.str(std::string());
   testStream.clear();
@@ -77,32 +78,32 @@ BOOST_AUTO_TEST_CASE(testDetailLevelOfLogger) {
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
+  logger(logging::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
+  logger(logging::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" ERROR message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
+  logger(logging::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" WARNING message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::INFO) << " INFO message"; // WILL BE LOGGED
+  logger(logging::Logger::INFO) << " INFO message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" INFO message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::DETAIL) << " DETAIL message"; // WILL BE LOGGED
+  logger(logging::Logger::DETAIL) << " DETAIL message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" DETAIL message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 }
 
@@ -113,11 +114,11 @@ BOOST_AUTO_TEST_CASE(testInfoLevelOfLogger) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
-  logger.setLogLevel(mtca4u::Logger::INFO);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::INFO);
+  logger.setLogLevel(logging::Logger::INFO);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::INFO);
 
   testStream.str(std::string());
   testStream.clear();
@@ -126,32 +127,32 @@ BOOST_AUTO_TEST_CASE(testInfoLevelOfLogger) {
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
+  logger(logging::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
+  logger(logging::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" ERROR message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
+  logger(logging::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" WARNING message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::INFO) << " INFO message"; // WILL BE LOGGED
+  logger(logging::Logger::INFO) << " INFO message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" INFO message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 }
 
@@ -162,11 +163,11 @@ BOOST_AUTO_TEST_CASE(testWarningLevelOfLogger) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
-  logger.setLogLevel(mtca4u::Logger::WARNING);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::WARNING);
+  logger.setLogLevel(logging::Logger::WARNING);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::WARNING);
 
   testStream.str(std::string());
   testStream.clear();
@@ -175,32 +176,32 @@ BOOST_AUTO_TEST_CASE(testWarningLevelOfLogger) {
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
+  logger(logging::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
+  logger(logging::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" ERROR message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
+  logger(logging::Logger::WARNING) << " WARNING message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" WARNING message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::INFO) << " INFO message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::INFO) << " INFO message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 }
 
@@ -211,11 +212,11 @@ BOOST_AUTO_TEST_CASE(testErrorLevelOfLogger) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
-  logger.setLogLevel(mtca4u::Logger::ERROR);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::ERROR);
+  logger.setLogLevel(logging::Logger::ERROR);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::ERROR);
 
   testStream.str(std::string());
   testStream.clear();
@@ -224,32 +225,32 @@ BOOST_AUTO_TEST_CASE(testErrorLevelOfLogger) {
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
+  logger(logging::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
+  logger(logging::Logger::ERROR) << " ERROR message"; // WILL BE LOGGED
   BOOST_CHECK(testStream.str().compare(" ERROR message") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::WARNING) << " WARNING message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::WARNING) << " WARNING message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::INFO) << " INFO message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::INFO) << " INFO message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 }
 
@@ -260,11 +261,11 @@ BOOST_AUTO_TEST_CASE(testNoLoggingLevelOfLogger) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
-  logger.setLogLevel(mtca4u::Logger::NO_LOGGING);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::NO_LOGGING);
+  logger.setLogLevel(logging::Logger::NO_LOGGING);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::NO_LOGGING);
 
   testStream.str(std::string());
   testStream.clear();
@@ -273,32 +274,32 @@ BOOST_AUTO_TEST_CASE(testNoLoggingLevelOfLogger) {
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
+  logger(logging::Logger::NO_LOGGING) << " NO_LOGGING message" << std::endl; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::ERROR) << " ERROR message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::ERROR) << " ERROR message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::WARNING) << " WARNING message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::WARNING) << " WARNING message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::INFO) << " INFO message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::INFO) << " INFO message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::DETAIL) << " DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 
   testStream.str(std::string());
   testStream.clear();
-  logger(mtca4u::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
+  logger(logging::Logger::FULL_DETAIL) << " FULL_DETAIL message"; // WILL NOT BE LOGGED
   BOOST_CHECK(testStream.str().compare("") == 0);
 }
 
@@ -309,54 +310,54 @@ BOOST_AUTO_TEST_CASE(testOperators) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  mtca4u::Logger logger(mtca4u::Logger::NO_LOGGING,
+  logging::Logger logger(logging::Logger::NO_LOGGING,
       testStream); // CREATE OBJECT WIT DEFAULT SETTINGS - logging level to
                    // NO_LOGGING, logging stream set to std::cout
 
-  logger.setLogLevel(mtca4u::Logger::NO_LOGGING);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::NO_LOGGING);
+  logger.setLogLevel(logging::Logger::NO_LOGGING);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::NO_LOGGING);
   testStream.str(std::string());
   testStream.clear();
   logger() << logger;
   BOOST_CHECK(testStream.str().compare("Current logging level: NO_LOGGING (0)") == 0);
 
-  logger.setLogLevel(mtca4u::Logger::ERROR);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::ERROR);
+  logger.setLogLevel(logging::Logger::ERROR);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::ERROR);
   testStream.str(std::string());
   testStream.clear();
   logger() << logger;
   BOOST_CHECK(testStream.str().compare("Current logging level: ERROR (1)") == 0);
 
-  logger.setLogLevel(mtca4u::Logger::WARNING);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::WARNING);
+  logger.setLogLevel(logging::Logger::WARNING);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::WARNING);
   testStream.str(std::string());
   testStream.clear();
   logger() << logger;
   BOOST_CHECK(testStream.str().compare("Current logging level: WARNING (2)") == 0);
 
-  logger.setLogLevel(mtca4u::Logger::INFO);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::INFO);
+  logger.setLogLevel(logging::Logger::INFO);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::INFO);
   testStream.str(std::string());
   testStream.clear();
   logger() << logger;
   BOOST_CHECK(testStream.str().compare("Current logging level: INFO (3)") == 0);
 
-  logger.setLogLevel(mtca4u::Logger::DETAIL);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::DETAIL);
+  logger.setLogLevel(logging::Logger::DETAIL);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::DETAIL);
   testStream.str(std::string());
   testStream.clear();
   logger() << logger;
   BOOST_CHECK(testStream.str().compare("Current logging level: DETAIL (4)") == 0);
 
-  logger.setLogLevel(mtca4u::Logger::FULL_DETAIL);
-  BOOST_CHECK(logger.getLogLevel() == mtca4u::Logger::FULL_DETAIL);
+  logger.setLogLevel(logging::Logger::FULL_DETAIL);
+  BOOST_CHECK(logger.getLogLevel() == logging::Logger::FULL_DETAIL);
   testStream.str(std::string());
   testStream.clear();
   logger() << logger;
   BOOST_CHECK(testStream.str().compare("Current logging level: FULL_DETAIL (5)") == 0);
 
-  BOOST_CHECK((logger.getLogLevel() != mtca4u::Logger::FULL_DETAIL) == false);
-  BOOST_CHECK((logger.getLogLevel() == mtca4u::Logger::ERROR) == false);
+  BOOST_CHECK((logger.getLogLevel() != logging::Logger::FULL_DETAIL) == false);
+  BOOST_CHECK((logger.getLogLevel() == logging::Logger::ERROR) == false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

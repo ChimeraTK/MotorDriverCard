@@ -1,20 +1,23 @@
 
-#include <sstream>
-
 #include <boost/test/included/unit_test.hpp>
+
+#include <sstream>
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Dummy.h"
+#include "Logger.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "StepperMotor.h"
-#include "TMC429Constants.h"
 #include "testConfigConstants.h"
+#include "TMC429Constants.h"
+
 #include <ChimeraTK/Utilities.h>
 
 #include <boost/thread.hpp>
 
 using namespace mtca4u;
+namespace logging = ChimeraTK::MotorDriverCardDetail;
 
 // static const unsigned int THE_ID = 17;
 
@@ -100,7 +103,7 @@ class StepperMotorTestSuite : public test_suite {
   }
 };
 
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/ []) {
+test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "StepperMotor test suite";
   return new StepperMotorTestSuite;
 }
@@ -403,25 +406,25 @@ void StepperMotorTest::testEnabledDisabled() {
 }
 
 void StepperMotorTest::testDebugLevel() {
-  _stepperMotor->setLogLevel(Logger::NO_LOGGING);
-  BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::NO_LOGGING);
+  _stepperMotor->setLogLevel(logging::Logger::NO_LOGGING);
+  BOOST_CHECK(_stepperMotor->getLogLevel() == logging::Logger::NO_LOGGING);
 
-  _stepperMotor->setLogLevel(Logger::ERROR);
-  BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::ERROR);
+  _stepperMotor->setLogLevel(logging::Logger::ERROR);
+  BOOST_CHECK(_stepperMotor->getLogLevel() == logging::Logger::ERROR);
 
-  _stepperMotor->setLogLevel(Logger::WARNING);
-  BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::WARNING);
+  _stepperMotor->setLogLevel(logging::Logger::WARNING);
+  BOOST_CHECK(_stepperMotor->getLogLevel() == logging::Logger::WARNING);
 
-  _stepperMotor->setLogLevel(Logger::INFO);
-  BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::INFO);
+  _stepperMotor->setLogLevel(logging::Logger::INFO);
+  BOOST_CHECK(_stepperMotor->getLogLevel() == logging::Logger::INFO);
 
-  _stepperMotor->setLogLevel(Logger::DETAIL);
-  BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::DETAIL);
+  _stepperMotor->setLogLevel(logging::Logger::DETAIL);
+  BOOST_CHECK(_stepperMotor->getLogLevel() == logging::Logger::DETAIL);
 
-  _stepperMotor->setLogLevel(Logger::FULL_DETAIL);
-  BOOST_CHECK(_stepperMotor->getLogLevel() == Logger::FULL_DETAIL);
+  _stepperMotor->setLogLevel(logging::Logger::FULL_DETAIL);
+  BOOST_CHECK(_stepperMotor->getLogLevel() == logging::Logger::FULL_DETAIL);
 
-  _stepperMotor->setLogLevel(Logger::NO_LOGGING);
+  _stepperMotor->setLogLevel(logging::Logger::NO_LOGGING);
 }
 
 void StepperMotorTest::testCalibration() {
