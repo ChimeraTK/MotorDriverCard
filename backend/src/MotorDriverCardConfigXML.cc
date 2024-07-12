@@ -7,6 +7,7 @@
 
 #include <charconv>
 #include <iostream>
+#include <algorithm>
 
 namespace detail {
   class NodeFiller {
