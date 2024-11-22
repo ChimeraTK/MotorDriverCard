@@ -380,7 +380,7 @@ void LinearStepperMotorTest::testMoveToPosition() {
 
   // now the same for negative end  switch
   _motorControlerDummy->resetInternalStateToDefaults();
-  _stepperMotor->setTargetPosition(_motorControlerDummy->getNEgativeEndSwitch());
+  _stepperMotor->setTargetPosition(_motorControlerDummy->getNegativeEndSwitch());
   _stepperMotor->start();
   _motorControlerDummy->moveTowardsTarget(1);
   BOOST_CHECK(_stepperMotor->getStatusAndError().status == LinearStepperMotorStatusTypes::M_NEGATIVE_END_SWITCHED_ON);
@@ -682,7 +682,7 @@ void LinearStepperMotorTest::testIsMoving() {
 
   // 2. Move beyond an end switch
   _motorControlerDummy->resetInternalStateToDefaults();
-  auto negativeEndSwitchPosition = _motorControlerDummy->getNEgativeEndSwitch();
+  auto negativeEndSwitchPosition = _motorControlerDummy->getNegativeEndSwitch();
   BOOST_CHECK(_stepperMotor->isMoving() == false);
   _stepperMotor->setTargetPosition(negativeEndSwitchPosition - 100);
   BOOST_CHECK(_stepperMotor->isMoving() == true);
@@ -692,7 +692,7 @@ void LinearStepperMotorTest::testIsMoving() {
 }
 
 bool LinearStepperMotorTest::isMoveToNegativeEndSwitchRequested() {
-  return _motorControlerDummy->getTargetPosition() <= _motorControlerDummy->getNEgativeEndSwitch();
+  return _motorControlerDummy->getTargetPosition() <= _motorControlerDummy->getNegativeEndSwitch();
 }
 
 bool LinearStepperMotorTest::isMoveToPositiveEndSwitchRequested() {
@@ -701,5 +701,5 @@ bool LinearStepperMotorTest::isMoveToPositiveEndSwitchRequested() {
 
 bool LinearStepperMotorTest::isMoveToValidPositionRequested() {
   return (_motorControlerDummy->getTargetPosition() < _motorControlerDummy->getPositiveEndSwitch()) &&
-      (_motorControlerDummy->getTargetPosition() > _motorControlerDummy->getNEgativeEndSwitch());
+      (_motorControlerDummy->getTargetPosition() > _motorControlerDummy->getNegativeEndSwitch());
 }

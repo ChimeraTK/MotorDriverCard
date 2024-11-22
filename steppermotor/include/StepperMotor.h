@@ -1,14 +1,6 @@
-/**
- * File:   StepperMotor.h
- * Author: ckampm
- *
- * Provides StepperMotor base class and
- * a Factory to create instances.
- *
- */
-
-#ifndef CHIMERATK_STEPPER_MOTOR_H
-#define CHIMERATK_STEPPER_MOTOR_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "StepperMotorUtil.h"
 
@@ -20,7 +12,7 @@
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
 
-namespace ChimeraTK { namespace MotorDriver {
+namespace ChimeraTK::MotorDriver {
 
   /**
    * @brief Contains parameters for initialization of a StepperMotor object
@@ -28,16 +20,16 @@ namespace ChimeraTK { namespace MotorDriver {
   struct StepperMotorParameters {
     StepperMotorType motorType{StepperMotorType::BASIC};
     /// Name of the device in DMAP file
-    std::string deviceName{""};
+    std::string deviceName;
     /// Name of the module in the map file (there might be more than one MD22 per
     /// device/ FMC carrier).
-    std::string moduleName{""};
+    std::string moduleName;
     /// Each Motor Card Driver has two independent Motor Drivers (can drive two
     /// physical motors). ID defines which motor should be represented by this
     /// class instantiation
     unsigned int driverId{0U};
     /// Name of configuration file
-    std::string configFileName{""};
+    std::string configFileName;
     /// A converter between motor steps and user unit. Based on the abstract class
     /// StepperMotorUnitsConverter. Defaults to a 1:1 converter between units and
     /// steps.
@@ -59,7 +51,7 @@ namespace ChimeraTK { namespace MotorDriver {
     /**
      * @brief  Destructor of the class object
      */
-    virtual ~StepperMotor() {}
+    virtual ~StepperMotor() = default;
 
     /**
      * @ brief move the motor a delta from the current position
@@ -390,7 +382,7 @@ namespace ChimeraTK { namespace MotorDriver {
      * written to the register of the controller chip.
      *
      */
-    virtual void enableFullStepping(bool enable = true) = 0;
+    virtual void enableFullStepping(bool enable) = 0;
 
     /**
      * @brief returns true if motor is moving per full step, false otherwise
@@ -437,7 +429,7 @@ namespace ChimeraTK { namespace MotorDriver {
   /**
    * @brief The StepperMotorFactory is used to create StepperMotor instances.
    *
-   * This assures that for each pysical device, only one instance is created
+   * This assures that for each physical device, only one instance is created
    * and it manages creation of the different implementations.
    */
   class StepperMotorFactory {
@@ -471,5 +463,4 @@ namespace ChimeraTK { namespace MotorDriver {
     std::map<MotorIdentifier, std::weak_ptr<StepperMotor>> _existingMotors;
   }; // class StepperMotorFactory
 
-}}     // namespace ChimeraTK::MotorDriver
-#endif /* CHIMERATK_STEPPER_MOTOR_H */
+} // namespace ChimeraTK::MotorDriver

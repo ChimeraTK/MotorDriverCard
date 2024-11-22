@@ -5,7 +5,9 @@
 
 #include <mutex>
 
-namespace ChimeraTK { namespace MotorDriver {
+#include <ChimeraTK/Exception.h>
+
+namespace ChimeraTK::MotorDriver {
 
   StepperMotorFactory::StepperMotorFactory() : _factoryMutex{}, _existingMotors{} {}
 
@@ -40,10 +42,12 @@ namespace ChimeraTK { namespace MotorDriver {
       case StepperMotorType::LINEAR:
         ptr = std::make_shared<LinearStepperMotor>(parameters);
         break;
+      default:
+        throw ChimeraTK::logic_error("Invalid Stepper motor variant");
     }
 
     _existingMotors[id] = ptr;
     return ptr;
   }
 
-}} // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver

@@ -24,9 +24,9 @@ BOOST_AUTO_TEST_CASE(StepperMotorStatusTestCase) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  // test: dafault constuctor
+  // test: default constructor
   mtca4u::StepperMotorStatus defaultStatus;
-  // test: parameter constuctor
+  // test: parameter constructor
   mtca4u::StepperMotorStatus status2(2);
   // test: copy constructor
   mtca4u::StepperMotorStatus defaultStatusCopy1(defaultStatus);
@@ -111,7 +111,6 @@ bool checkOperatorForDefaultConstructedObject(mtca4u::LinearStepperMotorStatus& 
   switch(status) {
     case 1:
       return true;
-      break;
     default:
       return false;
   }
@@ -124,9 +123,9 @@ BOOST_AUTO_TEST_CASE(LinearStepperMotorStatusTestCase) {
 
   std::stringstream testStream; // any kind of object which is std::ostream
 
-  // test: dafault constuctor
+  // test: default constructor
   mtca4u::LinearStepperMotorStatus defaultStatus;
-  // test: parameter constuctor
+  // test: parameter constructor
   mtca4u::LinearStepperMotorStatus status2(2);
   // test: copy constructor
   mtca4u::LinearStepperMotorStatus defaultStatusCopy1(defaultStatus);

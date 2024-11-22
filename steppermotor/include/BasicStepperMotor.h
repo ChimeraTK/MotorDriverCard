@@ -412,6 +412,23 @@ namespace ChimeraTK::MotorDriver {
    protected:
     /**
      * StateMachine subclass specific to this implementation
+     *
+     * \dot
+     * digraph {
+
+    # To refactor nodes, place the cursor left to a node name
+    initState -> disabled [label="initialEvent"]
+    disabled -> idle [label = "enableEvent"];
+    idle -> moving [label = "moveEvent"];
+    idle -> disabled [label = "disableEvent"];
+    moving -> idle [label = "stopEvent"];
+    moving -> error [label = "errorEvent"];
+    moving -> error [label = "emergencyStopEvent"];
+    moving -> disabled [label = "disableEvent"];
+    error -> idle [label = "resetToIdleEvent"];
+    error -> disabled [label = "resetToDisabledEvent"];
+    }
+\enddot
      */
     class StateMachine : public utility::StateMachine {
       friend class BasicStepperMotor;
@@ -489,7 +506,7 @@ namespace ChimeraTK::MotorDriver {
     bool _autostart{false};
     bool _softwareLimitsEnabled{false};
 
-    mutable boost::mutex _mutex{};
+    mutable boost::mutex _mutex;
     std::shared_ptr<utility::StateMachine> _stateMachine;
 
     std::atomic<Error> _errorMode{Error::NO_ERROR};

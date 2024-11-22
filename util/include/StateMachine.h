@@ -5,13 +5,12 @@
 
 #include <atomic>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <utility>
-#include <vector>
+
+#include <ChimeraTK/cppext/future_queue.hpp>
 
 struct StateMachineTestFixture;
 
@@ -33,6 +32,7 @@ namespace ChimeraTK::MotorDriver::utility {
       Event() = delete;
 
       friend bool operator<(const Event& event1, const Event& event2);
+      [[nodiscard]] const std::string& getName() const { return _eventName; }
 
      private:
       std::string _eventName;
@@ -68,7 +68,7 @@ namespace ChimeraTK::MotorDriver::utility {
       };
 
       /**
-       * TransitionTable type, maps TranssitionData to an event.
+       * TransitionTable type, maps TransitionData to an event.
        */
       using TransitionTable = std::map<Event, TransitionData>;
 
@@ -88,15 +88,15 @@ namespace ChimeraTK::MotorDriver::utility {
        * to implement internal events. To achieve this, the callback function must
        * check the condition for a state transition and might then call
        * StateMachine::performTransition. This callback is performed on each call
-       *                           to StateMachine::getCurrentState.
+       * to StateMachine::getCurrentState.
        */
       void setTransition(
           const Event& event, State* target, std::function<void(void)> entryCallback,
           std::function<void(void)> internalCallback = [] {});
       [[nodiscard]] const TransitionTable& getTransitionTable() const;
       /**
-       * @brief getName
-       * @return
+       * @brief get the name of the state
+       * @return name of state
        */
       [[nodiscard]] std::string getName() const;
 
@@ -105,24 +105,29 @@ namespace ChimeraTK::MotorDriver::utility {
       TransitionTable _transitionTable;
     };
 
-    StateMachine();
+    StateMachine() = default;
     StateMachine(const StateMachine& stateMachine) = delete;
     StateMachine& operator=(const StateMachine& stateMachine);
-    virtual ~StateMachine();
+    virtual ~StateMachine() = default;
+
     State* getCurrentState();
     void setAndProcessUserEvent(const Event& event);
     Event getUserEvent();
 
    protected:
-    State _initState;
-    State _endState;
-    State* _currentState;
-    State* _requestedState;
+    cppext::future_queue<std::string> _state{4};
+    State _initState{"initState"};
+    State _endState{"endState"};
+    State* _currentState{&_initState};
+    State* _requestedState{nullptr};
 
     std::mutex _stateMachineMutex;
-    std::atomic<bool> _asyncActionActive;
-    std::function<void(void)> _internalEventCallback;
-    std::function<void(void)> _requestedInternalCallback;
+    /// Whether or not the current state transition is waiting for something to happen asynchronously
+    std::atomic<bool> _asyncActionActive{false};
+    /// ???
+    std::function<void(void)> _internalEventCallback{[]() {}};
+    /// ???
+    std::function<void(void)> _requestedInternalCallback{[]() {}};
     void performTransition(const Event& event);
     bool hasRequestedState();
     void moveToRequestedState();

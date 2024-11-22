@@ -10,10 +10,6 @@
 
 namespace mtca4u {
 
-  MotorDriverCardFactory::MotorDriverCardFactory() : _factoryMutex(), _motorDriverCards(), _dummyMode(false) {
-    /* empty */
-  }
-
   // the copy constructor is intentionally not implemented
 
   MotorDriverCardFactory& MotorDriverCardFactory::instance() {

@@ -12,10 +12,10 @@ namespace mtca4u {
    */
   class MotorDriverCardDummy : public MotorDriverCard {
    public:
-    virtual boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID);
+    boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID) override;
 
-    virtual PowerMonitor& getPowerMonitor();
-    virtual ~MotorDriverCardDummy();
+    PowerMonitor& getPowerMonitor() override;
+    ~MotorDriverCardDummy() override = default;
 
    private:
     // The constructor does not need to know anything. There is noting to
@@ -30,7 +30,7 @@ namespace mtca4u {
     // For testing we need access to the constructor
     friend class MotorDriverCardDummyTest;
 
-    std::vector<boost::shared_ptr<MotorControler>> _motorControlers;
+    std::vector<boost::shared_ptr<MotorControler>> _motorControllers;
   };
 
 } // namespace mtca4u

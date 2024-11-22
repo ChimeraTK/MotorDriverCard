@@ -3,20 +3,21 @@
 
 #include "MotorControler.h"
 
-#include <atomic>
 #include <mutex>
 
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define MCD_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
-  void set##NAME(unsigned int VARIABLE_IN_UNITS);                                                                      \
-  unsigned int get##NAME()
+  void set##NAME(unsigned int VARIABLE_IN_UNITS) override;                                                             \
+  unsigned int get##NAME() override
 
 #define MCD_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                      \
-  void set##NAME(int VARIABLE_IN_UNITS);                                                                               \
-  int get##NAME()
+  void set##NAME(int VARIABLE_IN_UNITS) override;                                                                      \
+  int get##NAME() override
 
 #define MCD_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                        \
-  void set##NAME(NAME const& VARIABLE_NAME);                                                                           \
-  NAME get##NAME()
+  void set##NAME(NAME const& VARIABLE_NAME) override;                                                                  \
+  NAME get##NAME() override
+// NOLINTEND(bugprone-macro-parentheses)
 
 namespace mtca4u {
 
@@ -24,52 +25,52 @@ namespace mtca4u {
    *  basic functionality defined in the MotorControler class,
    *  not the full functionality defined in MotorControlerExpert.
    *
-   *  It emulates a real stepper motor with a hardware positon and
+   *  It emulates a real stepper motor with a hardware position and
    *  hardware end switches. The motion of the motor can be controlled
    *  with the additional functions in this class.
    */
   class MotorControlerDummy : public MotorControler {
    public:
-    MotorControlerDummy(unsigned int id);
+    explicit MotorControlerDummy(unsigned int id);
 
     // inherited functions
 
-    unsigned int getID();
-    int getActualPosition();
-    int getActualVelocity();
-    unsigned int getActualAcceleration();
-    unsigned int getMicroStepCount();
+    unsigned int getID() override;
+    int getActualPosition() override;
+    int getActualVelocity() override;
+    unsigned int getActualAcceleration() override;
+    unsigned int getMicroStepCount() override;
 
-    DriverStatusData getStatus();
-    unsigned int getDecoderReadoutMode();
+    DriverStatusData getStatus() override;
+    unsigned int getDecoderReadoutMode() override;
     /// The negative end switch position is decoder 0.
-    unsigned int getDecoderPosition();
+    unsigned int getDecoderPosition() override;
 
     void setActualVelocity(int stepsPerFIXME);
-    void setActualAcceleration(unsigned int stepsPerSquareFIXME);
-    void setMicroStepCount(unsigned int microStepCount);
-    void setEnabled(bool enable = true);
-    void setDecoderReadoutMode(unsigned int decoderReadoutMode);
+    void setActualAcceleration(unsigned int stepsPerSquareFIXME) override;
+    void setMicroStepCount(unsigned int microStepCount) override;
+    void setEnabled(bool enable) override;
+    void setDecoderReadoutMode(unsigned int decoderReadoutMode) override;
 
-    virtual void enableFullStepping(bool enable = true);
-    virtual bool isFullStepping();
+    void enableFullStepping(bool enable) override;
+    bool isFullStepping() override;
 
-    virtual void setCalibrationTime(uint32_t calibrationTime);
-    virtual uint32_t getCalibrationTime();
+    void setCalibrationTime(uint32_t calibrationTime) override;
+    uint32_t getCalibrationTime() override;
 
-    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
-    virtual int getPositiveReferenceSwitchCalibration();
-    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
-    virtual int getNegativeReferenceSwitchCalibration();
+    void setPositiveReferenceSwitchCalibration(int calibratedPosition) override;
+    int getPositiveReferenceSwitchCalibration() override;
+    void setNegativeReferenceSwitchCalibration(int calibratedPosition) override;
+    int getNegativeReferenceSwitchCalibration() override;
 
-    bool isEnabled();
+    bool isEnabled() override;
 
-    MotorReferenceSwitchData getReferenceSwitchData();
+    MotorReferenceSwitchData getReferenceSwitchData() override;
 
-    void setPositiveReferenceSwitchEnabled(bool enableStatus);
-    void setNegativeReferenceSwitchEnabled(bool enableStatus);
+    void setPositiveReferenceSwitchEnabled(bool enableStatus) override;
+    void setNegativeReferenceSwitchEnabled(bool enableStatus) override;
 
-    void setActualPosition(int steps);
+    void setActualPosition(int steps) override;
     MCD_DECLARE_SIGNED_SET_GET_VALUE(TargetPosition, steps);
     MCD_DECLARE_SET_GET_VALUE(MinimumVelocity, stepsPerFIXME);
     MCD_DECLARE_SET_GET_VALUE(MaximumVelocity, stepsPerFIXME);
@@ -78,8 +79,8 @@ namespace mtca4u {
     MCD_DECLARE_SET_GET_VALUE(PositionTolerance, steps);
     MCD_DECLARE_SET_GET_VALUE(PositionLatched, steps);
 
-    bool targetPositionReached();
-    unsigned int getReferenceSwitchBit();
+    bool targetPositionReached() override;
+    unsigned int getReferenceSwitchBit() override;
 
     // dummy specific functions
     /** Moves the actual position towards the target position, as long as
@@ -94,26 +95,26 @@ namespace mtca4u {
      *  @param zeroPositions FIXME: what exactly does this do? TODO Find out
      *
      *  @attention The 'actual' position is where the step counter currently is.
-     *  it is not the hardware positon (absolute position). If the motor is
+     *  it is not the hardware position (absolute position). If the motor is
      * disabled the motor is stepping and the target position will be reached if
      * the motor is not at an end switch. The motor will not be moving, tough.
      */
     void moveTowardsTarget(
         float fraction, bool blockMotor = false, bool bothEndSwitchesAlwaysOn = false, bool zeroPositions = false);
 
-    virtual double setUserSpeedLimit(double microStepsPerSecond);
-    virtual double getUserSpeedLimit();
-    virtual double getMaxSpeedCapability();
+    double setUserSpeedLimit(double microStepsPerSecond) override;
+    double getUserSpeedLimit() override;
+    double getMaxSpeedCapability() override;
 
-    virtual double setUserCurrentLimit(double currentLimit);
-    virtual double getUserCurrentLimit();
-    virtual double getMaxCurrentLimit();
+    double setUserCurrentLimit(double currentLimit) override;
+    double getUserCurrentLimit() override;
+    double getMaxCurrentLimit() override;
 
-    virtual void setMotorCurrentEnabled(bool enable = true);
-    virtual bool isMotorCurrentEnabled();
+    void setMotorCurrentEnabled(bool enable) override;
+    bool isMotorCurrentEnabled() override;
 
-    virtual void setEndSwitchPowerEnabled(bool enable = true);
-    virtual bool isEndSwitchPowerEnabled();
+    void setEndSwitchPowerEnabled(bool enable) override;
+    bool isEndSwitchPowerEnabled() override;
 
     /**
      * Block the motor and do not move if true. simulateBlockedMotor(true) is an
@@ -132,37 +133,37 @@ namespace mtca4u {
      */
     void resetInternalStateToDefaults();
 
-    virtual bool isMotorMoving();
+    bool isMotorMoving() override;
 
     void setPositiveEndSwitch(int endSwitchPos);
     int getPositiveEndSwitch();
     void setNegativeEndSwitch(int endSwitchNeg);
-    int getNEgativeEndSwitch();
+    int getNegativeEndSwitch();
 
    private:
     mutable std::mutex _motorControllerDummyMutex;
-    int _absolutePosition; ///< Like the real absolute position of a motor, in
+    int _absolutePosition{0}; ///< Like the real absolute position of a motor, in
                            ///< steps
 
-    int _targetPosition;  ///< Target position in steps
-    int _currentPosition; ///< The current position can be set by the user
+    int _targetPosition{0};  ///< Target position in steps
+    int _currentPosition{0}; ///< The current position can be set by the user
                           ///< (calibration)
 
-    uint32_t _calibrationTime;
+    uint32_t _calibrationTime{0};
 
-    bool _positiveEndSwitchEnabled; ///< Flag whether the positive end switch is
+    bool _positiveEndSwitchEnabled{true}; ///< Flag whether the positive end switch is
                                     ///< being used
-    bool _negativeEndSwitchEnabled; ///< Flag whether the negative end switch is
+    bool _negativeEndSwitchEnabled{true}; ///< Flag whether the negative end switch is
                                     ///< being used
-    bool _motorCurrentEnabled;      ///< Flag indicating if motor current (driver chip)
+    bool _motorCurrentEnabled{false};      ///< Flag indicating if motor current (driver chip)
                                     ///< is enabled
-    bool _endSwitchPowerEnabled;    ///< Flag indicating if the end switches are
+    bool _endSwitchPowerEnabled{false};    ///< Flag indicating if the end switches are
                                     ///< powered up
     ///< not change if this flag is false.
-    int _positiveEndSwitchPosition;
-    int _negativeEndSwitchPosition;
+    int _positiveEndSwitchPosition{10000};
+    int _negativeEndSwitchPosition{-10000};
 
-    double _userSpeedLimit;
+    double _userSpeedLimit{100000}; // Arbitrary high value
 
     unsigned int _id;
 
@@ -178,12 +179,12 @@ namespace mtca4u {
     bool isPositiveEndSwitchActive();
     bool isNegativeEndSwitchActive();
 
-    bool _blockMotor;
-    bool _bothEndSwitchesAlwaysOn;
-    unsigned int _userMicroStepSize;
-    bool _isFullStepping;
+    bool _blockMotor{false};
+    bool _bothEndSwitchesAlwaysOn{false};
+    unsigned int _userMicroStepSize{4};
+    bool _isFullStepping{false};
     void setMicroStepSize(unsigned int microStepSize) { _userMicroStepSize = microStepSize; }
-    unsigned int getMicropStepSize() { return _userMicroStepSize; }
+    unsigned int getMicropStepSize() const { return _userMicroStepSize; }
     void roundToNextFullStep(int& targetPosition);
 
     uint32_t _encoderReadoutMode{DecoderReadoutMode::HEIDENHAIN};

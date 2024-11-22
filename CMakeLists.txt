@@ -15,6 +15,7 @@ include(cmake/enable_code_coverage_report.cmake)
 include(cmake/enable_doxygen_documentation.cmake)
 
 find_package(ChimeraTK-DeviceAccess 02.04 REQUIRED)
+find_package(ChimeraTK-cppext 01.05 REQUIRED)
 find_package(PkgConfig)
 set(LIBXML++_VERSION "2.6")
 pkg_check_modules(LibXML++ REQUIRED IMPORTED_TARGET libxml++-${LIBXML++_VERSION})
@@ -138,7 +139,7 @@ add_custom_command(
 # Define the main library
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} schema.h)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system ChimeraTK::ChimeraTK-cppext
                                       PRIVATE PkgConfig::LibXML++ MTCA4U_OBJECTS_TARGET CTK_OBJECTS_TARGET)
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
                                                    $<INSTALL_INTERFACE:include>

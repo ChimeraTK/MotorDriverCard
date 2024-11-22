@@ -1,5 +1,6 @@
-#ifndef MTCA4U_MOTOR_DRIVER_CARD_FACTORY_H
-#define MTCA4U_MOTOR_DRIVER_CARD_FACTORY_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
@@ -27,8 +28,7 @@ namespace mtca4u {
   class MotorDriverCardFactory {
     /** The constructor is private because this class is a singleton.
      */
-    MotorDriverCardFactory();
-    MotorDriverCardFactory(MotorDriverCardFactory const&) = delete;
+    MotorDriverCardFactory() = default;
 
     /// Mutex to allow access from multiple threads.
     boost::mutex _factoryMutex;
@@ -41,13 +41,15 @@ namespace mtca4u {
     bool _dummyMode{false};
 
    public:
+    MotorDriverCardFactory(MotorDriverCardFactory const&) = delete;
+
     /** Access the single instance of the factory.
      */
     static MotorDriverCardFactory& instance();
     bool getDummyMode();
     void setDummyMode(bool dummyMode = true);
     /** Create a motor driver card from the device alias, the module name in the
-     * map file (there mighte be more than one MD22 on the carrier), and the file
+     * map file (there might be more than one MD22 on the carrier), and the file
      * name for the motor config.
      */
     boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
@@ -82,5 +84,3 @@ namespace mtca4u {
     static std::string getDeviceaccessDMapFilePath();
   };
 } // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_DRIVER_CARD_FACTORY_H

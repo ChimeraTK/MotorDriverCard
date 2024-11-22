@@ -18,9 +18,9 @@
 
 namespace mtca4u {
   /**
-   * A class to controll stepper motors using the DFMC-MD22 card.
-   * This class decribes the full (expert) functionality of one motor (access
-   * to all registers of the driver and controler chip registers).
+   * A class to control stepper motors using the DFMC-MD22 card.
+   * This class describes the full (expert) functionality of one motor (access
+   * to all registers of the driver and controller chip registers).
    *
    * This purely virtual class defines the interface.
    *
@@ -45,11 +45,11 @@ namespace mtca4u {
     virtual void setStallGuardControlData(StallGuardControlData const& stallGuardControlData) = 0;
     virtual void setDriverConfigData(DriverConfigData const& driverConfigData) = 0;
 
-    virtual DriverControlData const& getDriverControlData() const = 0;
-    virtual ChopperControlData const& getChopperControlData() const = 0;
-    virtual CoolStepControlData const& getCoolStepControlData() const = 0;
-    virtual StallGuardControlData const& getStallGuardControlData() const = 0;
-    virtual DriverConfigData const& getDriverConfigData() const = 0;
+    [[nodiscard]] virtual DriverControlData const& getDriverControlData() const = 0;
+    [[nodiscard]] virtual ChopperControlData const& getChopperControlData() const = 0;
+    [[nodiscard]] virtual CoolStepControlData const& getCoolStepControlData() const = 0;
+    [[nodiscard]] virtual StallGuardControlData const& getStallGuardControlData() const = 0;
+    [[nodiscard]] virtual DriverConfigData const& getDriverConfigData() const = 0;
   };
 
 } // namespace mtca4u

@@ -110,12 +110,12 @@ void MotorControlerDummyTest::testIsSetEnabled() {
   // motor activated.
   _motorControlerDummy.setTargetPosition(0);
   _motorControlerDummy.setActualPosition(0);
-  _motorControlerDummy.setEnabled();
+  _motorControlerDummy.setEnabled(true);
   // check that on/of works as expected
   BOOST_CHECK(_motorControlerDummy.isEnabled());
   _motorControlerDummy.setEnabled(false);
   BOOST_CHECK(_motorControlerDummy.isEnabled() == false);
-  _motorControlerDummy.setEnabled();
+  _motorControlerDummy.setEnabled(true);
 }
 
 void MotorControlerDummyTest::testGetSetTargetPosition() {

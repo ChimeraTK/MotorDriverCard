@@ -10,11 +10,12 @@
 
 #include <ChimeraTK/Exception.h>
 
-#include <mutex>
+#include <thread>
+#include <iostream>
 
-static const unsigned wakeupPeriodInMilliseconds = 500U;
+constexpr unsigned wakeupPeriodInMilliseconds = 500U;
 
-namespace ChimeraTK { namespace MotorDriver {
+namespace ChimeraTK::MotorDriver {
 
   using utility::StateMachine;
 
@@ -25,8 +26,7 @@ namespace ChimeraTK { namespace MotorDriver {
   : BasicStepperMotor::StateMachine(stepperMotorWithReference), _calibrating("calibrating"),
     _calculatingTolerance("calculatingTolerance"), _motor(stepperMotorWithReference), _stopAction(false),
     _moveInterrupted(false) {
-    _idle.setTransition(calibEvent, &_calibrating, std::bind(&LinearStepperMotor::StateMachine::actionStartCalib, this),
-        std::bind(&LinearStepperMotor::StateMachine::actionEndCallback, this));
+    _idle.setTransition(calibEvent, &_calibrating, [this]() { actionStartCalib(); }, [this]() { actionEndCallback(); });
     _idle.setTransition(LinearStepperMotor::StateMachine::calcToleranceEvent, &_calculatingTolerance,
         std::bind(&LinearStepperMotor::StateMachine::actionStartCalcTolercance, this),
         std::bind(&LinearStepperMotor::StateMachine::actionEndCallback, this));
@@ -47,8 +47,6 @@ namespace ChimeraTK { namespace MotorDriver {
       actionEmergencyStop();
     });
   }
-
-  LinearStepperMotor::StateMachine::~StateMachine() {}
 
   void LinearStepperMotor::StateMachine::actionStop() {
     _stopAction.exchange(true);
@@ -146,19 +144,15 @@ namespace ChimeraTK { namespace MotorDriver {
   void LinearStepperMotor::StateMachine::findEndSwitch(Sign sign) {
     while(!_motor.isEndSwitchActive(sign)) {
       if(_stopAction.load() || _moveInterrupted.load()) {
-        std::cerr << "fes a: " << _stopAction.load() << " " << _moveInterrupted.load() << std::endl;
         return;
       }
       else if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
           !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
         _moveInterrupted.exchange(true);
-        std::cerr << "fes b: " << (_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps()) << " "
-                  << (!_motor.isPositiveReferenceActive()) << " " << (!_motor.isNegativeReferenceActive()) << std::endl;
         return;
       }
       moveToEndSwitch(sign);
     }
-    std::cerr << "fes c: Found endswitch" << std::endl;
     return;
   }
 
@@ -226,7 +220,7 @@ namespace ChimeraTK { namespace MotorDriver {
     int endSwitchPosition = getPositionEndSwitch(sign);
 
     // Get 10 samples for tolerance calculation
-    for(unsigned i = 0; i < N_TOLERANCE_CALC_SAMPLES; i++) {
+    for(double & measurement : measurements) {
       if(_stopAction.load() || _moveInterrupted.load()) {
         break;
       }
@@ -261,7 +255,7 @@ namespace ChimeraTK { namespace MotorDriver {
 
       // Mean calculation
       meanMeasurement += static_cast<double>(_motor.getCurrentPositionInSteps()) / N_TOLERANCE_CALC_SAMPLES;
-      measurements[i] = _motor.getCurrentPositionInSteps();
+      measurement = _motor.getCurrentPositionInSteps();
     } /* for (i in [0,9]) */
 
     // Compute variance
@@ -274,4 +268,4 @@ namespace ChimeraTK { namespace MotorDriver {
 
     return sqrt(stdMeasurement);
   }
-}} // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver

@@ -58,16 +58,6 @@ namespace ChimeraTK::MotorDriver {
 
     /********************************************************************************************************************/
 
-    StateMachine::StateMachine()
-    : _initState("initState"), _endState("endState"), _currentState(&_initState), _requestedState(nullptr),
-      _asyncActionActive(false), _internalEventCallback([] {}), _requestedInternalCallback([] {}) {}
-
-    /********************************************************************************************************************/
-
-    StateMachine::~StateMachine() = default;
-
-    /********************************************************************************************************************/
-
     StateMachine::State* StateMachine::getCurrentState() {
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
 
@@ -114,6 +104,7 @@ namespace ChimeraTK::MotorDriver {
         _requestedState = nullptr;
       }
     }
+
   } // namespace utility
 
   /********************************************************************************************************************/

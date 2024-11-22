@@ -10,11 +10,9 @@
 
 #include "BasicStepperMotor.h"
 
-#include <memory>
-
 class StepperMotorWithReferenceTestFixture;
 
-namespace ChimeraTK { namespace MotorDriver {
+namespace ChimeraTK::MotorDriver {
 
   /// Helper class for endswitch polarity
   enum class Sign { NEGATIVE = -1, POSITIVE = 1 };
@@ -33,12 +31,12 @@ namespace ChimeraTK { namespace MotorDriver {
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
      */
-    LinearStepperMotor(const StepperMotorParameters&);
+    explicit LinearStepperMotor(const StepperMotorParameters&);
 
     /**
      * @brief  Destructor of the class object
      */
-    virtual ~LinearStepperMotor();
+    ~LinearStepperMotor() override;
 
     /**
      *  @brief Simple calibration of the linear stage by defining the actual
@@ -50,7 +48,7 @@ namespace ChimeraTK { namespace MotorDriver {
      * switches.\n This function will result in the calibration mode being
      * CalibrationMode::SIMPLE.\n
      */
-    virtual ExitStatus setActualPositionInSteps(int actualPositionInSteps);
+    ExitStatus setActualPositionInSteps(int actualPositionInSteps) override;
 
     /**
      * @brief Translate axis of the linear stage by offset translationInSteps
@@ -59,9 +57,9 @@ namespace ChimeraTK { namespace MotorDriver {
      * shifted by the given offset. The resulting new position will be truncated
      * if the calculated value exceeds the numeric limits of an int.
      */
-    virtual ExitStatus translateAxisInSteps(int translationInSteps);
+    ExitStatus translateAxisInSteps(int translationInSteps) override;
 
-    virtual bool hasHWReferenceSwitches();
+    bool hasHWReferenceSwitches() override;
 
     /**
      *  @brief Calibration of the linear stage.
@@ -74,7 +72,7 @@ namespace ChimeraTK { namespace MotorDriver {
      *  On success, this function will result in the calibration mode being
      * CalibrationMode::FULL.\n
      */
-    virtual ExitStatus calibrate();
+    ExitStatus calibrate() override;
 
     /**
      *  @brief Determines the standard deviation of the end switch position.
@@ -85,46 +83,46 @@ namespace ChimeraTK { namespace MotorDriver {
      * the actual position is not within a 3 sigma band around the\n calibrated
      * end switch position.\n
      */
-    virtual ExitStatus determineTolerance();
+    ExitStatus determineTolerance() override;
 
-    virtual Error getError();
+    Error getError() override;
 
-    virtual float getPositiveEndReference();
+    float getPositiveEndReference() override;
 
-    virtual int getPositiveEndReferenceInSteps();
+    int getPositiveEndReferenceInSteps() override;
 
-    virtual float getNegativeEndReference();
+    float getNegativeEndReference() override;
 
-    virtual int getNegativeEndReferenceInSteps();
+    int getNegativeEndReferenceInSteps() override;
 
-    virtual float getTolerancePositiveEndSwitch();
+    float getTolerancePositiveEndSwitch() override;
 
-    virtual float getToleranceNegativeEndSwitch();
-
-    /**
-     *  Determines if the end switch has been hit.
-     */
-    virtual bool isPositiveReferenceActive();
+    float getToleranceNegativeEndSwitch() override;
 
     /**
      *  Determines if the end switch has been hit.
      */
-    virtual bool isNegativeReferenceActive();
+    bool isPositiveReferenceActive() override;
+
+    /**
+     *  Determines if the end switch has been hit.
+     */
+    bool isNegativeReferenceActive() override;
 
     /**
      *  Determines if the end switch is enabled (and will be activated when hit).
      */
-    virtual bool isPositiveEndSwitchEnabled();
+    bool isPositiveEndSwitchEnabled() override;
 
     /**
      *  Determines if the end switch is enabled (and will be activated when hit).
      */
-    virtual bool isNegativeEndSwitchEnabled();
+    bool isNegativeEndSwitchEnabled() override;
 
     /**
      *  @brief Returns the current calibration mode
      */
-    virtual CalibrationMode getCalibrationMode();
+    CalibrationMode getCalibrationMode() override;
 
     // friend class utility::StepperMotorWithReferenceStateMachine;
     friend class ::StepperMotorWithReferenceTestFixture;
@@ -137,8 +135,8 @@ namespace ChimeraTK { namespace MotorDriver {
       friend class LinearStepperMotor;
 
      public:
-      StateMachine(LinearStepperMotor& stepperMotorWithReference);
-      virtual ~StateMachine();
+      explicit StateMachine(LinearStepperMotor& stepperMotorWithReference);
+      ~StateMachine() override = default;
 
       static const Event calibEvent;
       static const Event calcToleranceEvent;
@@ -164,10 +162,10 @@ namespace ChimeraTK { namespace MotorDriver {
       int getPositionEndSwitch(Sign sign);
     };
 
-    virtual bool motorActive();
-    virtual bool limitsOK(int newPositionInSteps);
-    virtual ExitStatus checkNewPosition(int newPositionInSteps);
-    virtual bool verifyMoveAction();
+    bool motorActive() override;
+    bool limitsOK(int newPositionInSteps) override;
+    ExitStatus checkNewPosition(int newPositionInSteps) override;
+    bool verifyMoveAction() override;
 
     /// Loads end switch calibration from the HW and sets the calibration mode
     /// accordingly.
@@ -176,15 +174,15 @@ namespace ChimeraTK { namespace MotorDriver {
     /// True if end switch is activated, checks for error
     bool isEndSwitchActive(Sign sign);
 
-    std::atomic<bool> _positiveEndSwitchEnabled;
-    std::atomic<bool> _negativeEndSwitchEnabled;
-    std::atomic<bool> _calibrationFailed;
-    std::atomic<bool> _toleranceCalcFailed;
-    std::atomic<bool> _toleranceCalculated;
-    std::atomic<int> _calibNegativeEndSwitchInSteps;
-    std::atomic<int> _calibPositiveEndSwitchInSteps;
-    std::atomic<float> _tolerancePositiveEndSwitch;
-    std::atomic<float> _toleranceNegativeEndSwitch;
+    std::atomic<bool> _positiveEndSwitchEnabled{false};
+    std::atomic<bool> _negativeEndSwitchEnabled{false};
+    std::atomic<bool> _calibrationFailed{false};
+    std::atomic<bool> _toleranceCalcFailed{false};
+    std::atomic<bool> _toleranceCalculated{false};
+    std::atomic<int> _calibNegativeEndSwitchInSteps{-std::numeric_limits<int>::max()};
+    std::atomic<int> _calibPositiveEndSwitchInSteps{std::numeric_limits<int>::max()};
+    std::atomic<float> _tolerancePositiveEndSwitch{0};
+    std::atomic<float> _toleranceNegativeEndSwitch{0};
   };
-}}     // namespace ChimeraTK::MotorDriver
+}     // namespace ChimeraTK::MotorDriver
 #endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */

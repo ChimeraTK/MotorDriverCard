@@ -9,9 +9,7 @@
 
 #include <ChimeraTK/Exception.h>
 
-#include <chrono>
 #include <cmath>
-#include <future>
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 

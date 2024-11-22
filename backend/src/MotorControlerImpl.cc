@@ -262,7 +262,11 @@ namespace mtca4u {
 
     InterruptData interupts;
     interupts = readTypedRegister<InterruptData>();
+
+    // Enable all interrupt masks
     interupts.setMaskFlags(255);
+
+    // Enable all interrupts
     interupts.setInterruptFlags(255);
     writeTypedControlerRegister(interupts);
 
@@ -272,7 +276,7 @@ namespace mtca4u {
 
     _localTargetPosition = value;
 
-    unsigned int writeValue = static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
+    auto writeValue = static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
     _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
   }
 
@@ -529,10 +533,14 @@ namespace mtca4u {
 
   bool MotorControlerImpl::isMotorMoving() {
     lock_guard guard(_mutex);
-    InterruptData interruptData = readTypedRegister<InterruptData>();
+    auto interruptData = readTypedRegister<InterruptData>();
+
+    // Check if we got any of the interrupts that tells us that the motor has stopped
+    // POS_END -> Target position was reached
+    // STOP -> Reference switch stopped motor
     if(interruptData.getINT_POS_END() || interruptData.getINT_STOP()) {
       DriverStatusData status(readRegisterAccessor(_status));
-      return !status.getStandstillIndicator();
+      return status.getStandstillIndicator() == 0;
       // if (motorStandsStill){
       //	std::cout << "INT_POS_END " << interruptData.getINT_POS_END() <<
       // std::endl; 	std::cout << "INT_REF_WRONG " <<
@@ -551,19 +559,23 @@ namespace mtca4u {
     }
     int currentPos = readPositionRegisterAndConvert();
 
+    // There was no interrupt, compare positions
     if(_localTargetPosition == currentPos) {
       DriverStatusData status(readRegisterAccessor(_status));
-      return !status.getStandstillIndicator();
+      return status.getStandstillIndicator() == 0;
     }
 
-    MotorReferenceSwitchData referenceSwitchData = retrieveReferenceSwitchStatus();
+    // The positions did not match. Check if we ran into one of the reference switches, without triggering INT_STOP()
+    // How can we still be moving if
+    auto referenceSwitchData = retrieveReferenceSwitchStatus();
     if((referenceSwitchData.getNegativeSwitchEnabled() && referenceSwitchData.getNegativeSwitchActive() &&
            _localTargetPosition <= currentPos) ||
         (referenceSwitchData.getPositiveSwitchEnabled() && referenceSwitchData.getPositiveSwitchActive() &&
             _localTargetPosition >= currentPos)) {
       DriverStatusData status(readRegisterAccessor(_status));
-      return !status.getStandstillIndicator();
+      return status.getStandstillIndicator() == 0;
     }
+
     return true;
   }
 

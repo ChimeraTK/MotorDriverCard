@@ -96,6 +96,8 @@ namespace mtca4u {
     ADD_VARIABLE(OpenLoadCoilA, 5, 5);
     ADD_VARIABLE(OpenLoadCoilB, 6, 6);
     ADD_VARIABLE(OpenLoadIndicators, 5, 6);
+
+    // Standstill indicator bit, set if no STEP input was seen for 2^20 clock cycles of 16Mhz (~65ms)
     ADD_VARIABLE(StandstillIndicator, 7, 7);
   };
 

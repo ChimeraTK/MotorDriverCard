@@ -460,7 +460,7 @@ BOOST_AUTO_TEST_CASE(testFullStepping) {
   BOOST_CHECK(_stepperMotor->isCalibrated() == true);
   BOOST_CHECK(_stepperMotor->isFullStepping() == false);
   BOOST_CHECK(_stepperMotor->getCurrentPositionInSteps() == 0);
-  BOOST_CHECK_NO_THROW(_stepperMotor->enableFullStepping());
+  BOOST_CHECK_NO_THROW(_stepperMotor->enableFullStepping(true));
   BOOST_CHECK(_stepperMotor->isFullStepping() == true);
   BOOST_CHECK_EQUAL(_stepperMotor->isSystemIdle(), true);
   BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(23));
@@ -556,6 +556,22 @@ BOOST_AUTO_TEST_CASE(testLocking) {
 
   _stepperMotor->setActualPositionInSteps(currentPosition);
   _stepperMotor->setSoftwareLimitsEnabled(true);
+}
+
+BOOST_AUTO_TEST_CASE(foo) {
+  _motorControlerDummy->resetInternalStateToDefaults();
+  _motorControlerDummy->setCalibrationTime(std::time(nullptr));
+  _stepperMotor->setActualPositionInSteps(0);
+  _stepperMotor->setAutostart(false);
+  _stepperMotor->setEnabled(true);
+  BOOST_TEST(_stepperMotor->getState() == "idle");
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(96));
+  _stepperMotor->start();
+  BOOST_TEST(_stepperMotor->getState() == "moving");
+  _motorControlerDummy->moveTowardsTarget(0.2);
+  auto steps = _stepperMotor->getCurrentPositionInSteps();
+  BOOST_CHECK_NO_THROW(_stepperMotor->setTargetPositionInSteps(2 * steps));
+  BOOST_TEST(_stepperMotor->getState() == "moving");
 }
 
 BOOST_AUTO_TEST_CASE(testDisable) {

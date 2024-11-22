@@ -12,22 +12,20 @@
 #include "MotorDriverCardFactory.h"
 #include "StepperMotorUtil.h"
 
+#include <memory>
+
 using LockGuard = boost::lock_guard<boost::mutex>;
 
-namespace ChimeraTK { namespace MotorDriver {
+namespace ChimeraTK::MotorDriver {
 
   LinearStepperMotor::LinearStepperMotor(const StepperMotorParameters& parameters)
-  : BasicStepperMotor(), _positiveEndSwitchEnabled(false), _negativeEndSwitchEnabled(false), _calibrationFailed(false),
-    _toleranceCalcFailed(false), _toleranceCalculated(false),
-    _calibNegativeEndSwitchInSteps(-std::numeric_limits<int>::max()),
-    _calibPositiveEndSwitchInSteps(std::numeric_limits<int>::max()), _tolerancePositiveEndSwitch(0),
-    _toleranceNegativeEndSwitch(0) {
+  {
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName);
     _motorControler = _motorDriverCard->getMotorControler(parameters.driverId);
     _stepperMotorUnitsConverter = parameters.motorUnitsConverter;
     _encoderUnitsConverter = parameters.encoderUnitsConverter;
-    _stateMachine.reset(new StateMachine(*this));
+    _stateMachine = std::make_shared<StateMachine>(*this);
     _targetPositionInSteps = _motorControler->getTargetPosition();
     _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
     _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
@@ -39,12 +37,7 @@ namespace ChimeraTK { namespace MotorDriver {
 
   bool LinearStepperMotor::motorActive() {
     std::string stateName = _stateMachine->getCurrentState()->getName();
-    if(stateName == "moving" || stateName == "calibrating" || stateName == "calculatingTolerance") {
-      return true;
-    }
-    else {
-      return false;
-    }
+    return (stateName == "moving" || stateName == "calibrating" || stateName == "calculatingTolerance");
   }
 
   bool LinearStepperMotor::limitsOK(int newPositionInSteps) {
@@ -52,9 +45,8 @@ namespace ChimeraTK { namespace MotorDriver {
         newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
       return BasicStepperMotor::limitsOK(newPositionInSteps);
     }
-    else {
-      return false;
-    }
+
+    return false;
   }
 
   ExitStatus LinearStepperMotor::checkNewPosition(int newPositionInSteps) {
@@ -273,4 +265,4 @@ namespace ChimeraTK { namespace MotorDriver {
 
     return negActive;
   }
-}} // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver
