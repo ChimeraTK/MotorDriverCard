@@ -33,9 +33,12 @@ namespace mtca4u {
     /// Mutex to allow access from multiple threads.
     boost::mutex _factoryMutex;
 
+    using MotorDriverCardKey = std::pair<std::string, std::string>;
+
     /// Map of all devices which have ever been requested.
-    std::map<std::pair<std::string, std::string>, boost::weak_ptr<MotorDriverCard>> _motorDriverCards;
-    bool _dummyMode;
+    std::map<MotorDriverCardKey, boost::weak_ptr<MotorDriverCard>> _motorDriverCards;
+    std::map<MotorDriverCardKey, boost::shared_ptr<MotorDriverCard>> _dummyMotorDriverCards;
+    bool _dummyMode{false};
 
    public:
     /** Access the single instance of the factory.

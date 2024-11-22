@@ -25,10 +25,19 @@ namespace mtca4u {
       std::string alias, std::string mapModuleName, std::string motorConfigFileName) {
     boost::lock_guard<boost::mutex> guard(_factoryMutex);
 
+    auto id = std::make_pair(alias, mapModuleName);
+    if (_dummyMode) {
+        auto card = _dummyMotorDriverCards[id];
+        if (!card) {
+            _dummyMotorDriverCards[id].reset(new MotorDriverCardDummy());
+        }
+
+        return _dummyMotorDriverCards[id];
+    }
+
     // Check if we have the card and if the weak reference is still valid. That way we can guarantee that there is only
     // one MotorDriverCard instance accessing the device (at least in this process) while also being able to re-open
     // the underlying device by giving up all motors using the card.
-    auto id = std::make_pair(alias, mapModuleName);
     auto iterator = _motorDriverCards.find(id);
     if(iterator != _motorDriverCards.end()) {
       auto card = iterator->second.lock();
@@ -36,11 +45,7 @@ namespace mtca4u {
     }
 
     boost::shared_ptr<MotorDriverCard> motorDriverCard;
-    if(_dummyMode) {
-      // just create a MotorDriverCardDummy
-      motorDriverCard.reset(new MotorDriverCardDummy());
-    }
-    else {
+    {
       boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device);
       device->open(alias);
       MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
