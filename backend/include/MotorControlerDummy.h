@@ -27,7 +27,6 @@ namespace mtca4u {
    *  It emulates a real stepper motor with a hardware positon and
    *  hardware end switches. The motion of the motor can be controlled
    *  with the additional functions in this class.
-   *  The end switch positions are hard coded at +-10000.
    */
   class MotorControlerDummy : public MotorControler {
    public:
