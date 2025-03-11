@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(testCreate) {
   // corresponding register.
   // boost::shared_ptr < Device<BaseDevice> > 	mappedMtcadummy =
   // DeviceFactory::getInstance().createDevice(DUMMY_DEV_ALIAS);
-  std::string testFilePath = TEST_DMAP_FILE_PATH;
+  std::string testFilePath = "dummies.dmap";
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(testFilePath);
 
   boost::shared_ptr<mtca4u::MotorDriverCard> motorDriverCard_PCIe1 =
