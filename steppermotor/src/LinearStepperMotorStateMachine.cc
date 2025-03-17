@@ -10,8 +10,8 @@
 
 #include <ChimeraTK/Exception.h>
 
-#include <thread>
 #include <iostream>
+#include <thread>
 
 constexpr unsigned wakeupPeriodInMilliseconds = 500U;
 
@@ -84,8 +84,6 @@ namespace ChimeraTK::MotorDriver {
     _motor._calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
-
-    std::cerr << "Calibration Thread enter" << std::endl;
 
     try {
       // Local variables for calibrated position
@@ -220,7 +218,7 @@ namespace ChimeraTK::MotorDriver {
     int endSwitchPosition = getPositionEndSwitch(sign);
 
     // Get 10 samples for tolerance calculation
-    for(double & measurement : measurements) {
+    for(double& measurement : measurements) {
       if(_stopAction.load() || _moveInterrupted.load()) {
         break;
       }
