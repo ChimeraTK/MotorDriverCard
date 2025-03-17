@@ -1,6 +1,7 @@
 project(QtMotorConfigCalculator)
 
-FIND_PACKAGE(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Network Widgets Gui)
+find_package(Qt${QT_VERSION_MAJOR} 5.14 REQUIRED COMPONENTS Core Network Widgets Gui)
 
 # Instruct CMake to run moc, rcc and uic automatically when needed.
 set(CMAKE_AUTOMOC ON)
@@ -18,10 +19,10 @@ SET(${PROJECT_NAME}_FORMS MotorConfigWidget.ui)
 ADD_EXECUTABLE(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES}
   ${${PROJECT_NAME}_QOBJECT_HEADERS}
   ${${PROJECT_NAME}_HEADERS_MOC}
-  ${${PROJECT_NAME}_FORMS_HEADERS} 
+  ${${PROJECT_NAME}_FORMS_HEADERS}
   ${${PROJECT_NAME}_RESOURCES_RCC})
 # Link the required Qt libraries componentwise
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} mtca4u-MotorDriverCard ConfigCalculator  Qt5::Core  Qt5::Widgets Qt5::Gui)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} mtca4u-MotorDriverCard ConfigCalculator  Qt${QT_VERSION_MAJOR}::Core  Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Gui)
 
 install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
