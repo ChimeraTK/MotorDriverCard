@@ -3,16 +3,17 @@
 #include "DFMC_MD22Constants.h"
 #include "MotorControlerDummy.h"
 
-#include <boost/make_shared.hpp>
-#include <iostream>
 #include <ChimeraTK/Exception.h>
+
+#include <boost/make_shared.hpp>
+
+#include <iostream>
 
 using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u {
 
   MotorDriverCardDummy::MotorDriverCardDummy() {
-    std::cerr << "Creating MotorDriverCardDummy: " << std::hex << std::intptr_t(this) << std::endl;
     _motorControllers.reserve(N_MOTORS_MAX);
     for(unsigned int id = 0; id < N_MOTORS_MAX; ++id) {
       _motorControllers.emplace_back(boost::make_shared<MotorControlerDummy>(id));

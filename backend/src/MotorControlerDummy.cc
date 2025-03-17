@@ -9,28 +9,26 @@ using UniqueLog = std::unique_lock<std::mutex>;
 
 namespace mtca4u {
 
-  MotorControlerDummy::MotorControlerDummy(unsigned int id) : MotorControler(), _id(id) {
-    std::cerr << "Creating MotorControlerDummy for id " << id << ": " << std::hex << std::intptr_t(this) << std::endl;
-  }
+  MotorControlerDummy::MotorControlerDummy(unsigned int id) : MotorControler(), _id(id) {}
 
   void MotorControlerDummy::setPositiveEndSwitch(int endSwitchPos) {
     LockGuard guard(_motorControllerDummyMutex);
-    _positiveEndSwitchPosition = endSwitchPos;
+    _positiveEndSwitchHardwarePosition = endSwitchPos;
   }
 
   int MotorControlerDummy::getPositiveEndSwitch() {
     LockGuard guard(_motorControllerDummyMutex);
-    return _positiveEndSwitchPosition;
+    return _positiveEndSwitchHardwarePosition;
   }
 
   void MotorControlerDummy::setNegativeEndSwitch(int endSwitchNeg) {
     LockGuard guard(_motorControllerDummyMutex);
-    _negativeEndSwitchPosition = endSwitchNeg;
+    _negativeEndSwitchHardwarePosition = endSwitchNeg;
   }
 
   int MotorControlerDummy::getNegativeEndSwitch() {
     LockGuard guard(_motorControllerDummyMutex);
-    return _negativeEndSwitchPosition;
+    return _negativeEndSwitchHardwarePosition;
   }
 
   unsigned int MotorControlerDummy::getID() {
@@ -124,7 +122,7 @@ namespace mtca4u {
   unsigned int MotorControlerDummy::getDecoderPosition() {
     LockGuard guard(_motorControllerDummyMutex);
     // make the negative end switch "decoder 0"
-    return _absolutePosition - _negativeEndSwitchPosition;
+    return _hardwarePosition - _negativeEndSwitchHardwarePosition;
   }
 
   void MotorControlerDummy::setActualVelocity(int /*stepsPerFIXME*/) {
@@ -299,7 +297,7 @@ namespace mtca4u {
   bool MotorControlerDummy::isPositiveEndSwitchActive() {
     if(_bothEndSwitchesAlwaysOn) return true;
 
-    return _positiveEndSwitchEnabled && (_absolutePosition >= _positiveEndSwitchPosition);
+    return _positiveEndSwitchEnabled && (_hardwarePosition >= _positiveEndSwitchHardwarePosition);
   }
 
   double MotorControlerDummy::getMaxSpeedCapability() {
@@ -329,7 +327,7 @@ namespace mtca4u {
 
   void MotorControlerDummy::resetInternalStateToDefaults() {
     LockGuard guard(_motorControllerDummyMutex);
-    _absolutePosition = 0;
+    _hardwarePosition = 0;
     _targetPosition = 0;
     _currentPosition = 0;
     _calibrationTime = 0;
@@ -361,14 +359,14 @@ namespace mtca4u {
   bool MotorControlerDummy::isNegativeEndSwitchActive() {
     if(_bothEndSwitchesAlwaysOn) return true;
 
-    return _negativeEndSwitchEnabled && (_absolutePosition <= _negativeEndSwitchPosition);
+    return _negativeEndSwitchEnabled && (_hardwarePosition <= _negativeEndSwitchHardwarePosition);
   }
 
   void MotorControlerDummy::moveTowardsTarget(
       float fraction, bool block, bool bothEndSwitchesAlwaysOn, bool zeroPositions) {
     LockGuard guard(_motorControllerDummyMutex);
     if(zeroPositions) {
-      _absolutePosition = 0;
+      _hardwarePosition = 0;
       _targetPosition = 0;
       _currentPosition = 0;
       _positiveEndSwitchEnabled = true;
@@ -398,7 +396,7 @@ namespace mtca4u {
 
     // calculate the new abolute target position for this move operation
     int relativeSteps = (_targetPosition - _currentPosition) * fraction;
-    int absoluteTargetInThisMove = _absolutePosition + relativeSteps;
+    int absoluteTargetInThisMove = _hardwarePosition + relativeSteps;
     int targetInThisMove = _currentPosition + relativeSteps;
 
     if(!_motorCurrentEnabled) {
@@ -411,21 +409,21 @@ namespace mtca4u {
     // ok, so the motor is really moving.
 
     // check whether an end switch would be hit
-    if(_positiveEndSwitchEnabled && (absoluteTargetInThisMove > _positiveEndSwitchPosition)) {
-      absoluteTargetInThisMove = _positiveEndSwitchPosition;
+    if(_positiveEndSwitchEnabled && (absoluteTargetInThisMove > _positiveEndSwitchHardwarePosition)) {
+      absoluteTargetInThisMove = _positiveEndSwitchHardwarePosition;
       // also the current positon stops if an end switch is reached
-      int stepsToEndSwitch = _positiveEndSwitchPosition - _absolutePosition;
+      int stepsToEndSwitch = _positiveEndSwitchHardwarePosition - _hardwarePosition;
       targetInThisMove = _currentPosition + stepsToEndSwitch;
     }
-    if(_negativeEndSwitchEnabled && (absoluteTargetInThisMove < _negativeEndSwitchPosition)) {
-      absoluteTargetInThisMove = _negativeEndSwitchPosition;
+    if(_negativeEndSwitchEnabled && (absoluteTargetInThisMove < _negativeEndSwitchHardwarePosition)) {
+      absoluteTargetInThisMove = _negativeEndSwitchHardwarePosition;
       // also the current positon stops if an end switch is reached
-      int stepsToEndSwitch = _negativeEndSwitchPosition - _absolutePosition;
+      int stepsToEndSwitch = _negativeEndSwitchHardwarePosition - _hardwarePosition;
       targetInThisMove = _currentPosition + stepsToEndSwitch;
     }
 
     // finally 'move' the motor
-    _absolutePosition = absoluteTargetInThisMove;
+    _hardwarePosition = absoluteTargetInThisMove;
     _currentPosition = targetInThisMove;
   }
 

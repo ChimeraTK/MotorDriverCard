@@ -142,25 +142,27 @@ namespace mtca4u {
 
    private:
     mutable std::mutex _motorControllerDummyMutex;
-    int _absolutePosition{0}; ///< Like the real absolute position of a motor, in
-                           ///< steps
+    int _hardwarePosition{0}; ///< Like the real absolute position of a motor, in
+                              ///< steps
 
     int _targetPosition{0};  ///< Target position in steps
     int _currentPosition{0}; ///< The current position can be set by the user
-                          ///< (calibration)
+                             ///< (calibration)
 
     uint32_t _calibrationTime{0};
 
     bool _positiveEndSwitchEnabled{true}; ///< Flag whether the positive end switch is
-                                    ///< being used
+                                          ///< being used
     bool _negativeEndSwitchEnabled{true}; ///< Flag whether the negative end switch is
-                                    ///< being used
-    bool _motorCurrentEnabled{false};      ///< Flag indicating if motor current (driver chip)
-                                    ///< is enabled
-    bool _endSwitchPowerEnabled{false};    ///< Flag indicating if the end switches are
-                                    ///< powered up
+                                          ///< being used
+    bool _motorCurrentEnabled{false};     ///< Flag indicating if motor current (driver chip)
+                                          ///< is enabled
+    bool _endSwitchPowerEnabled{false};   ///< Flag indicating if the end switches are
+                                          ///< powered up
     ///< not change if this flag is false.
+    int _positiveEndSwitchHardwarePosition{10000};
     int _positiveEndSwitchPosition{10000};
+    int _negativeEndSwitchHardwarePosition{-10000};
     int _negativeEndSwitchPosition{-10000};
 
     double _userSpeedLimit{100000}; // Arbitrary high value
