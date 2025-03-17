@@ -21,7 +21,7 @@ class HexData {
    * Holds the entered value (for which we need the hex representation)
    */
   double value;
-  HexData(double v = 0) : value(v){};
+  HexData(double v = 0) : value(v) {};
   /** Overloaded constructor for std::string to avoid template specialisation as
    *  there is no implicit conversion from std::string to double.
    *  Generally this conversion does not make sense, so we initialise class with
@@ -41,7 +41,7 @@ Q_DECLARE_METATYPE(HexData)
  */
 class HexSpinBox : public QSpinBox {
   Q_OBJECT
-  QRegExpValidator* _validator;
+  QRegularExpressionValidator* _validator;
 
  public:
   /**
