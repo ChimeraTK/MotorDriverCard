@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
@@ -10,7 +12,7 @@ using namespace boost::unit_test_framework;
 
 #include <sstream>
 #include <thread>
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 #include "ChimeraTK/BackendFactory.h"
 #include "MotorControlerConfigDefaults.h"
 #include "MotorDriverCardFactory.h"
@@ -37,18 +39,18 @@ using namespace mtca4u::dfmc_md22;
 
 #define DEFINE_GET_SET_TEST(NAME, IDX, PATTERN)                                                                        \
   void MotorControlerTest::testGet##NAME() {                                                                           \
-    unsigned int expectedValue = mtca4u::tmc429::testWordFromSpiAddress(_motorControler->getID(), IDX);                \
+    unsigned int expectedValue = ChimeraTK::tmc429::testWordFromSpiAddress(_motorControler->getID(), IDX);             \
     BOOST_CHECK(_motorControler->get##NAME() == expectedValue);                                                        \
   }                                                                                                                    \
   void MotorControlerTest::testSet##NAME() {                                                                           \
     _motorControler->set##NAME(PATTERN);                                                                               \
-    BOOST_CHECK(_motorControler->get##NAME() == (PATTERN & mtca4u::tmc429::SPI_DATA_MASK));                            \
+    BOOST_CHECK(_motorControler->get##NAME() == (PATTERN & ChimeraTK::tmc429::SPI_DATA_MASK));                         \
   }
 
 #define DEFINE_SIGNED_GET_SET_TEST(NAME, IDX, NBITS)                                                                   \
   void MotorControlerTest::testGet##NAME() {                                                                           \
     SignedIntConverter converter(NBITS);                                                                               \
-    unsigned int expectedValue = mtca4u::tmc429::testWordFromSpiAddress(_motorControler->getID(), IDX);                \
+    unsigned int expectedValue = ChimeraTK::tmc429::testWordFromSpiAddress(_motorControler->getID(), IDX);             \
     BOOST_CHECK(_motorControler->get##NAME() == converter.customToThirtyTwo(expectedValue));                           \
   }                                                                                                                    \
   void MotorControlerTest::testSet##NAME() {                                                                           \
@@ -85,7 +87,7 @@ using namespace mtca4u::dfmc_md22;
         &MotorControlerImpl::set##NAME, &MotorControlerImpl::get##NAME, SPI_ADDRESS, TEST_PATTERN);                    \
   }
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class MotorControlerTest {
    public:
@@ -243,16 +245,16 @@ namespace mtca4u {
       add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetEndSwitchPowerEnabled, motorControlerTest));
 
     } // constructor
-  };  // test suite
+  }; // test suite
 
   MotorControlerTest::MotorControlerTest(
       boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
   : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)), _dummyDevice(dummyDevice) {}
 
-  DEFINE_SIGNED_GET_SET_TEST(ActualPosition, mtca4u::tmc429::IDX_ACTUAL_POSITION, 24)
-  DEFINE_SIGNED_GET_SET_TEST(ActualVelocity, mtca4u::tmc429::IDX_ACTUAL_VELOCITY, 12)
-  DEFINE_GET_SET_TEST(ActualAcceleration, mtca4u::tmc429::IDX_ACTUAL_ACCELERATION, 0xFFFFFF)
-  DEFINE_GET_SET_TEST(MicroStepCount, mtca4u::tmc429::IDX_MICRO_STEP_COUNT, 0xAAAAAA)
+  DEFINE_SIGNED_GET_SET_TEST(ActualPosition, ChimeraTK::tmc429::IDX_ACTUAL_POSITION, 24)
+  DEFINE_SIGNED_GET_SET_TEST(ActualVelocity, ChimeraTK::tmc429::IDX_ACTUAL_VELOCITY, 12)
+  DEFINE_GET_SET_TEST(ActualAcceleration, ChimeraTK::tmc429::IDX_ACTUAL_ACCELERATION, 0xFFFFFF)
+  DEFINE_GET_SET_TEST(MicroStepCount, ChimeraTK::tmc429::IDX_MICRO_STEP_COUNT, 0xAAAAAA)
 
   void MotorControlerTest::testReadPCIeRegister(
       unsigned int (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix) {
@@ -337,13 +339,13 @@ namespace mtca4u {
     BOOST_CHECK(_motorControler->isEnabled());
   }
 
-  DEFINE_SIGNED_GET_SET_TEST(TargetPosition, mtca4u::tmc429::IDX_TARGET_POSITION, 24)
-  DEFINE_GET_SET_TEST(MinimumVelocity, mtca4u::tmc429::IDX_MINIMUM_VELOCITY, 0xFFFFFF)
-  DEFINE_GET_SET_TEST(MaximumVelocity, mtca4u::tmc429::IDX_MAXIMUM_VELOCITY, 0xAAAAAA)
-  DEFINE_SIGNED_GET_SET_TEST(TargetVelocity, mtca4u::tmc429::IDX_TARGET_VELOCITY, 12)
-  DEFINE_GET_SET_TEST(MaximumAcceleration, mtca4u::tmc429::IDX_MAXIMUM_ACCELERATION, 0xFFFFFF)
-  DEFINE_GET_SET_TEST(PositionTolerance, mtca4u::tmc429::IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAA)
-  DEFINE_GET_SET_TEST(PositionLatched, mtca4u::tmc429::IDX_POSITION_LATCHED, 0x555555)
+  DEFINE_SIGNED_GET_SET_TEST(TargetPosition, ChimeraTK::tmc429::IDX_TARGET_POSITION, 24)
+  DEFINE_GET_SET_TEST(MinimumVelocity, ChimeraTK::tmc429::IDX_MINIMUM_VELOCITY, 0xFFFFFF)
+  DEFINE_GET_SET_TEST(MaximumVelocity, ChimeraTK::tmc429::IDX_MAXIMUM_VELOCITY, 0xAAAAAA)
+  DEFINE_SIGNED_GET_SET_TEST(TargetVelocity, ChimeraTK::tmc429::IDX_TARGET_VELOCITY, 12)
+  DEFINE_GET_SET_TEST(MaximumAcceleration, ChimeraTK::tmc429::IDX_MAXIMUM_ACCELERATION, 0xFFFFFF)
+  DEFINE_GET_SET_TEST(PositionTolerance, ChimeraTK::tmc429::IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAA)
+  DEFINE_GET_SET_TEST(PositionLatched, ChimeraTK::tmc429::IDX_POSITION_LATCHED, 0x555555)
 
   template<class T>
   void MotorControlerTest::testGetTypedData(T (MotorControlerImpl::*getterFunction)()) {
@@ -399,15 +401,15 @@ namespace mtca4u {
   }
 
   DEFINE_GET_SET_DRIVER_SPI_DATA(
-      DriverControlData, mtca4u::tmc260::ADDRESS_DRIVER_CONTROL, DRIVER_CONTROL_DEFAULT, 0x2AAAA)
+      DriverControlData, ChimeraTK::tmc260::ADDRESS_DRIVER_CONTROL, DRIVER_CONTROL_DEFAULT, 0x2AAAA)
   DEFINE_GET_SET_DRIVER_SPI_DATA(
-      ChopperControlData, mtca4u::tmc260::ADDRESS_CHOPPER_CONFIG, CHOPPER_CONTROL_DEFAULT, 0x1AAAA)
+      ChopperControlData, ChimeraTK::tmc260::ADDRESS_CHOPPER_CONFIG, CHOPPER_CONTROL_DEFAULT, 0x1AAAA)
   DEFINE_GET_SET_DRIVER_SPI_DATA(
-      CoolStepControlData, mtca4u::tmc260::ADDRESS_COOL_STEP_CONFIG, COOL_STEP_CONTROL_DEFAULT, 0x1AAAA)
+      CoolStepControlData, ChimeraTK::tmc260::ADDRESS_COOL_STEP_CONFIG, COOL_STEP_CONTROL_DEFAULT, 0x1AAAA)
   DEFINE_GET_SET_DRIVER_SPI_DATA(
-      StallGuardControlData, mtca4u::tmc260::ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT, 0x1AAAA)
+      StallGuardControlData, ChimeraTK::tmc260::ADDRESS_STALL_GUARD_CONFIG, STALL_GUARD_CONTROL_DEFAULT, 0x1AAAA)
   DEFINE_GET_SET_DRIVER_SPI_DATA(
-      DriverConfigData, mtca4u::tmc260::ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT, 0x1AAAA)
+      DriverConfigData, ChimeraTK::tmc260::ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT, 0x1AAAA)
 
   void MotorControlerTest::testGetReferenceSwitchData(boost::shared_ptr<MotorDriverCardImpl> motorDriverCard) {
     // This approach is intentinally clumsy and manual in order not to use the
@@ -544,13 +546,13 @@ namespace mtca4u {
     return driver->getMotorControler(0);
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MotorControler test suite";
 
-  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(0));
-  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(1));
+  framework::master_test_suite().add(new ChimeraTK::MotorControlerTestSuite(0));
+  framework::master_test_suite().add(new ChimeraTK::MotorControlerTestSuite(1));
 
   return nullptr;
 }

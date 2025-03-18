@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorDriverCardConfigXML.h"
 
 #include "ChimeraTK/Exception.h"
@@ -5,9 +7,9 @@
 #include <libxml++/libxml++.h>
 #include <libxml/parser.h>
 
+#include <algorithm>
 #include <charconv>
 #include <iostream>
-#include <algorithm>
 
 namespace detail {
   class NodeFiller {
@@ -17,10 +19,10 @@ namespace detail {
         std::string const& tagName = "Register");
     void addParameter(
         std::string const& parameterName, int value, int defaultValue, std::string const& tagName = "Register");
-    void addParameter(std::string const& registerName, mtca4u::TMC429InputWord const& value,
-        mtca4u::TMC429InputWord const& defaultValue);
+    void addParameter(std::string const& registerName, ChimeraTK::TMC429InputWord const& value,
+        ChimeraTK::TMC429InputWord const& defaultValue);
     void addParameter(
-        std::string const& registerName, mtca4u::TMC260Word const& value, mtca4u::TMC260Word const& defaultValue);
+        std::string const& registerName, ChimeraTK::TMC260Word const& value, ChimeraTK::TMC260Word const& defaultValue);
     void addParameter(
         std::string const& parameterName, bool value, bool defaultValue, std::string const& tagName = "Register");
 
@@ -61,13 +63,13 @@ void detail::NodeFiller::addParameter(
   }
 }
 
-void detail::NodeFiller::addParameter(std::string const& registerName, mtca4u::TMC429InputWord const& value,
-    mtca4u::TMC429InputWord const& defaultValue) {
+void detail::NodeFiller::addParameter(std::string const& registerName, ChimeraTK::TMC429InputWord const& value,
+    ChimeraTK::TMC429InputWord const& defaultValue) {
   addParameter(registerName, value.getDATA(), defaultValue.getDATA());
 }
 
 void detail::NodeFiller::addParameter(
-    std::string const& registerName, mtca4u::TMC260Word const& value, mtca4u::TMC260Word const& defaultValue) {
+    std::string const& registerName, ChimeraTK::TMC260Word const& value, ChimeraTK::TMC260Word const& defaultValue) {
   addParameter(registerName, value.getPayloadData(), defaultValue.getPayloadData());
 }
 
@@ -86,7 +88,7 @@ std::string detail::NodeFiller::toHexString(unsigned int value) {
   return s.str();
 }
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   template<typename T>
   static void getFromXml(
@@ -200,7 +202,7 @@ namespace mtca4u {
     }
     return controlerConfig;
   }
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #define CARD_CONFIG_ADD_REGISTER(VALUE)                                                                                \
   cardConfigFiller.addParameter(#VALUE, motorDriverCardConfig.VALUE, defaultCardConfig.VALUE)
@@ -214,7 +216,7 @@ namespace mtca4u {
 #define CONTROLER_CONFIG_ADD_PARAMETER(VALUE)                                                                          \
   controlerConfigFiller.addParameter(#VALUE, motorControlerConfig.VALUE, defaultControlerConfig.VALUE, "Parameter")
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   MotorDriverCardConfig MotorDriverCardConfigXML::read(std::string fileName) {
     xmlpp::DomParser parser;
@@ -354,4 +356,4 @@ namespace mtca4u {
       throw ChimeraTK::logic_error(message.str());
     }
   }
-} // namespace mtca4u
+} // namespace ChimeraTK

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "ConfigCalculator.h"
 #include "MotorDriverCardConfig.h"
 #include "MotorDriverCardConfigXML.h"
@@ -68,17 +70,17 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  mtca4u::MotorControlerConfig motorConfig = ConfigCalculator::calculateConfig(
+  ChimeraTK::MotorControlerConfig motorConfig = ConfigCalculator::calculateConfig(
       chipParameters, static_cast<ConfigCalculator::EndSwitchConfig>(endSwitchConfig));
 
-  mtca4u::MotorDriverCardConfig cardConfig;
+  ChimeraTK::MotorDriverCardConfig cardConfig;
   // set all motor configs to the same, calculated config
-  for(std::vector<mtca4u::MotorControlerConfig>::iterator it = cardConfig.motorControlerConfigurations.begin();
+  for(std::vector<ChimeraTK::MotorControlerConfig>::iterator it = cardConfig.motorControlerConfigurations.begin();
       it != cardConfig.motorControlerConfigurations.end(); ++it) {
     *it = motorConfig;
   }
 
-  mtca4u::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);
+  ChimeraTK::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);
 
   return chipParameters.warnings.size();
 }

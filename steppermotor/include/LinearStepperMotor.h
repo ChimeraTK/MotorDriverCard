@@ -1,12 +1,6 @@
-/*
- * StepperMotorWithReference.h
- *
- *  Created on: Jan 17, 2017
- *      Author: vitimic
- */
-
-#ifndef CHIMERATK_LINEAR_STEPPER_MOTOR_H
-#define CHIMERATK_LINEAR_STEPPER_MOTOR_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "BasicStepperMotor.h"
 
@@ -184,5 +178,4 @@ namespace ChimeraTK::MotorDriver {
     std::atomic<float> _tolerancePositiveEndSwitch{0};
     std::atomic<float> _toleranceNegativeEndSwitch{0};
   };
-}     // namespace ChimeraTK::MotorDriver
-#endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */
+} // namespace ChimeraTK::MotorDriver

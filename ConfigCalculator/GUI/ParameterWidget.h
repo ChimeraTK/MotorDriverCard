@@ -1,5 +1,6 @@
-#ifndef _PARAMETER_WIDGET_H_
-#define _PARAMETER_WIDGET_H_
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "HexSpinBox.h"
 
@@ -27,5 +28,3 @@ class ParameterWidget : public QWidget {
   HexSpinBox* parameterSpinBox;
   QLabel* defaultValueLabel;
 };
-
-#endif // _PARAMETER_WIDGET_H_

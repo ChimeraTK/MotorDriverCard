@@ -1,5 +1,6 @@
-#ifndef MTCA4U_MOTOR_CONTROLER_DUMMY_H
-#define MTCA4U_MOTOR_CONTROLER_DUMMY_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorControler.h"
 
@@ -19,7 +20,7 @@
   NAME get##NAME() override
 // NOLINTEND(bugprone-macro-parentheses)
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** The MotorControlerDummy only implements the
    *  basic functionality defined in the MotorControler class,
@@ -192,6 +193,4 @@ namespace mtca4u {
     uint32_t _encoderReadoutMode{DecoderReadoutMode::HEIDENHAIN};
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_CONTROLER_DUMMY_H
+} // namespace ChimeraTK

@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorControlerConfig.h"
 
 #include "MotorControler.h"
 #include "MotorControlerConfigDefaults.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
   MotorControlerConfig::MotorControlerConfig()
   : accelerationThresholdData(0), // actualPosition(0),
     chopperControlData(CHOPPER_CONTROL_DEFAULT), coolStepControlData(COOL_STEP_CONTROL_DEFAULT),
@@ -37,4 +39,4 @@ namespace mtca4u {
   bool MotorControlerConfig::operator!=(MotorControlerConfig const& right) const {
     return !(*this == right);
   }
-} // namespace mtca4u
+} // namespace ChimeraTK

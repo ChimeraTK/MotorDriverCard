@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorDriverCardConfig.h"
 
 #include "MotorDriverCardConfigDefaults.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   MotorDriverCardConfig::MotorDriverCardConfig()
   : coverDatagram(0), coverPositionAndLength(0), datagramHighWord(0), datagramLowWord(0),
@@ -51,4 +53,4 @@ namespace mtca4u {
     return true;
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

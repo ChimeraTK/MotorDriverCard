@@ -1,10 +1,11 @@
-#ifndef MTCA4U_TMC260WORDS_H
-#define MTCA4U_TMC260WORDS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MultiVariableWord.h"
 #include "TMC260Constants.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class TMC260Word : public MultiVariableWord {
    public:
@@ -101,6 +102,4 @@ namespace mtca4u {
     ADD_VARIABLE(StandstillIndicator, 7, 7);
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_TMC260WORDS_H
+} // namespace ChimeraTK

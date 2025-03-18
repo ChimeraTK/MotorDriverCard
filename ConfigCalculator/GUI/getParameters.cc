@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "getParameters.h"
 
 #include "ParametersPanel.h"
@@ -8,8 +10,8 @@
 // simple data types can use the assignment operator
 #define ASSIGN_FIELD(fieldName) config.fieldName = (*parametersPanel)[#fieldName]
 
-mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel) {
-  mtca4u::MotorControlerConfig config;
+ChimeraTK::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel) {
+  ChimeraTK::MotorControlerConfig config;
   SET_FIELD(accelerationThresholdData);
   // ASSIGN_FIELD(actualPosition);
   SET_FIELD(chopperControlData);
@@ -35,8 +37,8 @@ mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel
   return config;
 }
 
-mtca4u::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel) {
-  mtca4u::MotorDriverCardConfig config;
+ChimeraTK::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel) {
+  ChimeraTK::MotorDriverCardConfig config;
   ASSIGN_FIELD(controlerSpiWaitingTime);
   ASSIGN_FIELD(coverDatagram);
   SET_FIELD(coverPositionAndLength);

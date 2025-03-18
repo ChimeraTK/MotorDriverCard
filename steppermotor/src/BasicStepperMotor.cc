@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
 
@@ -33,7 +35,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   BasicStepperMotor::BasicStepperMotor(const StepperMotorParameters& parameters)
-  : _motorDriverCard(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+  : _motorDriverCard(ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName)),
     _motorControler(_motorDriverCard->getMotorControler(parameters.driverId)),
     _stepperMotorUnitsConverter(parameters.motorUnitsConverter),

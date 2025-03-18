@@ -1,7 +1,8 @@
-#ifndef MTCA4U_TEST_WORD_FROM_PCIE_ADDRESS_H
-#define MTCA4U_TEST_WORD_FROM_PCIE_ADDRESS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /// The project only lives on one bar, so the address in the bar is enough
   unsigned int testWordFromPCIeAddress(unsigned int address) {
@@ -9,6 +10,4 @@ namespace mtca4u {
     return 3 * address * address + 17;
   }
 
-} // namespace mtca4u
-
-#endif // MTCA4U_TEST_WORD_FROM_PCIE_ADDRESS_H
+} // namespace ChimeraTK

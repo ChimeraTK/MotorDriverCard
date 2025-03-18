@@ -1,7 +1,9 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "DFMC_MD22Dummy.h"
 
 #include "DFMC_MD22Constants.h"
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 
 #include "TMC260DummyConstants.h"
 #include "TMC260Words.h"
@@ -12,9 +14,9 @@ using namespace mtca4u::dfmc_md22;
 #include <boost/lambda/lambda.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK::tmc429;
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const& mapFileName, std::string const& tmc429ControllerModuleName)
   : DummyBackend(mapFileName), _controlerSpiAddressSpace(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0),
@@ -414,4 +416,4 @@ namespace mtca4u {
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
 
-} // namespace mtca4u
+} // namespace ChimeraTK

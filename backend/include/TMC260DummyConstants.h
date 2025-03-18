@@ -1,11 +1,12 @@
-#ifndef MTCA4U_TMC260_DUMMY_CONSTANTS_H
-#define MTCA4U_TMC260_DUMMY_CONSTANTS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MultiVariableWord.h"
 
 #include <stdint.h>
 
-namespace mtca4u { namespace tmc260 {
+namespace ChimeraTK::tmc260 {
 
   uint32_t const SIZE_OF_SPI_ADDRESS_SPACE = 0x8;
 
@@ -40,6 +41,4 @@ namespace mtca4u { namespace tmc260 {
     }
   }
 
-}} // namespace mtca4u::tmc260
-
-#endif // MTCA4U_TMC260_DUMMY_CONSTANTS_H
+} // namespace ChimeraTK::tmc260

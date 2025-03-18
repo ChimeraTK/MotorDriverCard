@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
@@ -11,10 +13,10 @@ using namespace boost::unit_test_framework;
 
 #include <boost/shared_ptr.hpp>
 
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 #include "testWordFromPCIeAddress.h"
 #include "testWordFromSpiAddress.h"
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK::tmc429;
 
 #include "DFMC_MD22Constants.h"
 #include "MotorDriverCardConfigDefaults.h"
@@ -31,7 +33,7 @@ using namespace mtca4u::tmc429;
   add(get##NAME##TestCase);                                                                                            \
   add(set##NAME##TestCase)
 
-namespace mtca4u {
+namespace ChimeraTK {
   using namespace ChimeraTK;
 
   class MotorDriverCardTest {
@@ -146,10 +148,11 @@ namespace mtca4u {
         ChimeraTK::logic_error);
 
     // try opening with bad mapping, also has to throw
-    //  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new
-    //  mtca4u::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
-    boost::shared_ptr<mtca4u::DeviceBackend> brokenDummyDevice = boost::dynamic_pointer_cast<mtca4u::DeviceBackend>(
-        ChimeraTK::BackendFactory::getInstance().createBackend(BROKEN_DUMMY_DEV_ALIAS));
+    //  boost::shared_ptr<ChimeraTK::DeviceBackend> dummyDevice ( new
+    //  ChimeraTK::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
+    boost::shared_ptr<ChimeraTK::DeviceBackend> brokenDummyDevice =
+        boost::dynamic_pointer_cast<ChimeraTK::DeviceBackend>(
+            ChimeraTK::BackendFactory::getInstance().createBackend(BROKEN_DUMMY_DEV_ALIAS));
     device->open(BROKEN_DUMMY_DEV_ALIAS);
     BOOST_CHECK_THROW(_motorDriverCard = boost::shared_ptr<MotorDriverCardImpl>(
                           new MotorDriverCardImpl(device, _moduleName, motorDriverCardConfig)),
@@ -365,10 +368,10 @@ namespace mtca4u {
     return returnValue;
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MotorDriverCard test suite";
 
-  return new mtca4u::MotorDriverCardTestSuite;
+  return new ChimeraTK::MotorDriverCardTestSuite;
 }

@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef CHIMERATK_TMC429_CONSTANTS_H
-#define CHIMERATK_TMC429_CONSTANTS_H
+#  define CHIMERATK_TMC429_CONSTANTS_H
 
-#include <stdint.h>
+#  include <stdint.h>
 
-namespace mtca4u { namespace tmc429 {
+namespace ChimeraTK::tmc429 {
 
   uint32_t const SMDA_COMMON = 0x3;
   uint32_t const JDX_DATAGRAM_LOW_WORD = 0x0;
@@ -43,6 +46,6 @@ namespace mtca4u { namespace tmc429 {
   inline uint32_t spiAddressFromSmdaIdxJdx(uint32_t smda, uint32_t idxJdx) {
     return ((smda << 4) + idxJdx);
   }
-}} // namespace mtca4u::tmc429
+} // namespace ChimeraTK::tmc429
 
 #endif // CHIMERATK_TMC429_CONSTANTS_H

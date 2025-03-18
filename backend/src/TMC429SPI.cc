@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "impl/TMC429SPI.h"
 
 #include "TMC429Constants.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   // TMC429SPI::TMC429SPI(  boost::shared_ptr< Device<BaseDevice> > const &
   // device,
@@ -37,4 +39,4 @@ namespace mtca4u {
     _spiViaPCIe.write(writeWord.getDataWord());
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

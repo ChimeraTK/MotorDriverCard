@@ -1,9 +1,10 @@
-#ifndef MTCA4U_MOTOR_REFERENCE_SWITCH_DATA
-#define MTCA4U_MOTOR_REFERENCE_SWITCH_DATA
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MultiVariableWord.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** A class containing an unigned int which is
    *  used as a bit field holding the status bits
@@ -68,6 +69,4 @@ namespace mtca4u {
     operator bool() const;
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_REFERENCE_SWITCH_DATA
+} // namespace ChimeraTK

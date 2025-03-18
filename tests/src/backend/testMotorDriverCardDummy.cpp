@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
@@ -6,7 +8,7 @@ using namespace boost::unit_test_framework;
 
 #include <ChimeraTK/Exception.h>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class MotorDriverCardDummyTest {
    public:
@@ -50,9 +52,9 @@ namespace mtca4u {
     BOOST_CHECK_THROW(_motorDriverCardDummy.getPowerMonitor(), ChimeraTK::logic_error);
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
   framework::master_test_suite().p_name.value = "MotorDriverCardDummy test suite";
-  return new mtca4u::MotorDriverCardDummyTestSuite;
+  return new ChimeraTK::MotorDriverCardDummyTestSuite;
 }

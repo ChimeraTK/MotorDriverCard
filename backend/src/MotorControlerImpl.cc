@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "impl/MotorControlerImpl.h"
 
 #include "DFMC_MD22Constants.h"
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 #include "TMC429Constants.h"
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK::tmc429;
 
 #include "impl/MotorDriverCardImpl.h"
 
@@ -67,7 +69,7 @@ using namespace mtca4u::tmc429;
 typedef std::lock_guard<std::mutex> lock_guard;
 typedef std::unique_lock<std::mutex> unique_lock;
 
-namespace mtca4u {
+namespace ChimeraTK {
   MotorControlerImpl::MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
       std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
       MotorControlerConfig const& motorControlerConfig)
@@ -89,8 +91,8 @@ namespace mtca4u {
     _actualAcceleration{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_ACCELETATION_SUFFIX)},
     _microStepCount{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MICRO_STEP_COUNT_SUFFIX)},
     _stallGuardValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STALL_GUARD_VALUE_SUFFIX)},
-    _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)}, _status{RAW_ACCESSOR_FROM_SUFFIX(
-                                                                                      moduleName, STATUS_SUFFIX)},
+    _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)},
+    _status{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STATUS_SUFFIX)},
     _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
     _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
@@ -618,4 +620,4 @@ namespace mtca4u {
     _usrSetCurrentScale = currentScale;
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

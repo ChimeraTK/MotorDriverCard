@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorControlerExpert.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardExpert.h"
@@ -11,7 +13,7 @@
 
 #include <iostream>
 
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 /** The SpiReadWriteThreadStressTest performs cycles of spi communication tests,
  * each running a sequence of different combinations of read/write access to the

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorConfigWidget.h"
 
 #include "getParameters.h"
@@ -47,7 +49,7 @@ MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
       _motorConfigWidgetForm.motorEnabledCheckBox, SIGNAL(toggled(bool)), this, SLOT(setMotorExpertTabEnabled(bool)));
 }
 
-mtca4u::MotorControlerConfig MotorConfigWidget::getConfig() {
+ChimeraTK::MotorControlerConfig MotorConfigWidget::getConfig() {
   return ConfigCalculator::calculateConfig(_chipParameters, getEndSwitchConfig());
 }
 
@@ -108,8 +110,8 @@ void MotorConfigWidget::updateMotorExpertPanel() {
     return;
   }
 
-  mtca4u::MotorControlerConfig calculatedConfig = this->getConfig();
-  mtca4u::MotorControlerConfig expertConfig = getMotorParameters(_motorExpertPanel);
+  ChimeraTK::MotorControlerConfig calculatedConfig = this->getConfig();
+  ChimeraTK::MotorControlerConfig expertConfig = getMotorParameters(_motorExpertPanel);
 
   // only set the parameters which have actually been calculated (unfortunately
   // a duplication of the information in the config calculator) Don't always set

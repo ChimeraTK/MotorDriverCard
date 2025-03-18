@@ -1,5 +1,6 @@
-#ifndef _POPULATE_MOTOR_EXPERT_PANEL_H_
-#define _POPULATE_MOTOR_EXPERT_PANEL_H_
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 class ParametersPanel;
 
@@ -10,5 +11,3 @@ void populateMotorExpertPanel(ParametersPanel* parametersPanel);
 /// add parameters to the driver card expert panel (helper function instead of
 /// defining
 void populateDriverCardExpertPanel(ParametersPanel* parametersPanel);
-
-#endif //_POPULATE_MOTOR_EXPERT_PANEL_H_

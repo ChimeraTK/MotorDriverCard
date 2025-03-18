@@ -1,32 +1,35 @@
-#ifndef MTCA4U_MOTOR_CONTROLER_IMPL_H
-#define MTCA4U_MOTOR_CONTROLER_IMPL_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
+#ifndef ChimeraTK_MOTOR_CONTROLER_IMPL_H
+#  define ChimeraTK_MOTOR_CONTROLER_IMPL_H
 
-#include "memory"
-#include "MotorControlerConfig.h"
-#include "MotorControlerExpert.h"
-#include "SignedIntConverter.h"
-#include "SPIviaPCIe.h"
-#include "TMC429SPI.h"
+#  include "memory"
+#  include "MotorControlerConfig.h"
+#  include "MotorControlerExpert.h"
+#  include "SignedIntConverter.h"
+#  include "SPIviaPCIe.h"
+#  include "TMC429SPI.h"
 
-#include <ChimeraTK/Device.h>
+#  include <ChimeraTK/Device.h>
 
-#include <atomic>
-#include <cstdint>
-#include <mutex>
+#  include <atomic>
+#  include <cstdint>
+#  include <mutex>
 
-#define MCI_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
-  void set##NAME(unsigned int VARIABLE_IN_UNITS);                                                                      \
-  unsigned int get##NAME()
+#  define MCI_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                           \
+    void set##NAME(unsigned int VARIABLE_IN_UNITS);                                                                    \
+    unsigned int get##NAME()
 
-#define MCI_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                      \
-  void set##NAME(int VARIABLE_IN_UNITS);                                                                               \
-  int get##NAME()
+#  define MCI_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                    \
+    void set##NAME(int VARIABLE_IN_UNITS);                                                                             \
+    int get##NAME()
 
-#define MCI_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                        \
-  void set##NAME(NAME const& VARIABLE_NAME);                                                                           \
-  NAME get##NAME()
+#  define MCI_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                      \
+    void set##NAME(NAME const& VARIABLE_NAME);                                                                         \
+    NAME get##NAME()
 
-namespace mtca4u {
+namespace ChimeraTK {
   class MotorDriverCardImpl;
 
   class MotorControlerImpl : public MotorControlerExpert {
@@ -240,8 +243,8 @@ namespace mtca4u {
     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchNegative;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchPowerIndicator;
 
-    mtca4u::SPIviaPCIe _driverSPI;
-    boost::shared_ptr<mtca4u::TMC429SPI> _controlerSPI;
+    ChimeraTK::SPIviaPCIe _driverSPI;
+    boost::shared_ptr<ChimeraTK::TMC429SPI> _controlerSPI;
 
     static const unsigned int MD_22_DEFAULT_CLOCK_FREQ_MHZ = 32;
 
@@ -281,6 +284,6 @@ namespace mtca4u {
     inline unsigned int readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue);
   };
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
-#endif // MTCA4U_MOTOR_CONTROLER_IMPL_H
+#endif // ChimeraTK_MOTOR_CONTROLER_IMPL_H

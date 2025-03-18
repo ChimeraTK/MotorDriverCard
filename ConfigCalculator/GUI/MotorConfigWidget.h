@@ -1,5 +1,6 @@
-#ifndef MOTOR_CONFIG_WIDGET_H
-#define MOTOR_CONFIG_WIDGET_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "ConfigCalculator.h"
 #include "ParametersCalculator.h"
@@ -25,7 +26,7 @@ class MotorConfigWidget : public QWidget {
 
   /** Get access to the config calculated from the chip parameters.
    */
-  mtca4u::MotorControlerConfig getConfig();
+  ChimeraTK::MotorControlerConfig getConfig();
 
   /** Check whether the motor is enabled. This allows
    *  to ignore the config and write sparse config files
@@ -59,5 +60,3 @@ class MotorConfigWidget : public QWidget {
   QTabWidget* _expertTabWidget;
   int _tabIndex;
 };
-
-#endif // MOTOR_CONFIG_WIDGET_H

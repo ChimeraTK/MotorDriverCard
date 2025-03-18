@@ -1,7 +1,8 @@
-#ifndef MTCA4U_TEST_WORD_FROM_SPI_ADDRESS_H
-#define MTCA4U_TEST_WORD_FROM_SPI_ADDRESS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
-namespace mtca4u { namespace tmc429 {
+namespace ChimeraTK::tmc429 {
 
   inline unsigned int testWordFromSpiAddress(unsigned int smda, unsigned int idx_jdx) {
     unsigned int spiAddress = (smda << 4) | idx_jdx;
@@ -9,6 +10,4 @@ namespace mtca4u { namespace tmc429 {
     return spiAddress * spiAddress + 13;
   }
 
-}} // namespace mtca4u::tmc429
-
-#endif // MTCA4U_TEST_WORD_FROM_SPI_ADDRESS_H
+} // namespace ChimeraTK::tmc429

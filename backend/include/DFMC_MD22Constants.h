@@ -1,11 +1,12 @@
-#ifndef MTCA4U_DMFC_MD22_CONSTANTS_H
-#define MTCA4U_DMFC_MD22_CONSTANTS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "TMC429Constants.h"
 
 #include <boost/lexical_cast.hpp>
 
-namespace mtca4u { namespace dfmc_md22 {
+namespace ChimeraTK::dfmc_md22 {
 
   int32_t const MINIMAL_FIRMWARE_VERSION = 0x02020000;
   int32_t const PROJECT_ID = 0x0;
@@ -59,6 +60,4 @@ namespace mtca4u { namespace dfmc_md22 {
         registerNameSuffix;
   }
 
-}} // namespace mtca4u::dfmc_md22
-
-#endif // MTCA4U_DMFC_MD22_CONSTANTS_H
+} // namespace ChimeraTK::dfmc_md22

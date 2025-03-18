@@ -12,10 +12,10 @@
 #include <memory>
 #include <string>
 
-namespace mtca4u {
+namespace ChimeraTK {
   class MotorDriverCard;
   class MotorControler;
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
@@ -454,7 +454,7 @@ namespace ChimeraTK::MotorDriver {
       State _disabled{"disabled"};
       State _error{"error"};
       BasicStepperMotor& _stepperMotor;
-      boost::shared_ptr<mtca4u::MotorControler>& _motorControler;
+      boost::shared_ptr<ChimeraTK::MotorControler>& _motorControler;
       void getActionCompleteEvent();
       void waitForStandstill();
       void actionIdleToMove();
@@ -493,8 +493,8 @@ namespace ChimeraTK::MotorDriver {
     /// Common actions for translateAxis for this and derived classes
     void translateAxisActions(int translationInSteps);
 
-    boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
-    boost::shared_ptr<mtca4u::MotorControler> _motorControler;
+    boost::shared_ptr<ChimeraTK::MotorDriverCard> _motorDriverCard;
+    boost::shared_ptr<ChimeraTK::MotorControler> _motorControler;
 
     std::shared_ptr<utility::MotorStepsConverter> _stepperMotorUnitsConverter;
     std::shared_ptr<utility::EncoderStepsConverter> _encoderUnitsConverter;

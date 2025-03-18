@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include <boost/test/included/unit_test.hpp>
 
 #include <sstream>
@@ -24,12 +26,12 @@ class SPIviaPCIeTest {
   void testGetSetWaitingTime();
 
  private:
-  boost::shared_ptr<mtca4u::DFMC_MD22Dummy> _dummyBackend;
+  boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy> _dummyBackend;
   boost::shared_ptr<ChimeraTK::Device> _device;
 
-  boost::shared_ptr<mtca4u::SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
-  boost::shared_ptr<mtca4u::SPIviaPCIe> _writeSPIviaPCIe;     // use a motor address which has debug readback in the
-                                                              // dummy
+  boost::shared_ptr<ChimeraTK::SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
+  boost::shared_ptr<ChimeraTK::SPIviaPCIe> _writeSPIviaPCIe;     // use a motor address which has debug readback in the
+                                                                 // dummy
 };
 
 class SPIviaPCIeTestSuite : public test_suite {
@@ -65,7 +67,7 @@ test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
 
 SPIviaPCIeTest::SPIviaPCIeTest(std::string const& moduleName)
 : _dummyBackend(), _device(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe() {
-  _dummyBackend = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
+  _dummyBackend = boost::dynamic_pointer_cast<ChimeraTK::DFMC_MD22Dummy>(
       ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
   // we need a mapped device of BaseDevice. Unfortunately this is still really
@@ -80,27 +82,27 @@ SPIviaPCIeTest::SPIviaPCIeTest(std::string const& moduleName)
 
   //_dummyBackend->setRegistersForTesting();
 
-  _readWriteSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(_device, moduleName,
-      mtca4u::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING, mtca4u::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
-      mtca4u::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING));
+  _readWriteSPIviaPCIe.reset(new ChimeraTK::SPIviaPCIe(_device, moduleName,
+      ChimeraTK::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING, ChimeraTK::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
+      ChimeraTK::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING));
 
-  _writeSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(_device, moduleName,
-      mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_WRITE_SUFFIX,
-      mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_SYNC_SUFFIX));
+  _writeSPIviaPCIe.reset(new ChimeraTK::SPIviaPCIe(_device, moduleName,
+      ChimeraTK::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + ChimeraTK::dfmc_md22::SPI_WRITE_SUFFIX,
+      ChimeraTK::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + ChimeraTK::dfmc_md22::SPI_SYNC_SUFFIX));
 }
 
 void SPIviaPCIeTest::testRead() {
   // prepare a cover datagram word
-  mtca4u::TMC429InputWord coverDatagram;
-  coverDatagram.setSMDA(mtca4u::tmc429::SMDA_COMMON);
-  coverDatagram.setADDRESS(mtca4u::tmc429::JDX_COVER_DATAGRAM);
+  ChimeraTK::TMC429InputWord coverDatagram;
+  coverDatagram.setSMDA(ChimeraTK::tmc429::SMDA_COMMON);
+  coverDatagram.setADDRESS(ChimeraTK::tmc429::JDX_COVER_DATAGRAM);
 
   // set the payload content and write it
   coverDatagram.setDATA(0xAAAAAA);
   _readWriteSPIviaPCIe->write(coverDatagram.getDataWord());
 
   // now try to read back. prepare the coverDatagram word for reading
-  coverDatagram.setRW(mtca4u::tmc429::RW_READ);
+  coverDatagram.setRW(ChimeraTK::tmc429::RW_READ);
   coverDatagram.setDATA(0);
 
   unsigned int readbackInt;
@@ -110,7 +112,7 @@ void SPIviaPCIeTest::testRead() {
   // reexecute and let the exception through
   readbackInt = _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
 
-  mtca4u::TMC429OutputWord readbackWord;
+  ChimeraTK::TMC429OutputWord readbackWord;
   readbackWord.setDataWord(readbackInt);
   BOOST_CHECK(readbackWord.getDATA() == 0xAAAAAA);
 
@@ -132,37 +134,37 @@ void SPIviaPCIeTest::testRead() {
 void SPIviaPCIeTest::testWrite() {
   // This test is hard coded against the dummy implementation of the TCM260
   // driver chip
-  for(uint32_t motorID = 1; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID) {
+  for(uint32_t motorID = 1; motorID < ChimeraTK::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     // the readDriverSpiRegister is a debug function of the dummy which bypasses
     // the SPI interface
     unsigned int registerContent =
-        _dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress());
+        _dummyBackend->readDriverSpiRegister(motorID, ChimeraTK::ChopperControlData().getAddress());
 
-    mtca4u::ChopperControlData chopperControlData(registerContent + 5);
+    ChimeraTK::ChopperControlData chopperControlData(registerContent + 5);
     BOOST_CHECK_NO_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()));
 
-    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
+    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, ChimeraTK::ChopperControlData().getAddress()) ==
         chopperControlData.getPayloadData());
 
     // test the error cases
     _dummyBackend->causeSpiTimeouts(true);
     chopperControlData.setPayloadData(chopperControlData.getPayloadData() + 1);
     BOOST_CHECK_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()), ChimeraTK::runtime_error);
-    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
+    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, ChimeraTK::ChopperControlData().getAddress()) ==
         chopperControlData.getPayloadData() - 1);
     _dummyBackend->causeSpiTimeouts(false);
 
     _dummyBackend->causeSpiErrors(true);
     BOOST_CHECK_THROW(_writeSPIviaPCIe->write(chopperControlData.getDataWord()), ChimeraTK::runtime_error);
-    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, mtca4u::ChopperControlData().getAddress()) ==
+    BOOST_CHECK(_dummyBackend->readDriverSpiRegister(motorID, ChimeraTK::ChopperControlData().getAddress()) ==
         chopperControlData.getPayloadData() - 1);
     _dummyBackend->causeSpiErrors(false);
   }
 }
 
 void SPIviaPCIeTest::testGetSetWaitingTime() {
-  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == ChimeraTK::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 
-  _writeSPIviaPCIe->setSpiWaitingTime(2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
-  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == 2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+  _writeSPIviaPCIe->setSpiWaitingTime(2 * ChimeraTK::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+  BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == 2 * ChimeraTK::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 }

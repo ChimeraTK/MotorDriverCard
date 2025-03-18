@@ -1,17 +1,18 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 /**
  * File:   StepperMotorUtil.h
  * Author: ckampm
  *
- * Utility classes fot the StepperMotor.
- * This header is used to share classes between the mtca4u
- * and ChimeraTK implementations.
+ * Utility classes for the StepperMotor.
  */
 
 #ifndef CHIMERATK_STEPPER_MOTOR_UTIL_H
-#define CHIMERATK_STEPPER_MOTOR_UTIL_H
+#  define CHIMERATK_STEPPER_MOTOR_UTIL_H
 
-#include <string>
-namespace ChimeraTK { namespace MotorDriver {
+#  include <string>
+namespace ChimeraTK::MotorDriver {
 
   /**
    *  Enum type describing how the system is calibrated:
@@ -142,5 +143,5 @@ namespace ChimeraTK { namespace MotorDriver {
 
   } // namespace utility
 
-}}     // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver
 #endif // CHIMERATK_STEPPER_MOTOR_UTIL_H

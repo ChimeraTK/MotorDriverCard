@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "populatePanels.h"
 
 #include "MotorControlerConfig.h"
@@ -12,7 +14,7 @@
   parametersPanel->addParameter(#parameter, defaultConfig.parameter, extraText)
 
 void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
-  mtca4u::MotorControlerConfig defaultConfig;
+  ChimeraTK::MotorControlerConfig defaultConfig;
   ADD_TMC429_PARAMETER(accelerationThresholdData, "");
   // ADD_INT_PARAMETER(actualPosition,"");
   ADD_INT_PARAMETER(decoderReadoutMode, "");
@@ -38,7 +40,7 @@ void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
 }
 
 void populateDriverCardExpertPanel(ParametersPanel* parametersPanel) {
-  mtca4u::MotorDriverCardConfig defaultConfig;
+  ChimeraTK::MotorDriverCardConfig defaultConfig;
   ADD_INT_PARAMETER(controlerSpiWaitingTime, "");
   ADD_INT_PARAMETER(coverDatagram, "");
   ADD_TMC429_PARAMETER(coverPositionAndLength, "");

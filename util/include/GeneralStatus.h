@@ -1,5 +1,6 @@
-#ifndef MTCA4U_STATUS_GENERAL_H
-#define MTCA4U_STATUS_GENERAL_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <boost/thread.hpp>
 
@@ -30,9 +31,3 @@ namespace ChimeraTK {
   };
 
 } // namespace ChimeraTK
-
-namespace mtca4u {
-  using namespace ChimeraTK;
-}
-
-#endif // MTCA4U_STATUS_GENERAL_H

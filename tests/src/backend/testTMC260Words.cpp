@@ -1,11 +1,13 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #define BOOST_TEST_MODULE TMC260WordsTest
 #include <boost/test/included/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC260Words.h"
-using namespace mtca4u;
-using namespace mtca4u::tmc260;
+using namespace ChimeraTK;
+using namespace ChimeraTK::tmc260;
 
 BOOST_AUTO_TEST_SUITE(TMC260WordsTestSuite)
 

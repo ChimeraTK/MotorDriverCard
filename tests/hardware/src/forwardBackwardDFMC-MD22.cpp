@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorControler.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardExpert.h"
@@ -44,7 +46,7 @@ void intHandler(int /*dummy*/ = 0) {
     return 0;                                                                                                          \
   }
 
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 int main(int argc, char* argv[]) {
   if(argc != 5) {
@@ -61,7 +63,7 @@ int main(int argc, char* argv[]) {
   signal(SIGINT, intHandler);
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
+  std::string deviceAlias = ChimeraTK::DMapFileParser::parse(dmapFileName)->begin()->deviceName;
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
 
   // first turn off the reset of the board so the firmware can get active. For
@@ -76,16 +78,15 @@ int main(int argc, char* argv[]) {
   boardResetN = 1;
   boardResetN.write();
 
-  boost::shared_ptr<mtca4u::MotorDriverCardExpert> motorDriverCard =
-      boost::dynamic_pointer_cast<mtca4u::MotorDriverCardExpert>(
-          mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3]));
+  auto motorDriverCard = boost::dynamic_pointer_cast<ChimeraTK::MotorDriverCardExpert>(
+      ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3]));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the
   // motor
 
-  unsigned int nStepsMax = (strtoul(argv[4], NULL, 0) & 0x7FFFFF); // limit to the maximal possible position
+  unsigned int nStepsMax = (strtoul(argv[4], nullptr, 0) & 0x7FFFFFU); // limit to the maximal possible position
 
-  boost::shared_ptr<mtca4u::MotorControler> motor0 = motorDriverCard->getMotorControler(0);
+  auto motor0 = motorDriverCard->getMotorControler(0);
 
   // check that one or both end switches are inactive. Otherwise there probably
   // is no motor connected.

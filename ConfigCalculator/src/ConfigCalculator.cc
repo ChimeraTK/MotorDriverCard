@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "ConfigCalculator.h"
 
 #include "TMC260Words.h"
@@ -5,7 +7,7 @@
 
 #include <stdexcept>
 
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 MotorControlerConfig ConfigCalculator::calculateConfig(
     ParametersCalculator::ChipParameters const& chipParameters, EndSwitchConfig const& endSwitchConfig) {

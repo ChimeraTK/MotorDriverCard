@@ -1,12 +1,13 @@
-#ifndef MTCA4U_TMC429_TMC260_CONFIG_CALCULATOR_H
-#define MTCA4U_TMC429_TMC260_CONFIG_CALCULATOR_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorControlerConfig.h"
 #include "ParametersCalculator.h"
 
 #include <stdint.h>
 
-/** This calls privides a function to create an mtca4u::MotorControlerConfig
+/** This calls privides a function to create an ChimeraTK::MotorControlerConfig
  *  from the ConfigCalculator::ChipParameters (parameters of the
  *  TMC429 and TMC260 chips).
  */
@@ -22,7 +23,7 @@ class ConfigCalculator {
   /** Calculate a MotorContolerConfig from the chip parameters
    *  and the end switch configuration.
    */
-  static mtca4u::MotorControlerConfig calculateConfig(
+  static ChimeraTK::MotorControlerConfig calculateConfig(
       ParametersCalculator::ChipParameters const& chipParameters, EndSwitchConfig const& endSwitchConfig);
 
  private:
@@ -31,5 +32,3 @@ class ConfigCalculator {
    */
   static void checkEndSwitchConfig(EndSwitchConfig const& endSwitchConfig);
 };
-
-#endif // MTCA4U_TMC429_TMC260_CONFIG_CALCULATOR_H

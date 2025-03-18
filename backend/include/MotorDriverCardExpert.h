@@ -1,10 +1,11 @@
-#ifndef MTCA4U_MOTOR_DRIVER_CARD_EXPERT_H
-#define MTCA4U_MOTOR_DRIVER_CARD_EXPERT_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorDriverCard.h"
 #include "TMC429Words.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
   /**
    * Extendet interface for experts of the DFMC-MD22 motor driver card.
    */
@@ -42,6 +43,4 @@ namespace mtca4u {
     virtual ~MotorDriverCardExpert() {}
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_DRIVER_CARD_EXPERT_H
+} // namespace ChimeraTK

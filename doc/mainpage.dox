@@ -3,7 +3,7 @@
 
 The MotorDriverCard library provides an interface to the MD22 motor driver card FMC. It offers facilities for low-level communication as well as high-level functionality to operate the motor.
 
-For communication to the motor driver and motor controller of the MD22, SPI commands are handled and sent via PCIe. 
+For communication to the motor driver and motor controller of the MD22, SPI commands are handled and sent via PCIe.
 Hence, the corresponding firmware on the FMC carrier only has to adapt between PCIe and SPI interfaces. For operation of a motor,
 a state machine representing the basic operation modes and error checking are implemented. All position values can be entered and retrieved in a user-defined unit.
 The main user interface is provided by the \c StepperMotor and \c LinearStepperMotor classes.
@@ -13,7 +13,7 @@ The main user interface is provided by the \c StepperMotor and \c LinearStepperM
 
 FIXME: Put documentation how to use the library
 
-NOTE: Currently, the interface classes are implemented in the mtca4u and ChimeraTK namespaces. The information below is valid for the ChimeraTK implementation, the mtca4u version will be deprecated in the future.
+NOTE: Currently, the interface classes are implemented in the ChimeraTK namespaces.
 
 \li \ref stepper_motor - A basic interface for a generic stepper motor
 \li \ref linear_stepper_motor - An interface for a linear stepper motor with end switches
@@ -36,10 +36,10 @@ You can use the QtMotorConfigCalculator to generate a motor config file. You nee
 \li Does the motor have end switches?
 
 If the motor does have end switches, you definitely should use them for safety reasons. However, if the motor does
-not have end switches you have to disable them because not connected end switches are detected as 'active' and 
+not have end switches you have to disable them because not connected end switches are detected as 'active' and
 the motor would not move.
 
-The other parameters usually can stay at their default values. The clock frequency if 32 MHz is hard coded in the 
+The other parameters usually can stay at their default values. The clock frequency if 32 MHz is hard coded in the
 firmware and probably will never change.
 
 \image html QtMotorConfigCalculator00.06.01.png
@@ -49,8 +49,8 @@ firmware and probably will never change.
 
 The default parameters are made to work reliably, but operation will probably not be as smooth or efficent
 as possible with the particular motor and use case. If you want to tweak the parameters according to the TMC429
- and TMC260 data sheets, you can manually edit the entries for the corresponding classes derived 
-from mtca4u::TMC260Word and mtca4u::TMC429InputWord.
+ and TMC260 data sheets, you can manually edit the entries for the corresponding classes derived
+from ChimeraTK::TMC260Word and ChimeraTK::TMC429InputWord.
 
 \include MotorDriverCardDefaultConfig.xml
 */
@@ -59,4 +59,3 @@ from mtca4u::TMC260Word and mtca4u::TMC429InputWord.
 \example MotorDriverCardDefaultConfig.xml
 The complete MotorDriverCard XML configuration with default parameters
 */
-

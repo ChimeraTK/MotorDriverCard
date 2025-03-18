@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #define BOOST_TEST_MODULE TMC429SPITest
 
 #include <boost/shared_ptr.hpp>
@@ -15,9 +17,9 @@ using namespace boost::unit_test_framework;
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
 
-using namespace mtca4u;
-using namespace mtca4u::dfmc_md22;
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK;
+using namespace ChimeraTK::dfmc_md22;
+using namespace ChimeraTK::tmc429;
 
 #include "testConfigConstants.h"
 #include "testWordFromSpiAddress.h"

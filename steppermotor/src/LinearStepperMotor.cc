@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 /*
  * StepperMotorWithReference.cc
  *
@@ -18,9 +20,8 @@ using LockGuard = boost::lock_guard<boost::mutex>;
 
 namespace ChimeraTK::MotorDriver {
 
-  LinearStepperMotor::LinearStepperMotor(const StepperMotorParameters& parameters)
-  {
-    _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+  LinearStepperMotor::LinearStepperMotor(const StepperMotorParameters& parameters) {
+    _motorDriverCard = ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName);
     _motorControler = _motorDriverCard->getMotorControler(parameters.driverId);
     _stepperMotorUnitsConverter = parameters.motorUnitsConverter;

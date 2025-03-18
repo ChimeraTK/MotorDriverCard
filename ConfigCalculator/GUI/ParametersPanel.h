@@ -1,5 +1,6 @@
-#ifndef _PARAMETERS_PANEL_
-#define _PARAMETERS_PANEL_
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <map>
 #include <QHBoxLayout>
@@ -29,5 +30,3 @@ class ParametersPanel : public QWidget {
   std::map<std::string, ParameterWidget*> parametersMap;
   QVBoxLayout* verticalLayout;
 };
-
-#endif // _PARAMETERS_PANEL_

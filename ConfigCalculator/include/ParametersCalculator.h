@@ -1,5 +1,6 @@
-#ifndef MTCA4U_TMC429_TMC260_PARAMETERS_CALCULATOR_H
-#define MTCA4U_TMC429_TMC260_PARAMETERS_CALCULATOR_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <list>
 #include <string>
@@ -122,5 +123,3 @@ class ParametersCalculator {
    */
   static std::list<std::string> inputcheck(PhysicalParameters physicalParameters);
 };
-
-#endif // MTCA4U_TMC429_TMC260_PARAMETERS_CALCULATOR_H

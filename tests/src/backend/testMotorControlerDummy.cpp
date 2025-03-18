@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include <boost/test/included/unit_test.hpp>
 
 #include <sstream>
@@ -7,7 +9,7 @@ using namespace boost::unit_test_framework;
 
 #include <ChimeraTK/Exception.h>
 
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 // A macro to declare tests for an unimplemented get/set pair.
 // It is checked that the MotorDriverException is thrown

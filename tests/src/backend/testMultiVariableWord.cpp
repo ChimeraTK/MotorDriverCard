@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include <boost/test/included/unit_test.hpp>
 
 #include <sstream>
@@ -7,7 +9,7 @@ using namespace boost::unit_test_framework;
 
 #include <ChimeraTK/Exception.h>
 
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 /* The test is also supposed to test the  ADD_VARIABLE makro,
  * so we have to define a couple of classes with different variable patters.

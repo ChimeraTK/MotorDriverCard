@@ -1,5 +1,6 @@
-#ifndef MTCA4U_MOTOR_DRIVER_CARD_IMPL_H
-#define MTCA4U_MOTOR_DRIVER_CARD_IMPL_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorControler.h"
 #include "MotorDriverCardConfig.h"
@@ -10,7 +11,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-namespace mtca4u {
+namespace ChimeraTK {
   /**
    * The implementation of the DFMC-MD22 motor driver card.
    * It has a private constructor and can only be created using the
@@ -103,6 +104,4 @@ namespace mtca4u {
     friend class MotorDriverCardTest;
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_DRIVER_CARD_IMPL_H
+} // namespace ChimeraTK

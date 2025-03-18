@@ -1,10 +1,12 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MultiVariableWord.h"
 
 #include "ChimeraTK/Exception.h"
 
 #include <sstream>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   MultiVariableWord::MultiVariableWord(unsigned int dataWord) : _dataWord(dataWord) {}
 
@@ -40,4 +42,4 @@ namespace mtca4u {
     _dataWord = (_dataWord & ~(inputMask << offset)) | ((subWord & inputMask) << offset);
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

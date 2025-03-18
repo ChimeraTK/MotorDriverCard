@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
 #include "MotorControler.h"
@@ -27,8 +29,7 @@ namespace ChimeraTK::MotorDriver {
   BasicStepperMotor::StateMachine::StateMachine(BasicStepperMotor& stepperMotor)
   : _stepperMotor(stepperMotor), _motorControler(stepperMotor._motorControler) {
     _initState.setTransition(initialEvent, &_disabled, [] {});
-    _idle.setTransition(
-        moveEvent, &_moving, [this] { actionIdleToMove(); }, [this] { waitForStandstill(); });
+    _idle.setTransition(moveEvent, &_moving, [this] { actionIdleToMove(); }, [this] { waitForStandstill(); });
     _idle.setTransition(disableEvent, &_disabled, [this] { actionDisable(); });
     _moving.setTransition(stopEvent, &_idle, [this] { actionMovetoStop(); });
     _moving.setTransition(errorEvent, &_error, [] {});

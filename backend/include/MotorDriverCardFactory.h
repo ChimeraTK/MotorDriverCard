@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
@@ -8,7 +11,7 @@
 #include <map>
 #include <string>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class MotorDriverCard;
 
@@ -83,4 +86,4 @@ namespace mtca4u {
      */
     static std::string getDeviceaccessDMapFilePath();
   };
-} // namespace mtca4u
+} // namespace ChimeraTK

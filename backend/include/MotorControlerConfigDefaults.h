@@ -1,11 +1,14 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef MOTOR_CONTROLER_CONFIG_DEFAULTS
-#define MOTOR_CONTROLER_CONFIG_DEFAULTS
+#  define MOTOR_CONTROLER_CONFIG_DEFAULTS
 
 // This file should only be included for testing/debugging. It should not be
 // necessary to use these constants in any production code (except for the
 // MotorControlerConfig implementation of course).
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   // registers on the driver chip
   unsigned int const DRIVER_CONTROL_DEFAULT = 0x0; ///< 256 microsteps
@@ -28,6 +31,6 @@ namespace mtca4u {
   unsigned int const DRIVER_SPI_WAITING_TIME_DEFAULT = 50; ///< in microseconds
   // (contolrer SPI waiting time default is in the MotorDriverCard config)
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #endif // MOTOR_CONTROLER_CONFIG_DEFAULTS

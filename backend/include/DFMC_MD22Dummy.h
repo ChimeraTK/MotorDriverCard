@@ -1,15 +1,18 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef CHIMERATK_DFMC_MD22_DUMMY_H
-#define CHIMERATK_DFMC_MD22_DUMMY_H
+#  define CHIMERATK_DFMC_MD22_DUMMY_H
 
-#include "TMC429Words.h"
+#  include "TMC429Words.h"
 
-#include <ChimeraTK/BackendFactory.h>
-#include <ChimeraTK/DeviceAccessVersion.h>
-#include <ChimeraTK/DummyBackend.h>
+#  include <ChimeraTK/BackendFactory.h>
+#  include <ChimeraTK/DeviceAccessVersion.h>
+#  include <ChimeraTK/DummyBackend.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#  include <boost/date_time/posix_time/posix_time.hpp>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   // forward declarations
   class TMC429InputWord;
@@ -220,15 +223,15 @@ namespace mtca4u {
   class DFMC_MD22DummyRegisterer {
    public:
     DFMC_MD22DummyRegisterer() {
-#ifdef _DEBUG
+#  ifdef _DEBUG
       std::cout << "DFMC_MD22DummyRegisterer" << std::endl;
-#endif
+#  endif
 
       ChimeraTK::BackendFactory::getInstance().registerBackendType(
           "dfmcmd22dummy", &DFMC_MD22Dummy::createInstance, {"map", "module"});
     }
   };
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #endif // CHIMERATK_DFMC_MD22_DUMMY_H

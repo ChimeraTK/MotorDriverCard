@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE StepperMotorChimeraTKTest
 
@@ -23,10 +25,10 @@ using namespace boost::unit_test_framework;
 
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string moduleName("");
-// static mtca4u::TMC429OutputWord
-// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>&
-// dfmc_md22); static mtca4u::StallGuardControlData
-// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>&
+// static ChimeraTK::TMC429OutputWord
+// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
+// dfmc_md22); static ChimeraTK::StallGuardControlData
+// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
 // dfmc_md2);
 
 using namespace ChimeraTK::MotorDriver;
@@ -39,24 +41,24 @@ class TestUnitConverter : public utility::MotorStepsConverter {
   virtual int unitsToSteps(float units) { return int(10.0f * units); }
 };
 
-// static mtca4u::TMC429OutputWord
-// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>&
+// static ChimeraTK::TMC429OutputWord
+// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
 // dfmc_md22){
-//  mtca4u::TMC429InputWord readVmaxRegister;
+//  ChimeraTK::TMC429InputWord readVmaxRegister;
 //  readVmaxRegister.setSMDA(0);
-//  readVmaxRegister.setIDX_JDX(mtca4u::tmc429::IDX_MAXIMUM_VELOCITY);
-//  readVmaxRegister.setRW(mtca4u::tmc429::RW_READ);
-//  return mtca4u::TMC429OutputWord(
+//  readVmaxRegister.setIDX_JDX(ChimeraTK::tmc429::IDX_MAXIMUM_VELOCITY);
+//  readVmaxRegister.setRW(ChimeraTK::tmc429::RW_READ);
+//  return ChimeraTK::TMC429OutputWord(
 //      dfmc_md22->readTMC429Register(readVmaxRegister.getDataWord()));
 //}
 
-// static mtca4u::StallGuardControlData
-// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<mtca4u::DFMC_MD22Dummy>&
+// static ChimeraTK::StallGuardControlData
+// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
 // dfmc_md2){
 //  auto motorId = 0U;
-//  return mtca4u::StallGuardControlData(dfmc_md2->readTMC260Register(
+//  return ChimeraTK::StallGuardControlData(dfmc_md2->readTMC260Register(
 //      motorId,
-//      mtca4u::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
+//      ChimeraTK::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
 //}
 
 class StepperMotorChimeraTKFixture {
@@ -69,8 +71,8 @@ class StepperMotorChimeraTKFixture {
 
  protected:
   std::unique_ptr<StepperMotor> _stepperMotor;
-  boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
-  boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
+  boost::shared_ptr<ChimeraTK::MotorDriverCard> _motorDriverCard;
+  boost::shared_ptr<ChimeraTK::MotorControlerDummy> _motorControlerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
 
@@ -79,11 +81,11 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture()
 : _stepperMotor(), _motorControlerDummy(), _testUnitConverter() {
   _testUnitConverter = std::make_unique<TestUnitConverter>();
 
-  mtca4u::MotorDriverCardFactory::instance().setDummyMode();
-  _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+  ChimeraTK::MotorDriverCardFactory::instance().setDummyMode();
+  _motorDriverCard = ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
   _motorControlerDummy =
-      boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
+      boost::dynamic_pointer_cast<ChimeraTK::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
   // Omit the optional 5th argument for the units converter here so we get the
   // default 1:1 converter for the encoder readout
@@ -210,7 +212,7 @@ BOOST_AUTO_TEST_CASE(testSoftLimits) {
   BOOST_CHECK(_stepperMotor->setMinPositionLimitInSteps(1000) == ExitStatus::ERR_INVALID_PARAMETER);
 
   // BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000),
-  // mtca4u::MotorDriverException);
+  // ChimeraTK::MotorDriverException);
   BOOST_CHECK_NO_THROW(_stepperMotor->setMaxPositionLimitInSteps(1000));
   BOOST_CHECK_NO_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000));
   BOOST_CHECK(_stepperMotor->setMaxPositionLimitInSteps(-1000) == ExitStatus::ERR_INVALID_PARAMETER);
@@ -698,7 +700,7 @@ BOOST_AUTO_TEST_CASE(testConverter) {
 }
 
 // FIXME The following tests are not related to the ChimeraTK interface,
-//      also existent in the mtca4u test?
+//      also existent in the ChimeraTK test?
 
 // BOOST_AUTO_TEST_CASE( testGetSetSpeedLimit ){
 
@@ -706,9 +708,9 @@ BOOST_AUTO_TEST_CASE(testConverter) {
 //  auto dmapFile = ChimeraTK::getDMapFilePath();
 //  ChimeraTK::setDMapFilePath("./dummies.dmap");
 //  auto dummyModeStatus =
-//  mtca4u::MotorDriverCardFactory::instance().getDummyMode();
-//  mtca4u::MotorDriverCardFactory::instance().setDummyMode(false);
-//  mtca4u::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0,
+//  ChimeraTK::MotorDriverCardFactory::instance().getDummyMode();
+//  ChimeraTK::MotorDriverCardFactory::instance().setDummyMode(false);
+//  ChimeraTK::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0,
 //  "custom_speed_and_curruent_limits.xml");
 
 //  // Expected max speed  capability in this case:[from
@@ -757,16 +759,16 @@ BOOST_AUTO_TEST_CASE(testConverter) {
 
 //  // Verify that Vmax is 1048 in the internal register (which is the
 //  // VMax corresponding to expectedSetSpeed)
-//  auto md22_instance = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
+//  auto md22_instance = boost::dynamic_pointer_cast<ChimeraTK::DFMC_MD22Dummy>(
 //      BackendFactory::getInstance().createBackend(
 //          "DFMC_MD22_PERSISTENT_BACKEND"));
 //  BOOST_ASSERT(md22_instance != NULL);
-//  mtca4u::TMC429OutputWord vMaxRegister =
+//  ChimeraTK::TMC429OutputWord vMaxRegister =
 //  readDFMCDummyMotor0VMaxRegister(md22_instance);
 // BOOST_CHECK(vMaxRegister.getDATA() == 1048);
 
 //  //teardown
-//    mtca4u::MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
+//    ChimeraTK::MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
 //    ChimeraTK::setDMapFilePath(dmapFile);
 //}
 
@@ -775,9 +777,9 @@ BOOST_AUTO_TEST_CASE(testConverter) {
 //  auto dmapFile = ChimeraTK::getDMapFilePath();
 //  ChimeraTK::setDMapFilePath("./dummies.dmap");
 //  auto dummyModeStatus =
-//  mtca4u::MotorDriverCardFactory::instance().getDummyMode();
-//  mtca4u::MotorDriverCardFactory::instance().setDummyMode(false);
-//  mtca4u::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0,
+//  ChimeraTK::MotorDriverCardFactory::instance().getDummyMode();
+//  ChimeraTK::MotorDriverCardFactory::instance().setDummyMode(false);
+//  ChimeraTK::StepperMotor motor("DFMC_MD22_PERSISTENT_BACKEND", "MD22_0", 0,
 //  "custom_speed_and_curruent_limits.xml");
 
 //  // The motor has been configured for a maximum current of .24 Amps,
@@ -821,15 +823,15 @@ BOOST_AUTO_TEST_CASE(testConverter) {
 //  BOOST_CHECK(motor.setUserCurrentLimit(.2) == expectedCurrent);
 //  BOOST_CHECK(motor.getUserCurrentLimit() == expectedCurrent);
 //  // Verify that CS is 2 in the internal register ()
-//  auto md22_instance = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
+//  auto md22_instance = boost::dynamic_pointer_cast<ChimeraTK::DFMC_MD22Dummy>(
 //      BackendFactory::getInstance().createBackend("DFMC_MD22_PERSISTENT_BACKEND"));
 //  BOOST_ASSERT(md22_instance != nullptr);
-//  mtca4u::StallGuardControlData stallGuard =
+//  ChimeraTK::StallGuardControlData stallGuard =
 //  readDFMCDummyMotor0CurrentScale(md22_instance);
 //  BOOST_CHECK(stallGuard.getCurrentScale() == 2);
 
 //  //teardown
-//    mtca4u::MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
+//    ChimeraTK::MotorDriverCardFactory::instance().setDummyMode(dummyModeStatus);
 //    ChimeraTK::setDMapFilePath(dmapFile);
 //}
 

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #define BOOST_TEST_MODULE GeneralStatusTest
 #include <boost/test/included/unit_test.hpp>
 
@@ -5,7 +7,7 @@ using namespace boost::unit_test_framework;
 
 #include "GeneralStatus.h"
 
-bool checkOperatorForDefaultConstructedObject(mtca4u::GeneralStatus& status) {
+bool checkOperatorForDefaultConstructedObject(ChimeraTK::GeneralStatus& status) {
   switch(status) {
     case 0:
       return true;
@@ -25,13 +27,13 @@ BOOST_AUTO_TEST_CASE(GeneralStatusTestCase) {
   std::stringstream testStream; // any kind of object which is std::ostream
 
   // test: dafault constuctor
-  mtca4u::GeneralStatus status0;
+  ChimeraTK::GeneralStatus status0;
   // test: parameter constuctor
-  mtca4u::GeneralStatus status1(1);
+  ChimeraTK::GeneralStatus status1(1);
   // test: copy constructor
-  mtca4u::GeneralStatus status0Copy1(status0);
+  ChimeraTK::GeneralStatus status0Copy1(status0);
   // test: operator=
-  mtca4u::GeneralStatus status0Copy2;
+  ChimeraTK::GeneralStatus status0Copy2;
   status0Copy2 = status0;
   // status0 = status0;
 

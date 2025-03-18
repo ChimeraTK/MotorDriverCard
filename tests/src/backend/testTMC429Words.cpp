@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "ChimeraTK/Exception.h"
 #define BOOST_TEST_MODULE TMC429WordsTest
 #include <boost/test/included/unit_test.hpp>
@@ -5,8 +7,8 @@ using namespace boost::unit_test_framework;
 
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC429Words.h"
-using namespace mtca4u;
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK;
+using namespace ChimeraTK::tmc429;
 
 unsigned int createDataWordFromIdxJdx(unsigned int idxJdx) {
   TMC429InputWord inputWord;
