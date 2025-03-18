@@ -2,7 +2,7 @@
 #define BOOST_TEST_MODULE StepperMotorChimeraTKTest
 
 #include <boost/shared_ptr.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include <memory>
 #include <mutex>
