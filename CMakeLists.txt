@@ -36,7 +36,6 @@ ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 
 # Add source files and include directories and define object targets
 # Three object targets are defined:
-# - mtca4u interface
 # - ChimeraTK interface
 # - Commonly used sources
 #
@@ -58,7 +57,6 @@ install(DIRECTORY util/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ChimeraT
 
 # Add  targets for mtca4u and ChimeraTK interfaces
 add_subdirectory(steppermotor)
-add_subdirectory(mtca4u_steppermotor)
 
 MACRO(COPY_MAPPING_FILES)
   foreach(MAPPING_FILE DFMC_MD22_test.map DFMC_MD22_test.mapp DFMC_MD22_broken.map DFMC_MD22_broken.mapp
@@ -91,8 +89,8 @@ ENDMACRO(COPY_XML_FILES)
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
 
-  # mtca4u interface and backend tests
-  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src testSources)
+  # backend tests
+  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src/backend testSources)
 
   foreach(testSourceFile ${testSources})
     # NAME_WE means the base name without path and (longest) extension
@@ -100,9 +98,7 @@ if(TESTING_IS_ENABLED)
 
     add_executable(${executableName} ${testSourceFile})
     target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} Boost::thread Boost::system
-      PkgConfig::LibXML++)
-
-    target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include)
+      PkgConfig::LibXML++ Boost::unit_test_framework)
 
     add_test(${executableName} ${executableName})
   endforeach(testSourceFile)
@@ -143,7 +139,7 @@ add_custom_command(
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} schema.h)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system ChimeraTK::ChimeraTK-cppext
-  PRIVATE PkgConfig::LibXML++ MTCA4U_OBJECTS_TARGET CTK_OBJECTS_TARGET)
+  PRIVATE PkgConfig::LibXML++ CTK_OBJECTS_TARGET)
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
   $<INSTALL_INTERFACE:include>
   PRIVATE ${PROJECT_BINARY_DIR})
@@ -154,7 +150,6 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach(hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${executableName} ${hardwareTestSourceFile})
-  target_include_directories(${executableName} PUBLIC mtca4u_steppermotor/include)
   target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} Boost::thread Boost::system PkgConfig::LibXML++)
 endforeach(hardwareTestSourceFile)
 
