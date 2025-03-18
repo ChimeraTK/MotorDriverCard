@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorDriverCardDummy.h"
 
 #include "DFMC_MD22Constants.h"
@@ -9,9 +11,9 @@
 
 #include <iostream>
 
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   MotorDriverCardDummy::MotorDriverCardDummy() {
     _motorControllers.reserve(N_MOTORS_MAX);
@@ -35,4 +37,4 @@ namespace mtca4u {
     throw ChimeraTK::logic_error("getPowerMonitor() is not implemented inMotorDriverCardDummy");
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

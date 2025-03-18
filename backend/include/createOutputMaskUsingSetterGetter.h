@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef CREATE_OUTPUT_MASK_USING_SETTER_GETTER
-#define CREATE_OUTPUT_MASK_USING_SETTER_GETTER
+#  define CREATE_OUTPUT_MASK_USING_SETTER_GETTER
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /* To check the position and the length of the bit pattern we use reconstruct
    * the output mask. To do so we need the larged allowed bit sequence to use with
@@ -23,6 +26,6 @@ namespace mtca4u {
     return t.getDataWord();
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #endif // CREATE_OUTPUT_MASK_USING_SETTER_GETTER

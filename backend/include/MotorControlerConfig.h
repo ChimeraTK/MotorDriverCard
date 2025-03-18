@@ -1,10 +1,11 @@
-#ifndef MTCA4U_MOTOR_CONTROLER_CONFIG_H
-#define MTCA4U_MOTOR_CONTROLER_CONFIG_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
   /** This configuration contains start values for all data words that
    *  can be written to the MotorControler class. Please note that the IDX field
    *  of the TMC429 words are ignored. It is replaced by the motor ID when the
@@ -42,6 +43,4 @@ namespace mtca4u {
     bool operator!=(MotorControlerConfig const& right) const;
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_CONTROLER_CONFIG_H
+} // namespace ChimeraTK

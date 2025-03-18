@@ -1,5 +1,6 @@
-#ifndef MTCA4U_MOTOR_CONTROLER_IMPL_H
-#define MTCA4U_MOTOR_CONTROLER_IMPL_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorControlerConfig.h"
 #include "MotorControlerExpert.h"
@@ -13,7 +14,7 @@
 #include <cstdint>
 #include <mutex>
 
-namespace mtca4u {
+namespace ChimeraTK {
   class MotorDriverCardImpl;
 
   class MotorControlerImpl : public MotorControlerExpert {
@@ -254,8 +255,8 @@ namespace mtca4u {
     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchNegative;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchPowerIndicator;
 
-    mtca4u::SPIviaPCIe _driverSPI;
-    boost::shared_ptr<mtca4u::TMC429SPI> _controlerSPI;
+    ChimeraTK::SPIviaPCIe _driverSPI;
+    boost::shared_ptr<ChimeraTK::TMC429SPI> _controlerSPI;
 
     static const unsigned int MD_22_DEFAULT_CLOCK_FREQ_MHZ = 32;
 
@@ -295,6 +296,4 @@ namespace mtca4u {
     inline unsigned int readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue);
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_CONTROLER_IMPL_H
+} // namespace ChimeraTK

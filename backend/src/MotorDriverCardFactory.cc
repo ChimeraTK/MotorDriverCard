@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorDriverCardFactory.h"
 
 #include "impl/MotorDriverCardImpl.h"
@@ -8,7 +10,7 @@
 
 #include <boost/thread/locks.hpp>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   // the copy constructor is intentionally not implemented
 
@@ -69,4 +71,4 @@ namespace mtca4u {
     return ChimeraTK::BackendFactory::getInstance().getDMapFilePath();
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

@@ -33,7 +33,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   BasicStepperMotor::BasicStepperMotor(const StepperMotorParameters& parameters)
-  : _motorDriverCard(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+  : _motorDriverCard(ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName)),
     _motorController(_motorDriverCard->getMotorControler(parameters.driverId)),
     _stepperMotorUnitsConverter(parameters.motorUnitsConverter),

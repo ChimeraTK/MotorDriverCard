@@ -1,11 +1,12 @@
-#ifndef MTCA4U_MOTOR_DRIVER_CARD_DUMMY_H
-#define MTCA4U_MOTOR_DRIVER_CARD_DUMMY_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorDriverCard.h"
 
 #include <vector>
 
-namespace mtca4u {
+namespace ChimeraTK {
   /**
    * A dummy implementation of the MotorDriverCard. It
    * provides MotorControlerDummys and a PowerMonitorDummy.
@@ -33,6 +34,4 @@ namespace mtca4u {
     std::vector<boost::shared_ptr<MotorControler>> _motorControllers;
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_DRIVER_CARD_DUMMY_H
+} // namespace ChimeraTK

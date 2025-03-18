@@ -5,8 +5,8 @@ using namespace boost::unit_test_framework;
 
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC260Words.h"
-using namespace mtca4u;
-using namespace mtca4u::tmc260;
+using namespace ChimeraTK;
+using namespace ChimeraTK::tmc260;
 
 BOOST_AUTO_TEST_SUITE(TMC260WordsTestSuite)
 

@@ -1,5 +1,8 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef MTAC4U_MULTI_VARIABLE_WORD_H
-#define MTAC4U_MULTI_VARIABLE_WORD_H
+#  define MTAC4U_MULTI_VARIABLE_WORD_H
 
 /** Generate an input mask from the position of the first and the last bit
  *  of the mask. The input mask is the mask applied to an input word which is
@@ -14,7 +17,7 @@
 // The bit shift is performed on a 64 bit unsigned int (UL) to avoid
 // buffer overflow for FIRST_BIT=0 and LAST_BIT=31.
 // The result is cast back to 32 bit.
-#define INPUT_MASK(FIRST_BIT, LAST_BIT) static_cast<unsigned int>((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)
+#  define INPUT_MASK(FIRST_BIT, LAST_BIT) static_cast<unsigned int>((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)
 
 /** Generate an outpu mask from the position of the first and the last bit
  *  of the mask. The output mask is the mask applied to the combined word.
@@ -25,8 +28,8 @@
  *  @attention There is no range check for the bits. The valid bit range is
  * [0:31] for both first and last bit.
  */
-#define OUTPUT_MASK(FIRST_BIT, LAST_BIT)                                                                               \
-  static_cast<unsigned int>(((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1) << FIRST_BIT)
+#  define OUTPUT_MASK(FIRST_BIT, LAST_BIT)                                                                             \
+    static_cast<unsigned int>(((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1) << FIRST_BIT)
 
 /** \def ADD_VARIABLE(VAR_NAME,FIRST_BIT,LAST_BIT)
  *  The ADD_VARIABLE macro allows to add a getter and a setter function for a
@@ -45,15 +48,15 @@ unsigned int getVoltage();
  *  (12 through 15, both bits included, mask 0xF000)
  *
  */
-#define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)                                                                    \
-  unsigned int get##VAR_NAME() const {                                                                                 \
-    return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                                    \
-  }                                                                                                                    \
-  void set##VAR_NAME(unsigned int word) {                                                                              \
-    return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                               \
-  }
+#  define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)                                                                  \
+    unsigned int get##VAR_NAME() const {                                                                               \
+      return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                                  \
+    }                                                                                                                  \
+    void set##VAR_NAME(unsigned int word) {                                                                            \
+      return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                             \
+    }
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** The MultiVariableWord encodes and decodes multiple short
    *  words into one unsigned int.
@@ -142,5 +145,5 @@ namespace mtca4u {
     unsigned int _dataWord;
   };
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 #endif // MTAC4U_MULTI_VARIABLE_WORD_H

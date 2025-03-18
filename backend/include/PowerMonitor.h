@@ -1,10 +1,9 @@
-#ifndef MTCA4U_POWER_MONITOR_H
-#define MTCA4U_POWER_MONITOR_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class PowerMonitor {};
 
-} // namespace mtca4u
-
-#endif // MTCA4U_POWER_MONITOR_H
+} // namespace ChimeraTK

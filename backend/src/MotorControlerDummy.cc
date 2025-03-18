@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorControlerDummy.h"
 
 #include <ChimeraTK/Exception.h>
@@ -7,7 +9,7 @@
 using LockGuard = std::lock_guard<std::mutex>;
 using UniqueLog = std::unique_lock<std::mutex>;
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   MotorControlerDummy::MotorControlerDummy(unsigned int id) : MotorControler(), _id(id) {}
 
@@ -431,4 +433,4 @@ namespace mtca4u {
     LockGuard guard(_motorControllerDummyMutex);
     _blockMotor = state;
   }
-} // namespace mtca4u
+} // namespace ChimeraTK

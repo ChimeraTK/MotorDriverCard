@@ -13,15 +13,15 @@ using namespace boost::unit_test_framework;
 
 #include <boost/shared_ptr.hpp>
 
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 #include "testWordFromPCIeAddress.h"
 #include "testWordFromSpiAddress.h"
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK::tmc429;
 
 #include "DFMC_MD22Constants.h"
 #include "testConfigConstants.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
   using namespace ChimeraTK;
 
   unsigned int asciiToInt(std::string text) {
@@ -111,10 +111,11 @@ namespace mtca4u {
         gTest.motorDriverCard = gTest.createCard(device, MODULE_NAME_0, motorDriverCardConfig), ChimeraTK::logic_error);
 
     // try opening with bad mapping, also has to throw
-    //  boost::shared_ptr<mtca4u::DeviceBackend> dummyDevice ( new
-    //  mtca4u::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
-    boost::shared_ptr<mtca4u::DeviceBackend> brokenDummyDevice = boost::dynamic_pointer_cast<mtca4u::DeviceBackend>(
-        ChimeraTK::BackendFactory::getInstance().createBackend(BROKEN_DUMMY_DEV_ALIAS));
+    //  boost::shared_ptr<ChimeraTK::DeviceBackend> dummyDevice ( new
+    //  ChimeraTK::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
+    boost::shared_ptr<ChimeraTK::DeviceBackend> brokenDummyDevice =
+        boost::dynamic_pointer_cast<ChimeraTK::DeviceBackend>(
+            ChimeraTK::BackendFactory::getInstance().createBackend(BROKEN_DUMMY_DEV_ALIAS));
     device->open(BROKEN_DUMMY_DEV_ALIAS);
     BOOST_CHECK_THROW(
         gTest.motorDriverCard = gTest.createCard(device, MODULE_NAME_0, motorDriverCardConfig), ChimeraTK::logic_error);
@@ -319,4 +320,4 @@ namespace mtca4u {
     BOOST_CHECK_THROW(gTest.motorDriverCard->getMotorControler(N_MOTORS_MAX), ChimeraTK::logic_error);
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

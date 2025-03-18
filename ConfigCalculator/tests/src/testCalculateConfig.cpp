@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #define BOOST_TEST_MODULE testCalculateConfig
 // Only after defining the name include the unit test header.
 #include <boost/test/included/unit_test.hpp>
@@ -28,7 +30,7 @@ BOOST_AUTO_TEST_CASE(testCalculateConfig) {
       9,                                                 // currentScale
       std::list<std::string>());                         // an empty list
 
-  mtca4u::MotorControlerConfig controllerConfig =
+  ChimeraTK::MotorControlerConfig controllerConfig =
       ConfigCalculator::calculateConfig(chipParameters, ConfigCalculator::IGNORE_BOTH);
 
   BOOST_CHECK(controllerConfig.driverControlData.getPayloadData() == 8);

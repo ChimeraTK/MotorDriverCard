@@ -1,12 +1,15 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef MOTOR_DRIVER_CARD_CONFIG_H
-#define MOTOR_DRIVER_CARD_CONFIG_H
+#  define MOTOR_DRIVER_CARD_CONFIG_H
 
-#include "MotorControlerConfig.h"
-#include "TMC429Words.h"
+#  include "MotorControlerConfig.h"
+#  include "TMC429Words.h"
 
-#include <vector>
+#  include <vector>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** This configuration contains start values for all data words that
    *  can be written to the MotorDriverImpl class, and configurations for
@@ -30,6 +33,6 @@ namespace mtca4u {
 
     bool operator==(MotorDriverCardConfig const& right) const;
   };
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #endif // MOTOR_DRIVER_CARD_CONFIG_H

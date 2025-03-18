@@ -9,7 +9,7 @@ using namespace boost::unit_test_framework;
 
 #include <ChimeraTK/Exception.h>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class MotorDriverCardDummyTest {
    protected:
@@ -35,4 +35,4 @@ namespace mtca4u {
     BOOST_CHECK_THROW(_motorDriverCardDummy.getPowerMonitor(), ChimeraTK::logic_error);
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

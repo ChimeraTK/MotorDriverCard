@@ -2,9 +2,7 @@
  * File:   StepperMotorUtil.h
  * Author: ckampm
  *
- * Utility classes fot the StepperMotor.
- * This header is used to share classes between the mtca4u
- * and ChimeraTK implementations.
+ * Utility classes for the StepperMotor.
  */
 
 #ifndef CHIMERATK_STEPPER_MOTOR_UTIL_H

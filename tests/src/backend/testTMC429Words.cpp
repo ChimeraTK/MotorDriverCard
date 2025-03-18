@@ -7,8 +7,8 @@ using namespace boost::unit_test_framework;
 #include "ChimeraTK/Exception.h"
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC429Words.h"
-using namespace mtca4u;
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK;
+using namespace ChimeraTK::tmc429;
 
 unsigned int createDataWordFromIdxJdx(unsigned int idxJdx) {
   TMC429InputWord inputWord;

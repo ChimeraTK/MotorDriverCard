@@ -4,7 +4,7 @@
 #include "MotorDriverCardConfigXML.h"
 
 #include <ChimeraTK/Exception.h>
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;

@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-using namespace mtca4u;
+using namespace ChimeraTK;
 
 int main(int argc, char* argv[]) {
   if(argc != 4) {
@@ -30,5 +30,6 @@ int main(int argc, char* argv[]) {
   std::string deviceAlias = ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
 
-  (void)mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, moduleName, motorConfigFileName);
+  (void)ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
+      deviceAlias, moduleName, motorConfigFileName);
 }

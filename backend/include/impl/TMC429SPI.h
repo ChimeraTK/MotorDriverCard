@@ -1,10 +1,11 @@
-#ifndef MTCA4U_TMC429_SPI_H
-#define MTCA4U_TMC429_SPI_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "SPIviaPCIe.h"
 #include "TMC429Words.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
   /** This class implements the special format of the SPI registers in the TPC429
    * chip.
    */
@@ -22,6 +23,4 @@ namespace mtca4u {
     SPIviaPCIe _spiViaPCIe;
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_TMC429_SPI_H
+} // namespace ChimeraTK

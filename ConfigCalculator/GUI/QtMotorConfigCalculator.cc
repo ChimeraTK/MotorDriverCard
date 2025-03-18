@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "QtMotorConfigCalculator.h"
 
 #include "DFMC_MD22Constants.h"
@@ -16,7 +18,7 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
   motorTabWidget = new QTabWidget(this);
 
   // first add the standard motor config widgets for all motors
-  for(size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID) {
+  for(size_t motorID = 0; motorID < ChimeraTK::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     motorConfigWidgets.push_back(new MotorConfigWidget(this));
     QString tabLabel("Motor ");
     tabLabel += QString::number(motorID);
@@ -55,7 +57,7 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
   populateDriverCardExpertPanel(cardExpertWidget);
 
   // add the motor expert widgets
-  for(size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID) {
+  for(size_t motorID = 0; motorID < ChimeraTK::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     // Define the expert widget
     ParametersPanel* thisMotorExpertWidget = new ParametersPanel(this);
     motorExpertWidgets.push_back(thisMotorExpertWidget);
@@ -93,8 +95,8 @@ void QtMotorConfigCalculator::write() {
     return;
   }
 
-  mtca4u::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
-  for(size_t motorID = 0; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID) {
+  ChimeraTK::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
+  for(size_t motorID = 0; motorID < ChimeraTK::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     // only write motors which are activated for sparse xml files
     if(motorConfigWidgets[motorID]->motorIsEnabled()) {
       //	      cardConfig.motorControlerConfigurations[motorID] =
@@ -103,11 +105,11 @@ void QtMotorConfigCalculator::write() {
     }
   }
 
-  mtca4u::MotorDriverCardConfigXML::writeSparse(fileName.toStdString(), cardConfig);
+  ChimeraTK::MotorDriverCardConfigXML::writeSparse(fileName.toStdString(), cardConfig);
 }
 
 void QtMotorConfigCalculator::updateCardExpertPanel(int index) {
-  mtca4u::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
+  ChimeraTK::MotorDriverCardConfig cardConfig = getMotorDriverCardParameters(cardExpertWidget);
   cardConfig.interfaceConfiguration.setInv_ref(index);
   cardExpertWidget->setParameter("interfaceConfiguration", cardConfig.interfaceConfiguration.getDATA());
 }

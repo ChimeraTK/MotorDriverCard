@@ -1,9 +1,10 @@
-#ifndef MTCA4U_SIGNED_INT_H
-#define MTCA4U_SIGNED_INT_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <boost/cstdint.hpp>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** Convert signed int of arbitraty length (< 32 bits) to
    *   and from 32 bits on the user side.
@@ -29,6 +30,4 @@ namespace mtca4u {
     int32_t _negativeBit; ///< The most significant bit in the custom int as a mask.
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_SIGNED_INT_H
+} // namespace ChimeraTK

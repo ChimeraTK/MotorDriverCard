@@ -1,11 +1,12 @@
-#ifndef MTCA4U_MOTOR_CONTROLER_DUMMY_H
-#define MTCA4U_MOTOR_CONTROLER_DUMMY_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorControler.h"
 
 #include <mutex>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** The MotorControlerDummy only implements the
    *  basic functionality defined in the MotorControler class,
@@ -190,6 +191,4 @@ namespace mtca4u {
     void roundToNextFullStep(int& targetPosition);
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_CONTROLER_DUMMY_H
+} // namespace ChimeraTK

@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef CHIMERATK_TMC429WORDS_H
-#define CHIMERATK_TMC429WORDS_H
+#  define CHIMERATK_TMC429WORDS_H
 
-#include "DFMC_MD22Constants.h"
-#include "MultiVariableWord.h"
+#  include "DFMC_MD22Constants.h"
+#  include "MultiVariableWord.h"
 
 // All bits from the ADD_VARIABLE are only in this file. Their correctness is
 // tested with a unit test (second, independent implementation of the same
@@ -13,7 +16,7 @@
 // make it more  "storing them all in one place" than having the numbers here,
 // within their context and two numbers, which belong together, per line.
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /** Structure of a generic single value register of the TMC429 chip.
    *  It implements the full maximum 24 bit data payload. For
@@ -301,6 +304,6 @@ namespace mtca4u {
     unsigned int getReferenceSwitchBit(unsigned int motorID);
   };
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #endif // CHIMERATK_TMC429WORDS_H

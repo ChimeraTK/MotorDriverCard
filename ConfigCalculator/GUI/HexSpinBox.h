@@ -1,5 +1,6 @@
-#ifndef SOURCE_DIRECTORY__HEXSPINBOX_H_
-#define SOURCE_DIRECTORY__HEXSPINBOX_H_
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <QSpinBox>
 #include <QValidator>
@@ -74,5 +75,3 @@ class HexSpinBox : public QSpinBox {
    */
   QValidator::State validate(QString& text_, int& pos_) const override;
 };
-
-#endif /* SOURCE_DIRECTORY__HEXSPINBOX_H_ */

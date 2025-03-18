@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #ifndef CHIMERATK_SPI_VIA_PCIE_H
-#define CHIMERATK_SPI_VIA_PCIE_H
+#  define CHIMERATK_SPI_VIA_PCIE_H
 
-#include <ChimeraTK/Device.h>
+#  include <ChimeraTK/Device.h>
 
-#include <boost/thread/recursive_mutex.hpp>
-namespace mtca4u {
+#  include <boost/thread/recursive_mutex.hpp>
+namespace ChimeraTK {
 
   /** This class implements synchronous SPI operation over PCIexpress, using an
    * SPI command register and a synchronisation register. Readback is optional.
@@ -85,6 +88,6 @@ namespace mtca4u {
     mutable boost::recursive_mutex _spiMutex;
   };
 
-} // namespace mtca4u
+} // namespace ChimeraTK
 
 #endif // CHIMERATK_SPI_VIA_PCIE_H

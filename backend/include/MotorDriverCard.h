@@ -1,11 +1,12 @@
-#ifndef MTCA4U_MOTOR_DRIVER_CARD_H
-#define MTCA4U_MOTOR_DRIVER_CARD_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "TMC429Words.h"
 
 #include <boost/shared_ptr.hpp>
 
-namespace mtca4u {
+namespace ChimeraTK {
   class MotorControler;
   class PowerMonitor;
 
@@ -27,6 +28,4 @@ namespace mtca4u {
     virtual ~MotorDriverCard() {}
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_DRIVER_CARD_H
+} // namespace ChimeraTK

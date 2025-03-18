@@ -12,9 +12,9 @@
 #include <cerrno>
 #include <ctime>
 
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
       std::string const& writeRegisterName, std::string const& syncRegisterName, unsigned int spiWaitingTime)
@@ -100,4 +100,4 @@ namespace mtca4u {
     return static_cast<unsigned int>(_spiWaitingTime.count());
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

@@ -1,5 +1,6 @@
-#ifndef MTCA4U_MOTOR_CONTROLER_H
-#define MTCA4U_MOTOR_CONTROLER_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorReferenceSwitchData.h"
 #include "TMC260Words.h"
@@ -18,7 +19,7 @@
   virtual NAME get##NAME() = 0
 // NOLINTEND(bugprone-macro-parentheses)
 
-namespace mtca4u {
+namespace ChimeraTK {
   /**
    * A class to control stepper motors using the DFMC-MD22 card.
    * This class represents the base functionality of one motor.
@@ -130,6 +131,4 @@ namespace mtca4u {
     virtual ~MotorControler() = default;
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_CONTROLER_H
+} // namespace ChimeraTK

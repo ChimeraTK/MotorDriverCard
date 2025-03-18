@@ -1,6 +1,8 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "SignedIntConverter.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   /// Fixme: is this safe in case someone puts nBits > 31?
   SignedIntConverter::SignedIntConverter(unsigned int nBits)
@@ -21,4 +23,4 @@ namespace mtca4u {
     return thirtyTwoBitInt & _bitMask;
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

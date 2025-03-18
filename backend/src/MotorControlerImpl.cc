@@ -1,9 +1,11 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #include "impl/MotorControlerImpl.h"
 
 #include "DFMC_MD22Constants.h"
-using namespace mtca4u::dfmc_md22;
+using namespace ChimeraTK::dfmc_md22;
 #include "TMC429Constants.h"
-using namespace mtca4u::tmc429;
+using namespace ChimeraTK::tmc429;
 
 #include "impl/MotorDriverCardImpl.h"
 
@@ -67,7 +69,7 @@ using namespace mtca4u::tmc429;
 typedef std::lock_guard<std::mutex> lock_guard;
 typedef std::unique_lock<std::mutex> unique_lock;
 
-namespace mtca4u {
+namespace ChimeraTK {
   MotorControlerImpl::MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
       std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
       MotorControlerConfig const& motorControlerConfig)
@@ -602,4 +604,4 @@ namespace mtca4u {
     _usrSetCurrentScale = currentScale;
   }
 
-} // namespace mtca4u
+} // namespace ChimeraTK

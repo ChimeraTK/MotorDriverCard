@@ -1,9 +1,10 @@
-#ifndef MTCA4U_MOTOR_DRIVER_CARD_CONFIG_XML_H
-#define MTCA4U_MOTOR_DRIVER_CARD_CONFIG_XML_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorDriverCardConfig.h"
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class MotorDriverCardConfigXML {
    public:
@@ -15,6 +16,4 @@ namespace mtca4u {
     static void write(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig, bool sparse);
   };
 
-} // namespace mtca4u
-
-#endif // MTCA4U_MOTOR_DRIVER_CARD_CONFIG_XML_H
+} // namespace ChimeraTK

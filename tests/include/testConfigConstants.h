@@ -1,5 +1,6 @@
-#ifndef MTCA4U_TEST_MD22_CONFIG_CONSTANTS_H
-#define MTCA4U_TEST_MD22_CONFIG_CONSTANTS_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <ChimeraTK/RegisterPath.h>
 
@@ -17,5 +18,3 @@ const std::string CONFIG_FILE("VT21-MotorDriverCardConfig.xml");
 const std::string BROKEN_DUMMY_DEV_ALIAS("BROKEN_PLAIN_DUMMY");
 
 static const std::string DUMMY_DEVICE_FILE_NAME{"/dummy/MotorDriverCard"};
-
-#endif // MTCA4U_TEST_MD22_CONFIG_CONSTANTS_H

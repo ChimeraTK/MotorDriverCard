@@ -1,5 +1,6 @@
-#ifndef QT_MOTOR_CONFIG_CALCULATOR_H
-#define QT_MOTOR_CONFIG_CALCULATOR_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include "MotorConfigWidget.h"
 #include "ParametersPanel.h"
@@ -37,5 +38,3 @@ class QtMotorConfigCalculator : public QWidget {
   void write();
   void updateCardExpertPanel(int index);
 };
-
-#endif // QT_MOTOR_CONFIG_CALCULATOR_H

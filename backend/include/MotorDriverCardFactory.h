@@ -8,7 +8,7 @@
 #include <map>
 #include <string>
 
-namespace mtca4u {
+namespace ChimeraTK {
 
   class MotorDriverCard;
 
@@ -74,7 +74,7 @@ namespace mtca4u {
      */
     static void setDeviceaccessDMapFilePath(std::string dmapFileName);
 
-    /** Get the dmap file name that is currently set for mtca4u::deviceaccess.
+    /** Get the dmap file name that is currently set for the ChimeraTK DeviceAccess library.
      *  This is a global setting for the whole application.
      *
      *  This function has been introduced to allow using the motor driver card
@@ -83,4 +83,4 @@ namespace mtca4u {
      */
     static std::string getDeviceaccessDMapFilePath();
   };
-} // namespace mtca4u
+} // namespace ChimeraTK
