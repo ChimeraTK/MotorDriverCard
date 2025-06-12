@@ -5,7 +5,7 @@ project(mtca4u-MotorDriverCard)
 include(GNUInstallDirs)
 
 set(${PROJECT_NAME}_MAJOR_VERSION 01)
-set(${PROJECT_NAME}_MINOR_VERSION 14)
+set(${PROJECT_NAME}_MINOR_VERSION 15)
 set(${PROJECT_NAME}_PATCH_VERSION 00)
 
 include(cmake/set_version_numbers.cmake)
