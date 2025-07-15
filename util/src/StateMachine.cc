@@ -6,37 +6,36 @@
 #include "StepperMotorUtil.h"
 
 #include <cassert>
-#include <utility>
 
 namespace ChimeraTK::MotorDriver {
   namespace utility {
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     bool operator<(const StateMachine::Event& event1, const StateMachine::Event& event2) {
       return event1._eventName < event2._eventName;
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     StateMachine::State::TransitionData::TransitionData(
         State* target, std::function<void(void)> entryCallback, std::function<void(void)> internalCallback)
     : targetState(target), entryCallbackAction(std::move(entryCallback)),
       internalCallbackAction(std::move(internalCallback)) {}
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     StateMachine::State::TransitionData::TransitionData(const State::TransitionData& targetAndAction) = default;
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     StateMachine::State::State(std::string stateName) : _stateName(std::move(stateName)) {}
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     StateMachine::State::~State() = default;
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     void StateMachine::State::setTransition(const Event& event, State* target, std::function<void(void)> entryCallback,
         std::function<void(void)> internalCallback) {
@@ -44,40 +43,41 @@ namespace ChimeraTK::MotorDriver {
       _transitionTable.insert({event, transitionData});
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     const StateMachine::State::TransitionTable& StateMachine::State::getTransitionTable() const {
       return _transitionTable;
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     std::string StateMachine::State::getName() const {
       return _stateName;
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     StateMachine::State* StateMachine::getCurrentState() {
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
 
+      auto* state = _currentState;
       _internalEventCallback();
-      return _currentState;
+
+      return state;
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     void StateMachine::setAndProcessUserEvent(const Event& event) {
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
       performTransition(event);
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     void StateMachine::performTransition(const Event& event) {
       auto const& transitionTable = _currentState->getTransitionTable();
-      auto it = transitionTable.find(event);
-      if(it != transitionTable.end()) {
+      if(auto it = transitionTable.find(event); it != transitionTable.end()) {
         _requestedState = ((it->second).targetState);
         _requestedInternalCallback = (it->second).internalCallbackAction;
 
@@ -89,13 +89,13 @@ namespace ChimeraTK::MotorDriver {
       }
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     bool StateMachine::hasRequestedState() {
       return _requestedState != nullptr;
     }
 
-    /********************************************************************************************************************/
+    /******************************************************************************************************************/
 
     void StateMachine::moveToRequestedState() {
       if(_requestedState != nullptr) {

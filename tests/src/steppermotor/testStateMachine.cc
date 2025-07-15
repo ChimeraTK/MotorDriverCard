@@ -179,6 +179,9 @@ BOOST_FIXTURE_TEST_CASE(testDerivedStateMachine, DerivedStateMachine) {
   // the requested state pointer should be reset
   while(_asyncActionActive.load()) {
   }
+  BOOST_CHECK_EQUAL(getCurrentState()->getName(), "firstState");
+  BOOST_CHECK(_isCorrectRequestedState.load());
+
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "secondState");
   BOOST_CHECK(_isCorrectRequestedState.load());
 
