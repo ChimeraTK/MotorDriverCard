@@ -10,8 +10,6 @@
 #include <string>
 #include <utility>
 
-#include <ChimeraTK/cppext/future_queue.hpp>
-
 struct StateMachineTestFixture;
 
 namespace ChimeraTK::MotorDriver::utility {
@@ -115,7 +113,6 @@ namespace ChimeraTK::MotorDriver::utility {
     Event getUserEvent();
 
    protected:
-    cppext::future_queue<std::string> _state{4};
     State _initState{"initState"};
     State _endState{"endState"};
     State* _currentState{&_initState};

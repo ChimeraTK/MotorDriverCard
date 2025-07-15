@@ -18,17 +18,16 @@ using LockGuard = boost::lock_guard<boost::mutex>;
 
 namespace ChimeraTK::MotorDriver {
 
-  LinearStepperMotor::LinearStepperMotor(const StepperMotorParameters& parameters)
-  {
+  LinearStepperMotor::LinearStepperMotor(const StepperMotorParameters& parameters) {
     _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName);
-    _motorControler = _motorDriverCard->getMotorControler(parameters.driverId);
+    _motorController = _motorDriverCard->getMotorControler(parameters.driverId);
     _stepperMotorUnitsConverter = parameters.motorUnitsConverter;
     _encoderUnitsConverter = parameters.encoderUnitsConverter;
     _stateMachine = std::make_shared<StateMachine>(*this);
-    _targetPositionInSteps = _motorControler->getTargetPosition();
-    _negativeEndSwitchEnabled = _motorControler->getReferenceSwitchData().getNegativeSwitchEnabled();
-    _positiveEndSwitchEnabled = _motorControler->getReferenceSwitchData().getPositiveSwitchEnabled();
+    _targetPositionInSteps = _motorController->getTargetPosition();
+    _negativeEndSwitchEnabled = _motorController->getReferenceSwitchData().getNegativeSwitchEnabled();
+    _positiveEndSwitchEnabled = _motorController->getReferenceSwitchData().getPositiveSwitchEnabled();
     initStateMachine();
     loadEndSwitchCalibration();
   }
@@ -204,9 +203,9 @@ namespace ChimeraTK::MotorDriver {
   void LinearStepperMotor::loadEndSwitchCalibration() {
     LockGuard guard(_mutex);
 
-    if(_motorControler->getCalibrationTime() != 0) {
-      int calibPositiveEndSwitchInSteps = _motorControler->getPositiveReferenceSwitchCalibration();
-      int calibNegativeEndSwitchInSteps = _motorControler->getNegativeReferenceSwitchCalibration();
+    if(_motorController->getCalibrationTime() != 0) {
+      int calibPositiveEndSwitchInSteps = _motorController->getPositiveReferenceSwitchCalibration();
+      int calibNegativeEndSwitchInSteps = _motorController->getNegativeReferenceSwitchCalibration();
       _calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
       _calibNegativeEndSwitchInSteps.exchange(calibNegativeEndSwitchInSteps);
 
@@ -221,16 +220,16 @@ namespace ChimeraTK::MotorDriver {
   }
 
   bool LinearStepperMotor::verifyMoveAction() {
-    bool endSwitchActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() ||
-        _motorControler->getReferenceSwitchData().getNegativeSwitchActive();
-    bool positionMatch = _motorControler->getTargetPosition() == _motorControler->getActualPosition();
+    bool endSwitchActive = _motorController->getReferenceSwitchData().getPositiveSwitchActive() ||
+        _motorController->getReferenceSwitchData().getNegativeSwitchActive();
+    bool positionMatch = _motorController->getTargetPosition() == _motorController->getActualPosition();
 
     return endSwitchActive || positionMatch;
   }
 
   bool LinearStepperMotor::isEndSwitchActive(Sign sign) {
-    bool posActive = _motorControler->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
-    bool negActive = _motorControler->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
+    bool posActive = _motorController->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
+    bool negActive = _motorController->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
 
     if(posActive && negActive) {
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
@@ -246,13 +245,13 @@ namespace ChimeraTK::MotorDriver {
 
     if(_toleranceCalculated) {
       if(posActive) {
-        if(std::abs(_motorControler->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
+        if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
             3 * _tolerancePositiveEndSwitch.load()) {
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }
       }
       else if(negActive) {
-        if(std::abs(_motorControler->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
+        if(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
             3 * _toleranceNegativeEndSwitch.load()) {
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }

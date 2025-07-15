@@ -25,10 +25,9 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   BasicStepperMotor::StateMachine::StateMachine(BasicStepperMotor& stepperMotor)
-  : _stepperMotor(stepperMotor), _motorControler(stepperMotor._motorControler) {
+  : _stepperMotor(stepperMotor), _motorControler(stepperMotor._motorController) {
     _initState.setTransition(initialEvent, &_disabled, [] {});
-    _idle.setTransition(
-        moveEvent, &_moving, [this] { actionIdleToMove(); }, [this] { waitForStandstill(); });
+    _idle.setTransition(moveEvent, &_moving, [this] { actionIdleToMove(); }, [this] { waitForStandstill(); });
     _idle.setTransition(disableEvent, &_disabled, [this] { actionDisable(); });
     _moving.setTransition(stopEvent, &_idle, [this] { actionMovetoStop(); });
     _moving.setTransition(errorEvent, &_error, [] {});

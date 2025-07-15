@@ -127,7 +127,7 @@ void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive() {
   while(1) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
-    if(!_stepperMotor->_motorControler->getReferenceSwitchData().getPositiveSwitchActive()) {
+    if(!_stepperMotor->_motorController->getReferenceSwitchData().getPositiveSwitchActive()) {
       _stepperMotor->_mutex.unlock();
     }
     else {
@@ -141,7 +141,7 @@ void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive() {
   while(1) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
-    if(!_stepperMotor->_motorControler->getReferenceSwitchData().getNegativeSwitchActive()) {
+    if(!_stepperMotor->_motorController->getReferenceSwitchData().getNegativeSwitchActive()) {
       _stepperMotor->_mutex.unlock();
     }
     else {
