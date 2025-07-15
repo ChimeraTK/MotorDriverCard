@@ -35,10 +35,10 @@ namespace ChimeraTK::MotorDriver {
   BasicStepperMotor::BasicStepperMotor(const StepperMotorParameters& parameters)
   : _motorDriverCard(mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName)),
-    _motorControler(_motorDriverCard->getMotorControler(parameters.driverId)),
+    _motorController(_motorDriverCard->getMotorControler(parameters.driverId)),
     _stepperMotorUnitsConverter(parameters.motorUnitsConverter),
     _encoderUnitsConverter(parameters.encoderUnitsConverter),
-    _targetPositionInSteps(_motorControler->getTargetPosition()) {
+    _targetPositionInSteps(_motorController->getTargetPosition()) {
     _stateMachine = std::make_shared<StateMachine>(*this);
     initStateMachine();
   }
@@ -93,7 +93,7 @@ namespace ChimeraTK::MotorDriver {
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
 
-    int newPosition = _motorControler->getActualPosition() + delta;
+    int newPosition = _motorController->getActualPosition() + delta;
     auto checkResult = checkNewPosition(newPosition);
     if(checkResult != ExitStatus::SUCCESS) {
       return checkResult;
@@ -123,7 +123,7 @@ namespace ChimeraTK::MotorDriver {
     _targetPositionInSteps = newPositionInSteps;
 
     if(_stateMachine->getCurrentState()->getName() == "moving") {
-      _motorControler->setTargetPosition(_targetPositionInSteps);
+      _motorController->setTargetPosition(_targetPositionInSteps);
     }
     else if(_autostart) {
       _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
@@ -159,7 +159,7 @@ namespace ChimeraTK::MotorDriver {
 
     _errorMode.exchange(Error::NO_ERROR);
 
-    if(!_motorControler->isMotorCurrentEnabled()) {
+    if(!_motorController->isMotorCurrentEnabled()) {
       _stateMachine->setAndProcessUserEvent(StateMachine::resetToDisableEvent);
     }
     else {
@@ -273,11 +273,11 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::resetMotorControllerPositions(int actualPositionInSteps) {
-    bool enable = _motorControler->isEnabled();
-    _motorControler->setEnabled(false);
-    _motorControler->setActualPosition(actualPositionInSteps);
-    _motorControler->setTargetPosition(actualPositionInSteps);
-    _motorControler->setEnabled(enable);
+    bool enable = _motorController->isEnabled();
+    _motorController->setEnabled(false);
+    _motorController->setActualPosition(actualPositionInSteps);
+    _motorController->setTargetPosition(actualPositionInSteps);
+    _motorController->setEnabled(enable);
   }
 
   /********************************************************************************************************************/
@@ -285,10 +285,10 @@ namespace ChimeraTK::MotorDriver {
   void BasicStepperMotor::setActualPositionActions(int actualPositionInSteps) {
     resetMotorControllerPositions(actualPositionInSteps);
 
-    _motorControler->setPositiveReferenceSwitchCalibration(std::numeric_limits<int>::max());
-    _motorControler->setNegativeReferenceSwitchCalibration(std::numeric_limits<int>::min());
+    _motorController->setPositiveReferenceSwitchCalibration(std::numeric_limits<int>::max());
+    _motorController->setNegativeReferenceSwitchCalibration(std::numeric_limits<int>::min());
     _calibrationMode.exchange(CalibrationMode::SIMPLE);
-    _motorControler->setCalibrationTime(static_cast<uint32_t>(time(nullptr)));
+    _motorController->setCalibrationTime(static_cast<uint32_t>(time(nullptr)));
   }
 
   /********************************************************************************************************************/
@@ -311,7 +311,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::translateAxisActions(int translationInSteps) {
-    int actualPosition = _motorControler->getActualPosition();
+    int actualPosition = _motorController->getActualPosition();
 
     resetMotorControllerPositions(actualPosition + translationInSteps);
     translateLimits(translationInSteps);
@@ -355,14 +355,14 @@ namespace ChimeraTK::MotorDriver {
 
   int BasicStepperMotor::getCurrentPositionInSteps() {
     LockGuard guard(_mutex);
-    return (_motorControler->getActualPosition());
+    return (_motorController->getActualPosition());
   }
 
   /********************************************************************************************************************/
 
   float BasicStepperMotor::getCurrentPosition() {
     LockGuard guard(_mutex);
-    return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getActualPosition());
+    return _stepperMotorUnitsConverter->stepsToUnits(_motorController->getActualPosition());
   }
 
   /********************************************************************************************************************/
@@ -370,7 +370,7 @@ namespace ChimeraTK::MotorDriver {
   double BasicStepperMotor::getEncoderPosition() {
     LockGuard guard(_mutex);
     return _encoderUnitsConverter->stepsToUnits(
-        static_cast<int>(_motorControler->getDecoderPosition()) + _encoderPositionOffset);
+        static_cast<int>(_motorController->getDecoderPosition()) + _encoderPositionOffset);
   }
 
   /********************************************************************************************************************/
@@ -382,7 +382,7 @@ namespace ChimeraTK::MotorDriver {
     }
 
     _encoderPositionOffset = _encoderUnitsConverter->unitsToSteps(referencePosition) -
-        static_cast<int>(_motorControler->getDecoderPosition());
+        static_cast<int>(_motorController->getDecoderPosition());
     return ExitStatus::SUCCESS;
   }
 
@@ -390,14 +390,14 @@ namespace ChimeraTK::MotorDriver {
 
   int BasicStepperMotor::getTargetPositionInSteps() {
     LockGuard guard(_mutex);
-    return _motorControler->getTargetPosition();
+    return _motorController->getTargetPosition();
   }
 
   /********************************************************************************************************************/
 
   float BasicStepperMotor::getTargetPosition() {
     LockGuard guard(_mutex);
-    return _stepperMotorUnitsConverter->stepsToUnits(_motorControler->getTargetPosition());
+    return _stepperMotorUnitsConverter->stepsToUnits(_motorController->getTargetPosition());
   }
 
   /********************************************************************************************************************/
@@ -472,7 +472,7 @@ namespace ChimeraTK::MotorDriver {
 
   uint32_t BasicStepperMotor::getCalibrationTime() {
     LockGuard guard(_mutex);
-    return _motorControler->getCalibrationTime();
+    return _motorController->getCalibrationTime();
   }
 
   /********************************************************************************************************************/
@@ -493,7 +493,7 @@ namespace ChimeraTK::MotorDriver {
     LockGuard guard(_mutex);
     // Note:  For the old firmware version isEndSwitchPowerEnabled always returns
     //       false (End switch power is not applicable in this scenario).
-    return (_motorControler->isEndSwitchPowerEnabled() || _motorControler->isMotorCurrentEnabled());
+    return (_motorController->isEndSwitchPowerEnabled() || _motorController->isMotorCurrentEnabled());
   }
 
   /********************************************************************************************************************/
@@ -514,7 +514,7 @@ namespace ChimeraTK::MotorDriver {
 
   double BasicStepperMotor::getMaxSpeedCapability() {
     LockGuard guard(_mutex);
-    return _motorControler->getMaxSpeedCapability();
+    return _motorController->getMaxSpeedCapability();
   }
 
   /********************************************************************************************************************/
@@ -522,7 +522,7 @@ namespace ChimeraTK::MotorDriver {
   double BasicStepperMotor::getSafeCurrentLimit() {
     LockGuard guard(_mutex);
 
-    return _motorControler->getMaxCurrentLimit();
+    return _motorController->getMaxCurrentLimit();
   }
 
   /********************************************************************************************************************/
@@ -532,7 +532,7 @@ namespace ChimeraTK::MotorDriver {
     if(motorActive()) {
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
-    _motorControler->setUserCurrentLimit(currentInAmps);
+    _motorController->setUserCurrentLimit(currentInAmps);
     return ExitStatus::SUCCESS;
   }
 
@@ -540,7 +540,7 @@ namespace ChimeraTK::MotorDriver {
 
   double BasicStepperMotor::getUserCurrentLimit() {
     LockGuard guard(_mutex);
-    return _motorControler->getUserCurrentLimit();
+    return _motorController->getUserCurrentLimit();
   }
 
   /********************************************************************************************************************/
@@ -551,7 +551,7 @@ namespace ChimeraTK::MotorDriver {
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
 
-    _motorControler->setUserSpeedLimit(speedInUstepsPerSec);
+    _motorController->setUserSpeedLimit(speedInUstepsPerSec);
     return ExitStatus::SUCCESS;
   }
 
@@ -559,28 +559,28 @@ namespace ChimeraTK::MotorDriver {
 
   double BasicStepperMotor::getUserSpeedLimit() {
     LockGuard guard(_mutex);
-    return _motorControler->getUserSpeedLimit();
+    return _motorController->getUserSpeedLimit();
   }
 
   /********************************************************************************************************************/
 
   bool BasicStepperMotor::isMoving() {
     LockGuard guard(_mutex);
-    return _motorControler->isMotorMoving();
+    return _motorController->isMotorMoving();
   }
 
   /********************************************************************************************************************/
 
   void BasicStepperMotor::enableFullStepping(bool enable) {
     LockGuard guard(_mutex);
-    _motorControler->enableFullStepping(enable);
+    _motorController->enableFullStepping(enable);
   }
 
   /********************************************************************************************************************/
 
   bool BasicStepperMotor::isFullStepping() {
     LockGuard guard(_mutex);
-    return _motorControler->isFullStepping();
+    return _motorController->isFullStepping();
   }
 
   /********************************************************************************************************************/
@@ -592,7 +592,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   bool BasicStepperMotor::verifyMoveAction() {
-    return _motorControler->getTargetPosition() == _motorControler->getActualPosition();
+    return _motorController->getTargetPosition() == _motorController->getActualPosition();
   }
 
   /********************************************************************************************************************/
@@ -691,7 +691,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   unsigned int BasicStepperMotor::getEncoderReadoutMode() {
-    return _motorControler->getDecoderReadoutMode();
+    return _motorController->getDecoderReadoutMode();
   }
 
 } // namespace ChimeraTK::MotorDriver

@@ -93,7 +93,7 @@ namespace ChimeraTK::MotorDriver {
 
       // At least one end switch disabled -> calibration not possible
       if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
-        _motor._motorControler->setCalibrationTime(0);
+        _motor._motorController->setCalibrationTime(0);
 
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(CalibrationMode::NONE);
@@ -105,7 +105,7 @@ namespace ChimeraTK::MotorDriver {
         calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
 
         if(_moveInterrupted.load() || _stopAction.load()) {
-          _motor._motorControler->setCalibrationTime(0);
+          _motor._motorController->setCalibrationTime(0);
 
           _motor._calibrationFailed.exchange(true);
           _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
@@ -116,9 +116,9 @@ namespace ChimeraTK::MotorDriver {
           calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
           calibNegativeEndSwitchInSteps = 0;
 
-          _motor._motorControler->setCalibrationTime(time(nullptr));
-          _motor._motorControler->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
-          _motor._motorControler->setNegativeReferenceSwitchCalibration(0);
+          _motor._motorController->setCalibrationTime(time(nullptr));
+          _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
+          _motor._motorController->setNegativeReferenceSwitchCalibration(0);
           _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
           _motor._calibNegativeEndSwitchInSteps.exchange(0);
 
@@ -128,7 +128,7 @@ namespace ChimeraTK::MotorDriver {
       }
     }
     catch(ChimeraTK::runtime_error&) {
-      _motor._motorControler->setCalibrationTime(0);
+      _motor._motorController->setCalibrationTime(0);
 
       _motor._calibrationFailed.exchange(true);
       _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
@@ -136,7 +136,6 @@ namespace ChimeraTK::MotorDriver {
     }
 
     _asyncActionActive.exchange(false);
-    return;
   }
 
   void LinearStepperMotor::StateMachine::findEndSwitch(Sign sign) {
@@ -144,23 +143,23 @@ namespace ChimeraTK::MotorDriver {
       if(_stopAction.load() || _moveInterrupted.load()) {
         return;
       }
-      else if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
+
+      if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
           !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
         _moveInterrupted.exchange(true);
         return;
       }
       moveToEndSwitch(sign);
     }
-    return;
   }
 
   void LinearStepperMotor::StateMachine::moveToEndSwitch(Sign sign) {
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
-      _motor._motorControler->setTargetPosition(
-          _motor._motorControler->getActualPosition() + static_cast<int>(sign) * 50000);
+      _motor._motorController->setTargetPosition(
+          _motor._motorController->getActualPosition() + static_cast<int>(sign) * 50000);
     }
-    while(_motor._motorControler->isMotorMoving()) {
+    while(_motor._motorController->isMotorMoving()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
     }
   }
@@ -226,9 +225,9 @@ namespace ChimeraTK::MotorDriver {
       // Move close to end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setTargetPosition(endSwitchPosition - static_cast<int>(sign) * 1000);
+        _motor._motorController->setTargetPosition(endSwitchPosition - static_cast<int>(sign) * 1000);
       }
-      while(_motor._motorControler->isMotorMoving()) {
+      while(_motor._motorController->isMotorMoving()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
 
@@ -241,9 +240,9 @@ namespace ChimeraTK::MotorDriver {
       // Try to move beyond end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
-        _motor._motorControler->setTargetPosition(endSwitchPosition + static_cast<int>(sign) * 1000);
+        _motor._motorController->setTargetPosition(endSwitchPosition + static_cast<int>(sign) * 1000);
       }
-      while(_motor._motorControler->isMotorMoving()) {
+      while(_motor._motorController->isMotorMoving()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
       }
       if(!_motor.isEndSwitchActive(sign)) {

@@ -494,7 +494,7 @@ namespace ChimeraTK::MotorDriver {
     void translateAxisActions(int translationInSteps);
 
     boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
-    boost::shared_ptr<mtca4u::MotorControler> _motorControler;
+    boost::shared_ptr<mtca4u::MotorControler> _motorController;
 
     std::shared_ptr<utility::MotorStepsConverter> _stepperMotorUnitsConverter;
     std::shared_ptr<utility::EncoderStepsConverter> _encoderUnitsConverter;
@@ -506,6 +506,7 @@ namespace ChimeraTK::MotorDriver {
     bool _autostart{false};
     bool _softwareLimitsEnabled{false};
 
+    // Mutex protecting the state machine access
     mutable boost::mutex _mutex;
     std::shared_ptr<utility::StateMachine> _stateMachine;
 
