@@ -8,7 +8,6 @@ using namespace mtca4u::dfmc_md22;
 #include "TMC429DummyConstants.h"
 #include "TMC429Words.h"
 
-#include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>

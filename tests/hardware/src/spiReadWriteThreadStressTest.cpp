@@ -6,7 +6,6 @@
 
 #include <ChimeraTK/BackendFactory.h>
 
-#include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
 #include <iostream>
@@ -390,9 +389,9 @@ void SpiReadWriteThreadStressTest::printStatus() {
 
 void SpiReadWriteThreadStressTest::increaseErrorCount(std::string functionName) {
   _errorCountingMutex.lock();
-  ++_errorsInThisTest;
-  ++_errorsInThisCycle;
-  ++_errorsTotal;
+  _errorsInThisTest += 1; // ++ operator is deprecated for volatile variables
+  _errorsInThisCycle += 1;
+  _errorsTotal += 1;
   std::cout << "  - Error in loop " << functionName << " of test \"" << _currentTestName
             << "\", total errors in this test/cycle/total " << _errorsInThisTest << "/" << _errorsInThisCycle << "/"
             << _errorsTotal << std::endl;
