@@ -3,8 +3,9 @@
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/DMapFileParser.h>
 
-#include <iostream>
 #include <unistd.h>
+
+#include <iostream>
 
 using namespace mtca4u;
 

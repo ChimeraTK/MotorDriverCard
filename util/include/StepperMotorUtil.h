@@ -142,5 +142,5 @@ namespace ChimeraTK { namespace MotorDriver {
 
   } // namespace utility
 
-}}     // namespace ChimeraTK::MotorDriver
+}} // namespace ChimeraTK::MotorDriver
 #endif // CHIMERATK_STEPPER_MOTOR_UTIL_H

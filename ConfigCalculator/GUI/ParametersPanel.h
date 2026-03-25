@@ -1,10 +1,11 @@
 #ifndef _PARAMETERS_PANEL_
 #define _PARAMETERS_PANEL_
 
+#include <stdint.h>
+
 #include <map>
 #include <QHBoxLayout>
 #include <QWidget>
-#include <stdint.h>
 #include <string>
 
 class ParameterWidget;

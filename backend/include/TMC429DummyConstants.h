@@ -10,6 +10,6 @@ namespace mtca4u { namespace tmc429 {
   uint32_t const SPI_DATA_MASK = 0xFFFFFF;
 
   unsigned int const DEFAULT_DUMMY_SPI_DELAY = 32; ///< 32 microseconds
-}}                                                 // namespace mtca4u::tmc429
+}} // namespace mtca4u::tmc429
 
 #endif // MTCA4U_TMC429_DUMMY_CONSTANTS_H

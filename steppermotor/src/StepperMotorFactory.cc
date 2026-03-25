@@ -3,9 +3,9 @@
 #include "LinearStepperMotor.h"
 #include "StepperMotor.h"
 
-#include <mutex>
-
 #include <ChimeraTK/Exception.h>
+
+#include <mutex>
 
 namespace ChimeraTK::MotorDriver {
 

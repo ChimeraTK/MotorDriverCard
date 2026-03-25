@@ -2,12 +2,13 @@
 
 #include "ChimeraTK/Exception.h"
 #include "schema.h"
+
 #include <libxml++/libxml++.h>
 #include <libxml/parser.h>
 
+#include <algorithm>
 #include <charconv>
 #include <iostream>
-#include <algorithm>
 
 namespace detail {
   class NodeFiller {

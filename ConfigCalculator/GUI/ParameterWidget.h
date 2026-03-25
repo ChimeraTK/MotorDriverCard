@@ -3,10 +3,11 @@
 
 #include "HexSpinBox.h"
 
+#include <stdint.h>
+
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QWidget>
-#include <stdint.h>
 #include <string>
 
 /** A widget which contains a label, input field and default field,
