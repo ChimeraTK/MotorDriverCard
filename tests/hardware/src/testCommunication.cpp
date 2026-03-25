@@ -5,9 +5,10 @@
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/DMapFileParser.h>
 
+#include <unistd.h>
+
 #include <ctime>
 #include <iostream>
-#include <unistd.h>
 
 using namespace mtca4u;
 
@@ -21,7 +22,7 @@ using namespace mtca4u;
               << " in test cycle " << runCounter << "!" << std::endl;                                                  \
   }
 
-#define MASK24(INPUT) ((INPUT)&0xFFFFFF)
+#define MASK24(INPUT) ((INPUT) & 0xFFFFFF)
 
 int main(int argc, char* argv[]) {
   if(argc != 4) {

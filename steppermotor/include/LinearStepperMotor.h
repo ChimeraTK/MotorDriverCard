@@ -184,5 +184,5 @@ namespace ChimeraTK::MotorDriver {
     std::atomic<float> _tolerancePositiveEndSwitch{0};
     std::atomic<float> _toleranceNegativeEndSwitch{0};
   };
-}     // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver
 #endif /* CHIMERATK_LINEAR_STEPPER_MOTOR_H */

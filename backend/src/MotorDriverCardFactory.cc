@@ -22,13 +22,13 @@ namespace mtca4u {
     boost::lock_guard<boost::mutex> guard(_factoryMutex);
 
     auto id = std::make_pair(alias, mapModuleName);
-    if (_dummyMode) {
-        auto card = _dummyMotorDriverCards[id];
-        if (!card) {
-            _dummyMotorDriverCards[id].reset(new MotorDriverCardDummy());
-        }
+    if(_dummyMode) {
+      auto card = _dummyMotorDriverCards[id];
+      if(!card) {
+        _dummyMotorDriverCards[id].reset(new MotorDriverCardDummy());
+      }
 
-        return _dummyMotorDriverCards[id];
+      return _dummyMotorDriverCards[id];
     }
 
     // Check if we have the card and if the weak reference is still valid. That way we can guarantee that there is only

@@ -243,7 +243,7 @@ namespace mtca4u {
       add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetEndSwitchPowerEnabled, motorControlerTest));
 
     } // constructor
-  };  // test suite
+  }; // test suite
 
   MotorControlerTest::MotorControlerTest(
       boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
