@@ -5,20 +5,6 @@
 
 #include <mutex>
 
-// NOLINTBEGIN(bugprone-macro-parentheses)
-#define MCD_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
-  void set##NAME(unsigned int VARIABLE_IN_UNITS) override;                                                             \
-  unsigned int get##NAME() override
-
-#define MCD_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                      \
-  void set##NAME(int VARIABLE_IN_UNITS) override;                                                                      \
-  int get##NAME() override
-
-#define MCD_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                        \
-  void set##NAME(NAME const& VARIABLE_NAME) override;                                                                  \
-  NAME get##NAME() override
-// NOLINTEND(bugprone-macro-parentheses)
-
 namespace mtca4u {
 
   /** The MotorControlerDummy only implements the
@@ -71,13 +57,27 @@ namespace mtca4u {
     void setNegativeReferenceSwitchEnabled(bool enableStatus) override;
 
     void setActualPosition(int steps) override;
-    MCD_DECLARE_SIGNED_SET_GET_VALUE(TargetPosition, steps);
-    MCD_DECLARE_SET_GET_VALUE(MinimumVelocity, stepsPerFIXME);
-    MCD_DECLARE_SET_GET_VALUE(MaximumVelocity, stepsPerFIXME);
-    MCD_DECLARE_SIGNED_SET_GET_VALUE(TargetVelocity, stepsPerFIXME);
-    MCD_DECLARE_SET_GET_VALUE(MaximumAcceleration, stepsPerSquareFIXME);
-    MCD_DECLARE_SET_GET_VALUE(PositionTolerance, steps);
-    MCD_DECLARE_SET_GET_VALUE(PositionLatched, steps);
+
+    void setTargetPosition(int steps) override;
+    int getTargetPosition() override;
+
+    void setMinimumVelocity(unsigned int stepsPerFIXME) override;
+    unsigned int getMinimumVelocity() override;
+
+    void setMaximumVelocity(unsigned int stepsPerFIXME) override;
+    unsigned int getMaximumVelocity() override;
+
+    void setTargetVelocity(int stepsPerFIXME) override;
+    int getTargetVelocity() override;
+
+    void setMaximumAcceleration(unsigned int stepsPerSquareFIXME) override;
+    unsigned int getMaximumAcceleration() override;
+
+    void setPositionTolerance(unsigned int steps) override;
+    unsigned int getPositionTolerance() override;
+
+    void setPositionLatched(unsigned int steps) override;
+    unsigned int getPositionLatched() override;
 
     bool targetPositionReached() override;
     unsigned int getReferenceSwitchBit() override;

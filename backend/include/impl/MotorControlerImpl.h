@@ -1,7 +1,6 @@
 #ifndef MTCA4U_MOTOR_CONTROLER_IMPL_H
 #define MTCA4U_MOTOR_CONTROLER_IMPL_H
 
-#include "memory"
 #include "MotorControlerConfig.h"
 #include "MotorControlerExpert.h"
 #include "SignedIntConverter.h"
@@ -15,16 +14,16 @@
 #include <mutex>
 
 #define MCI_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
-  void set##NAME(unsigned int VARIABLE_IN_UNITS);                                                                      \
-  unsigned int get##NAME()
+  void set##NAME(unsigned int VARIABLE_IN_UNITS) override;                                                             \
+  unsigned int get##NAME() override
 
 #define MCI_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                      \
-  void set##NAME(int VARIABLE_IN_UNITS);                                                                               \
-  int get##NAME()
+  void set##NAME(int VARIABLE_IN_UNITS) override;                                                                      \
+  int get##NAME() override
 
 #define MCI_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                        \
-  void set##NAME(NAME const& VARIABLE_NAME);                                                                           \
-  NAME get##NAME()
+  void set##NAME(NAME const& VARIABLE_NAME) override;                                                                  \
+  NAME get##NAME() override
 
 namespace mtca4u {
   class MotorDriverCardImpl;
@@ -45,22 +44,22 @@ namespace mtca4u {
     /// The class is non-assignable
     MotorControlerImpl& operator=(MotorControlerImpl const&) = delete;
 
-    unsigned int getID();
-    int getActualPosition();
-    int getActualVelocity();
-    unsigned int getActualAcceleration();
-    unsigned int getMicroStepCount();
-    unsigned int getStallGuardValue();
-    unsigned int getCoolStepValue();
-    DriverStatusData getStatus();
-    unsigned int getDecoderReadoutMode();
-    unsigned int getDecoderPosition();
+    unsigned int getID() override;
+    int getActualPosition() override;
+    int getActualVelocity() override;
+    unsigned int getActualAcceleration() override;
+    unsigned int getMicroStepCount() override;
+    unsigned int getStallGuardValue() override;
+    unsigned int getCoolStepValue() override;
+    DriverStatusData getStatus() override;
+    unsigned int getDecoderReadoutMode() override;
+    unsigned int getDecoderPosition() override;
 
     void setActualVelocity(int stepsPerFIXME);
-    void setActualAcceleration(unsigned int stepsPerSquareFIXME);
-    void setMicroStepCount(unsigned int microStepCount);
-    void setEnabled(bool enable = true);
-    void setDecoderReadoutMode(unsigned int decoderReadoutMode);
+    void setActualAcceleration(unsigned int stepsPerSquareFIXME) override;
+    void setMicroStepCount(unsigned int microStepCount) override;
+    void setEnabled(bool enable = true) override;
+    void setDecoderReadoutMode(unsigned int decoderReadoutMode) override;
 
     /*
      * @brief Sets the desired upper limit for motor speed in ramp mode. The
@@ -75,67 +74,67 @@ namespace mtca4u {
      * be what the user requested, but a value closest to it as permitted by the
      * motor controller parameters
      */
-    virtual double setUserSpeedLimit(double microStepsPerSecond);
+    double setUserSpeedLimit(double microStepsPerSecond) override;
 
     /*
      * @brief Returns the current upper limit for motor speed. Returned speed is
      * in microsteps per second
      */
-    virtual double getUserSpeedLimit();
+    double getUserSpeedLimit() override;
 
     /*
      * @brief Returns the maximum speed the motor is capable of achieving. Speed
      * is expressed in microsteps per second
      */
-    virtual double getMaxSpeedCapability();
+    double getMaxSpeedCapability() override;
 
     /*
      * @brief Sets the maximum current the driver should limit the motor to
      *
      */
-    virtual double setUserCurrentLimit(double currentLimit);
+    double setUserCurrentLimit(double currentLimit) override;
 
-    virtual double getUserCurrentLimit();
+    double getUserCurrentLimit() override;
 
-    virtual double getMaxCurrentLimit();
+    double getMaxCurrentLimit() override;
 
-    virtual void enableFullStepping(bool enable = true);
-    virtual bool isFullStepping();
+    void enableFullStepping(bool enable = true) override;
+    bool isFullStepping() override;
 
-    virtual void setCalibrationTime(uint32_t calibrationTime);
-    virtual uint32_t getCalibrationTime();
+    void setCalibrationTime(uint32_t calibrationTime) override;
+    uint32_t getCalibrationTime() override;
 
     /**
      * @brief Writes a calibrated position for the positive end switch to the
      * firmware
      */
-    virtual void setPositiveReferenceSwitchCalibration(int calibratedPosition);
+    void setPositiveReferenceSwitchCalibration(int calibratedPosition) override;
 
     /**
      * @brief Read a calibrated position for the positive end switch from the
      * firmware
      */
-    virtual int getPositiveReferenceSwitchCalibration();
+    int getPositiveReferenceSwitchCalibration() override;
 
     /**
      * @brief Writes a calibrated position for the negative end switch to the
      * firmware
      */
-    virtual void setNegativeReferenceSwitchCalibration(int calibratedPosition);
+    void setNegativeReferenceSwitchCalibration(int calibratedPosition) override;
 
     /**
      * @brief Read a calibrated position for the negative end switch from the
      * firmware
      */
-    virtual int getNegativeReferenceSwitchCalibration();
+    int getNegativeReferenceSwitchCalibration() override;
 
-    bool isEnabled();
+    bool isEnabled() override;
 
-    virtual void setMotorCurrentEnabled(bool enable = true);
-    virtual bool isMotorCurrentEnabled();
+    void setMotorCurrentEnabled(bool enable = true) override;
+    bool isMotorCurrentEnabled() override;
 
-    virtual void setEndSwitchPowerEnabled(bool enable = true);
-    virtual bool isEndSwitchPowerEnabled();
+    void setEndSwitchPowerEnabled(bool enable = true) override;
+    bool isEndSwitchPowerEnabled() override;
 
     /**
      * @brief Returns True if the motor is in motion or False if at
@@ -156,12 +155,12 @@ namespace mtca4u {
      * standstill indicator bit to be updated after the X_TARGET register on the
      * controller has been set.
      */
-    virtual bool isMotorMoving();
+    bool isMotorMoving() override;
 
-    MotorReferenceSwitchData getReferenceSwitchData();
+    MotorReferenceSwitchData getReferenceSwitchData() override;
 
-    void setPositiveReferenceSwitchEnabled(bool enableStatus);
-    void setNegativeReferenceSwitchEnabled(bool enableStatus);
+    void setPositiveReferenceSwitchEnabled(bool enableStatus) override;
+    void setNegativeReferenceSwitchEnabled(bool enableStatus) override;
 
     void setActualPosition(int steps);
     MCI_DECLARE_SIGNED_SET_GET_VALUE(TargetPosition, steps);
@@ -178,21 +177,21 @@ namespace mtca4u {
     MCI_DECLARE_SET_GET_TYPED_REGISTER(InterruptData, interruptData);
     MCI_DECLARE_SET_GET_TYPED_REGISTER(DividersAndMicroStepResolutionData, dividersAndMicroStepResolutionData);
 
-    void setDriverControlData(DriverControlData const& driverControlData);
-    void setChopperControlData(ChopperControlData const& chopperControlData);
-    void setCoolStepControlData(CoolStepControlData const& coolStepControlData);
-    void setStallGuardControlData(StallGuardControlData const& stallGuardControlData);
-    void setDriverConfigData(DriverConfigData const& driverConfigData);
+    void setDriverControlData(DriverControlData const& driverControlData) override;
+    void setChopperControlData(ChopperControlData const& chopperControlData) override;
+    void setCoolStepControlData(CoolStepControlData const& coolStepControlData) override;
+    void setStallGuardControlData(StallGuardControlData const& stallGuardControlData) override;
+    void setDriverConfigData(DriverConfigData const& driverConfigData) override;
 
-    DriverControlData const& getDriverControlData() const;
-    ChopperControlData const& getChopperControlData() const;
-    CoolStepControlData const& getCoolStepControlData() const;
-    StallGuardControlData const& getStallGuardControlData() const;
-    DriverConfigData const& getDriverConfigData() const;
+    DriverControlData const& getDriverControlData() const override;
+    ChopperControlData const& getChopperControlData() const override;
+    CoolStepControlData const& getCoolStepControlData() const override;
+    StallGuardControlData const& getStallGuardControlData() const override;
+    DriverConfigData const& getDriverConfigData() const override;
 
-    bool targetPositionReached();
+    bool targetPositionReached() override;
 
-    unsigned int getReferenceSwitchBit();
+    unsigned int getReferenceSwitchBit() override;
 
    private:
     static const unsigned int COMMUNICATION_DELAY = 20000; /// in microseconds
@@ -253,8 +252,8 @@ namespace mtca4u {
     template<class T>
     void setTypedDriverData(T const& driverData, T& localDataInstance);
 
-    SignedIntConverter converter24bits;
-    SignedIntConverter converter12bits;
+    SignedIntConverter _converter24bits;
+    SignedIntConverter _converter12bits;
 
     std::atomic<bool> _moveOnlyFullStep;
     // unsigned int _microStepsPerFullStep;
