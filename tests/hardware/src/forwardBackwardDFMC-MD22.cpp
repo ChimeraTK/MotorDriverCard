@@ -7,12 +7,13 @@
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/DMapFileParser.h>
 
+#include <signal.h>
+#include <unistd.h>
+
 #include <cerrno>
 #include <ctime>
 #include <iostream>
-#include <signal.h>
 #include <stdexcept>
-#include <unistd.h>
 
 bool volatile keepRunning = true;
 
