@@ -89,8 +89,8 @@ namespace mtca4u {
     _actualAcceleration{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_ACCELETATION_SUFFIX)},
     _microStepCount{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MICRO_STEP_COUNT_SUFFIX)},
     _stallGuardValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STALL_GUARD_VALUE_SUFFIX)},
-    _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)}, _status{RAW_ACCESSOR_FROM_SUFFIX(
-                                                                                      moduleName, STATUS_SUFFIX)},
+    _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)},
+    _status{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STATUS_SUFFIX)},
     _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
     _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
@@ -99,7 +99,7 @@ namespace mtca4u {
     _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)}, _endSwitchPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
-    _controlerSPI(controlerSPI), converter24bits(24), converter12bits(12), _moveOnlyFullStep(false),
+    _controlerSPI(controlerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false),
     _userMicroStepSize(0), _localTargetPosition(0) {
     setAccelerationThresholdData(motorControlerConfig.accelerationThresholdData);
     // setActualPosition( motorControlerConfig.actualPosition );
@@ -150,7 +150,7 @@ namespace mtca4u {
 
   int MotorControlerImpl::readPositionRegisterAndConvert() {
     _actualPosition.read();
-    return converter24bits.customToThirtyTwo(_actualPosition);
+    return _converter24bits.customToThirtyTwo(_actualPosition);
   }
 
   unsigned int MotorControlerImpl::readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue) {
@@ -161,19 +161,19 @@ namespace mtca4u {
   void MotorControlerImpl::setActualPosition(int position) {
     lock_guard guard(_mutex);
     _controlerSPI->write(
-        _id, IDX_ACTUAL_POSITION, static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)));
+        _id, IDX_ACTUAL_POSITION, static_cast<unsigned int>(_converter24bits.thirtyTwoToCustom(position)));
   }
 
   int MotorControlerImpl::getActualVelocity() {
     lock_guard guard(_mutex);
     _actualVelocity.read();
-    return converter12bits.customToThirtyTwo(_actualVelocity);
+    return _converter12bits.customToThirtyTwo(_actualVelocity);
   }
 
   void MotorControlerImpl::setActualVelocity(int velocity) {
     lock_guard guard(_mutex);
     _controlerSPI->write(
-        _id, IDX_ACTUAL_VELOCITY, static_cast<unsigned int>(converter12bits.thirtyTwoToCustom(velocity)));
+        _id, IDX_ACTUAL_VELOCITY, static_cast<unsigned int>(_converter12bits.thirtyTwoToCustom(velocity)));
   }
 
   unsigned int MotorControlerImpl::getActualAcceleration() {
@@ -254,7 +254,7 @@ namespace mtca4u {
 
   int MotorControlerImpl::retrieveTargetPositonAndConvert() {
     int readValue = static_cast<int>(_controlerSPI->read(_id, IDX_TARGET_POSITION).getDATA());
-    return converter24bits.customToThirtyTwo(readValue);
+    return _converter24bits.customToThirtyTwo(readValue);
   }
 
   void MotorControlerImpl::setTargetPosition(int value) {
@@ -276,7 +276,7 @@ namespace mtca4u {
 
     _localTargetPosition = value;
 
-    auto writeValue = static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(value));
+    auto writeValue = static_cast<unsigned int>(_converter24bits.thirtyTwoToCustom(value));
     _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
   }
 
@@ -295,7 +295,7 @@ namespace mtca4u {
   }
 
   DEFINE_GET_SET_VALUE(MinimumVelocity, IDX_MINIMUM_VELOCITY)
-  DEFINE_SIGNED_GET_SET_VALUE(TargetVelocity, IDX_TARGET_VELOCITY, converter12bits)
+  DEFINE_SIGNED_GET_SET_VALUE(TargetVelocity, IDX_TARGET_VELOCITY, _converter12bits)
   DEFINE_GET_SET_VALUE(MaximumAcceleration, IDX_MAXIMUM_ACCELERATION)
   DEFINE_GET_SET_VALUE(PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE)
   DEFINE_GET_SET_VALUE(PositionLatched, IDX_POSITION_LATCHED)
