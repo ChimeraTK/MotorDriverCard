@@ -110,26 +110,59 @@ namespace mtca4u {
 
     void testSetIsEnabled();
 
-    DECLARE_GET_SET_TEST(DecoderReadoutMode);
-    DECLARE_GET_SET_TEST(TargetPosition);
-    DECLARE_GET_SET_TEST(MinimumVelocity);
-    DECLARE_GET_SET_TEST(MaximumVelocity);
-    DECLARE_GET_SET_TEST(TargetVelocity);
-    DECLARE_GET_SET_TEST(MaximumAcceleration);
-    DECLARE_GET_SET_TEST(PositionTolerance);
-    DECLARE_GET_SET_TEST(PositionLatched);
+    void testGetDecoderReadoutMode();
+    void testSetDecoderReadoutMode();
 
-    DECLARE_GET_SET_TEST(AccelerationThresholdData);
-    DECLARE_GET_SET_TEST(ProportionalityFactorData);
-    DECLARE_GET_SET_TEST(ReferenceConfigAndRampModeData);
-    DECLARE_GET_SET_TEST(InterruptData);
-    DECLARE_GET_SET_TEST(DividersAndMicroStepResolutionData);
+    void testGetTargetPosition();
+    void testSetTargetPosition();
 
-    DECLARE_GET_SET_TEST(DriverControlData);
-    DECLARE_GET_SET_TEST(ChopperControlData);
-    DECLARE_GET_SET_TEST(CoolStepControlData);
-    DECLARE_GET_SET_TEST(StallGuardControlData);
-    DECLARE_GET_SET_TEST(DriverConfigData);
+    void testGetMinimumVelocity();
+    void testSetMinimumVelocity();
+
+    void testGetMaximumVelocity();
+    void testSetMaximumVelocity();
+
+    void testGetTargetVelocity();
+    void testSetTargetVelocity();
+
+    void testGetMaximumAcceleration();
+    void testSetMaximumAcceleration();
+
+    void testGetPositionTolerance();
+    void testSetPositionTolerance();
+
+    void testGetPositionLatched();
+    void testSetPositionLatched();
+
+    void testGetAccelerationThresholdData();
+    void testSetAccelerationThresholdData();
+
+    void testGetProportionalityFactorData();
+    void testSetProportionalityFactorData();
+
+    void testGetReferenceConfigAndRampModeData();
+    void testSetReferenceConfigAndRampModeData();
+
+    void testGetInterruptData();
+    void testSetInterruptData();
+
+    void testGetDividersAndMicroStepResolutionData();
+    void testSetDividersAndMicroStepResolutionData();
+
+    void testGetDriverControlData();
+    void testSetDriverControlData();
+
+    void testGetChopperControlData();
+    void testSetChopperControlData();
+
+    void testGetCoolStepControlData();
+    void testSetCoolStepControlData();
+
+    void testGetStallGuardControlData();
+    void testSetStallGuardControlData();
+
+    void testGetDriverConfigData();
+    void testSetDriverConfigData();
 
     void testGetReferenceSwitchData(boost::shared_ptr<MotorDriverCardImpl> motorDriverCard);
     void testSetReferenceSwitchEnabled();
