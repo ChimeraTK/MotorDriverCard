@@ -20,10 +20,6 @@ using namespace mtca4u::tmc429;
 #include "MotorDriverCardConfigDefaults.h"
 #include "testConfigConstants.h"
 
-#define DECLARE_GET_SET_TEST(NAME)                                                                                     \
-  void testGet##NAME();                                                                                                \
-  void testSet##NAME()
-
 #define ADD_GET_SET_TEST(NAME)                                                                                         \
   test_case* set##NAME##TestCase = BOOST_CLASS_TEST_CASE(&MotorDriverCardTest::testSet##NAME, motorDriverCardTest);    \
   test_case* get##NAME##TestCase = BOOST_CLASS_TEST_CASE(&MotorDriverCardTest::testGet##NAME, motorDriverCardTest);    \
@@ -44,14 +40,22 @@ namespace mtca4u {
     void testGetControlerChipVersion();
     void testGetReferenceSwitchData();
     void testGetStatusWord();
-    DECLARE_GET_SET_TEST(DatagramLowWord);
-    DECLARE_GET_SET_TEST(DatagramHighWord);
-    DECLARE_GET_SET_TEST(CoverPositionAndLength);
-    DECLARE_GET_SET_TEST(CoverDatagram);
-    DECLARE_GET_SET_TEST(StepperMotorGlobalParameters);
-    DECLARE_GET_SET_TEST(InterfaceConfiguration);
-    DECLARE_GET_SET_TEST(PositionCompareWord);
-    DECLARE_GET_SET_TEST(PositionCompareInterruptData);
+    void testGetDatagramLowWord();
+    void testSetDatagramLowWord();
+    void testGetDatagramHighWord();
+    void testSetDatagramHighWord();
+    void testGetCoverPositionAndLength();
+    void testSetCoverPositionAndLength();
+    void testGetCoverDatagram();
+    void testSetCoverDatagram();
+    void testGetStepperMotorGlobalParameters();
+    void testSetStepperMotorGlobalParameters();
+    void testGetInterfaceConfiguration();
+    void testSetInterfaceConfiguration();
+    void testGetPositionCompareWord();
+    void testSetPositionCompareWord();
+    void testGetPositionCompareInterruptData();
+    void testSetPositionCompareInterruptData();
     void testPowerDown();
     void testGetMotorControler();
 

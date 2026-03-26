@@ -13,23 +13,13 @@
 #include <cstdint>
 #include <mutex>
 
-#define MCI_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
-  void set##NAME(unsigned int VARIABLE_IN_UNITS) override;                                                             \
-  unsigned int get##NAME() override
-
-#define MCI_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                      \
-  void set##NAME(int VARIABLE_IN_UNITS) override;                                                                      \
-  int get##NAME() override
-
-#define MCI_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                        \
-  void set##NAME(NAME const& VARIABLE_NAME) override;                                                                  \
-  NAME get##NAME() override
-
 namespace mtca4u {
   class MotorDriverCardImpl;
 
   class MotorControlerImpl : public MotorControlerExpert {
    public:
+    MotorControlerImpl(MotorControlerImpl&&) = delete;
+    MotorControlerImpl& operator=(MotorControlerImpl&&) = delete;
     /** The constructor gets references shared pointers which it copies
      * internally, so the object stays valid even if the original shared pointer
      * goes out of scope. The config is only used in the constuctor, no reference
@@ -162,20 +152,45 @@ namespace mtca4u {
     void setPositiveReferenceSwitchEnabled(bool enableStatus) override;
     void setNegativeReferenceSwitchEnabled(bool enableStatus) override;
 
-    void setActualPosition(int steps);
-    MCI_DECLARE_SIGNED_SET_GET_VALUE(TargetPosition, steps);
-    MCI_DECLARE_SET_GET_VALUE(MinimumVelocity, stepsPerFIXME);
-    MCI_DECLARE_SET_GET_VALUE(MaximumVelocity, stepsPerFIXME);
-    MCI_DECLARE_SIGNED_SET_GET_VALUE(TargetVelocity, stepsPerFIXME);
-    MCI_DECLARE_SET_GET_VALUE(MaximumAcceleration, stepsPerSquareFIXME);
-    MCI_DECLARE_SET_GET_VALUE(PositionTolerance, steps);
-    MCI_DECLARE_SET_GET_VALUE(PositionLatched, steps);
+    void setActualPosition(int steps) override;
 
-    MCI_DECLARE_SET_GET_TYPED_REGISTER(AccelerationThresholdData, accelerationThresholdData);
-    MCI_DECLARE_SET_GET_TYPED_REGISTER(ProportionalityFactorData, proportionalityFactorData);
-    MCI_DECLARE_SET_GET_TYPED_REGISTER(ReferenceConfigAndRampModeData, referenceConfigAndRampModeData);
-    MCI_DECLARE_SET_GET_TYPED_REGISTER(InterruptData, interruptData);
-    MCI_DECLARE_SET_GET_TYPED_REGISTER(DividersAndMicroStepResolutionData, dividersAndMicroStepResolutionData);
+    void setTargetPosition(int steps) override;
+    int getTargetPosition() override;
+
+    void setMinimumVelocity(unsigned int stepsPerFIXME) override;
+    unsigned int getMinimumVelocity() override;
+
+    void setMaximumVelocity(unsigned int stepsPerFIXME) override;
+    unsigned int getMaximumVelocity() override;
+
+    void setTargetVelocity(int stepsPerFIXME) override;
+    int getTargetVelocity() override;
+
+    void setMaximumAcceleration(unsigned int stepsPerSquareFIXME) override;
+    unsigned int getMaximumAcceleration() override;
+
+    void setPositionTolerance(unsigned int steps) override;
+    unsigned int getPositionTolerance() override;
+
+    void setPositionLatched(unsigned int steps) override;
+    unsigned int getPositionLatched() override;
+
+    void setAccelerationThresholdData(AccelerationThresholdData const& accelerationThresholdData) override;
+    AccelerationThresholdData getAccelerationThresholdData() override;
+
+    void setProportionalityFactorData(ProportionalityFactorData const& proportionalityFactorData) override;
+    ProportionalityFactorData getProportionalityFactorData() override;
+
+    void setReferenceConfigAndRampModeData(
+        ReferenceConfigAndRampModeData const& referenceConfigAndRampModeData) override;
+    ReferenceConfigAndRampModeData getReferenceConfigAndRampModeData() override;
+
+    void setInterruptData(InterruptData const& interruptData) override;
+    InterruptData getInterruptData() override;
+
+    void setDividersAndMicroStepResolutionData(
+        DividersAndMicroStepResolutionData const& dividersAndMicroStepResolutionData) override;
+    DividersAndMicroStepResolutionData getDividersAndMicroStepResolutionData() override;
 
     void setDriverControlData(DriverControlData const& driverControlData) override;
     void setChopperControlData(ChopperControlData const& chopperControlData) override;
