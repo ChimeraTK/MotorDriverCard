@@ -415,20 +415,19 @@ namespace ChimeraTK::MotorDriver {
      *
      * \dot
      * digraph {
-
-    # To refactor nodes, place the cursor left to a node name
-    initState -> disabled [label="initialEvent"]
-    disabled -> idle [label = "enableEvent"];
-    idle -> moving [label = "moveEvent"];
-    idle -> disabled [label = "disableEvent"];
-    moving -> idle [label = "stopEvent"];
-    moving -> error [label = "errorEvent"];
-    moving -> error [label = "emergencyStopEvent"];
-    moving -> disabled [label = "disableEvent"];
-    error -> idle [label = "resetToIdleEvent"];
-    error -> disabled [label = "resetToDisabledEvent"];
-    }
-\enddot
+     * # To refactor nodes, place the cursor left to a node name
+     * initState -> disabled [label="initialEvent"]
+     * disabled -> idle [label = "enableEvent"];
+     * idle -> moving [label = "moveEvent"];
+     * idle -> disabled [label = "disableEvent"];
+     * moving -> idle [label = "stopEvent"];
+     * moving -> error [label = "errorEvent"];
+     * moving -> error [label = "emergencyStopEvent"];
+     * moving -> disabled [label = "disableEvent"];
+     * error -> idle [label = "resetToIdleEvent"];
+     * error -> disabled [label = "resetToDisabledEvent"];
+     * }
+     * \enddot
      */
     class StateMachine : public utility::StateMachine {
       friend class BasicStepperMotor;
