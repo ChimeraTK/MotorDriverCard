@@ -1,6 +1,7 @@
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MotorControlerTest
+#include <boost/test/unit_test.hpp>
 
-#include <sstream>
 using namespace boost::unit_test_framework;
 
 #include "ChimeraTK/BackendFactory.h"
@@ -14,16 +15,11 @@ using namespace boost::unit_test_framework;
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
 
-class SPIviaPCIeTest {
+class SPIviaPCIeTestFixture {
  public:
-  SPIviaPCIeTest(std::string const& moduleName);
-  //  static void testConstructors();
+  SPIviaPCIeTestFixture();
 
-  void testRead();
-  void testWrite();
-  void testGetSetWaitingTime();
-
- private:
+ protected:
   boost::shared_ptr<mtca4u::DFMC_MD22Dummy> _dummyBackend;
   boost::shared_ptr<ChimeraTK::Device> _device;
 
@@ -32,64 +28,26 @@ class SPIviaPCIeTest {
                                                               // dummy
 };
 
-class SPIviaPCIeTestSuite : public test_suite {
- public:
-  SPIviaPCIeTestSuite(std::string const& moduleName) : test_suite("SPIviaPCIe test suite") {
-    ChimeraTK::setDMapFilePath("./dummies.dmap");
-    // create an instance of the test class
-    boost::shared_ptr<SPIviaPCIeTest> spiViaPCIeTest(new SPIviaPCIeTest(moduleName));
+SPIviaPCIeTestFixture::SPIviaPCIeTestFixture() {
+  const auto& moduleName = MODULE_NAME_0;
+  ChimeraTK::setDMapFilePath("./dummies.dmap");
 
-    // add the tests
-    //   add( BOOST_CLASS_TEST_CASE( &SPIviaPCIeTest::testConstructors,
-    //   spiViaPCIeTest ) );
-
-    // in case of dependencies store the test cases before adding them and
-    // declare the dependency
-    test_case* writeTestCase = BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testWrite, spiViaPCIeTest);
-    test_case* readTestCase = BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testRead, spiViaPCIeTest);
-
-    // exceptionally the read depends on the write (usually it is the other way
-    // round)
-    readTestCase->depends_on(writeTestCase);
-
-    add(writeTestCase);
-    add(readTestCase);
-    add(BOOST_CLASS_TEST_CASE(&SPIviaPCIeTest::testGetSetWaitingTime, spiViaPCIeTest));
-  }
-};
-
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
-  framework::master_test_suite().p_name.value = "SPIviaPCIe test suite";
-  return new SPIviaPCIeTestSuite(MODULE_NAME_0);
-}
-
-SPIviaPCIeTest::SPIviaPCIeTest(std::string const& moduleName)
-: _dummyBackend(), _device(), _readWriteSPIviaPCIe(), _writeSPIviaPCIe() {
   _dummyBackend = boost::dynamic_pointer_cast<mtca4u::DFMC_MD22Dummy>(
       ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
 
-  // we need a mapped device of BaseDevice. Unfortunately this is still really
-  // clumsy to produce/open
-
-  _device.reset(new ChimeraTK::Device());
-
-  //_dummyBackend->open(mapFileName);
-  //_dummyBackend->open();
-
+  _device = boost::make_shared<ChimeraTK::Device>();
   _device->open(DFMC_ALIAS);
 
-  //_dummyBackend->setRegistersForTesting();
-
-  _readWriteSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(_device, moduleName,
+  _readWriteSPIviaPCIe = boost::make_shared<mtca4u::SPIviaPCIe>(_device, moduleName,
       mtca4u::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING, mtca4u::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
-      mtca4u::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING));
+      mtca4u::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING);
 
-  _writeSPIviaPCIe.reset(new mtca4u::SPIviaPCIe(_device, moduleName,
+  _writeSPIviaPCIe = boost::make_shared<mtca4u::SPIviaPCIe>(_device, moduleName,
       mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_WRITE_SUFFIX,
-      mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_SYNC_SUFFIX));
+      mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_SYNC_SUFFIX);
 }
 
-void SPIviaPCIeTest::testRead() {
+BOOST_FIXTURE_TEST_CASE(TestRead, SPIviaPCIeTestFixture) {
   // prepare a cover datagram word
   mtca4u::TMC429InputWord coverDatagram;
   coverDatagram.setSMDA(mtca4u::tmc429::SMDA_COMMON);
@@ -97,7 +55,7 @@ void SPIviaPCIeTest::testRead() {
 
   // set the payload content and write it
   coverDatagram.setDATA(0xAAAAAA);
-  _readWriteSPIviaPCIe->write(coverDatagram.getDataWord());
+  _readWriteSPIviaPCIe->write(int32_t(coverDatagram.getDataWord()));
 
   // now try to read back. prepare the coverDatagram word for reading
   coverDatagram.setRW(mtca4u::tmc429::RW_READ);
@@ -108,7 +66,7 @@ void SPIviaPCIeTest::testRead() {
   // For optimised code the require is not enough. The code might continue if an
   // exception occured (at least the compiler says so an gives a warning) Just
   // reexecute and let the exception through
-  readbackInt = _readWriteSPIviaPCIe->read(coverDatagram.getDataWord());
+  readbackInt = _readWriteSPIviaPCIe->read(int32_t(coverDatagram.getDataWord()));
 
   mtca4u::TMC429OutputWord readbackWord;
   readbackWord.setDataWord(readbackInt);
@@ -129,7 +87,7 @@ void SPIviaPCIeTest::testRead() {
   _dummyBackend->causeSpiErrors(false);
 }
 
-void SPIviaPCIeTest::testWrite() {
+BOOST_FIXTURE_TEST_CASE(TestWrite, SPIviaPCIeTestFixture) {
   // This test is hard coded against the dummy implementation of the TCM260
   // driver chip
   for(uint32_t motorID = 1; motorID < mtca4u::dfmc_md22::N_MOTORS_MAX; ++motorID) {
@@ -160,7 +118,7 @@ void SPIviaPCIeTest::testWrite() {
   }
 }
 
-void SPIviaPCIeTest::testGetSetWaitingTime() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetWaitingTime, SPIviaPCIeTestFixture) {
   BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 
   _writeSPIviaPCIe->setSpiWaitingTime(2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);

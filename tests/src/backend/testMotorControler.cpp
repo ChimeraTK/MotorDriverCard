@@ -1,4 +1,6 @@
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MotorControlerTest
+#include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
@@ -28,12 +30,27 @@ using namespace mtca4u::dfmc_md22;
   void testGet##NAME();                                                                                                \
   void testSet##NAME()
 
-#define ADD_GET_SET_TEST(NAME)                                                                                         \
-  test_case* set##NAME##TestCase = BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSet##NAME, motorControlerTest);      \
-  test_case* get##NAME##TestCase = BOOST_CLASS_TEST_CASE(&MotorControlerTest::testGet##NAME, motorControlerTest);      \
-  set##NAME##TestCase->depends_on(get##NAME##TestCase);                                                                \
-  add(get##NAME##TestCase);                                                                                            \
-  add(set##NAME##TestCase)
+#define ADD_TEST(NAME, ...)                                                                                            \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##0, MotorControlerTestFixture<0>) {                                               \
+    _motorControlerTest->test##NAME(__VA_ARGS__);                                                                      \
+  }                                                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##1, MotorControlerTestFixture<1>) {                                               \
+    _motorControlerTest->test##NAME(__VA_ARGS__);                                                                      \
+  }
+
+#define ADD_GET_SET_TEST(NAME, ...)                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(TestSet##NAME##0, MotorControlerTestFixture<0>) {                                            \
+    _motorControlerTest->testSet##NAME(__VA_ARGS__);                                                                   \
+  }                                                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(TestSet##NAME##1, MotorControlerTestFixture<1>) {                                            \
+    _motorControlerTest->testSet##NAME(__VA_ARGS__);                                                                   \
+  }                                                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(TestGet##NAME##0, MotorControlerTestFixture<0>) {                                            \
+    _motorControlerTest->testGet##NAME(__VA_ARGS__);                                                                   \
+  }                                                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(TestGet##NAME##1, MotorControlerTestFixture<1>) {                                            \
+    _motorControlerTest->testGet##NAME(__VA_ARGS__);                                                                   \
+  }
 
 #define DEFINE_GET_SET_TEST(NAME, IDX, PATTERN)                                                                        \
   void MotorControlerTest::testGet##NAME() {                                                                           \
@@ -52,8 +69,8 @@ using namespace mtca4u::dfmc_md22;
     BOOST_CHECK(_motorControler->get##NAME() == converter.customToThirtyTwo(expectedValue));                           \
   }                                                                                                                    \
   void MotorControlerTest::testSet##NAME() {                                                                           \
-    unsigned int positiveMask = (1 << (NBITS - 1)) - 1;                                                                \
-    unsigned int negativeBit = (1 << (NBITS - 1));                                                                     \
+    unsigned int positiveMask = (1U << ((NBITS) - 1)) - 1;                                                             \
+    unsigned int negativeBit = (1U << ((NBITS) - 1));                                                                  \
     _motorControler->set##NAME(0xAAAAAAAA & positiveMask); /* something positive */                                    \
     BOOST_CHECK(_motorControler->get##NAME() == static_cast<int>(0xAAAAAAAA & positiveMask));                          \
     _motorControler->set##NAME((0x55555555 & positiveMask) | negativeBit); /* out of range positive with the           \
@@ -197,12 +214,14 @@ namespace mtca4u {
 
   }; /*class MotorControlerTest*/
 
-  class MotorControlerTestSuite : public test_suite {
-   private:
+  template<unsigned int motorId>
+  class MotorControlerTestFixture : public test_suite {
+   protected:
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
+    boost::shared_ptr<MotorControlerTest> _motorControlerTest;
 
    public:
-    MotorControlerTestSuite(unsigned int motorId)
+    explicit MotorControlerTestFixture()
     : test_suite(" MotorControler test suite" + std::to_string(motorId)), _motorDriverCard() {
       ChimeraTK::setDMapFilePath("./dummies.dmap");
 
@@ -223,60 +242,75 @@ namespace mtca4u {
 
       dummyDevice->setRegistersForTesting();
 
-      boost::shared_ptr<MotorControlerTest> motorControlerTest(
-          new MotorControlerTest(_motorDriverCard->getMotorControler(motorId), dummyDevice));
+      _motorControlerTest =
+          boost::make_shared<MotorControlerTest>(_motorDriverCard->getMotorControler(motorId), dummyDevice);
+    }
+  };
 
-      ADD_GET_SET_TEST(ActualPosition);
-      ADD_GET_SET_TEST(ActualVelocity);
-      ADD_GET_SET_TEST(ActualAcceleration);
-      //      ADD_GET_SET_TEST( AccelerationThreshold );
-      ADD_GET_SET_TEST(MicroStepCount);
+  ADD_GET_SET_TEST(ActualPosition);
+  ADD_GET_SET_TEST(ActualVelocity);
+  ADD_GET_SET_TEST(ActualAcceleration);
+  // ADD_GET_SET_TEST(AccelerationThreshold);
+  ADD_GET_SET_TEST(MicroStepCount);
 
-      add(BOOST_TEST_CASE(boost::bind(&MotorControlerTest::testReadPCIeRegister, motorControlerTest,
-          &MotorControlerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX)));
-      add(BOOST_TEST_CASE(boost::bind(&MotorControlerTest::testReadPCIeRegister, motorControlerTest,
-          &MotorControlerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX)));
-      add(BOOST_TEST_CASE(boost::bind(&MotorControlerTest::testReadTypedPCIeRegister<DriverStatusData>,
-          motorControlerTest, &MotorControler::getStatus, STATUS_SUFFIX)));
+  BOOST_FIXTURE_TEST_CASE(TestGetStallGuardValue0, MotorControlerTestFixture<0>) {
+    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX);
+  }
+  BOOST_FIXTURE_TEST_CASE(TestGetStallGuardValue1, MotorControlerTestFixture<1>) {
+    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX);
+  }
 
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetIsEnabled, motorControlerTest));
+  BOOST_FIXTURE_TEST_CASE(TestGetCoolStepValue0, MotorControlerTestFixture<0>) {
+    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX);
+  }
+  BOOST_FIXTURE_TEST_CASE(TestGetCoolStepValue1, MotorControlerTestFixture<1>) {
+    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX);
+  }
 
-      ADD_GET_SET_TEST(DecoderReadoutMode);
+  BOOST_FIXTURE_TEST_CASE(TestGetDriverStatus0, MotorControlerTestFixture<0>) {
+    _motorControlerTest->testReadTypedPCIeRegister<DriverStatusData>(&MotorControlerImpl::getStatus, STATUS_SUFFIX);
+  }
+  BOOST_FIXTURE_TEST_CASE(TestGetDriverStatus1, MotorControlerTestFixture<1>) {
+    _motorControlerTest->testReadTypedPCIeRegister<DriverStatusData>(&MotorControlerImpl::getStatus, STATUS_SUFFIX);
+  }
 
-      add(BOOST_TEST_CASE(boost::bind(&MotorControlerTest::testReadPCIeRegister, motorControlerTest,
-          &MotorControler::getDecoderPosition, DECODER_POSITION_SUFFIX)));
+  ADD_TEST(SetIsEnabled);
 
-      ADD_GET_SET_TEST(MinimumVelocity);
-      ADD_GET_SET_TEST(MaximumVelocity);
-      ADD_GET_SET_TEST(TargetVelocity);
-      ADD_GET_SET_TEST(MaximumAcceleration);
-      ADD_GET_SET_TEST(PositionTolerance);
-      ADD_GET_SET_TEST(PositionLatched);
+  ADD_GET_SET_TEST(DecoderReadoutMode);
 
-      ADD_GET_SET_TEST(AccelerationThresholdData);
-      ADD_GET_SET_TEST(ProportionalityFactorData);
-      ADD_GET_SET_TEST(ReferenceConfigAndRampModeData);
-      ADD_GET_SET_TEST(InterruptData);
-      ADD_GET_SET_TEST(TargetPosition);
-      ADD_GET_SET_TEST(DividersAndMicroStepResolutionData);
+  BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition0, MotorControlerTestFixture<0>) {
+    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getDecoderPosition, DECODER_POSITION_SUFFIX);
+  }
+  BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition1, MotorControlerTestFixture<1>) {
+    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getDecoderPosition, DECODER_POSITION_SUFFIX);
+  }
 
-      ADD_GET_SET_TEST(DriverControlData);
-      ADD_GET_SET_TEST(ChopperControlData);
-      ADD_GET_SET_TEST(CoolStepControlData);
-      ADD_GET_SET_TEST(StallGuardControlData);
-      ADD_GET_SET_TEST(DriverConfigData);
+  ADD_GET_SET_TEST(MinimumVelocity);
+  ADD_GET_SET_TEST(MaximumVelocity);
+  ADD_GET_SET_TEST(TargetVelocity);
+  ADD_GET_SET_TEST(MaximumAcceleration);
+  ADD_GET_SET_TEST(PositionTolerance);
+  ADD_GET_SET_TEST(PositionLatched);
 
-      add(BOOST_TEST_CASE(
-          boost::bind(&MotorControlerTest::testGetReferenceSwitchData, motorControlerTest, _motorDriverCard)));
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetReferenceSwitchEnabled, motorControlerTest));
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testTargetPositionReached, motorControlerTest));
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testGetReferenceSwitchBit, motorControlerTest));
+  ADD_GET_SET_TEST(AccelerationThresholdData);
+  ADD_GET_SET_TEST(ProportionalityFactorData);
+  ADD_GET_SET_TEST(ReferenceConfigAndRampModeData);
+  ADD_GET_SET_TEST(InterruptData);
+  ADD_GET_SET_TEST(TargetPosition);
+  ADD_GET_SET_TEST(DividersAndMicroStepResolutionData);
 
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testThreadSaftey, motorControlerTest));
-      add(BOOST_CLASS_TEST_CASE(&MotorControlerTest::testSetEndSwitchPowerEnabled, motorControlerTest));
+  ADD_GET_SET_TEST(DriverControlData);
+  ADD_GET_SET_TEST(ChopperControlData);
+  ADD_GET_SET_TEST(CoolStepControlData);
+  ADD_GET_SET_TEST(StallGuardControlData);
+  ADD_GET_SET_TEST(DriverConfigData);
 
-    } // constructor
-  }; // test suite
+  ADD_TEST(GetReferenceSwitchData, _motorDriverCard);
+  ADD_TEST(SetReferenceSwitchEnabled);
+  ADD_TEST(TargetPositionReached);
+  ADD_TEST(GetReferenceSwitchBit);
+  ADD_TEST(ThreadSaftey);
+  ADD_TEST(SetEndSwitchPowerEnabled);
 
   MotorControlerTest::MotorControlerTest(
       boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
@@ -578,12 +612,3 @@ namespace mtca4u {
   }
 
 } // namespace mtca4u
-
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
-  framework::master_test_suite().p_name.value = "MotorControler test suite";
-
-  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(0));
-  framework::master_test_suite().add(new mtca4u::MotorControlerTestSuite(1));
-
-  return nullptr;
-}

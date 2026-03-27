@@ -1,8 +1,10 @@
-#include "ChimeraTK/Exception.h"
+#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE TMC429WordsTest
-#include <boost/test/included/unit_test.hpp>
+
+#include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
+#include "ChimeraTK/Exception.h"
 #include "createOutputMaskUsingSetterGetter.h"
 #include "TMC429Words.h"
 using namespace mtca4u;
