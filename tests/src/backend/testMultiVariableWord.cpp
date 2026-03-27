@@ -1,4 +1,6 @@
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MotorControlerTest
+#include <boost/test/unit_test.hpp>
 
 #include <sstream>
 using namespace boost::unit_test_framework;
@@ -116,49 +118,7 @@ class MultiVariableWordTest {
       unsigned int dataWord, unsigned int expectedFirst, unsigned int expectedSecond, unsigned int expectedThird);
 };
 
-template<class T>
-class MultiVariableWordTestSuite : public test_suite {
- public:
-  MultiVariableWordTestSuite(std::string testSuiteName) : test_suite(testSuiteName) {
-    // add member function test cases to a test suite
-    boost::shared_ptr<MultiVariableWordTest<T>> multiVariableWord(new MultiVariableWordTest<T>);
-
-    test_case* inputMaskTestCase = BOOST_TEST_CASE(&MultiVariableWordTest<T>::testInputMask);
-    test_case* outputMaskTestCase = BOOST_TEST_CASE(&MultiVariableWordTest<T>::testOutputMask);
-    test_case* equalsOperatorTestCase = BOOST_TEST_CASE(&MultiVariableWordTest<T>::testEqualsOperator);
-
-    test_case* getSetTestCase = BOOST_CLASS_TEST_CASE(&MultiVariableWordTest<T>::testGetSetDataWord, multiVariableWord);
-    test_case* setSubWordTestCase = BOOST_CLASS_TEST_CASE(&MultiVariableWordTest<T>::testSetSubWord, multiVariableWord);
-    test_case* getSubWordTestCase = BOOST_CLASS_TEST_CASE(&MultiVariableWordTest<T>::testGetSubWord, multiVariableWord);
-
-    setSubWordTestCase->depends_on(getSetTestCase);
-    setSubWordTestCase->depends_on(inputMaskTestCase);
-
-    getSubWordTestCase->depends_on(getSetTestCase);
-    getSubWordTestCase->depends_on(outputMaskTestCase);
-
-    add(inputMaskTestCase);
-    add(outputMaskTestCase);
-    add(equalsOperatorTestCase);
-
-    add(getSetTestCase);
-    add(setSubWordTestCase);
-    add(getSubWordTestCase);
-  }
-};
-
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
-  framework::master_test_suite().p_name.value = "MultiVariableWordTest";
-
-  framework::master_test_suite().add(
-      new MultiVariableWordTestSuite<ThreeVariablesNotConnectedWord>("ThreeVariablesNotConnectedWord test suite"));
-  framework::master_test_suite().add(new MultiVariableWordTestSuite<ThreeVariablesContiguousEdgesWord>(
-      "ThreeVariablesContiguousEdgesWord test suite"));
-  framework::master_test_suite().add(
-      new MultiVariableWordTestSuite<SingleBitNotConnectedWord>("SingleBitNotConnectedWord test suite"));
-
-  return 0;
-}
+/**********************************************************************************************************************/
 
 // The implementations of the individual tests
 
@@ -333,3 +293,27 @@ void MultiVariableWordTest<T>::testGetSubWordWithPattern(
   BOOST_CHECK_MESSAGE(_testWord.getSecond() == expectedSecond, errorMessage.str());
   BOOST_CHECK_MESSAGE(_testWord.getThird() == expectedThird, errorMessage.str());
 }
+
+/**********************************************************************************************************************/
+
+#define ADD_TEST(NAME)                                                                                                 \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##3NotConnected, MultiVariableWordTest<ThreeVariablesNotConnectedWord>) {          \
+    test##NAME();                                                                                                      \
+  }                                                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##3ContiguousEdges, MultiVariableWordTest<ThreeVariablesContiguousEdgesWord>) {    \
+    test##NAME();                                                                                                      \
+  }                                                                                                                    \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##SingleBit, MultiVariableWordTest<SingleBitNotConnectedWord>) {                   \
+    test##NAME();                                                                                                      \
+  }
+
+/**********************************************************************************************************************/
+
+ADD_TEST(InputMask);
+ADD_TEST(OutputMask);
+ADD_TEST(EqualsOperator);
+ADD_TEST(GetSetDataWord);
+ADD_TEST(SetSubWord);
+ADD_TEST(GetSubWord);
+
+/**********************************************************************************************************************/

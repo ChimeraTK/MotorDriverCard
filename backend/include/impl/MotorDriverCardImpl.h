@@ -96,7 +96,8 @@ namespace mtca4u {
 
     // The test suite is granted access to the constructor because it needs access
     // to the dummy device below to set it to testing mode.
-    friend class MotorControlerTestSuite;
+    template<unsigned int motorId>
+    friend class MotorControlerTestFixture;
     friend class MotorControlerTest;
 
     // The card test tests the constructor, so also here we have to make it friend
