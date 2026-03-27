@@ -1,6 +1,7 @@
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE MotorControlerDummyTest
 
-#include <sstream>
+#include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "MotorControlerDummy.h"
@@ -12,7 +13,7 @@ using namespace mtca4u;
 // A macro to declare tests for an unimplemented get/set pair.
 // It is checked that the MotorDriverException is thrown
 #define DECLARE_GET_SET_THROW_TEST(NAME)                                                                               \
-  void testGetSet##NAME() {                                                                                            \
+  BOOST_FIXTURE_TEST_CASE(TestGetSet##NAME, MotorControlerDummyTest) {                                                 \
     BOOST_CHECK_THROW(_motorControlerDummy.get##NAME(), ChimeraTK::logic_error);                                       \
     BOOST_CHECK_THROW(_motorControlerDummy.set##NAME(0), ChimeraTK::logic_error);                                      \
   }
@@ -20,75 +21,17 @@ using namespace mtca4u;
 static const unsigned int THE_ID = 17;
 
 class MotorControlerDummyTest {
- public:
-  MotorControlerDummyTest();
-
-  void testGetID();
-  void testIsSetEnabled();
-  void testGetSetTargetPosition();
-  void testGetSetActualPosition();
-  void testGetSetActualVelocity();
-  void testGetSetActualAcceleration();
-  void testGetSetMicroStepCount();
-
-  void testGetStatus();
-  void testGetSetDecoderReadoutMode();
-  void testGetDecoderPosition();
-
-  void testReferenceSwitchData();
-
-  DECLARE_GET_SET_THROW_TEST(MinimumVelocity)
-  DECLARE_GET_SET_THROW_TEST(MaximumVelocity)
-  DECLARE_GET_SET_THROW_TEST(TargetVelocity)
-  DECLARE_GET_SET_THROW_TEST(MaximumAcceleration)
-  DECLARE_GET_SET_THROW_TEST(PositionTolerance)
-  DECLARE_GET_SET_THROW_TEST(PositionLatched)
-
-  void testMoveTowardsTarget();
-
- private:
-  MotorControlerDummy _motorControlerDummy;
+ protected:
+  static MotorControlerDummy _motorControlerDummy;
 };
 
-class MotorControlerDummyTestSuite : public test_suite {
- public:
-  MotorControlerDummyTestSuite() : test_suite("MotorControlerDummy test suite") {
-    // create an instance of the test class
-    boost::shared_ptr<MotorControlerDummyTest> motorControlerDummyTest(new MotorControlerDummyTest);
+MotorControlerDummy MotorControlerDummyTest::_motorControlerDummy(THE_ID);
 
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetID, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testIsSetEnabled, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetTargetPosition, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetActualPosition, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetActualVelocity, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetActualAcceleration, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetMicroStepCount, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetStatus, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetDecoderReadoutMode, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetMinimumVelocity, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetMaximumVelocity, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetTargetVelocity, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetMaximumAcceleration, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetPositionTolerance, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetSetPositionLatched, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testGetDecoderPosition, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testReferenceSwitchData, motorControlerDummyTest));
-    add(BOOST_CLASS_TEST_CASE(&MotorControlerDummyTest::testMoveTowardsTarget, motorControlerDummyTest));
-  }
-};
-
-test_suite* init_unit_test_suite(int /*argc*/, char* /*argv*/[]) {
-  framework::master_test_suite().p_name.value = "MotorControlerDummy test suite";
-  return new MotorControlerDummyTestSuite;
-}
-
-MotorControlerDummyTest::MotorControlerDummyTest() : _motorControlerDummy(THE_ID) {}
-
-void MotorControlerDummyTest::testGetID() {
+BOOST_FIXTURE_TEST_CASE(TestGetId, MotorControlerDummyTest) {
   BOOST_CHECK(_motorControlerDummy.getID() == THE_ID);
 }
 
-void MotorControlerDummyTest::testIsSetEnabled() {
+BOOST_FIXTURE_TEST_CASE(TestIsSetEnabled, MotorControlerDummyTest) {
   // motor should be disabled now
   BOOST_CHECK(_motorControlerDummy.isEnabled() == false);
   // just a small test that the motor does not move
@@ -118,7 +61,7 @@ void MotorControlerDummyTest::testIsSetEnabled() {
   _motorControlerDummy.setEnabled(true);
 }
 
-void MotorControlerDummyTest::testGetSetTargetPosition() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetTargetPosition, MotorControlerDummyTest) {
   // upon initialisation all positions must be 0
   BOOST_CHECK(_motorControlerDummy.getTargetPosition() == 0);
   BOOST_CHECK(_motorControlerDummy.targetPositionReached());
@@ -130,14 +73,14 @@ void MotorControlerDummyTest::testGetSetTargetPosition() {
   BOOST_CHECK(_motorControlerDummy.targetPositionReached());
 }
 
-void MotorControlerDummyTest::testGetSetActualPosition() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetActualPosition, MotorControlerDummyTest) {
   // upon initialisation all positions must be 0
   BOOST_CHECK(_motorControlerDummy.getActualPosition() == 0);
   _motorControlerDummy.setActualPosition(1000);
   BOOST_CHECK(_motorControlerDummy.getActualPosition() == 1000);
 }
 
-void MotorControlerDummyTest::testGetSetActualVelocity() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetActualVelocity, MotorControlerDummyTest) {
   // we strongly depent on the order of the execution here. actual position is
   // 1000, while the target position is 0, to we expect a negative velocity
   BOOST_CHECK(_motorControlerDummy.getActualVelocity() == -25);
@@ -167,12 +110,12 @@ void MotorControlerDummyTest::testGetSetActualVelocity() {
   BOOST_CHECK_THROW(_motorControlerDummy.setActualVelocity(0), ChimeraTK::logic_error);
 }
 
-void MotorControlerDummyTest::testGetSetActualAcceleration() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetActualAcceleration, MotorControlerDummyTest) {
   BOOST_CHECK(_motorControlerDummy.getActualAcceleration() == 0);
   BOOST_CHECK_THROW(_motorControlerDummy.setActualAcceleration(0), ChimeraTK::logic_error);
 }
 
-void MotorControlerDummyTest::testGetSetMicroStepCount() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetMicroStepCount, MotorControlerDummyTest) {
   // Set the actual position to something positive. The micro step count is
   // positive and identical to the actual count.
   // Does this make sense? Check the data sheet.
@@ -181,7 +124,7 @@ void MotorControlerDummyTest::testGetSetMicroStepCount() {
   BOOST_CHECK_THROW(_motorControlerDummy.setMicroStepCount(0), ChimeraTK::logic_error);
 }
 
-void MotorControlerDummyTest::testGetStatus() {
+BOOST_FIXTURE_TEST_CASE(TestGetStatus, MotorControlerDummyTest) {
   DriverStatusData referenceStatusData;
   referenceStatusData.setStandstillIndicator(1); // reference when motor is not moving
 
@@ -194,13 +137,13 @@ void MotorControlerDummyTest::testGetStatus() {
   BOOST_CHECK(_motorControlerDummy.getStatus() == 0);
 }
 
-void MotorControlerDummyTest::testGetSetDecoderReadoutMode() {
+BOOST_FIXTURE_TEST_CASE(TestGetSetDecoderReadoutMode, MotorControlerDummyTest) {
   BOOST_CHECK(_motorControlerDummy.getDecoderReadoutMode() == MotorControler::DecoderReadoutMode::HEIDENHAIN);
   BOOST_CHECK_THROW(_motorControlerDummy.setDecoderReadoutMode(MotorControler::DecoderReadoutMode::INCREMENTAL),
       ChimeraTK::logic_error);
 }
 
-void MotorControlerDummyTest::testGetDecoderPosition() {
+BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition, MotorControlerDummyTest) {
   // we are still at the negative end switch
   BOOST_CHECK(_motorControlerDummy.getDecoderPosition() == 0);
   // actual position is 5000, move into the absolute positive range
@@ -210,7 +153,7 @@ void MotorControlerDummyTest::testGetDecoderPosition() {
   BOOST_CHECK(_motorControlerDummy.getDecoderPosition() == 12000);
 }
 
-void MotorControlerDummyTest::testReferenceSwitchData() {
+BOOST_FIXTURE_TEST_CASE(TestReferenceSwitchData, MotorControlerDummyTest) {
   MotorReferenceSwitchData motorReferenceSwitchData = _motorControlerDummy.getReferenceSwitchData();
   BOOST_CHECK(motorReferenceSwitchData.getPositiveSwitchEnabled());
   BOOST_CHECK(motorReferenceSwitchData.getNegativeSwitchEnabled());
@@ -263,7 +206,7 @@ void MotorControlerDummyTest::testReferenceSwitchData() {
   _motorControlerDummy.setNegativeReferenceSwitchEnabled(true);
 }
 
-void MotorControlerDummyTest::testMoveTowardsTarget() {
+BOOST_FIXTURE_TEST_CASE(TestMoveTowardsTarget, MotorControlerDummyTest) {
   // ok, we are at the negative end switch. reset target and actual position to
   // 0 for a clean test environment.
   _motorControlerDummy.setActualPosition(0);
@@ -437,3 +380,10 @@ void MotorControlerDummyTest::testMoveTowardsTarget() {
   BOOST_CHECK(_motorControlerDummy.getTargetPosition() == 1000);
   _motorControlerDummy.setEnabled(false);
 }
+
+DECLARE_GET_SET_THROW_TEST(MinimumVelocity)
+DECLARE_GET_SET_THROW_TEST(MaximumVelocity)
+DECLARE_GET_SET_THROW_TEST(TargetVelocity)
+DECLARE_GET_SET_THROW_TEST(MaximumAcceleration)
+DECLARE_GET_SET_THROW_TEST(PositionTolerance)
+DECLARE_GET_SET_THROW_TEST(PositionLatched)

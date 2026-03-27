@@ -1,5 +1,6 @@
+#define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE MotorDriverCardFactoryTest
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
