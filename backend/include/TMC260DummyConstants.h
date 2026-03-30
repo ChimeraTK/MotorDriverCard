@@ -15,10 +15,6 @@ namespace mtca4u { namespace tmc260 {
     return spiAddress * spiAddress + 7 + motorID;
   }
 
-  inline unsigned int spiAddressFromDataWord(MultiVariableWord const& word) {
-    return spiAddressFromDataWord(word.getDataWord());
-  }
-
   inline unsigned int spiAddressFromDataWord(unsigned int word) {
     // Sorry for this mess, but I don't see any other chance to implement
     // "if bits 18 and 19 are zero then these bits are the address, else
