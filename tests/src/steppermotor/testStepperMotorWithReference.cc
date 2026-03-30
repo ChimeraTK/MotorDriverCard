@@ -111,14 +111,10 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string reqStateName
 }
 
 void StepperMotorWithReferenceTestFixture::waitToSetTargetPos(int targetPos) {
-  int i = 0;
-  while(1) {
+  while(true) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if(_stepperMotor->getTargetPositionInSteps() == targetPos) {
       break;
-    }
-    else {
-      i++;
     }
   }
 }
