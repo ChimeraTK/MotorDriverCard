@@ -188,8 +188,6 @@ namespace mtca4u {
     void setMicroStepSize(unsigned int microStepSize) { _userMicroStepSize = microStepSize; }
     unsigned int getMicropStepSize() const { return _userMicroStepSize; }
     void roundToNextFullStep(int& targetPosition);
-
-    uint32_t _encoderReadoutMode{DecoderReadoutMode::HEIDENHAIN};
   };
 
 } // namespace mtca4u
