@@ -60,7 +60,6 @@ namespace ChimeraTK::MotorDriver {
       // Motor stopped by itself
       if(!_stepperMotor.verifyMoveAction()) {
         _stepperMotor._errorMode.exchange(Error::MOVE_INTERRUPTED);
-
         _motorControler->setTargetPosition(_motorControler->getActualPosition());
         stateExitEvnt = errorEvent;
       }
@@ -79,6 +78,7 @@ namespace ChimeraTK::MotorDriver {
 
   void BasicStepperMotor::StateMachine::actionMovetoStop() {
     int currentPos = _motorControler->getActualPosition();
+
     _motorControler->setTargetPosition(currentPos);
   }
 
@@ -100,7 +100,6 @@ namespace ChimeraTK::MotorDriver {
     _motorControler->setCalibrationTime(0);
     _stepperMotor._calibrationMode.exchange(CalibrationMode::NONE);
     _stepperMotor._errorMode.exchange(Error::EMERGENCY_STOP);
-    std::cerr << "Emergency stop" << std::endl;
   }
 
   /********************************************************************************************************************/

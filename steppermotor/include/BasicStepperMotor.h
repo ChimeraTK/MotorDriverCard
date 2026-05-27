@@ -19,6 +19,7 @@ namespace mtca4u {
 
 // Forward-declare fixture used in the test
 class StepperMotorChimeraTKFixture;
+class StepperMotorWithReferenceTestFixture;
 
 namespace ChimeraTK::MotorDriver {
 
@@ -408,6 +409,10 @@ namespace ChimeraTK::MotorDriver {
 
     //    /friend class StateMachine;
     friend class ::StepperMotorChimeraTKFixture;
+    friend class ::StepperMotorWithReferenceTestFixture;
+    friend class ReferenceStateMachine;
+    friend class RotaryStepperMotorStateMachine;
+    friend class LinearStepperMotorStateMachine;
 
    protected:
     /**

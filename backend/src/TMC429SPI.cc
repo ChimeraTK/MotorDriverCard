@@ -29,7 +29,6 @@ namespace mtca4u {
     writeMe.setIDX_JDX(idx_jdx);
     writeMe.setRW(tmc429::RW_WRITE);
     writeMe.setDATA(data);
-
     write(writeMe);
   }
 

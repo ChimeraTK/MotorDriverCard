@@ -498,7 +498,6 @@ namespace mtca4u {
   unsigned int MotorControlerImpl::validateVMaxForHardware(double calculatedVmax) {
     unsigned int maxLimitForVmax = _controlerConfig.maximumVelocity;
     unsigned int minLimitForVmax = _controlerConfig.minimumVelocity;
-
     if(calculatedVmax > maxLimitForVmax) {
       return maxLimitForVmax;
     }
@@ -541,21 +540,6 @@ namespace mtca4u {
     if(interruptData.getINT_POS_END() || interruptData.getINT_STOP()) {
       DriverStatusData status(readRegisterAccessor(_status));
       return status.getStandstillIndicator() == 0;
-      // if (motorStandsStill){
-      //	std::cout << "INT_POS_END " << interruptData.getINT_POS_END() <<
-      // std::endl; 	std::cout << "INT_REF_WRONG " <<
-      // interruptData.getINT_REF_WRONG() << std::endl; 	std::cout << "INT_REF_MISS
-      //" << interruptData.getINT_REF_MISS() << std::endl; 	std::cout << "INT_STOP
-      //" << interruptData.getINT_STOP() << std::endl; 	std::cout <<
-      //"INT_STOP_LEFT_LOW " << interruptData.getINT_STOP_LEFT_LOW() << std::endl;
-      //	std::cout << "INT_STOP_RIGHT_LOW " <<
-      // interruptData.getINT_STOP_RIGHT_LOW() << std::endl; 	std::cout <<
-      //"INT_STOP_LEFT_HIGH " << interruptData.getINT_STOP_LEFT_HIGH() <<
-      // std::endl; 	std::cout << "INT_STOP_RIGHT_HIGH " <<
-      // interruptData.getINT_STOP_RIGHT_HIGH() << std::endl; return false;
-      //      }else{
-      //	return true;
-      //      }
     }
     int currentPos = readPositionRegisterAndConvert();
 
@@ -566,8 +550,8 @@ namespace mtca4u {
     }
 
     // The positions did not match. Check if we ran into one of the reference switches, without triggering INT_STOP()
-    // How can we still be moving if
     auto referenceSwitchData = retrieveReferenceSwitchStatus();
+    // ignore negative switch for rotary motors.
     if((referenceSwitchData.getNegativeSwitchEnabled() && referenceSwitchData.getNegativeSwitchActive() &&
            _localTargetPosition <= currentPos) ||
         (referenceSwitchData.getPositiveSwitchEnabled() && referenceSwitchData.getPositiveSwitchActive() &&

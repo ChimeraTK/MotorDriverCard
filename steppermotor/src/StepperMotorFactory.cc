@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
 #include "LinearStepperMotor.h"
+#include "RotaryStepperMotor.h"
 #include "StepperMotor.h"
 
 #include <ChimeraTK/Exception.h>
@@ -41,6 +44,9 @@ namespace ChimeraTK::MotorDriver {
         break;
       case StepperMotorType::LINEAR:
         ptr = std::make_shared<LinearStepperMotor>(parameters);
+        break;
+      case StepperMotorType::ROTARY:
+        ptr = std::make_shared<RotaryStepperMotor>(parameters);
         break;
       default:
         throw ChimeraTK::logic_error("Invalid Stepper motor variant");
