@@ -34,8 +34,8 @@ namespace mtca4u {
 
   void SPIviaPCIe::write(int32_t spiCommand) {
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
-
-    // try three times to mitigate effects of a firmware bug
+    // std::cout<<"spiCommand:"<<spiCommand<<std::endl;
+    //  try three times to mitigate effects of a firmware bug
     for(int i = 0; i < 3; ++i) {
       // Implement the write handshake
       // 1. write 0xff to the synch register

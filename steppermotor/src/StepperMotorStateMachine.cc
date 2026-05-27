@@ -60,7 +60,8 @@ namespace ChimeraTK::MotorDriver {
       // Motor stopped by itself
       if(!_stepperMotor.verifyMoveAction()) {
         _stepperMotor._errorMode.exchange(Error::MOVE_INTERRUPTED);
-
+        std::cout << "BasicStepperMotor::resetMotorControllerPositions setTargetPosition next with actual position"
+                  << _motorControler->getActualPosition() << std::endl;
         _motorControler->setTargetPosition(_motorControler->getActualPosition());
         stateExitEvnt = errorEvent;
       }
@@ -72,6 +73,8 @@ namespace ChimeraTK::MotorDriver {
 
   void BasicStepperMotor::StateMachine::actionIdleToMove() {
     _asyncActionActive.exchange(true);
+    std::cout << "BasicStepperMotor::StateMachine::actionIdleToMove setTargetPosition"
+              << _stepperMotor._targetPositionInSteps << std::endl;
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
@@ -79,12 +82,15 @@ namespace ChimeraTK::MotorDriver {
 
   void BasicStepperMotor::StateMachine::actionMovetoStop() {
     int currentPos = _motorControler->getActualPosition();
+    std::cout << "BasicStepperMotor::StateMachine::actionMovetoStop setTargetPosition" << currentPos << std::endl;
+
     _motorControler->setTargetPosition(currentPos);
   }
 
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionMoveToFullStep() {
+    std::cout << " BasicStepperMotor::StateMachine::actionMoveToFullStep()" << std::endl;
     bool isFullStepping = _motorControler->isFullStepping();
     _motorControler->enableFullStepping(true);
     actionMovetoStop();
@@ -94,6 +100,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionEmergencyStop() {
+    std::cout << " BasicStepperMotor::StateMachine::actionEmergencyStop()" << std::endl;
     _motorControler->setMotorCurrentEnabled(false);
     _motorControler->setEndSwitchPowerEnabled(false);
     actionMovetoStop();

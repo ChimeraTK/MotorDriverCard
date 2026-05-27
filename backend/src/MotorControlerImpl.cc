@@ -159,7 +159,10 @@ namespace mtca4u {
   }
 
   void MotorControlerImpl::setActualPosition(int position) {
+    std::cout << "MotorControlerImpl::setActualPosition:position" << position << std::endl;
     lock_guard guard(_mutex);
+    std::cout << "converter24bits.thirtyTwoToCustom(position):" << converter24bits.thirtyTwoToCustom(position)
+              << std::endl;
     _controlerSPI->write(
         _id, IDX_ACTUAL_POSITION, static_cast<unsigned int>(converter24bits.thirtyTwoToCustom(position)));
   }
@@ -258,6 +261,7 @@ namespace mtca4u {
   }
 
   void MotorControlerImpl::setTargetPosition(int value) {
+    std::cout << "MotorControlerImpl::setTargetPosition:value:" << value << std::endl;
     lock_guard guard(_mutex);
 
     InterruptData interupts;
@@ -308,6 +312,7 @@ namespace mtca4u {
   void MotorControlerImpl::setMaximumVelocity(unsigned int value) {
     lock_guard guard(_mutex);
     _currentVmax = value;
+    std::cout << "MotorControlerImpl::setMaximumVelocity-value:" << value << std::endl;
     _controlerSPI->write(_id, IDX_MAXIMUM_VELOCITY, value);
   }
 
@@ -324,13 +329,16 @@ namespace mtca4u {
     // Does not really need a mutex; shared state is only from _controlerConfig,
     // which is const - hence no risk of data changing during parallel access.
     auto hardLimitForVmax = _controlerConfig.maximumVelocity;
+    std::cout << "MotorControlerImpl::getMaxSpeedCapability:" << hardLimitForVmax << std::endl;
     return (convertVMaxToUstepsPerSec(hardLimitForVmax));
   }
 
   double MotorControlerImpl::setUserSpeedLimit(double microStepsPerSecond) {
+    std::cout << "MotorControlerImpl::setUserSpeedLimit-microStepsPerSecond:" << microStepsPerSecond << std::endl;
     auto validatedVmax = validateVMaxForHardware(convertUstepsPerSecToVmax(microStepsPerSecond));
     // This is the critical path; already protected by mutex internally.
     setMaximumVelocity(validatedVmax);
+    std::cout << "getMaximumVelocity:" << getMaximumVelocity() << std::endl;
     return convertVMaxToUstepsPerSec(validatedVmax);
   }
 
@@ -455,11 +463,15 @@ namespace mtca4u {
 
   double MotorControlerImpl::convertVMaxToUstepsPerSec(double vMax) {
     // speedInUstepsPerSec = _conversionFactor * Vmax
+    // std::cout<<"MotorControlerImpl::convertVMaxToUstepsPerSec:_conversionFactor:"<<_conversionFactor<<":VMax:"<<vMax<<std::endl;
+    // std::cout<<"MotorControlerImpl::convertVMaxToUstepsPerSec:"<<_conversionFactor * vMax<<std::endl;
     return (_conversionFactor * vMax);
   }
 
   double MotorControlerImpl::convertUstepsPerSecToVmax(double speedInUstepsPerSec) {
-    // Vmax = round(speedInUstepsPerSec / _conversionFactor)
+    // std::cout<<"speedInUstepsPerSec:"<<speedInUstepsPerSec<<"::_conversionFactor:"<<_conversionFactor<<std::endl;
+    // std::cout<<"MotorControlerImpl::convertUstepsPerSecToVmax:"<<speedInUstepsPerSec / _conversionFactor<<std::endl;
+    //  Vmax = round(speedInUstepsPerSec / _conversionFactor)
     return speedInUstepsPerSec / _conversionFactor;
   }
 
@@ -498,7 +510,8 @@ namespace mtca4u {
   unsigned int MotorControlerImpl::validateVMaxForHardware(double calculatedVmax) {
     unsigned int maxLimitForVmax = _controlerConfig.maximumVelocity;
     unsigned int minLimitForVmax = _controlerConfig.minimumVelocity;
-
+    std::cout << "MotorControlerImpl::validateVMaxForHardware::calculatedVmax:" << calculatedVmax << std::endl;
+    std::cout << "MotorControlerImpl::validateVMaxForHardware::maxLimitForVmax:" << maxLimitForVmax << std::endl;
     if(calculatedVmax > maxLimitForVmax) {
       return maxLimitForVmax;
     }
@@ -534,33 +547,39 @@ namespace mtca4u {
   bool MotorControlerImpl::isMotorMoving() {
     lock_guard guard(_mutex);
     auto interruptData = readTypedRegister<InterruptData>();
+    std::cout << "MotorControlerImpl::isMotorMoving()" << std::endl;
 
     // Check if we got any of the interrupts that tells us that the motor has stopped
     // POS_END -> Target position was reached
     // STOP -> Reference switch stopped motor
     if(interruptData.getINT_POS_END() || interruptData.getINT_STOP()) {
+      std::cout << "interruptData.getINT_POS_END():" << interruptData.getINT_POS_END() << std::endl;
+      std::cout << "interruptData.getINT_STOP():" << interruptData.getINT_STOP() << std::endl;
+      std::cout << "MotorControlerImpl::isMotorMoving() is cancled" << std::endl;
       DriverStatusData status(readRegisterAccessor(_status));
       return status.getStandstillIndicator() == 0;
       // if (motorStandsStill){
-      //	std::cout << "INT_POS_END " << interruptData.getINT_POS_END() <<
-      // std::endl; 	std::cout << "INT_REF_WRONG " <<
-      // interruptData.getINT_REF_WRONG() << std::endl; 	std::cout << "INT_REF_MISS
-      //" << interruptData.getINT_REF_MISS() << std::endl; 	std::cout << "INT_STOP
-      //" << interruptData.getINT_STOP() << std::endl; 	std::cout <<
+      //  std::cout << "INT_POS_END " << interruptData.getINT_POS_END() <<
+      // std::endl;   std::cout << "INT_REF_WRONG " <<
+      // interruptData.getINT_REF_WRONG() << std::endl;   std::cout << "INT_REF_MISS
+      //" << interruptData.getINT_REF_MISS() << std::endl;  std::cout << "INT_STOP
+      //" << interruptData.getINT_STOP() << std::endl;  std::cout <<
       //"INT_STOP_LEFT_LOW " << interruptData.getINT_STOP_LEFT_LOW() << std::endl;
-      //	std::cout << "INT_STOP_RIGHT_LOW " <<
-      // interruptData.getINT_STOP_RIGHT_LOW() << std::endl; 	std::cout <<
+      //  std::cout << "INT_STOP_RIGHT_LOW " <<
+      // interruptData.getINT_STOP_RIGHT_LOW() << std::endl;  std::cout <<
       //"INT_STOP_LEFT_HIGH " << interruptData.getINT_STOP_LEFT_HIGH() <<
-      // std::endl; 	std::cout << "INT_STOP_RIGHT_HIGH " <<
+      // std::endl;   std::cout << "INT_STOP_RIGHT_HIGH " <<
       // interruptData.getINT_STOP_RIGHT_HIGH() << std::endl; return false;
       //      }else{
-      //	return true;
+      //  return true;
       //      }
     }
     int currentPos = readPositionRegisterAndConvert();
 
     // There was no interrupt, compare positions
     if(_localTargetPosition == currentPos) {
+      std::cout << "MotorControlerImpl::isMotorMoving():_localTargetPosition == currentPos" << _localTargetPosition
+                << ":" << currentPos << std::endl;
       DriverStatusData status(readRegisterAccessor(_status));
       return status.getStandstillIndicator() == 0;
     }
@@ -568,6 +587,12 @@ namespace mtca4u {
     // The positions did not match. Check if we ran into one of the reference switches, without triggering INT_STOP()
     // How can we still be moving if
     auto referenceSwitchData = retrieveReferenceSwitchStatus();
+    std::cout << "neg enabled=" << referenceSwitchData.getNegativeSwitchEnabled()
+              << " neg active=" << referenceSwitchData.getNegativeSwitchActive()
+              << "positive enabled=" << referenceSwitchData.getPositiveSwitchEnabled()
+              << "positive active=" << referenceSwitchData.getPositiveSwitchActive() << "currentPos=" << currentPos
+              << " target=" << _localTargetPosition << std::endl;
+    // ignore negative switch for rotary motors.
     if((referenceSwitchData.getNegativeSwitchEnabled() && referenceSwitchData.getNegativeSwitchActive() &&
            _localTargetPosition <= currentPos) ||
         (referenceSwitchData.getPositiveSwitchEnabled() && referenceSwitchData.getPositiveSwitchActive() &&
@@ -612,9 +637,11 @@ namespace mtca4u {
 
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
     auto stallGuardData = _controlerConfig.stallGuardControlData;
+    std::cout << "MotorControlerImpl::setCurrentScale:currentScale" << currentScale << std::endl;
     stallGuardData.setCurrentScale(currentScale);
     // mutex is acquired in setStallGuardControlData
     setStallGuardControlData(stallGuardData);
+    std::cout << "stallGuardData.getCurrentScale:" << stallGuardData.getCurrentScale() << std::endl;
     _usrSetCurrentScale = currentScale;
   }
 

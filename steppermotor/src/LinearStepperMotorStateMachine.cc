@@ -84,6 +84,7 @@ namespace ChimeraTK::MotorDriver {
     _motor._calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
+    auto motor_type = 1; // let's assume 1 = rotary
 
     try {
       // Local variables for calibrated position
@@ -92,19 +93,28 @@ namespace ChimeraTK::MotorDriver {
       int calibNegativeEndSwitchInSteps = 0;
 
       // At least one end switch disabled -> calibration not possible
-      if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
+      // not required for rotary
+      if(motor_type != 1 && !(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
+        // testing for rotary
+        // if(!(_motor._positiveEndSwitchEnabled.load() || _motor._negativeEndSwitchEnabled.load())) {
+        std::cout << "calibrationThreadFunction: calibration not possible" << std::endl;
+        std::cout << "_motor._positiveEndSwitchEnabled.load():" << _motor._positiveEndSwitchEnabled.load() << std::endl;
+        std::cout << "_motor._negativeEndSwitchEnabled.load():" << _motor._negativeEndSwitchEnabled.load() << std::endl;
         _motor._motorController->setCalibrationTime(0);
 
         _motor._calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(CalibrationMode::NONE);
       }
       else {
-        findEndSwitch(Sign::POSITIVE);
-        calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
-        findEndSwitch(Sign::NEGATIVE);
-        calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+        // findEndSwitch(Sign::POSITIVE);
+        // calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+        // findEndSwitch(Sign::NEGATIVE);
+        // calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+        findEndSwitch(Sign::POSITIVE); // reuse as "home direction search"
+        int homePosition = _motor.getCurrentPositionInSteps();
 
         if(_moveInterrupted.load() || _stopAction.load()) {
+          std::cout << "_moveInterrupted:" << _moveInterrupted << "_stopAction:" << _stopAction << std::endl;
           _motor._motorController->setCalibrationTime(0);
 
           _motor._calibrationFailed.exchange(true);
@@ -113,17 +123,23 @@ namespace ChimeraTK::MotorDriver {
         }
         else {
           // Define positive axis with negative end switch as zero
-          calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
+          // calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
+          calibPositiveEndSwitchInSteps = 0; // unused in rotary
           calibNegativeEndSwitchInSteps = 0;
+          // instead
+          //_motor._homeOffsetInSteps.exchange(homePosition);
 
           _motor._motorController->setCalibrationTime(time(nullptr));
           _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
           _motor._motorController->setNegativeReferenceSwitchCalibration(0);
-          _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+          //_motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+          _motor._calibPositiveEndSwitchInSteps.exchange(homePosition);
           _motor._calibNegativeEndSwitchInSteps.exchange(0);
 
           _motor._calibrationMode.exchange(CalibrationMode::FULL);
-          _motor.resetMotorControllerPositions(0);
+          //_motor.resetMotorControllerPositions(0); //linear
+          //_motor._calibrationMode.exchange(CalibrationMode::HOMED);
+          _motor.resetMotorControllerPositions(homePosition);
         }
       }
     }
@@ -139,13 +155,39 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void LinearStepperMotor::StateMachine::findEndSwitch(Sign sign) {
+    // Prevent infinite rotation in rotary systems
+    auto mID = _motor._motorController->getID();
+    if(mID == 1) {
+      std::cout << "LinearStepperMotor::findEndSwitch::sign:" << static_cast<int>(sign) << "::MotorID:" << mID
+                << std::endl;
+    }
+    auto startTime = std::chrono::steady_clock::now();
+    constexpr int HOMING_TIMEOUT_MS = 60000;
     while(!_motor.isEndSwitchActive(sign)) {
       if(_stopAction.load() || _moveInterrupted.load()) {
+        if(mID == 1) {
+          std::cout << "LinearStepperMotor::findEndSwitch::_stopAction or Intrerrupted" << std::endl;
+        }
         return;
       }
-
+      auto now = std::chrono::steady_clock::now();
+      if(std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count() > HOMING_TIMEOUT_MS) {
+        if(mID == 1) {
+          std::cout << "LinearStepperMotor::findEndSwitch::Homing timeedout" << std::endl;
+        }
+        _moveInterrupted.exchange(true);
+        return;
+      }
+      /*if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
+          !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
+        _moveInterrupted.exchange(true);
+        return;
+      }*/
       if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
           !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
+        if(mID == 1) {
+          std::cout << "LinearStepperMotor::findEndSwitch::_moveInterrupted" << std::endl;
+        }
         _moveInterrupted.exchange(true);
         return;
       }
@@ -155,9 +197,11 @@ namespace ChimeraTK::MotorDriver {
 
   void LinearStepperMotor::StateMachine::moveToEndSwitch(Sign sign) {
     {
+      std::cout << "LinearStepperMotor::StateMachine::moveToEndSwitch" << std::endl;
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
       _motor._motorController->setTargetPosition(
-          _motor._motorController->getActualPosition() + static_cast<int>(sign) * 50000);
+          //_motor._motorController->getActualPosition() + static_cast<int>(sign) * 50000);
+          _motor._motorController->getActualPosition() + static_cast<int>(sign) * 5000); // // reduced burst size
     }
     while(_motor._motorController->isMotorMoving()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
@@ -176,8 +220,11 @@ namespace ChimeraTK::MotorDriver {
       _motor._toleranceCalcFailed.exchange(true);
     }
     else {
-      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
-      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
+      //_motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
+      //_motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
+      _motor._tolerancePositiveEndSwitch.exchange(
+          getToleranceEndSwitch(Sign::POSITIVE)); // repurpose as "approach from CW"
+      _motor._toleranceNegativeEndSwitch.exchange(_motor._tolerancePositiveEndSwitch.load());
 
       if(_stopAction.load()) {
         _motor._toleranceCalculated.exchange(false);
@@ -200,12 +247,15 @@ namespace ChimeraTK::MotorDriver {
   }
 
   int LinearStepperMotor::StateMachine::getPositionEndSwitch(Sign sign) {
-    if(sign == Sign::POSITIVE) {
+    /*if(sign == Sign::POSITIVE) {
       return _motor._calibPositiveEndSwitchInSteps.load();
     }
     else {
       return _motor._calibNegativeEndSwitchInSteps.load();
-    }
+    }*/
+    // Only one reference exists in rotary systems
+    // return _motor._homeOffsetInSteps.load();
+    return _motor._calibNegativeEndSwitchInSteps.load();
   }
 
   double LinearStepperMotor::StateMachine::getToleranceEndSwitch(Sign sign) {

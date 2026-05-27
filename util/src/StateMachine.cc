@@ -6,6 +6,7 @@
 #include "StepperMotorUtil.h"
 
 #include <cassert>
+#include <iostream>
 
 namespace ChimeraTK::MotorDriver {
   namespace utility {
@@ -76,8 +77,11 @@ namespace ChimeraTK::MotorDriver {
     /******************************************************************************************************************/
 
     void StateMachine::performTransition(const Event& event) {
+      std::cout << "StateMachine::performTransition::event:" << event.getName() << std::endl;
+      std::cout << "StateMachine::performTransition::_currentState:" << _currentState->getName() << std::endl;
       auto const& transitionTable = _currentState->getTransitionTable();
       if(auto it = transitionTable.find(event); it != transitionTable.end()) {
+        std::cout << "performTransition is trying to move?" << std::endl;
         _requestedState = ((it->second).targetState);
         _requestedInternalCallback = (it->second).internalCallbackAction;
 
@@ -86,6 +90,9 @@ namespace ChimeraTK::MotorDriver {
           moveToRequestedState();
         }
         (it->second).entryCallbackAction();
+      }
+      else {
+        std::cout << "No transition for event: " << event.getName() << std::endl;
       }
     }
 

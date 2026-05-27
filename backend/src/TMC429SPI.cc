@@ -29,11 +29,12 @@ namespace mtca4u {
     writeMe.setIDX_JDX(idx_jdx);
     writeMe.setRW(tmc429::RW_WRITE);
     writeMe.setDATA(data);
-
+    std::cout << "TMC429SPI::write::" << data << std::endl;
     write(writeMe);
   }
 
   void TMC429SPI::write(TMC429InputWord const& writeWord) {
+    std::cout << "TMC429SPI::write" << std::endl;
     _spiViaPCIe.write(writeWord.getDataWord());
   }
 

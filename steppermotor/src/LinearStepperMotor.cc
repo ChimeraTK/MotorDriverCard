@@ -12,6 +12,7 @@
 #include "MotorDriverCardFactory.h"
 #include "StepperMotorUtil.h"
 
+#include <iostream>
 #include <memory>
 
 using LockGuard = boost::lock_guard<boost::mutex>;
@@ -40,6 +41,9 @@ namespace ChimeraTK::MotorDriver {
   }
 
   bool LinearStepperMotor::limitsOK(int newPositionInSteps) {
+    std::cout << "LinearStepperMotor::limitsOK:newPositionInSteps:" << newPositionInSteps
+              << "_calibNegativeEndSwitchInSteps:" << _calibNegativeEndSwitchInSteps
+              << "_calibPositiveEndSwitchInSteps:" << _calibPositiveEndSwitchInSteps << std::endl;
     if(newPositionInSteps >= _calibNegativeEndSwitchInSteps.load() &&
         newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
       return BasicStepperMotor::limitsOK(newPositionInSteps);
@@ -92,7 +96,9 @@ namespace ChimeraTK::MotorDriver {
 
   ExitStatus LinearStepperMotor::calibrate() {
     LockGuard guard(_mutex);
+    std::cout << "LinearStepperMotor::calibrate():IN" << std::endl;
     if(motorActive()) {
+      std::cout << "ERROR, motor is active" << std::endl;
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(StateMachine::calibEvent);
@@ -228,10 +234,21 @@ namespace ChimeraTK::MotorDriver {
   }
 
   bool LinearStepperMotor::isEndSwitchActive(Sign sign) {
+    auto mID = _motorController->getID();
+    if(mID == 1) {
+      std::cout << "LinearStepperMotor::isEndSwitchActive::sign:" << static_cast<int>(sign)
+                << "::getID:" << _motorController->getID() << std::endl;
+    }
+    bool rotaryMode = true; // should come from conf later
     bool posActive = _motorController->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
-    bool negActive = _motorController->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
+    bool negActive = false; //_motorController->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
 
-    if(posActive && negActive) {
+    // ignore or disable negative reference entirely
+
+    if(!rotaryMode && posActive && negActive) {
+      if(mID == 71) {
+        std::cout << "posActive && negActive:Error::BOTH_END_SWITCHES_ON" << std::endl;
+      }
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
     }
@@ -243,6 +260,14 @@ namespace ChimeraTK::MotorDriver {
       _errorMode.compare_exchange_strong(expected, replace);
     }
 
+    /*if(_toleranceCalculated) {
+      if(posActive) {
+        if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
+            3 * _tolerancePositiveEndSwitch.load()) {
+          _errorMode.exchange(Error::CALIBRATION_ERROR);
+        }
+      }*/
+    // Rotary validation = repeatability around home only
     if(_toleranceCalculated) {
       if(posActive) {
         if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
@@ -250,18 +275,19 @@ namespace ChimeraTK::MotorDriver {
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }
       }
-      else if(negActive) {
+      /*else if(negActive) {
         if(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
             3 * _toleranceNegativeEndSwitch.load()) {
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }
-      }
+      }*/
     }
 
-    if(sign == Sign::POSITIVE) {
+    /*if(sign == Sign::POSITIVE) {
       return posActive;
     }
 
-    return negActive;
+    return negActive;*/
+    return posActive; // in rotary, this is "home active"
   }
 } // namespace ChimeraTK::MotorDriver

@@ -10,6 +10,7 @@
 #include <ChimeraTK/Exception.h>
 
 #include <cmath>
+#include <iostream>
 
 using LockGuard = boost::lock_guard<boost::mutex>;
 
@@ -56,18 +57,26 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   ExitStatus BasicStepperMotor::checkNewPosition(int newPositionInSteps) {
+    std::cout << "BasicStepperMotor::checkNewPosition:" << newPositionInSteps << std::endl;
     if(_calibrationMode.load() == CalibrationMode::NONE) {
+      std::cout << "BasicStepperMotor::checkNewPosition: ERR_SYSTEM_NOT_CALIBRATED" << std::endl;
       return ExitStatus::ERR_SYSTEM_NOT_CALIBRATED;
     }
     if(!limitsOK(newPositionInSteps)) {
+      std::cout << "BasicStepperMotor::checkNewPosition: limits NOT OK" << std::endl;
       return ExitStatus::ERR_INVALID_PARAMETER;
     }
+    std::cout << "BasicStepperMotor::checkNewPosition: SUCCESS" << std::endl;
     return ExitStatus::SUCCESS;
   }
 
   /********************************************************************************************************************/
 
   bool BasicStepperMotor::limitsOK(int newPositionInSteps) {
+    std::cout << "BasicStepperMotor::limitsOK:_softwareLimitsEnabled:" << _softwareLimitsEnabled
+              << "newPositionInSteps:" << newPositionInSteps << "_minPositionLimitInSteps:" << _minPositionLimitInSteps
+              << "_maxPositionLimitInSteps:" << _maxPositionLimitInSteps << std::endl;
+    std::cout << "BasicStepperMotor::limitsOK:" << _softwareLimitsEnabled << std::endl;
     if(_softwareLimitsEnabled && newPositionInSteps >= _minPositionLimitInSteps &&
         newPositionInSteps <= _maxPositionLimitInSteps) {
       return true;
@@ -108,6 +117,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   ExitStatus BasicStepperMotor::setTargetPosition(float newPosition) {
+    std::cout << "BasicStepperMotor::setTargetPosition:newPosition:" << newPosition << std::endl;
     return setTargetPositionInSteps(_stepperMotorUnitsConverter->unitsToSteps(newPosition));
   }
 
@@ -115,7 +125,7 @@ namespace ChimeraTK::MotorDriver {
 
   ExitStatus BasicStepperMotor::setTargetPositionInSteps(int newPositionInSteps) {
     LockGuard guard(_mutex);
-
+    std::cout << "BasicStepperMotor::setTargetPositionInSteps:newPositionInSteps:" << newPositionInSteps << std::endl;
     auto checkResult = checkNewPosition(newPositionInSteps);
     if(checkResult != ExitStatus::SUCCESS) {
       return checkResult;
@@ -123,9 +133,12 @@ namespace ChimeraTK::MotorDriver {
     _targetPositionInSteps = newPositionInSteps;
 
     if(_stateMachine->getCurrentState()->getName() == "moving") {
+      std::cout << "BasicStepperMotor::setTargetPositionInSteps:moving .._targetPositionInSteps:"
+                << _targetPositionInSteps << std::endl;
       _motorController->setTargetPosition(_targetPositionInSteps);
     }
     else if(_autostart) {
+      std::cout << "BasicStepperMotor::setTargetPositionInStep: _autostart" << std::endl;
       _stateMachine->setAndProcessUserEvent(StateMachine::moveEvent);
     }
     return ExitStatus::SUCCESS;
@@ -275,6 +288,7 @@ namespace ChimeraTK::MotorDriver {
   void BasicStepperMotor::resetMotorControllerPositions(int actualPositionInSteps) {
     bool enable = _motorController->isEnabled();
     _motorController->setEnabled(false);
+    std::cout << "BasicStepperMotor::resetMotorControllerPositions" << std::endl;
     _motorController->setActualPosition(actualPositionInSteps);
     _motorController->setTargetPosition(actualPositionInSteps);
     _motorController->setEnabled(enable);
@@ -550,7 +564,7 @@ namespace ChimeraTK::MotorDriver {
     if(motorActive()) {
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
-
+    std::cout << "BasicStepperMotor::setUserSpeedLimit:" << speedInUstepsPerSec << std::endl;
     _motorController->setUserSpeedLimit(speedInUstepsPerSec);
     return ExitStatus::SUCCESS;
   }
