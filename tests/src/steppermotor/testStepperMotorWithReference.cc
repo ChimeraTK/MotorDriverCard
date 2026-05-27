@@ -21,6 +21,7 @@ using namespace boost::unit_test_framework;
 #include "MotorControlerDummy.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
+#include "ReferenceStateMachine.h"
 #include "StepperMotor.h"
 #include "testConfigConstants.h"
 #include "TMC429Constants.h"
@@ -152,7 +153,7 @@ bool StepperMotorWithReferenceTestFixture::getCalibrationFailed() {
 }
 
 bool StepperMotorWithReferenceTestFixture::getMoveInterrupted() {
-  return (std::dynamic_pointer_cast<LinearStepperMotor::StateMachine>(_stepperMotor->_stateMachine))->_moveInterrupted;
+  return (std::dynamic_pointer_cast<ReferenceStateMachine>(_stepperMotor->_stateMachine))->isMoveInterrupted();
 }
 
 bool StepperMotorWithReferenceTestFixture::getToleranceCalcFailed() {

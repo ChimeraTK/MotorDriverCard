@@ -115,7 +115,6 @@ namespace ChimeraTK::MotorDriver {
 
   ExitStatus BasicStepperMotor::setTargetPositionInSteps(int newPositionInSteps) {
     LockGuard guard(_mutex);
-
     auto checkResult = checkNewPosition(newPositionInSteps);
     if(checkResult != ExitStatus::SUCCESS) {
       return checkResult;
@@ -550,7 +549,6 @@ namespace ChimeraTK::MotorDriver {
     if(motorActive()) {
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
-
     _motorController->setUserSpeedLimit(speedInUstepsPerSec);
     return ExitStatus::SUCCESS;
   }
