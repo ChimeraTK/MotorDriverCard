@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(HEADERS StepperMotor.h BasicStepperMotor.h LinearStepperMotor.h)
+set(HEADERS StepperMotor.h BasicStepperMotor.h LinearStepperMotor.h ReferenceStepperMotor.h LinearStage.h RotaryStage.h ReferenceStateMachine.h LinearStageStateMachine.h RotaryStageStateMachine.h)
 
 foreach(HEADER ${HEADERS})
   set(CTK_HEADERS ${CTK_HEADERS} include/${HEADER})
@@ -8,7 +8,7 @@ foreach(HEADER ${HEADERS})
 endforeach()
 install(DIRECTORY include/ DESTINATION include/ChimeraTK/MotorDriverCard)
 
-set(SRC BasicStepperMotor.cc LinearStepperMotor.cc  StepperMotorStateMachine.cc LinearStepperMotorStateMachine.cc StepperMotorFactory.cc)
+set(SRC BasicStepperMotor.cc LinearStepperMotor.cc LinearStepperMotorStateMachine.cc ReferenceStepperMotor.cc StepperMotorStateMachine.cc ReferenceStateMachine.cc LinearStage.cc RotaryStage.cc LinearStageStateMachine.cc RotaryStageStateMachine.cc StepperMotorFactory.cc)
 foreach(SOURCE ${SRC})
   set(SOURCES ${SOURCES} src/${SOURCE})
 endforeach()

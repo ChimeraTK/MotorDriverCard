@@ -1,9 +1,3 @@
-// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
-// SPDX-License-Identifier: LGPL-3.0-or-later
-/*
- * RotaryStepperMotorStateMachine.cc
- */
-
 #include "MotorControler.h"
 #include "RotaryStepperMotor.h"
 
@@ -18,133 +12,299 @@ namespace ChimeraTK::MotorDriver {
 
   using utility::StateMachine;
 
-  /***************************************************
-   * Events
-   **************************************************/
   const StateMachine::Event RotaryStepperMotor::StateMachine::calibEvent("calibEvent");
+  const StateMachine::Event RotaryStepperMotor::StateMachine::calcToleranceEvent("calcToleranceEvent");
 
-  /***************************************************
-   * Constructor
-   **************************************************/
-  RotaryStepperMotor::StateMachine::StateMachine(RotaryStepperMotor& motor)
-  : BasicStepperMotor::StateMachine(motor), _calibrating("calibrating"), _motor(motor), _stopAction(false),
+  RotaryStepperMotor::StateMachine::StateMachine(RotaryStepperMotor& stepperMotorWithReference)
+  : BasicStepperMotor::StateMachine(stepperMotorWithReference), _calibrating("calibrating"),
+    _calculatingTolerance("calculatingTolerance"), _motor(stepperMotorWithReference), _stopAction(false),
     _moveInterrupted(false) {
-    /***************************************************
-     * Idle → Calibrate
-     **************************************************/
     _idle.setTransition(calibEvent, &_calibrating, [this]() { actionStartCalib(); }, [this]() { actionEndCallback(); });
+    _idle.setTransition(RotaryStepperMotor::StateMachine::calcToleranceEvent, &_calculatingTolerance,
+        std::bind(&RotaryStepperMotor::StateMachine::actionStartCalcTolercance, this),
+        std::bind(&RotaryStepperMotor::StateMachine::actionEndCallback, this));
 
-    /***************************************************
-     * Calibrating → Idle / Error
-     **************************************************/
-    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this]() { actionStop(); });
-
-    _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this]() {
-      _stopAction = true;
-      _moveInterrupted = true;
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle,
+        std::bind(&RotaryStepperMotor::StateMachine::actionStop, this));
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
+      _stopAction.exchange(true);
+      _moveInterrupted.exchange(true);
       actionEmergencyStop();
     });
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::errorEvent, &_error, [] {});
 
-    _calibrating.setTransition(BasicStepperMotor::StateMachine::errorEvent, &_error, []() {});
+    _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this] { actionStop(); });
+    _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
+      _stopAction.exchange(true);
+      _moveInterrupted.exchange(true);
+      actionEmergencyStop();
+    });
   }
 
-  /***************************************************
-   * Stop action
-   **************************************************/
   void RotaryStepperMotor::StateMachine::actionStop() {
-    _stopAction = true;
+    _stopAction.exchange(true);
+    return;
   }
 
-  /***************************************************
-   * Start calibration thread
-   **************************************************/
   void RotaryStepperMotor::StateMachine::actionStartCalib() {
-    _asyncActionActive = true;
-
-    std::thread(&StateMachine::calibrationThreadFunction, this).detach();
+    _asyncActionActive.exchange(true);
+    std::thread calibrationThread(&RotaryStepperMotor::StateMachine::calibrationThreadFunction, this);
+    calibrationThread.detach();
   }
 
-  /***************************************************
-   * End callback
-   **************************************************/
   void RotaryStepperMotor::StateMachine::actionEndCallback() {
     if(!_asyncActionActive.load()) {
       if(hasRequestedState()) {
         moveToRequestedState();
       }
 
-      performTransition(stopEvent);
+      auto stateExitEvent = stopEvent;
+      // TODO include
+      //      if(_moveInterrupted.load()){
+      //        stateExitEvent = errorEvent;
+      //      }
+      performTransition(stateExitEvent);
     }
   }
 
-  /***************************************************
-   * ROTARY CALIBRATION CORE LOGIC
-   **************************************************/
+  void RotaryStepperMotor::StateMachine::actionStartCalcTolercance() {
+    _asyncActionActive.exchange(true);
+    std::thread toleranceCalcThread(&RotaryStepperMotor::StateMachine::toleranceCalcThreadFunction, this);
+    toleranceCalcThread.detach();
+  }
+
   void RotaryStepperMotor::StateMachine::calibrationThreadFunction() {
-    _motor._calibrationFailed = false;
-    _stopAction = false;
-    _moveInterrupted = false;
+    _motor._calibrationFailed.exchange(false);
+    _stopAction.exchange(false);
+    _moveInterrupted.exchange(false);
 
     try {
-      /***************************************************
-       * ROTARY ASSUMPTION:
-       * Only ONE reference (home/index switch)
-       **************************************************/
-      if(!_motor._homeSwitchEnabled) {
-        std::cout << "Rotary calibration not possible: no home switch\n";
+      // Local variables for calibrated position
+      // TODO Move to else scope to remove cppcheck warning
+      int calibPositiveEndSwitchInSteps = 0;
+      int calibNegativeEndSwitchInSteps = 0;
 
+      // At least one end switch disabled -> calibration not possible
+      // not required for rotary
+      if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
+        // testing for rotary
+        // if(!(_motor._positiveEndSwitchEnabled.load() || _motor._negativeEndSwitchEnabled.load())) {
+        std::cout << "calibrationThreadFunction: calibration not possible" << std::endl;
+        std::cout << "_motor._positiveEndSwitchEnabled.load():" << _motor._positiveEndSwitchEnabled.load() << std::endl;
+        std::cout << "_motor._negativeEndSwitchEnabled.load():" << _motor._negativeEndSwitchEnabled.load() << std::endl;
         _motor._motorController->setCalibrationTime(0);
-        _motor._calibrationFailed = true;
-        _motor._calibrationMode = CalibrationMode::NONE;
+
+        _motor._calibrationFailed.exchange(true);
+        _motor._calibrationMode.exchange(CalibrationMode::NONE);
       }
       else {
-        /***************************************************
-         * Step until reference detected
-         **************************************************/
-        while(!_motor.isPositiveReferenceActive()) {
-          if(_stopAction || _moveInterrupted) {
-            _motor._motorController->setCalibrationTime(0);
-            _motor._calibrationFailed = true;
-            _motor._calibrationMode = CalibrationMode::NONE;
-            _motor._errorMode = Error::CALIBRATION_ERROR;
-            _asyncActionActive = false;
-            return;
-          }
+        findEndSwitch(Sign::POSITIVE); // reuse as "home direction search"
+        // calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+        // findEndSwitch(Sign::NEGATIVE);
+        // calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+        int homePosition = _motor.getCurrentPositionInSteps();
 
-          /***************************************************
-           * Small incremental motion (SEARCH MODE)
-           **************************************************/
-          {
-            boost::lock_guard<boost::mutex> lock(_motor._mutex);
+        if(_moveInterrupted.load() || _stopAction.load()) {
+          std::cout << "_moveInterrupted:" << _moveInterrupted << "_stopAction:" << _stopAction << std::endl;
+          _motor._motorController->setCalibrationTime(0);
 
-            _motor._motorController->setTargetPosition(_motor._motorController->getActualPosition() + 200);
-          }
-
-          while(_motor._motorController->isMotorMoving()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
-          }
+          _motor._calibrationFailed.exchange(true);
+          _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
+          _motor._calibrationMode.exchange(CalibrationMode::NONE);
         }
+        else {
+          // Define positive axis with negative end switch as zero
+          // calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
+          calibPositiveEndSwitchInSteps = homePosition; // unused in rotary
+          calibNegativeEndSwitchInSteps = 0;
+          // instead
+          //_motor._homeOffsetInSteps.exchange(homePosition);
 
-        /***************************************************
-         * Home found → define zero
-         **************************************************/
-        _motor._motorController->setCalibrationTime(time(nullptr));
+          _motor._motorController->setCalibrationTime(time(nullptr));
+          _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
+          _motor._motorController->setNegativeReferenceSwitchCalibration(0);
+          //_motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+          _motor._calibPositiveEndSwitchInSteps.exchange(homePosition);
+          _motor._calibNegativeEndSwitchInSteps.exchange(0);
 
-        _motor._homeReferenceInSteps = _motor._motorController->getActualPosition();
-
-        _motor.resetMotorControllerPositions(0);
-
-        _motor._calibrationMode = CalibrationMode::FULL;
+          _motor._calibrationMode.exchange(CalibrationMode::FULL);
+          //_motor.resetMotorControllerPositions(0); //linear
+          //_motor._calibrationMode.exchange(CalibrationMode::HOMED);
+          std::cout << "calibrationThreadFunction::homePosition:" << homePosition << std::endl;
+          _motor.resetMotorControllerPositions(homePosition);
+        }
       }
     }
     catch(ChimeraTK::runtime_error&) {
       _motor._motorController->setCalibrationTime(0);
-      _motor._calibrationFailed = true;
-      _motor._calibrationMode = CalibrationMode::NONE;
-      _motor._errorMode = Error::CALIBRATION_ERROR;
+
+      _motor._calibrationFailed.exchange(true);
+      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
+      _motor._calibrationMode.exchange(CalibrationMode::NONE);
     }
 
-    _asyncActionActive = false;
+    _asyncActionActive.exchange(false);
   }
 
+  void RotaryStepperMotor::StateMachine::findEndSwitch(Sign sign) {
+    // Prevent infinite rotation in rotary systems
+    auto mID = _motor._motorController->getID();
+    if(mID == 1) {
+      std::cout << "RotaryStepperMotor::findEndSwitch::sign:" << static_cast<int>(sign) << "::MotorID:" << mID
+                << std::endl;
+    }
+    auto startTime = std::chrono::steady_clock::now();
+    constexpr int HOMING_TIMEOUT_MS = 60000;
+    while(!_motor.isEndSwitchActive(sign)) {
+      if(_stopAction.load() || _moveInterrupted.load()) {
+        if(mID == 1) {
+          std::cout << "RotaryStepperMotor::findEndSwitch::_stopAction or Intrerrupted" << std::endl;
+        }
+        return;
+      }
+      auto now = std::chrono::steady_clock::now();
+      if(std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count() > HOMING_TIMEOUT_MS) {
+        if(mID == 1) {
+          std::cout << "RotaryStepperMotor::findEndSwitch::Homing timeedout" << std::endl;
+        }
+        _moveInterrupted.exchange(true);
+        return;
+      }
+      /*if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
+          !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
+        _moveInterrupted.exchange(true);
+        return;
+      }*/
+      if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
+          !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
+        if(mID == 1) {
+          std::cout << "RotaryStepperMotor::findEndSwitch::_moveInterrupted" << std::endl;
+        }
+        _moveInterrupted.exchange(true);
+        return;
+      }
+      moveToEndSwitch(sign);
+    }
+  }
+
+  void RotaryStepperMotor::StateMachine::moveToEndSwitch(Sign sign) {
+    {
+      std::cout << "RotaryStepperMotor::StateMachine::moveToEndSwitch" << std::endl;
+      boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+      _motor._motorController->setTargetPosition(
+          //_motor._motorController->getActualPosition() + static_cast<int>(sign) * 50000);
+          _motor._motorController->getActualPosition() + static_cast<int>(sign) * 5000); // // reduced burst size
+    }
+    while(_motor._motorController->isMotorMoving()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+    }
+  }
+
+  void RotaryStepperMotor::StateMachine::toleranceCalcThreadFunction() {
+    _motor._toleranceCalcFailed.exchange(false);
+    _motor._toleranceCalculated.exchange(false);
+    _stopAction.exchange(false);
+    _moveInterrupted.exchange(false);
+
+    // This makes only sense once the motor is fully calibrated
+    if(_motor._calibrationMode != CalibrationMode::FULL) {
+      _motor._toleranceCalculated.exchange(false);
+      _motor._toleranceCalcFailed.exchange(true);
+    }
+    else {
+      //_motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
+      //_motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
+      _motor._tolerancePositiveEndSwitch.exchange(
+          getToleranceEndSwitch(Sign::POSITIVE)); // repurpose as "approach from CW"
+      _motor._toleranceNegativeEndSwitch.exchange(_motor._tolerancePositiveEndSwitch.load());
+
+      if(_stopAction.load()) {
+        _motor._toleranceCalculated.exchange(false);
+      }
+      else if(_moveInterrupted.load()) {
+        _motor._toleranceCalculated.exchange(false);
+        _motor._toleranceCalcFailed.exchange(true);
+
+        // TODO include
+        //        _asyncActionActive.exchange(false);
+        //        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+        _motor._errorMode = Error::CALIBRATION_ERROR;
+        //        return;
+      }
+      else {
+        _motor._toleranceCalculated.exchange(true);
+      }
+    }
+    _asyncActionActive.exchange(false);
+  }
+
+  int RotaryStepperMotor::StateMachine::getPositionEndSwitch(Sign sign) {
+    /*if(sign == Sign::POSITIVE) {
+      return _motor._calibPositiveEndSwitchInSteps.load();
+    }
+    else {
+      return _motor._calibNegativeEndSwitchInSteps.load();
+    }*/
+    // Only one reference exists in rotary systems
+    // return _motor._homeOffsetInSteps.load();
+    return _motor._calibNegativeEndSwitchInSteps.load();
+  }
+
+  double RotaryStepperMotor::StateMachine::getToleranceEndSwitch(Sign sign) {
+    double meanMeasurement = 0;
+    double stdMeasurement = 0;
+    const int N_TOLERANCE_CALC_SAMPLES = 10;
+    double measurements[N_TOLERANCE_CALC_SAMPLES];
+
+    int endSwitchPosition = getPositionEndSwitch(sign);
+
+    // Get 10 samples for tolerance calculation
+    for(double& measurement : measurements) {
+      if(_stopAction.load() || _moveInterrupted.load()) {
+        break;
+      }
+
+      // Move close to end switch
+      {
+        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        _motor._motorController->setTargetPosition(endSwitchPosition - static_cast<int>(sign) * 1000);
+      }
+      while(_motor._motorController->isMotorMoving()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+      }
+
+      // Check if in expected position
+      if(!_motor.verifyMoveAction()) {
+        _moveInterrupted.exchange(true);
+        break;
+      }
+
+      // Try to move beyond end switch
+      {
+        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        _motor._motorController->setTargetPosition(endSwitchPosition + static_cast<int>(sign) * 1000);
+      }
+      while(_motor._motorController->isMotorMoving()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+      }
+      if(!_motor.isEndSwitchActive(sign)) {
+        _moveInterrupted.exchange(true);
+        break;
+      }
+
+      // Mean calculation
+      meanMeasurement += static_cast<double>(_motor.getCurrentPositionInSteps()) / N_TOLERANCE_CALC_SAMPLES;
+      measurement = _motor.getCurrentPositionInSteps();
+    } /* for (i in [0,9]) */
+
+    // Compute variance
+    if(!(_stopAction.load() || _moveInterrupted.load())) {
+      for(unsigned int i = 0; i < N_TOLERANCE_CALC_SAMPLES; i++) {
+        stdMeasurement += ((measurements[i] - meanMeasurement) / (N_TOLERANCE_CALC_SAMPLES - 1)) *
+            (measurements[i] - meanMeasurement);
+      }
+    }
+
+    return sqrt(stdMeasurement);
+  }
 } // namespace ChimeraTK::MotorDriver

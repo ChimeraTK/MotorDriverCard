@@ -408,6 +408,9 @@ namespace ChimeraTK::MotorDriver {
 
     //    /friend class StateMachine;
     friend class ::StepperMotorChimeraTKFixture;
+    friend class ReferenceStateMachine;
+    friend class RotaryStageStateMachine;
+    friend class LinearStageStateMachine;
 
    protected:
     /**

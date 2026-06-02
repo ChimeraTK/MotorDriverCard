@@ -1,12 +1,15 @@
 
 #include "BasicStepperMotor.h"
-#include "LinearStepperMotor.h"
+// #include "LinearStepperMotor.h"
 // #include "RotaryStepperMotor.h"
+// #include "ReferenceStepperMotor.h"
+#include "LinearStage.h"
+#include "RotaryStage.h"
 #include "StepperMotor.h"
 
-#include <mutex>
-
 #include <ChimeraTK/Exception.h>
+
+#include <mutex>
 
 namespace ChimeraTK::MotorDriver {
 
@@ -41,11 +44,15 @@ namespace ChimeraTK::MotorDriver {
         ptr = std::make_shared<BasicStepperMotor>(parameters);
         break;
       case StepperMotorType::LINEAR:
-        ptr = std::make_shared<LinearStepperMotor>(parameters);
+        // ptr = std::make_shared<LinearStepperMotor>(parameters);
+        // ptr = std::make_shared<ReferenceStepperMotor>(parameters);
+        ptr = std::make_shared<LinearStage>(parameters);
+        ptr->initialize();
         break;
-      /*case StepperMotorType::ROTARY:
-        ptr = std::make_shared<RotaryStepperMotor>(parameters);
-        break;*/
+      case StepperMotorType::ROTARY:
+        ptr = std::make_shared<RotaryStage>(parameters);
+        ptr->initialize();
+        break;
       default:
         throw ChimeraTK::logic_error("Invalid Stepper motor variant");
     }

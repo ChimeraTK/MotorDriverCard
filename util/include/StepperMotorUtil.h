@@ -32,7 +32,7 @@ namespace ChimeraTK { namespace MotorDriver {
    * BASIC:  A basic stepper motor
    * LINEAR: A linear stage, supports hardware end switches
    */
-  enum class StepperMotorType { BASIC, LINEAR }; //, ROTARY };
+  enum class StepperMotorType { BASIC, LINEAR, ROTARY };
 
   /**
    * Enum describing the exit status of setting member functions

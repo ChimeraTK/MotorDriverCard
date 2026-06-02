@@ -1,11 +1,8 @@
-/*
- * StepperMotorWithReferenceStateMachine.cc
- *
- *  Created on: Feb 17, 2017
- *      Author: vitimic
- */
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "LinearStepperMotor.h"
+#include "ReferenceStateMachine.h"
+
 #include "MotorControler.h"
 
 #include <ChimeraTK/Exception.h>
@@ -17,22 +14,20 @@ constexpr unsigned wakeupPeriodInMilliseconds = 500U;
 
 namespace ChimeraTK::MotorDriver {
 
-  using utility::StateMachine;
+  const utility::StateMachine::Event ReferenceStateMachine::calibEvent("calibEvent");
+  const utility::StateMachine::Event ReferenceStateMachine::calcToleranceEvent("calcToleranceEvent");
 
-  const StateMachine::Event LinearStepperMotor::StateMachine::calibEvent("calibEvent");
-  const StateMachine::Event LinearStepperMotor::StateMachine::calcToleranceEvent("calcToleranceEvent");
-
-  LinearStepperMotor::StateMachine::StateMachine(LinearStepperMotor& stepperMotorWithReference)
+  ReferenceStateMachine::ReferenceStateMachine(ReferenceStepperMotor& stepperMotorWithReference)
   : BasicStepperMotor::StateMachine(stepperMotorWithReference), _calibrating("calibrating"),
     _calculatingTolerance("calculatingTolerance"), _motor(stepperMotorWithReference), _stopAction(false),
     _moveInterrupted(false) {
     _idle.setTransition(calibEvent, &_calibrating, [this]() { actionStartCalib(); }, [this]() { actionEndCallback(); });
-    _idle.setTransition(LinearStepperMotor::StateMachine::calcToleranceEvent, &_calculatingTolerance,
-        std::bind(&LinearStepperMotor::StateMachine::actionStartCalcTolercance, this),
-        std::bind(&LinearStepperMotor::StateMachine::actionEndCallback, this));
+    _idle.setTransition(ReferenceStateMachine::calcToleranceEvent, &_calculatingTolerance,
+        std::bind(&ReferenceStateMachine::actionStartCalcTolercance, this),
+        std::bind(&ReferenceStateMachine::actionEndCallback, this));
 
-    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle,
-        std::bind(&LinearStepperMotor::StateMachine::actionStop, this));
+    _calibrating.setTransition(
+        BasicStepperMotor::StateMachine::stopEvent, &_idle, std::bind(&ReferenceStateMachine::actionStop, this));
     _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
       _stopAction.exchange(true);
       _moveInterrupted.exchange(true);
@@ -48,18 +43,29 @@ namespace ChimeraTK::MotorDriver {
     });
   }
 
-  void LinearStepperMotor::StateMachine::actionStop() {
+  void ReferenceStateMachine::actionStop() {
     _stopAction.exchange(true);
     return;
   }
 
-  void LinearStepperMotor::StateMachine::actionStartCalib() {
-    _asyncActionActive.exchange(true);
-    std::thread calibrationThread(&LinearStepperMotor::StateMachine::calibrationThreadFunction, this);
-    calibrationThread.detach();
+  void ReferenceStateMachine::actionStartCalib() {
+    _asyncActionActive.store(true);
+    std::thread(&ReferenceStateMachine::calibrationThreadFunction, this).detach();
   }
 
-  void LinearStepperMotor::StateMachine::actionEndCallback() {
+  void ReferenceStateMachine::calibrationThreadFunction() {
+    /*try {
+        performCalibration();
+    }
+    catch(const ChimeraTK::runtime_error&) {
+        handleCalibrationFailure();
+    }
+
+    _asyncActionActive.store(false);*/
+    performCalibration();
+  }
+
+  void ReferenceStateMachine::actionEndCallback() {
     if(!_asyncActionActive.load()) {
       if(hasRequestedState()) {
         moveToRequestedState();
@@ -74,97 +80,24 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  void LinearStepperMotor::StateMachine::actionStartCalcTolercance() {
+  void ReferenceStateMachine::actionStartCalcTolercance() {
     _asyncActionActive.exchange(true);
-    std::thread toleranceCalcThread(&LinearStepperMotor::StateMachine::toleranceCalcThreadFunction, this);
+    std::thread toleranceCalcThread(&ReferenceStateMachine::toleranceCalcThreadFunction, this);
     toleranceCalcThread.detach();
   }
 
-  void LinearStepperMotor::StateMachine::calibrationThreadFunction() {
-    _motor._calibrationFailed.exchange(false);
-    _stopAction.exchange(false);
-    _moveInterrupted.exchange(false);
-
-    try {
-      // Local variables for calibrated position
-      // TODO Move to else scope to remove cppcheck warning
-      int calibPositiveEndSwitchInSteps = 0;
-      int calibNegativeEndSwitchInSteps = 0;
-
-      // At least one end switch disabled -> calibration not possible
-      if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
-        _motor._motorController->setCalibrationTime(0);
-
-        _motor._calibrationFailed.exchange(true);
-        _motor._calibrationMode.exchange(CalibrationMode::NONE);
-      }
-      else {
-        findEndSwitch(Sign::POSITIVE);
-        calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
-        findEndSwitch(Sign::NEGATIVE);
-        calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
-
-        if(_moveInterrupted.load() || _stopAction.load()) {
-          _motor._motorController->setCalibrationTime(0);
-
-          _motor._calibrationFailed.exchange(true);
-          _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-          _motor._calibrationMode.exchange(CalibrationMode::NONE);
-        }
-        else {
-          // Define positive axis with negative end switch as zero
-          calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
-          calibNegativeEndSwitchInSteps = 0;
-
-          _motor._motorController->setCalibrationTime(time(nullptr));
-          _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
-          _motor._motorController->setNegativeReferenceSwitchCalibration(0);
-          _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
-          _motor._calibNegativeEndSwitchInSteps.exchange(0);
-
-          _motor._calibrationMode.exchange(CalibrationMode::FULL);
-          _motor.resetMotorControllerPositions(0);
-        }
-      }
-    }
-    catch(ChimeraTK::runtime_error&) {
-      _motor._motorController->setCalibrationTime(0);
-
-      _motor._calibrationFailed.exchange(true);
-      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-      _motor._calibrationMode.exchange(CalibrationMode::NONE);
-    }
-
-    _asyncActionActive.exchange(false);
-  }
-
-  void LinearStepperMotor::StateMachine::findEndSwitch(Sign sign) {
-    while(!_motor.isEndSwitchActive(sign)) {
-      if(_stopAction.load() || _moveInterrupted.load()) {
-        return;
-      }
-
-      if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
-          !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
-        _moveInterrupted.exchange(true);
-        return;
-      }
-      moveToEndSwitch(sign);
-    }
-  }
-
-  void LinearStepperMotor::StateMachine::moveToEndSwitch(Sign sign) {
+  void ReferenceStateMachine::moveToEndSwitch(Sign sign) {
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
       _motor._motorController->setTargetPosition(
-          _motor._motorController->getActualPosition() + static_cast<int>(sign) * 50000);
+          _motor._motorController->getActualPosition() + static_cast<int>(sign) * getOffset());
     }
     while(_motor._motorController->isMotorMoving()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
     }
   }
 
-  void LinearStepperMotor::StateMachine::toleranceCalcThreadFunction() {
+  void ReferenceStateMachine::toleranceCalcThreadFunction() {
     _motor._toleranceCalcFailed.exchange(false);
     _motor._toleranceCalculated.exchange(false);
     _stopAction.exchange(false);
@@ -176,9 +109,7 @@ namespace ChimeraTK::MotorDriver {
       _motor._toleranceCalcFailed.exchange(true);
     }
     else {
-      _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
-      _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
-
+      calculateToleranceValues();
       if(_stopAction.load()) {
         _motor._toleranceCalculated.exchange(false);
       }
@@ -199,7 +130,7 @@ namespace ChimeraTK::MotorDriver {
     _asyncActionActive.exchange(false);
   }
 
-  int LinearStepperMotor::StateMachine::getPositionEndSwitch(Sign sign) {
+  int ReferenceStateMachine::getPositionEndSwitch(Sign sign) {
     if(sign == Sign::POSITIVE) {
       return _motor._calibPositiveEndSwitchInSteps.load();
     }
@@ -208,7 +139,7 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  double LinearStepperMotor::StateMachine::getToleranceEndSwitch(Sign sign) {
+  double ReferenceStateMachine::getToleranceEndSwitch(Sign sign) {
     double meanMeasurement = 0;
     double stdMeasurement = 0;
     const int N_TOLERANCE_CALC_SAMPLES = 10;

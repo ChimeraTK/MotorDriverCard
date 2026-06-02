@@ -424,6 +424,10 @@ namespace ChimeraTK::MotorDriver {
 
     [[nodiscard]] virtual CalibrationMode getCalibrationMode() = 0;
 
+    virtual void initialize() { // Default empty implementation
+                                // Or make it pure virtual: virtual void initialize() = 0;
+    }
+
   }; // class StepperMotor
 
   /**

@@ -1,0 +1,273 @@
+#include "ReferenceStepperMotor.h"
+
+#include "MotorControler.h"
+#include "MotorDriverCard.h"
+#include "MotorDriverCardFactory.h"
+#include "ReferenceStateMachine.h"
+#include "StepperMotorUtil.h"
+
+#include <memory>
+
+using LockGuard = boost::lock_guard<boost::mutex>;
+
+namespace ChimeraTK::MotorDriver {
+
+  ReferenceStepperMotor::ReferenceStepperMotor(const StepperMotorParameters& parameters) {
+    _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+        parameters.deviceName, parameters.moduleName, parameters.configFileName);
+    _motorController = _motorDriverCard->getMotorControler(parameters.driverId);
+    _stepperMotorUnitsConverter = parameters.motorUnitsConverter;
+    _encoderUnitsConverter = parameters.encoderUnitsConverter;
+    //_stateMachine = createStateMachine();
+    _targetPositionInSteps = _motorController->getTargetPosition();
+    _negativeEndSwitchEnabled = _motorController->getReferenceSwitchData().getNegativeSwitchEnabled();
+    _positiveEndSwitchEnabled = _motorController->getReferenceSwitchData().getPositiveSwitchEnabled();
+    initStateMachine();
+    loadEndSwitchCalibration();
+  }
+  void ReferenceStepperMotor::initialize() {
+    _stateMachine = createStateMachine();
+  }
+
+  ReferenceStepperMotor::~ReferenceStepperMotor() = default;
+
+  bool ReferenceStepperMotor::motorActive() {
+    std::string stateName = _stateMachine->getCurrentState()->getName();
+    return (stateName == "moving" || stateName == "calibrating" || stateName == "calculatingTolerance");
+  }
+
+  bool ReferenceStepperMotor::limitsOK(int newPositionInSteps) {
+    if(newPositionInSteps >= _calibNegativeEndSwitchInSteps.load() &&
+        newPositionInSteps <= _calibPositiveEndSwitchInSteps.load()) {
+      return BasicStepperMotor::limitsOK(newPositionInSteps);
+    }
+
+    return false;
+  }
+
+  ExitStatus ReferenceStepperMotor::checkNewPosition(int newPositionInSteps) {
+    if(_stateMachine->getCurrentState()->getName() == "calibrating") {
+      return ExitStatus::ERR_SYSTEM_IN_ACTION;
+    }
+    return BasicStepperMotor::checkNewPosition(newPositionInSteps);
+  }
+
+  ExitStatus ReferenceStepperMotor::setActualPositionInSteps(int actualPositionInSteps) {
+    LockGuard guard(_mutex);
+    if(motorActive()) {
+      return ExitStatus::ERR_SYSTEM_IN_ACTION;
+    }
+    setActualPositionActions(actualPositionInSteps);
+
+    // Overwrite end switch calibration and reset calibration mode
+    _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
+    _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
+
+    return ExitStatus::SUCCESS;
+  }
+
+  ExitStatus ReferenceStepperMotor::translateAxisInSteps(int translationInSteps) {
+    LockGuard guard(_mutex);
+    if(motorActive()) {
+      return ExitStatus::ERR_SYSTEM_IN_ACTION;
+    }
+
+    translateAxisActions(translationInSteps);
+
+    // If motor has been calibrated, translate also end switch positions
+    if(this->_calibrationMode.load() == CalibrationMode::FULL) {
+      if(utility::checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
+          utility::checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps)) {
+        return ExitStatus::ERR_INVALID_PARAMETER;
+      }
+
+      _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
+      _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
+    }
+    return ExitStatus::SUCCESS;
+  }
+
+  ExitStatus ReferenceStepperMotor::calibrate() {
+    LockGuard guard(_mutex);
+    if(motorActive()) {
+      return ExitStatus::ERR_SYSTEM_IN_ACTION;
+    }
+    _stateMachine->setAndProcessUserEvent(ReferenceStateMachine::calibEvent);
+    return ExitStatus::SUCCESS;
+  }
+
+  ExitStatus ReferenceStepperMotor::determineTolerance() {
+    LockGuard guard(_mutex);
+    if(motorActive()) {
+      return ExitStatus::ERR_SYSTEM_IN_ACTION;
+    }
+    _stateMachine->setAndProcessUserEvent(ReferenceStateMachine::calcToleranceEvent);
+    return ExitStatus::SUCCESS;
+  }
+
+  Error ReferenceStepperMotor::getError() {
+    LockGuard guard(_mutex);
+    //    if (motorActive() &&
+    //        _motorControler->getReferenceSwitchData().getPositiveSwitchActive()
+    //        &&
+    //        _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+    //      return Error::BOTH_END_SWITCHES_ON;
+    //    }
+    //    if (!motorActive()){
+    //      if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
+    //        return Error::ACTION_ERROR;
+    //      }
+    //    }
+    //    if (_toleranceCalculated){
+    //      if
+    //      (_motorControler->getReferenceSwitchData().getPositiveSwitchActive()
+    //      &&
+    //          std::abs(_motorControler->getActualPosition() -
+    //          _calibPositiveEndSwitchInSteps.load()) > 3 *
+    //          _tolerancePositiveEndSwitch.load()){
+    //        return Error::CALIBRATION_ERROR;
+    //      }else
+    //      if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive()
+    //      &&
+    //          std::abs(_motorControler->getActualPosition() -
+    //          _calibNegativeEndSwitchInSteps.load()) > 3 *
+    //          _toleranceNegativeEndSwitch.load()){
+    //        return Error::CALIBRATION_ERROR;
+    //      }
+    //    }
+    return _errorMode.load();
+  }
+
+  bool ReferenceStepperMotor::hasHWReferenceSwitches() {
+    return true;
+  }
+
+  int ReferenceStepperMotor::getPositiveEndReferenceInSteps() {
+    LockGuard guard(_mutex);
+    return _calibPositiveEndSwitchInSteps.load();
+  }
+
+  float ReferenceStepperMotor::getPositiveEndReference() {
+    LockGuard guard(_mutex);
+    return _stepperMotorUnitsConverter->stepsToUnits(_calibPositiveEndSwitchInSteps.load());
+  }
+
+  int ReferenceStepperMotor::getNegativeEndReferenceInSteps() {
+    LockGuard guard(_mutex);
+    return _calibNegativeEndSwitchInSteps.load();
+  }
+
+  float ReferenceStepperMotor::getNegativeEndReference() {
+    LockGuard guard(_mutex);
+    return _stepperMotorUnitsConverter->stepsToUnits(_calibNegativeEndSwitchInSteps.load());
+  }
+
+  float ReferenceStepperMotor::getTolerancePositiveEndSwitch() {
+    LockGuard guard(_mutex);
+    return _tolerancePositiveEndSwitch.load();
+  }
+
+  float ReferenceStepperMotor::getToleranceNegativeEndSwitch() {
+    LockGuard guard(_mutex);
+    return _toleranceNegativeEndSwitch.load();
+  }
+
+  bool ReferenceStepperMotor::isPositiveReferenceActive() {
+    LockGuard guard(_mutex);
+    return isEndSwitchActive(Sign::POSITIVE);
+    ;
+  }
+
+  bool ReferenceStepperMotor::isNegativeReferenceActive() {
+    LockGuard guard(_mutex);
+    return isEndSwitchActive(Sign::NEGATIVE);
+  }
+
+  bool ReferenceStepperMotor::isPositiveEndSwitchEnabled() {
+    LockGuard guard(_mutex);
+    return _positiveEndSwitchEnabled.load();
+  }
+
+  bool ReferenceStepperMotor::isNegativeEndSwitchEnabled() {
+    LockGuard guard(_mutex);
+    return _negativeEndSwitchEnabled.load();
+  }
+
+  CalibrationMode ReferenceStepperMotor::getCalibrationMode() {
+    return _calibrationMode.load();
+  }
+
+  void ReferenceStepperMotor::loadEndSwitchCalibration() {
+    LockGuard guard(_mutex);
+
+    if(_motorController->getCalibrationTime() != 0) {
+      int calibPositiveEndSwitchInSteps = _motorController->getPositiveReferenceSwitchCalibration();
+      int calibNegativeEndSwitchInSteps = _motorController->getNegativeReferenceSwitchCalibration();
+      _calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+      _calibNegativeEndSwitchInSteps.exchange(calibNegativeEndSwitchInSteps);
+
+      if(calibPositiveEndSwitchInSteps == std::numeric_limits<int>::max() &&
+          calibNegativeEndSwitchInSteps == std::numeric_limits<int>::min()) {
+        _calibrationMode.exchange(CalibrationMode::SIMPLE);
+      }
+      else {
+        _calibrationMode.exchange(CalibrationMode::FULL);
+      }
+    }
+  }
+
+  bool ReferenceStepperMotor::verifyMoveAction() {
+    bool endSwitchActive = _motorController->getReferenceSwitchData().getPositiveSwitchActive() ||
+        _motorController->getReferenceSwitchData().getNegativeSwitchActive();
+    bool positionMatch = _motorController->getTargetPosition() == _motorController->getActualPosition();
+
+    return endSwitchActive || positionMatch;
+  }
+
+  bool ReferenceStepperMotor::isEndSwitchActive(Sign sign) {
+    bool posActive = positiveSwitchActive();
+    bool negActive = negativeSwitchActive();
+
+    if(posActive && negActive) {
+      _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
+      _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
+    }
+    else {
+      // The error mode was BOTH_END_SWITCHES_ON, reset the error mode. Otherwise this will stick unless the application
+      // is re-started.
+      auto expected = Error::BOTH_END_SWITCHES_ON;
+      auto replace = Error::NO_ERROR;
+      _errorMode.compare_exchange_strong(expected, replace);
+    }
+
+    if(_toleranceCalculated) {
+      if(posActive) {
+        if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
+            3 * _tolerancePositiveEndSwitch.load()) {
+          _errorMode.exchange(Error::CALIBRATION_ERROR);
+        }
+      }
+      else if(negActive) {
+        if(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
+            3 * _toleranceNegativeEndSwitch.load()) {
+          _errorMode.exchange(Error::CALIBRATION_ERROR);
+        }
+      }
+    }
+
+    if(sign == Sign::POSITIVE) {
+      return posActive;
+    }
+
+    return negActive;
+  }
+
+  bool ReferenceStepperMotor::positiveSwitchActive() const {
+    return _motorController->getReferenceSwitchData().getPositiveSwitchActive() == 1U;
+  }
+
+  bool ReferenceStepperMotor::negativeSwitchActive() const {
+    return _motorController->getReferenceSwitchData().getNegativeSwitchActive() == 1U;
+  }
+
+} // namespace ChimeraTK::MotorDriver
