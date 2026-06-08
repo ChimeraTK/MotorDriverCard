@@ -550,7 +550,6 @@ namespace mtca4u {
     }
 
     // The positions did not match. Check if we ran into one of the reference switches, without triggering INT_STOP()
-    // How can we still be moving if
     auto referenceSwitchData = retrieveReferenceSwitchStatus();
     // ignore negative switch for rotary motors.
     if((referenceSwitchData.getNegativeSwitchEnabled() && referenceSwitchData.getNegativeSwitchActive() &&
