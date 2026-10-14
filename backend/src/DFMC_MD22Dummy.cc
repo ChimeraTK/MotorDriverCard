@@ -407,8 +407,7 @@ namespace mtca4u {
       throw new ChimeraTK::logic_error("DFMC_MD22Dummy: No mapfile has been specified");
     }
 
-    return returnInstance<DFMC_MD22Dummy>(
-        address, convertPathRelativeToDmapToAbs(parameters["map"]), parameters["module"]);
+    return returnInstance<DFMC_MD22Dummy>(address, parameters["map"], parameters["module"]);
   }
 
   DFMC_MD22DummyRegisterer globalDFMC_MD22DummyRegisterer;
