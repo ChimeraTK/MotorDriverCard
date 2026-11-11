@@ -43,7 +43,8 @@ namespace ChimeraTK { namespace MotorDriver {
    */
   enum class ExitStatus { SUCCESS, ERR_SYSTEM_IN_ACTION, ERR_INVALID_PARAMETER, ERR_SYSTEM_NOT_CALIBRATED };
 
-  std::string toString(ExitStatus& status);
+  /// Convert an ExitStatus to a human readable string.
+  std::string toString(ExitStatus status);
 
   /**
    * Enum class describing errors
@@ -60,7 +61,8 @@ namespace ChimeraTK { namespace MotorDriver {
     EMERGENCY_STOP = 1U << 4
   };
 
-  std::string toString(Error& error);
+  /// Convert an Error (which may combine several flags) to a human readable string.
+  std::string toString(Error error);
 
   /// Namespace for utility classes related to the StepperMotor
   namespace utility {

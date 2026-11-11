@@ -3,6 +3,7 @@
 
 #include "LinearStepperMotorStateMachine.h"
 
+#include "DebugLog.h"
 #include "LinearStepperMotor.h"
 #include "MotorControler.h"
 
@@ -21,6 +22,8 @@ namespace ChimeraTK::MotorDriver {
 
       // At least one end switch disabled -> calibration not possible
       if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
+        DEBUG_LOG("LinearStepperMotor: calibration not possible, end switch disabled (positive ",
+            _motor._positiveEndSwitchEnabled.load(), ", negative ", _motor._negativeEndSwitchEnabled.load(), ")");
         _motor._motorController->setCalibrationTime(0);
 
         _motor._calibrationFailed.exchange(true);
@@ -33,6 +36,8 @@ namespace ChimeraTK::MotorDriver {
         calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
 
         if(_moveInterrupted.load() || _stopAction.load()) {
+          DEBUG_LOG("LinearStepperMotor: calibration interrupted (move interrupted ", _moveInterrupted.load(),
+              ", stop requested ", _stopAction.load(), ")");
           _motor._motorController->setCalibrationTime(0);
 
           _motor._calibrationFailed.exchange(true);
@@ -44,6 +49,8 @@ namespace ChimeraTK::MotorDriver {
           calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
           calibNegativeEndSwitchInSteps = 0;
 
+          DEBUG_LOG("LinearStepperMotor: calibration successful, end switch positions positive ",
+              calibPositiveEndSwitchInSteps, ", negative ", calibNegativeEndSwitchInSteps, " -> FULL");
           _motor._motorController->setCalibrationTime(time(nullptr));
           _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
           _motor._motorController->setNegativeReferenceSwitchCalibration(0);
@@ -55,7 +62,9 @@ namespace ChimeraTK::MotorDriver {
         }
       }
     }
-    catch(ChimeraTK::runtime_error&) {
+    catch(ChimeraTK::runtime_error& error) {
+      DEBUG_LOG(
+          "LinearStepperMotor: calibration failed with runtime error (", error.what(), "), setting calibration error");
       _motor._motorController->setCalibrationTime(0);
 
       _motor._calibrationFailed.exchange(true);
@@ -79,6 +88,8 @@ namespace ChimeraTK::MotorDriver {
 
       if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
           !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
+        DEBUG_LOG("LinearStepperMotor: end switch search interrupted (sign ", static_cast<int>(sign), "), target ",
+            _motor.getTargetPositionInSteps(), " != actual ", _motor.getCurrentPositionInSteps());
         _moveInterrupted.exchange(true);
         return;
       }

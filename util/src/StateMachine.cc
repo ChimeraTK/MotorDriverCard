@@ -3,9 +3,11 @@
 
 #include "StateMachine.h"
 
+#include "DebugLog.h"
 #include "StepperMotorUtil.h"
 
 #include <cassert>
+#include <string>
 
 namespace ChimeraTK::MotorDriver {
   namespace utility {
@@ -70,6 +72,8 @@ namespace ChimeraTK::MotorDriver {
 
     void StateMachine::setAndProcessUserEvent(const Event& event) {
       std::lock_guard<std::mutex> lck(_stateMachineMutex);
+      DEBUG_LOG(
+          "StateMachine: processing user event '", event.getName(), "' in state '", _currentState->getName(), "'");
       performTransition(event);
     }
 
@@ -81,11 +85,19 @@ namespace ChimeraTK::MotorDriver {
         _requestedState = ((it->second).targetState);
         _requestedInternalCallback = (it->second).internalCallbackAction;
 
+        DEBUG_LOG("StateMachine: transition from '", _currentState->getName(), "' on event '", event.getName(),
+            "' to '", _requestedState->getName(), "'",
+            _asyncActionActive.load() ? " (deferred, async action active)" : "");
+
         // Apply new state right away, if no async action active
         if(!_asyncActionActive.load()) {
           moveToRequestedState();
         }
         (it->second).entryCallbackAction();
+      }
+      else {
+        DEBUG_LOG(
+            "StateMachine: no transition for event '", event.getName(), "' in state '", _currentState->getName(), "'");
       }
     }
 
@@ -99,6 +111,7 @@ namespace ChimeraTK::MotorDriver {
 
     void StateMachine::moveToRequestedState() {
       if(_requestedState != nullptr) {
+        DEBUG_LOG("StateMachine: state change '", _currentState->getName(), "' -> '", _requestedState->getName(), "'");
         _currentState = _requestedState;
         _internalEventCallback = _requestedInternalCallback;
         _requestedState = nullptr;
@@ -109,7 +122,7 @@ namespace ChimeraTK::MotorDriver {
 
   /********************************************************************************************************************/
 
-  std::string toString(ExitStatus& status) {
+  std::string toString(ExitStatus status) {
     switch(status) {
       case ExitStatus::ERR_INVALID_PARAMETER:
         return "Invalid parameter";
@@ -127,7 +140,7 @@ namespace ChimeraTK::MotorDriver {
 
   /********************************************************************************************************************/
 
-  std::string toString(Error& error) {
+  std::string toString(Error error) {
     switch(error) {
       case Error::ACTION_ERROR:
         return "Error during action";
@@ -142,8 +155,34 @@ namespace ChimeraTK::MotorDriver {
       case Error::EMERGENCY_STOP:
         return "Emergency stop";
       default:
-        assert(false);
-        return ("Unknown error");
+        break;
     }
+    // Several error flags are set at once. Render them as a comma separated list.
+    std::string result;
+    auto append = [&result](const char* name) {
+      if(!result.empty()) {
+        result += ", ";
+      }
+      result += name;
+    };
+    if((static_cast<unsigned int>(error) & static_cast<unsigned int>(Error::ACTION_ERROR)) != 0U) {
+      append("Error during action");
+    }
+    if((static_cast<unsigned int>(error) & static_cast<unsigned int>(Error::CALIBRATION_ERROR)) != 0U) {
+      append("Calibration error");
+    }
+    if((static_cast<unsigned int>(error) & static_cast<unsigned int>(Error::BOTH_END_SWITCHES_ON)) != 0U) {
+      append("Both endswitches on");
+    }
+    if((static_cast<unsigned int>(error) & static_cast<unsigned int>(Error::MOVE_INTERRUPTED)) != 0U) {
+      append("Movement was interrupted");
+    }
+    if((static_cast<unsigned int>(error) & static_cast<unsigned int>(Error::EMERGENCY_STOP)) != 0U) {
+      append("Emergency stop");
+    }
+    if(result.empty()) {
+      return "Unknown error (" + std::to_string(static_cast<unsigned int>(error)) + ")";
+    }
+    return result;
   }
 } // namespace ChimeraTK::MotorDriver

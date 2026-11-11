@@ -3,6 +3,7 @@
 
 #include "ReferenceStepperMotor.h"
 
+#include "DebugLog.h"
 #include "MotorControler.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
@@ -43,6 +44,7 @@ namespace ChimeraTK::MotorDriver {
 
   ExitStatus ReferenceStepperMotor::checkNewPosition(int newPositionInSteps) {
     if(_stateMachine->getCurrentState()->getName() == "calibrating") {
+      DEBUG_LOG("ReferenceStepperMotor: refusing to move to ", newPositionInSteps, ": calibration is in progress");
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
     return BasicStepperMotor::checkNewPosition(newPositionInSteps);
@@ -51,11 +53,15 @@ namespace ChimeraTK::MotorDriver {
   ExitStatus ReferenceStepperMotor::setActualPositionInSteps(int actualPositionInSteps) {
     LockGuard guard(_mutex);
     if(motorActive()) {
+      DEBUG_LOG("ReferenceStepperMotor: refusing to set actual position to ", actualPositionInSteps,
+          ": the system is in action (state '", _stateMachine->getCurrentState()->getName(), "')");
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
     setActualPositionActions(actualPositionInSteps);
 
     // Overwrite end switch calibration and reset calibration mode
+    DEBUG_LOG(
+        "ReferenceStepperMotor: actual position set to ", actualPositionInSteps, ", resetting end switch calibration");
     _calibNegativeEndSwitchInSteps.exchange(std::numeric_limits<int>::min());
     _calibPositiveEndSwitchInSteps.exchange(std::numeric_limits<int>::max());
 
@@ -65,6 +71,8 @@ namespace ChimeraTK::MotorDriver {
   ExitStatus ReferenceStepperMotor::translateAxisInSteps(int translationInSteps) {
     LockGuard guard(_mutex);
     if(motorActive()) {
+      DEBUG_LOG("ReferenceStepperMotor: refusing to translate the axis by ", translationInSteps,
+          " steps: the system is in action (state '", _stateMachine->getCurrentState()->getName(), "')");
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
 
@@ -74,11 +82,16 @@ namespace ChimeraTK::MotorDriver {
     if(this->_calibrationMode.load() == CalibrationMode::FULL) {
       if(utility::checkIfOverflow(_calibPositiveEndSwitchInSteps.load(), translationInSteps) ||
           utility::checkIfOverflow(_calibNegativeEndSwitchInSteps.load(), translationInSteps)) {
+        DEBUG_LOG("ReferenceStepperMotor: refusing to translate the axis by ", translationInSteps,
+            " steps: it would overflow the calibrated end switch positions (", _calibNegativeEndSwitchInSteps.load(),
+            ", ", _calibPositiveEndSwitchInSteps.load(), ")");
         return ExitStatus::ERR_INVALID_PARAMETER;
       }
-
       _calibPositiveEndSwitchInSteps.fetch_add(translationInSteps);
       _calibNegativeEndSwitchInSteps.fetch_add(translationInSteps);
+      DEBUG_LOG("ReferenceStepperMotor: translated end switch calibration by ", translationInSteps,
+          ", positive end switch now ", _calibPositiveEndSwitchInSteps.load(), ", negative end switch now ",
+          _calibNegativeEndSwitchInSteps.load());
     }
     return ExitStatus::SUCCESS;
   }
@@ -86,6 +99,8 @@ namespace ChimeraTK::MotorDriver {
   ExitStatus ReferenceStepperMotor::calibrate() {
     LockGuard guard(_mutex);
     if(motorActive()) {
+      DEBUG_LOG("ReferenceStepperMotor: refusing to calibrate: the system is in action (state '",
+          _stateMachine->getCurrentState()->getName(), "')");
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(ReferenceStateMachine::calibEvent);
@@ -95,6 +110,8 @@ namespace ChimeraTK::MotorDriver {
   ExitStatus ReferenceStepperMotor::determineTolerance() {
     LockGuard guard(_mutex);
     if(motorActive()) {
+      DEBUG_LOG("ReferenceStepperMotor: refusing to determine the tolerance: the system is in action (state '",
+          _stateMachine->getCurrentState()->getName(), "')");
       return ExitStatus::ERR_SYSTEM_IN_ACTION;
     }
     _stateMachine->setAndProcessUserEvent(ReferenceStateMachine::calcToleranceEvent);
@@ -204,11 +221,17 @@ namespace ChimeraTK::MotorDriver {
 
       if(calibPositiveEndSwitchInSteps == std::numeric_limits<int>::max() &&
           calibNegativeEndSwitchInSteps == std::numeric_limits<int>::min()) {
+        DEBUG_LOG("ReferenceStepperMotor: loaded stored calibration -> SIMPLE");
         _calibrationMode.exchange(CalibrationMode::SIMPLE);
       }
       else {
+        DEBUG_LOG("ReferenceStepperMotor: loaded stored calibration, end switch positions positive ",
+            calibPositiveEndSwitchInSteps, ", negative ", calibNegativeEndSwitchInSteps, " -> FULL");
         _calibrationMode.exchange(CalibrationMode::FULL);
       }
+    }
+    else {
+      DEBUG_LOG("ReferenceStepperMotor: no stored calibration found, keeping calibration mode NONE");
     }
   }
 
@@ -225,6 +248,7 @@ namespace ChimeraTK::MotorDriver {
     bool negActive = negativeSwitchActive();
 
     if(posActive && negActive) {
+      DEBUG_LOG("ReferenceStepperMotor: both end switches active, setting error and entering error state");
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
       _stateMachine->setAndProcessUserEvent(StateMachine::errorEvent);
     }
@@ -240,12 +264,16 @@ namespace ChimeraTK::MotorDriver {
       if(posActive) {
         if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
             3 * _tolerancePositiveEndSwitch.load()) {
+          DEBUG_LOG("ReferenceStepperMotor: position ", _motorController->getActualPosition(),
+              " outside positive end switch tolerance, setting calibration error");
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }
       }
       else if(negActive) {
         if(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
             3 * _toleranceNegativeEndSwitch.load()) {
+          DEBUG_LOG("ReferenceStepperMotor: position ", _motorController->getActualPosition(),
+              " outside negative end switch tolerance, setting calibration error");
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }
       }

@@ -3,6 +3,7 @@
 
 #include "ReferenceStateMachine.h"
 
+#include "DebugLog.h"
 #include "MotorControler.h"
 
 #include <ChimeraTK/Exception.h>
@@ -43,11 +44,13 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void ReferenceStateMachine::actionStop() {
+    DEBUG_LOG("ReferenceStepperMotor: stop requested, aborting current action");
     _stopAction.exchange(true);
     return;
   }
 
   void ReferenceStateMachine::actionStartCalib() {
+    DEBUG_LOG("ReferenceStepperMotor: starting calibration");
     _asyncActionActive.store(true);
     std::thread(&ReferenceStateMachine::calibrationThreadFunction, this).detach();
   }
@@ -80,6 +83,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void ReferenceStateMachine::actionStartCalcTolercance() {
+    DEBUG_LOG("ReferenceStepperMotor: starting tolerance calculation");
     _asyncActionActive.exchange(true);
     std::thread toleranceCalcThread(&ReferenceStateMachine::toleranceCalcThreadFunction, this);
     toleranceCalcThread.detach();
@@ -88,8 +92,10 @@ namespace ChimeraTK::MotorDriver {
   void ReferenceStateMachine::moveToEndSwitch(Sign sign) {
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
-      _motor._motorController->setTargetPosition(
-          _motor._motorController->getActualPosition() + static_cast<int>(sign) * getOffset());
+      int targetPosition = _motor._motorController->getActualPosition() + static_cast<int>(sign) * getOffset();
+      DEBUG_LOG("ReferenceStepperMotor: moving to end switch (sign ", static_cast<int>(sign), "), target position ",
+          targetPosition);
+      _motor._motorController->setTargetPosition(targetPosition);
     }
     while(_motor._motorController->isMotorMoving()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
@@ -104,6 +110,8 @@ namespace ChimeraTK::MotorDriver {
 
     // This makes only sense once the motor is fully calibrated
     if(_motor._calibrationMode != CalibrationMode::FULL) {
+      DEBUG_LOG("ReferenceStepperMotor: tolerance calculation not possible, motor not fully calibrated (mode ",
+          static_cast<int>(_motor._calibrationMode.load()), ")");
       _motor._toleranceCalculated.exchange(false);
       _motor._toleranceCalcFailed.exchange(true);
     }
@@ -113,6 +121,7 @@ namespace ChimeraTK::MotorDriver {
         _motor._toleranceCalculated.exchange(false);
       }
       else if(_moveInterrupted.load()) {
+        DEBUG_LOG("ReferenceStepperMotor: tolerance calculation interrupted, setting calibration error");
         _motor._toleranceCalculated.exchange(false);
         _motor._toleranceCalcFailed.exchange(true);
 

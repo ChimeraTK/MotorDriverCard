@@ -1,5 +1,6 @@
 #include "impl/MotorControlerImpl.h"
 
+#include "DebugLog.h"
 #include "DFMC_MD22Constants.h"
 using namespace mtca4u::dfmc_md22;
 #include "TMC429Constants.h"
@@ -29,6 +30,7 @@ using namespace mtca4u::tmc429;
   }                                                                                                                    \
   void MotorControlerImpl::set##NAME(unsigned int value) {                                                             \
     lock_guard guard(_mutex);                                                                                          \
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set ", #NAME, " = ", value, " (TMC429 IDX 0x", IDX, ")");                \
     _controlerSPI->write(_id, IDX, value);                                                                             \
   }
 
@@ -41,6 +43,8 @@ using namespace mtca4u::tmc429;
   void MotorControlerImpl::set##NAME(int value) {                                                                      \
     lock_guard guard(_mutex);                                                                                          \
     unsigned int writeValue = static_cast<unsigned int>(CONVERTER.thirtyTwoToCustom(value));                           \
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set ", #NAME, " = ", value, " (converted 0x", std::hex, writeValue,      \
+        std::dec, ", TMC429 IDX 0x", IDX, ")");                                                                        \
     _controlerSPI->write(_id, IDX, writeValue);                                                                        \
   }
 
@@ -160,6 +164,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setActualPosition(int position) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set actual position = ", position, " (TMC429 IDX_ACTUAL_POSITION)");
     _controlerSPI->write(
         _id, IDX_ACTUAL_POSITION, static_cast<unsigned int>(_converter24bits.thirtyTwoToCustom(position)));
   }
@@ -172,6 +177,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setActualVelocity(int velocity) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set actual velocity = ", velocity, " (TMC429 IDX_ACTUAL_VELOCITY)");
     _controlerSPI->write(
         _id, IDX_ACTUAL_VELOCITY, static_cast<unsigned int>(_converter12bits.thirtyTwoToCustom(velocity)));
   }
@@ -183,6 +189,8 @@ namespace mtca4u {
 
   void MotorControlerImpl::setActualAcceleration(unsigned int acceleration) {
     lock_guard guard(_mutex);
+    DEBUG_LOG(
+        "MotorControlerImpl[", _id, "]: set actual acceleration = ", acceleration, " (TMC429 IDX_ACTUAL_ACCELERATION)");
     _controlerSPI->write(_id, IDX_ACTUAL_ACCELERATION, acceleration);
   }
 
@@ -193,6 +201,8 @@ namespace mtca4u {
 
   void MotorControlerImpl::setMicroStepCount(unsigned int microStepCount) {
     lock_guard guard(_mutex);
+    DEBUG_LOG(
+        "MotorControlerImpl[", _id, "]: set micro step count = ", microStepCount, " (TMC429 IDX_MICRO_STEP_COUNT)");
     _controlerSPI->write(_id, IDX_MICRO_STEP_COUNT, microStepCount);
   }
 
@@ -213,6 +223,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set decoder readout mode = ", readoutMode);
     _decoderReadoutMode = static_cast<int32_t>(readoutMode);
     _decoderReadoutMode.write();
   }
@@ -238,6 +249,7 @@ namespace mtca4u {
   }
 
   void MotorControlerImpl::enableFullStepping(bool enable) {
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: full stepping ", enable ? "enabled" : "disabled");
     _moveOnlyFullStep = enable;
   }
 
@@ -277,6 +289,8 @@ namespace mtca4u {
     _localTargetPosition = value;
 
     auto writeValue = static_cast<unsigned int>(_converter24bits.thirtyTwoToCustom(value));
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set target position = ", value, " (written 0x", std::hex, writeValue,
+        std::dec, ", TMC429 IDX_TARGET_POSITION)");
     _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
   }
 
@@ -307,6 +321,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setMaximumVelocity(unsigned int value) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set maximum velocity = ", value, " (TMC429 IDX_MAXIMUM_VELOCITY)");
     _currentVmax = value;
     _controlerSPI->write(_id, IDX_MAXIMUM_VELOCITY, value);
   }
@@ -359,6 +374,8 @@ namespace mtca4u {
 
   template<class T>
   void MotorControlerImpl::setTypedDriverData(T const& driverData, T& localDataInstance) {
+    DEBUG_LOG(
+        "MotorControlerImpl[", _id, "]: set driver TMC260 data word 0x", std::hex, driverData.getDataWord(), std::dec);
     _driverSPI.write(driverData.getDataWord());
     // Remember the written word for readback.
     localDataInstance = driverData;
@@ -388,6 +405,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setNegativeReferenceSwitchEnabled(bool enableStatus) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: negative reference switch ", enableStatus ? "enabled" : "disabled");
     auto referenceConfigAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     referenceConfigAndRampModeData.setDISABLE_STOP_L(!enableStatus);
     writeTypedControlerRegister(referenceConfigAndRampModeData);
@@ -395,6 +413,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setPositiveReferenceSwitchEnabled(bool enableStatus) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: positive reference switch ", enableStatus ? "enabled" : "disabled");
     auto referenceConfigAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     referenceConfigAndRampModeData.setDISABLE_STOP_R(!enableStatus);
     // setReferenceConfigAndRampModeData internally obtains mutex
@@ -403,6 +422,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setCalibrationTime(uint32_t calibrationTime) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set calibration time = ", calibrationTime);
     _calibrationTime = static_cast<int32_t>(calibrationTime);
     _calibrationTime.write();
   }
@@ -415,6 +435,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set positive reference switch calibration = ", calibratedPosition);
     _endSwitchPositive = calibratedPosition;
     _endSwitchPositive.write();
   }
@@ -427,6 +448,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set negative reference switch calibration = ", calibratedPosition);
     _endSwitchNegative = calibratedPosition;
     _endSwitchNegative.write();
   }
@@ -565,6 +587,7 @@ namespace mtca4u {
 
   void MotorControlerImpl::setMotorCurrentEnabled(bool enable) {
     lock_guard guard(_mutex);
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: motor current ", enable ? "enabled" : "disabled");
     _motorCurrentEnabled = (enable ? 1 : 0);
     _motorCurrentEnabled.write();
   }
@@ -577,9 +600,12 @@ namespace mtca4u {
   void MotorControlerImpl::setEndSwitchPowerEnabled(bool enable) {
     lock_guard guard(_mutex);
     if(!_endSwitchPowerIndicator.isInitialised()) {
+      DEBUG_LOG("MotorControlerImpl[", _id,
+          "]: end switch power enable requested but register not available (old firmware), ignoring");
       return; // Meaning we are on an old firmware that does not support this
               // register. Do nothing
     }
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: end switch power ", enable ? "enabled" : "disabled");
     _endSwitchPowerIndicator = (enable ? 3 : 0);
     _endSwitchPowerIndicator.write();
   }
@@ -595,6 +621,7 @@ namespace mtca4u {
   }
 
   void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
+    DEBUG_LOG("MotorControlerImpl[", _id, "]: set current scale = ", currentScale);
     auto stallGuardData = _controlerConfig.stallGuardControlData;
     stallGuardData.setCurrentScale(currentScale);
     // mutex is acquired in setStallGuardControlData

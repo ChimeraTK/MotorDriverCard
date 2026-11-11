@@ -3,6 +3,7 @@
 
 #include "impl/SPIviaPCIe.h"
 
+#include "DebugLog.h"
 #include "DFMC_MD22Constants.h"
 
 #include <ChimeraTK/Device.h>
@@ -34,6 +35,8 @@ namespace mtca4u {
 
   void SPIviaPCIe::write(int32_t spiCommand) {
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
+    DEBUG_LOG("SPIviaPCIe[", _moduleName, "]: writing spi command 0x", std::hex, spiCommand, std::dec, " to ",
+        _writeRegisterName);
     // try three times to mitigate effects of a firmware bug
     for(int i = 0; i < 3; ++i) {
       // Implement the write handshake
@@ -72,9 +75,11 @@ namespace mtca4u {
       case SPI_SYNC_OK:
         break;
       case SPI_SYNC_REQUESTED:
+        ERROR_LOG("SPIviaPCIe: SPI write timeout: ", errorDetails.str());
         throw ChimeraTK::runtime_error("Timeout writing via SPI, " + errorDetails.str());
       case SPI_SYNC_ERROR:
       default:
+        ERROR_LOG("SPIviaPCIe: SPI write error: ", errorDetails.str());
         throw ChimeraTK::runtime_error("Error writing via SPI, " + errorDetails.str());
     }
   }
@@ -87,6 +92,8 @@ namespace mtca4u {
     write(spiCommand);
 
     _readbackRegister.read();
+    DEBUG_LOG("SPIviaPCIe[", _moduleName, "]: readback for spi command 0x", std::hex, spiCommand, std::dec, " is 0x",
+        std::hex, static_cast<uint32_t>(_readbackRegister), std::dec);
     return static_cast<uint32_t>(_readbackRegister);
   }
 

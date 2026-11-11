@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
+#include "DebugLog.h"
 #include "MotorControler.h"
 
 #include <chrono>
@@ -63,6 +64,9 @@ namespace ChimeraTK::MotorDriver {
         _motorControler->setTargetPosition(_motorControler->getActualPosition());
         stateExitEvnt = errorEvent;
       }
+      DEBUG_LOG("BasicStepperMotor: motor reached standstill (actual position ", _motorControler->getActualPosition(),
+          ", target position ", _motorControler->getTargetPosition(), "), exiting moving state via event '",
+          stateExitEvnt.getName(), "'");
       performTransition(stateExitEvnt);
     }
   }
@@ -71,6 +75,8 @@ namespace ChimeraTK::MotorDriver {
 
   void BasicStepperMotor::StateMachine::actionIdleToMove() {
     _asyncActionActive.exchange(true);
+    DEBUG_LOG("BasicStepperMotor: starting move to target position ", _stepperMotor._targetPositionInSteps,
+        " (actual position ", _motorControler->getActualPosition(), ")");
     _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
@@ -79,6 +85,7 @@ namespace ChimeraTK::MotorDriver {
   void BasicStepperMotor::StateMachine::actionMovetoStop() {
     int currentPos = _motorControler->getActualPosition();
 
+    DEBUG_LOG("BasicStepperMotor: stopping move, setting target position to actual position ", currentPos);
     _motorControler->setTargetPosition(currentPos);
   }
 
@@ -94,6 +101,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionEmergencyStop() {
+    DEBUG_LOG("BasicStepperMotor: emergency stop, disabling motor current and end switch power");
     _motorControler->setMotorCurrentEnabled(false);
     _motorControler->setEndSwitchPowerEnabled(false);
     actionMovetoStop();
@@ -105,6 +113,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionEnable() {
+    DEBUG_LOG("BasicStepperMotor: enabling motor current and end switch power");
     _motorControler->setMotorCurrentEnabled(true);
     _motorControler->setEndSwitchPowerEnabled(true);
   }
@@ -112,6 +121,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionDisable() {
+    DEBUG_LOG("BasicStepperMotor: disabling motor current and end switch power");
     actionMoveToFullStep();
     _motorControler->setMotorCurrentEnabled(false);
     _motorControler->setEndSwitchPowerEnabled(false);

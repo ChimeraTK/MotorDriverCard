@@ -1,5 +1,6 @@
 #include "impl/MotorDriverCardImpl.h"
 
+#include "DebugLog.h"
 #include "impl/MotorControlerImpl.h"
 
 #include <boost/shared_ptr.hpp>
@@ -59,7 +60,9 @@ namespace mtca4u {
     }
     catch(std::out_of_range& e) {
       std::stringstream errorMessage;
-      errorMessage << "motorControlerID " << motorControlerID << " is too large. " << e.what();
+      errorMessage << "motorControlerID " << motorControlerID << " is too large (valid range 0.."
+                   << _motorControlers.size() - 1 << " on module '" << _moduleName << "'). " << e.what();
+      ERROR_LOG("MotorDriverCardImpl: ", errorMessage.str());
       throw ChimeraTK::logic_error(errorMessage.str());
     }
   }
@@ -73,6 +76,7 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::setDatagramLowWord(unsigned int datagramLowWord) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set datagram low word = ", datagramLowWord);
     _controlerSPI->write(SMDA_COMMON, JDX_DATAGRAM_LOW_WORD, datagramLowWord);
   }
 
@@ -81,6 +85,7 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::setDatagramHighWord(unsigned int datagramHighWord) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set datagram high word = ", datagramHighWord);
     _controlerSPI->write(SMDA_COMMON, JDX_DATAGRAM_HIGH_WORD, datagramHighWord);
   }
 
@@ -89,6 +94,8 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::setCoverPositionAndLength(CoverPositionAndLength const& coverPositionAndLength) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set cover position and length, data word 0x", std::hex,
+        coverPositionAndLength.getDataWord(), std::dec);
     _controlerSPI->write(coverPositionAndLength);
   }
 
@@ -97,6 +104,7 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set cover datagram = ", coverDatagram);
     _controlerSPI->write(SMDA_COMMON, JDX_COVER_DATAGRAM, coverDatagram);
   }
 
@@ -106,6 +114,8 @@ namespace mtca4u {
 
   void MotorDriverCardImpl::setStepperMotorGlobalParameters(
       StepperMotorGlobalParameters const& stepperMotorGlobalParameters) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set stepper motor global parameters, data word 0x", std::hex,
+        stepperMotorGlobalParameters.getDataWord(), std::dec);
     _controlerSPI->write(stepperMotorGlobalParameters);
   }
 
@@ -115,6 +125,8 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(InterfaceConfiguration const& interfaceConfiguration) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set interface configuration, data word 0x", std::hex,
+        interfaceConfiguration.getDataWord(), std::dec);
     _controlerSPI->write(interfaceConfiguration);
   }
 
@@ -123,6 +135,7 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::setPositionCompareWord(unsigned int positionCompareWord) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set position compare word = ", positionCompareWord);
     _controlerSPI->write(SMDA_COMMON, JDX_POSITION_COMPARE, positionCompareWord);
   }
 
@@ -132,6 +145,8 @@ namespace mtca4u {
 
   void MotorDriverCardImpl::setPositionCompareInterruptData(
       PositionCompareInterruptData const& positionCompareInterruptData) {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: set position compare interrupt data, data word 0x", std::hex,
+        positionCompareInterruptData.getDataWord(), std::dec);
     return _controlerSPI->write(positionCompareInterruptData);
   }
 
@@ -140,6 +155,7 @@ namespace mtca4u {
   }
 
   void MotorDriverCardImpl::powerDown() {
+    DEBUG_LOG("MotorDriverCardImpl[", _moduleName, "]: powering down TMC429");
     _controlerSPI->write(SMDA_COMMON, JDX_POWER_DOWN, 1);
   }
 
@@ -164,10 +180,11 @@ namespace mtca4u {
     if((static_cast<uint32_t>(firmwareVersion) < static_cast<uint32_t>(MINIMAL_FIRMWARE_VERSION)) ||
         (static_cast<uint32_t>(firmwareVersion) > maxFirmwareVersion)) {
       std::stringstream errorMessage;
-      errorMessage << "MotorDriverCardImpl detected wrong firmware version. "
-                   << "Current firmware is 0x" << std::hex << firmwareVersion << ", minumum required version is 0x"
+      errorMessage << "MotorDriverCardImpl detected wrong firmware version on module '" << _moduleName
+                   << "'. Current firmware is 0x" << std::hex << firmwareVersion << ", minumum required version is 0x"
                    << MINIMAL_FIRMWARE_VERSION << ", maximum allowed version is 0x" << maxFirmwareVersion << std::dec
                    << ".";
+      ERROR_LOG("MotorDriverCardImpl: ", errorMessage.str());
       throw ChimeraTK::runtime_error(errorMessage.str());
     }
   }
