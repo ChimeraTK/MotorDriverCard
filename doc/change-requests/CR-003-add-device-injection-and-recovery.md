@@ -525,9 +525,10 @@ dummy through the factory, so the methods must exist and be harmless.
   actual-position, actual-velocity, actual-acceleration and micro-step registers
   by the mirroring in `setControlerSpiRegistersForOperation()` (`:41,141-157`),
   so the reference value after a reopen is 0.
-- DI-18 [NEW] Test plan, ReconfigureLeavesMotorDisabledByDefault (CR:288-290):
-  justified with "the configuration enables the motors", but the recovery tests
-  are planned on CONFIG_FILE = tests/hardware/VT21-MotorDriverCardConfig.xml
+- DI-18 [FOLDED-IN] Test plan, ReconfigureLeavesMotorDisabledByDefault
+  (CR:288-290): justified with "the configuration enables the motors", but the
+  recovery tests are planned on CONFIG_FILE =
+  tests/hardware/VT21-MotorDriverCardConfig.xml
   (tests/include/testConfigConstants.h:18), which has no enabled register (only
   the comment "end switches enabled", line 10). MotorControlerConfig::enabled
   stays at its default false (backend/src/MotorControlerConfig.cc:12), so the
@@ -535,7 +536,7 @@ dummy through the factory, so the methods must exist and be harmless.
   exists: tests/MotorDriverCardConfig_complete_test.xml sets enabled=true for
   motorID 0 (line 20) and 1 (line 42). The plan must name the configuration used
   for this case.
-- DI-19 [NEW] Test plan, CreateFromDeviceIgnoresDummyMode (planned for
+- DI-19 [FOLDED-IN] Test plan, CreateFromDeviceIgnoresDummyMode (planned for
   tests/src/backend/testMotorDriverCardFactory.cpp): MotorDriverCardFactory is a
   singleton and setDummyMode() is never reset in that file - the existing
   testCreateDummy leaves dummy mode true (line 89). A case that sets dummy mode
