@@ -35,6 +35,15 @@ Recovery:
 - A failed reconfigure throws; the card must not be used afterwards.
 - The dummy card accepts both calls without effect.
 
+Failure detection:
+
+- More than five consecutive failed SPI transactions put the device into its
+  exception state.
+- A successful transaction resets the count.
+- The failure is reported to the caller unchanged.
+- Device managers of the owning application then reopen the device and run
+  their initialisation handlers, so no separate crash detection is needed.
+
 ## Specifications
 
 ### MotorDriverCard (modified) in backend/include/MotorDriverCard.h (modified)
@@ -156,6 +165,21 @@ Recovery:
     stored names and device.
   - Holds the mutex across the whole replacement, so concurrent `read()` and
     `write()` calls see either the old or the new accessor set.
+- New `unsigned int _consecutiveErrorCount{0};`
+  - Counts failed transactions of this SPI, not of the card.
+- New private `void noteSpiFailure(std::string const& message);`
+  - Increments the counter.
+  - Past `SPI_RETRY_COUNT` (5), calls `_device->setException(message)` and
+    resets the counter.
+  - The threshold and the reset follow the detection the motor application
+    module implements today, so recovery timing stays the same.
+  - Called from the failure paths of `write()`, which `read()` uses too, while
+    `_spiMutex` is held; the original error is thrown afterwards.
+  - The exception state covers the whole device, so other modules on the same
+    board fail with it.
+- `write()` resets the counter on a successful handshake.
+  - Exceptions thrown by the accessors themselves are not counted: the device
+    is already in its exception state then.
 
 ### TMC429SPI (modified) in backend/{include/impl/TMC429SPI.h,src/TMC429SPI.cc} (modified)
 
@@ -215,6 +239,10 @@ Recovery:
   application's initialisation handler, when nothing else uses the card.
 - One cache for both overloads: rejected, the owning overload would have to
   return a card whose device it does not own.
+- Counting failures in the card instead of the SPI: rejected, the card holds
+  several SPIs and would count one failure several times.
+- Reporting through a proxy device as the motor application module does today:
+  rejected, it reopens the proxy rather than the device the card reads.
 
 ## Test plan
 
@@ -272,6 +300,14 @@ Recovery:
     `reconnect()`, use it again.
     - Covers `reconnect()` directly; the recovery tests would also fail on a
       broken reconnect, but not localise it.
+  - `SpiFailuresEscalateToTheDevice`: with the dummy answering an SPI error,
+    the first six failures throw and leave the device functional, the seventh
+    puts it into its exception state.
+    - Covers the threshold; nothing else provokes repeated failures.
+  - `SuccessfulTransactionResetsTheFailureCount`: five failures, one
+    successful transaction, five more failures; the device stays functional.
+    - Covers the reset; without it, a card failing now and then would escalate
+      eventually.
 - `tests/src/backend/testMotorDriverCardDummy.cpp` (modified)
   - `DummyIsFunctionalAndAcceptsReconfigure`: `isFunctional()` is true and both
     `reconfigure()` calls leave the controlers intact.
