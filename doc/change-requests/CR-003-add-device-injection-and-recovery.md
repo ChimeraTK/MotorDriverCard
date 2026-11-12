@@ -18,7 +18,7 @@ the previously returned card is still alive.
 - The injected device must outlive the card.
 - A motor controler must not outlive its card; this holds for both factory
 overloads.
-- Alias-based creation keeps its current behaviour.
+- Alias-based creation is otherwise unchanged.
 - Dummy mode does not apply to an injected device.
 
 Recovery:
@@ -35,7 +35,8 @@ speed limit, to the configured values.
 - The caller does not use the card while a reconfigure runs.
 - Existing `MotorControler` references stay valid across a reconfigure.
 - It does not open, close or replace the device.
-- A failed reconfigure throws; the card must not be used afterwards.
+- A failed reconfigure throws; the caller must then not use the card except
+to reopen the device and call `reconfigure()` again.
 - The dummy card accepts both calls without effect.
 
 ## Specifications
@@ -89,7 +90,10 @@ configuration, which is why the member can be assigned after delegation.
 - `void reconfigure(bool enableMotor = false) override;`
 - Locks a new `std::mutex _reconfigureMutex`.
 - Re-checks the firmware version.
-- Re-creates `_controlerStatusRegister`.
+- Re-creates `_controlerStatusRegister` with
+`{ChimeraTK::AccessMode::raw}`, as the constructor does.
+- Without the flag the re-created accessor would use the default access mode
+and the status word would change.
 - Calls `_controlerSPI->reconnect()`.
 - Re-applies the card-wide configuration with `applyConfiguration()`.
 - Calls `reconfigure(enableMotor)` on every motor controler.
@@ -125,6 +129,10 @@ pointer and so keeps the device alive past the card.
 - Locks `_mutex`.
 - Re-creates all scalar accessors from `*_device` and `_moduleName`,
 including the optional end-switch power accessor.
+- `_controlerStatus` is created with `{ChimeraTK::AccessMode::raw}`, as the
+constructor does. It is created with an explicit raw mode there instead of
+through `RAW_ACCESSOR_FROM_SUFFIX`, so the shared accessor-creation helper
+keeps that flag.
 - Calls `_driverSPI.reconnect()`.
 - Re-applies `_controlerConfig` through the shared `applyConfiguration()`.
 - Resets `_currentVmax` to the configured maximum velocity.
@@ -202,8 +210,9 @@ overloads.
 - Key is the device address and the module name.
 - Returns the cached card while it is alive.
 - Guarded by the existing `_factoryMutex`.
-- The one-card-per-device guarantee is per device object: mixing the alias
-and the injected overload for the same alias is unsupported.
+- The guarantee is one card per device and module, matching the cache key.
+Mixing the alias and the injected overload for the same alias is
+unsupported.
 - A stale entry needs a destroyed device; the device must outlive the card,
 so the address cannot be reused while the card is alive.
 - The overload ignores dummy mode.
@@ -238,7 +247,7 @@ return a card whose device it does not own.
 - `tests/src/backend/testMotorDriverCardFactory.cpp` (modified)
 - `CreateFromDeviceReturnsTheSameCard`: two calls with one open device and
 one module return the same pointer, a second module returns a different one.
-- Covers the cache of the injected overload and the one-card-per-device
+- Covers the cache of the injected overload and the one-card-per-device-and-module
 guarantee behind the SPI mutex.
 - `CreateFromDeviceIgnoresDummyMode`: dummy mode set, injected creation
 returns a real card that works on the dummy backend.
@@ -294,6 +303,9 @@ signal.
 - Covers the signature change; without it the file does not compile, and
 `testSPIviaPCIe.cpp` alone would not show the break.
 - `tests/src/backend/testSPIviaPCIe.cpp` (modified)
+- Existing cases construct both SPI objects from a shared pointer; they pass
+`*_device` after the constructor change, as `testTMC429SPI.cc` does.
+- Covers the signature change; the file would not compile otherwise.
 - `ReconnectAfterDeviceReopen`: use the SPI, close and reopen the device,
 `reconnect()`, use it again.
 - Covers `reconnect()` directly; the recovery tests would also fail on a
@@ -368,3 +380,30 @@ dummy through the factory, so the methods must exist and be harmless.
   both class comments claim the class keeps no device reference
   (backend/include/impl/SPIviaPCIe.h:29-32 and 68), so the plan should name both
   comments to update.
+- DI-7 [NEW] Re-created card status accessor loses its raw access mode: the plan
+  says `reconfigure()` only 're-creates `_controlerStatusRegister`' (CR:92), but
+  the constructor creates it with `{ChimeraTK::AccessMode::raw}`
+  (backend/src/MotorDriverCardImpl.cc:23-24). Without the flag the re-created
+  accessor gets the default access mode and the status word changes. The same
+  holds for the controler's `_controlerStatus`, which is created with an
+  explicit raw mode outside `RAW_ACCESSOR_FROM_SUFFIX`
+  (backend/src/MotorControlerImpl.cc:85-86), so the shared accessor-creation
+  helper must keep it.
+- DI-8 [NEW] Cache guarantee is misstated: 'The one-card-per-device guarantee is
+  per device object' (CR:205-206) contradicts the cache key (device address plus
+  module name) and the test plan, where a second module returns a different card
+  (CR:239-242). The guarantee is one card per device and module.
+- DI-9 [NEW] Requirement 'A failed reconfigure throws; the card must not be used
+  afterwards' (CR:38) contradicts `ReconfigureOnClosedDeviceThrows`, which
+  reopens the device and calls `reconfigure()` again (CR:279-280). The
+  requirement must allow the retry it prescribes.
+- DI-10 [NEW] `tests/src/backend/testSPIviaPCIe.cpp` also constructs both SPI
+  objects from the device shared pointer
+  (tests/src/backend/testSPIviaPCIe.cpp:41-47), but the test plan names the
+  `*_device` update only for `testTMC429SPI.cc` (CR:291-295). Its entry only
+  adds `ReconnectAfterDeviceReopen`, so the fixture update is missing.
+- DI-11 [NEW] Requirement 'Alias-based creation keeps its current behaviour'
+  (CR:21) contradicts the new rule 'A motor controler must not outlive its card;
+  this holds for both factory overloads' (CR:19-20): an alias-created controler
+  can outlive its card today (backend/include/impl/MotorControlerImpl.h:23-30),
+  so alias-based behaviour does change in that respect.
