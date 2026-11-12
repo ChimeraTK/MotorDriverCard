@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: IMPLEMENTATION REVIEWED (from TESTS REVIEWED)
+- Status: TESTS REVIEWED
 
 ## Requirements
 
