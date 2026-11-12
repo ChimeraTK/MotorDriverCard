@@ -44,9 +44,6 @@ const std::chrono::milliseconds WAIT_TIMEOUT(10000);
 
 namespace {
 
-  /// Whether the test has blocked the motor. The dummy forgets the block on each move, so it has to be preserved.
-  bool _motorBlocked = false;
-
   /**
    * Linear state machine whose searches end on the homing timeout within a test.
    *
@@ -118,6 +115,8 @@ class LinearStepperMotorHomingTestFixture {
   std::shared_ptr<LinearStepperMotorStateMachine> _stateMachine;
   boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
   boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
+  /// Whether the test has blocked the motor. The dummy forgets the block on each move, so it has to be preserved.
+  bool _motorBlocked = false;
 };
 
 LinearStepperMotorHomingTestFixture::LinearStepperMotorHomingTestFixture() {

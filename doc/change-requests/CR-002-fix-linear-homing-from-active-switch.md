@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: READY TO IMPLEMENT (from TESTS PASSED)
+- Status: IMPLEMENTED (from TESTS PASSED)
 
 ## Requirements
 
@@ -138,4 +138,4 @@ release search.
 - DI-15 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:29: `static const std::string moduleName("");` triggers readability-redundant-string-init; use the plain declaration `static const std::string moduleName;` as in tests/src/steppermotor/testRotaryStepperMotor.cc:24 (no linter warnings allowed).
 - DI-16 [IMPLEMENTED] getHomingTimeoutInMilliseconds() is a pure query but is not marked [[nodiscard]] (clang-tidy modernize-use-nodiscard at tests/src/steppermotor/testLinearStepperMotorHoming.cc:64). Mark the declaration in steppermotor/include/ReferenceStateMachine.h:61 and the override in steppermotor/include/LinearStepperMotorStateMachine.h the same way as the query accessors in steppermotor/include/StepperMotor.h.
 - DI-17 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:59: `ShortTimeoutLinearStepperMotorStateMachine::HOMING_TIMEOUT_MS = 100` hides the inherited `ReferenceStateMachine::HOMING_TIMEOUT_MS = 60000` with a different value, so the same name means two different timeouts in the hierarchy. Rename the test constant (e.g. SHORT_HOMING_TIMEOUT_MS).
-- DI-18 [NEW] tests/src/steppermotor/testLinearStepperMotorHoming.cc:48: `bool _motorBlocked = false;` is a mutable flag in the anonymous namespace but carries the private-member `_` prefix, which the naming rule reserves for protected/private data members; a namespace-scope identifier starting with `_` is also in reserved-identifier territory. Every use (lines 133, 148, 210, 283) sits in a member function of `LinearStepperMotorHomingTestFixture`, so make it a data member of that fixture (declared with the other members next to `_stepperMotor`) and drop the file-global state.
+- DI-18 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:48: `bool _motorBlocked = false;` is a mutable flag in the anonymous namespace but carries the private-member `_` prefix, which the naming rule reserves for protected/private data members; a namespace-scope identifier starting with `_` is also in reserved-identifier territory. Every use (lines 133, 148, 210, 283) sits in a member function of `LinearStepperMotorHomingTestFixture`, so make it a data member of that fixture (declared with the other members next to `_stepperMotor`) and drop the file-global state.
