@@ -20,7 +20,6 @@
 #include <memory>
 #include <string>
 #include <thread>
-#include <utility>
 
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK::MotorDriver;
@@ -36,8 +35,9 @@ const int SEARCH_OFFSET = 50000;
 // the positive switch, one motor controller step each.
 const int NEGATIVE_SWITCH_POSITION = -SEARCH_OFFSET;
 const int POSITIVE_SWITCH_POSITION = 4 * SEARCH_OFFSET;
-// A switch position beyond the first search chunk, which every search reaches and passes in the dummy.
-const int DISTANT_SWITCH_POSITION = 8 * SEARCH_OFFSET;
+// A reachable switch position beyond the first search chunk: the first chunk does not reach the switch, but a later
+// chunk does if the search is still running.
+const int REACHABLE_SWITCH_POSITION_BEYOND_FIRST_CHUNK = 8 * SEARCH_OFFSET;
 
 // The tests poll the running calibration, as the searches wait for their chunk to end.
 const unsigned POLL_PERIOD_MS = 1U;
@@ -108,6 +108,10 @@ class LinearStepperMotorHomingTestFixture {
 
   /// Waits until the search has issued the chunk with the given target position.
   void waitForChunk(int targetPositionInSteps);
+  /// Moves the dummy to the given position, one move at a time.
+  void moveTo(int targetPositionInSteps);
+  /// Sends a further chunk on behalf of the running positive search and places the dummy at its target.
+  void stepPositiveSearchChunk(int targetPositionInSteps);
   /// Moves the dummy to the target position of the last issued chunk.
   void stepChunk();
 
@@ -185,18 +189,38 @@ void LinearStepperMotorHomingTestFixture::startCalibration() {
 }
 
 void LinearStepperMotorHomingTestFixture::placeMotorOnPositiveSwitch() {
-  // A move the dummy cannot carry out leaves the positions untouched, so the motor is driven onto the positive switch
-  // step by step to keep the hardware position in line with the motor controller position.
   _stepperMotor->setEnabled(true);
-  while(_stepperMotor->getCurrentPositionInSteps() < POSITIVE_SWITCH_POSITION) {
+  moveTo(POSITIVE_SWITCH_POSITION);
+  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->isSystemIdle(); }));
+  BOOST_TEST_REQUIRE(_stepperMotor->getCurrentPositionInSteps() == POSITIVE_SWITCH_POSITION);
+  BOOST_TEST_REQUIRE(_stepperMotor->isRawPositiveSwitchActive());
+}
+
+void LinearStepperMotorHomingTestFixture::moveTo(int targetPositionInSteps) {
+  // A move the dummy cannot carry out leaves the positions untouched, so the motor is driven to the target step by
+  // step to keep the hardware position in line with the motor controller position.
+  while(_stepperMotor->getCurrentPositionInSteps() < targetPositionInSteps) {
     _motorControlerDummy->setTargetPosition(_stepperMotor->getCurrentPositionInSteps() + SEARCH_OFFSET);
     while(_motorControlerDummy->isMotorMoving()) {
       _motorControlerDummy->moveTowardsTarget(1.0F, false);
     }
   }
-  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->isSystemIdle(); }));
-  BOOST_TEST_REQUIRE(_stepperMotor->getCurrentPositionInSteps() == POSITIVE_SWITCH_POSITION);
-  BOOST_TEST_REQUIRE(_stepperMotor->isRawPositiveSwitchActive());
+  // The motor records its settled controllers as a move of the state machine, which raises MOVE_INTERRUPTED at a
+  // switch, so the test waits for the dummy alone.
+  BOOST_TEST_REQUIRE(waitFor(
+      [this] { return _motorControlerDummy->getActualPosition() == _motorControlerDummy->getTargetPosition(); }));
+}
+
+void LinearStepperMotorHomingTestFixture::stepPositiveSearchChunk(int targetPositionInSteps) {
+  // The searches wait for their chunk, so a chunk which would block alongside the running search is sent on its behalf.
+  // The position is given so that the dummy only moves if it has not reached the target yet.
+  BOOST_TEST_REQUIRE(_stepperMotor->getTargetPositionInSteps() == _stepperMotor->getCurrentPositionInSteps());
+  BOOST_TEST_REQUIRE(waitFor(
+      [this, targetPositionInSteps] { return _motorControlerDummy->getActualPosition() < targetPositionInSteps; }));
+  _motorControlerDummy->setTargetPosition(targetPositionInSteps);
+  while(_motorControlerDummy->isMotorMoving()) {
+    _motorControlerDummy->moveTowardsTarget(1.0F, false);
+  }
 }
 
 void LinearStepperMotorHomingTestFixture::waitForChunk(int targetPositionInSteps) {
@@ -204,6 +228,7 @@ void LinearStepperMotorHomingTestFixture::waitForChunk(int targetPositionInSteps
     return _stepperMotor->getTargetPositionInSteps() == targetPositionInSteps ||
         _stepperMotor->getState() != "calibrating";
   }));
+  BOOST_TEST_REQUIRE(_stepperMotor->getState() == "calibrating");
 }
 
 void LinearStepperMotorHomingTestFixture::stepChunk() {
@@ -296,15 +321,20 @@ BOOST_AUTO_TEST_CASE(BlockedMotorOnActiveSwitchFailsWithCalibrationError) {
  * "A search that does not find its switch within the homing timeout of the stage must abort the calibration."
  * "The abort reports a calibration error and leaves the calibration mode at CalibrationMode::NONE."
  *
- * Both switches sit beyond the first search chunk, so no search reaches its switch in that chunk and the timeout of the
- * test subclass expires before the next one is issued.
+ * Both switches are reachable, but both sit beyond the first search chunk, so the first chunk does not reach its
+ * switch. The test finishes that chunk and sends the second one on behalf of the search, which then waits for it. The
+ * next loop iteration finds the timeout of the test subclass expired, so no third chunk is issued. The switches being
+ * reachable is what makes the timeout the sole abort reason.
  */
 BOOST_AUTO_TEST_CASE(HomingSearchWhichDoesNotFindItsSwitchAborts) {
+  _motorControlerDummy->setPositiveEndSwitch(REACHABLE_SWITCH_POSITION_BEYOND_FIRST_CHUNK);
+  _motorControlerDummy->setNegativeEndSwitch(-REACHABLE_SWITCH_POSITION_BEYOND_FIRST_CHUNK);
   useStateMachine(std::make_shared<ShortTimeoutLinearStepperMotorStateMachine>(*_stepperMotor));
-  _motorControlerDummy->setPositiveEndSwitch(DISTANT_SWITCH_POSITION);
-  _motorControlerDummy->setNegativeEndSwitch(-DISTANT_SWITCH_POSITION);
 
   startCalibration();
+  waitForChunk(SEARCH_OFFSET);
+  stepChunk();
+  stepPositiveSearchChunk(2 * SEARCH_OFFSET);
   runCalibration();
 
   BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
