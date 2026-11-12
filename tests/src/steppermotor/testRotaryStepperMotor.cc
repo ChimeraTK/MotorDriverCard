@@ -4,7 +4,6 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE RotaryStepperMotorTest
 
-#include "DFMC_MD22Dummy.h"
 #include "MotorControlerDummy.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
@@ -12,13 +11,12 @@
 #include "StepperMotor.h"
 #include "testConfigConstants.h"
 
-#include <ChimeraTK/Exception.h>
-
 #include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <thread>
@@ -26,131 +24,164 @@
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK::MotorDriver;
 
-namespace {
+static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
+static const std::string moduleName;
 
-  const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-  const std::string moduleName("");
+// The positive end switch of the dummy sits at this hardware position. The dummy resolves the switch from the
+// hardware position only, and the hardware position equals the motor controller position for a fresh dummy. The
+// end switch is therefore reached exactly when the motor controller reports this position.
+const int POSITIVE_END_SWITCH_POSITION = 10000;
 
-  // The positive end switch of the dummy sits at this hardware position. The dummy resolves the switch from the
-  // hardware position only, and the hardware position equals the motor controller position for a fresh dummy. The
-  // end switch is therefore reached exactly when the motor controller reports this position.
-  const int POSITIVE_END_SWITCH_POSITION = 10000;
+// Both the release search and the homing search move in chunks of END_SWITCH_SEARCH_OFFSET (5000) steps relative to
+// the current motor controller position.
+const int END_SWITCH_SEARCH_OFFSET = 5000;
 
-  // Both the release search and the homing search move in chunks of END_SWITCH_SEARCH_OFFSET (5000) steps relative to
-  // the current motor controller position.
-  const int END_SWITCH_SEARCH_OFFSET = 5000;
+const unsigned WAIT_PERIOD_MS = 5U;
+const std::chrono::milliseconds WAIT_TIMEOUT(10000);
 
-  const unsigned WAIT_PERIOD_MS = 5U;
-  const std::chrono::milliseconds WAIT_TIMEOUT(10000);
+// The calibration runs in a detached thread which advances the dummy one chunk at a time. The chunk is only picked up
+// while the motor stands still, so the chunks have to be spaced out.
+const std::chrono::milliseconds CHUNK_PERIOD(150);
 
-  // The calibration runs in a detached thread which advances the dummy one chunk at a time. The chunk is only picked up
-  // while the motor stands still, so the chunks have to be spaced out.
-  const std::chrono::milliseconds CHUNK_PERIOD(150);
+// A full rotary calibration needs a release chunk and a homing chunk, this bound only guards against a runaway.
+const unsigned MAX_CALIBRATION_CHUNKS = 10U;
 
-  // A full rotary calibration needs a release chunk and a homing chunk, this bound only guards against a runaway.
-  const unsigned MAX_CALIBRATION_CHUNKS = 10U;
+// Ten samples of two moves each. The worker polls for each move to finish every few milliseconds, so this bound is
+// generous and only guards against a runaway.
+const unsigned MAX_TOLERANCE_ITERATIONS = 2000U;
 
-  /// Polls a condition until it holds or the timeout expires.
-  template<typename Condition>
-  bool waitFor(const Condition& condition) {
-    auto const start = std::chrono::steady_clock::now();
-    while(std::chrono::steady_clock::now() - start < WAIT_TIMEOUT) {
-      if(condition()) {
-        return true;
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_PERIOD_MS));
+/// Polls a condition until it holds or the timeout expires.
+template<typename Condition>
+static bool waitFor(const Condition& condition) {
+  auto const start = std::chrono::steady_clock::now();
+  while(std::chrono::steady_clock::now() - start < WAIT_TIMEOUT) {
+    if(condition()) {
+      return true;
     }
-    return condition();
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_PERIOD_MS));
   }
+  return condition();
+}
 
-  /// Rotary motor on a dummy motor controller which is hand-stepped through its chunks by the tests.
-  class RotaryStepperMotorFixture {
-   public:
-    RotaryStepperMotorFixture();
-    ~RotaryStepperMotorFixture();
+/// Rotary motor on a dummy motor controller which is hand-stepped through its chunks by the tests.
+class RotaryStepperMotorFixture {
+ public:
+  void startCalibration();
+  /// Drives the dummy to the given motor controller position, using the motor current of the motor.
+  void driveTo(int motorControllerPosition);
+  void driveToEndSwitch();
+  /// Lets the background thread advance by one chunk.
+  void advanceOneChunk() const;
+  /// Runs the tolerance calculation until the motor is idle.
+  void runToleranceCalculationToEnd();
+  /// Runs the calibration until the motor is idle.
+  void runCalibrationToEnd();
 
-    void startCalibration();
-    /// Drives the dummy to the given motor controller position, using the motor current of the motor.
-    void driveTo(int motorControllerPosition);
-    void driveToEndSwitch();
-    /// Lets the background calibration thread advance by one chunk.
-    void advanceOneChunk();
-    /// Runs the calibration until the motor is idle.
-    void runCalibrationToEnd();
+ protected:
+  RotaryStepperMotorFixture();
+  ~RotaryStepperMotorFixture();
 
-    StepperMotorParameters _stepperMotorParameters;
-    std::shared_ptr<StepperMotor> _stepperMotor;
-    std::shared_ptr<RotaryStepperMotor> _rotaryMotor;
-    boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
-    boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
-  };
+  /// Whether the dummy has a target it has not reached yet, i.e. whether the background thread has issued the next
+  /// chunk. A move is only issued while the motor stands still.
+  [[nodiscard]] bool isChunkTargetSet() const;
 
-  RotaryStepperMotorFixture::RotaryStepperMotorFixture() {
-    mtca4u::MotorDriverCardFactory::instance().setDummyMode();
-    _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
-        DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
-    _motorControlerDummy =
-        boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
+  StepperMotorParameters _stepperMotorParameters;
+  std::shared_ptr<StepperMotor> _stepperMotor;
+  std::shared_ptr<RotaryStepperMotor> _rotaryMotor;
+  boost::shared_ptr<mtca4u::MotorDriverCard> _motorDriverCard;
+  boost::shared_ptr<mtca4u::MotorControlerDummy> _motorControlerDummy;
+};
 
-    _motorControlerDummy->setPositiveEndSwitch(POSITIVE_END_SWITCH_POSITION);
-    _motorControlerDummy->resetInternalStateToDefaults();
+RotaryStepperMotorFixture::RotaryStepperMotorFixture() {
+  mtca4u::MotorDriverCardFactory::instance().setDummyMode();
+  _motorDriverCard = mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(
+      DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
+  _motorControlerDummy =
+      boost::dynamic_pointer_cast<mtca4u::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
-    _stepperMotorParameters.motorType = StepperMotorType::ROTARY;
-    _stepperMotorParameters.deviceName = DUMMY_DEVICE_FILE_NAME;
-    _stepperMotorParameters.moduleName = moduleName;
-    _stepperMotorParameters.configFileName = stepperMotorDeviceConfigFile;
-    _stepperMotor = StepperMotorFactory::instance().create(_stepperMotorParameters);
-    _rotaryMotor = std::dynamic_pointer_cast<RotaryStepperMotor>(_stepperMotor);
-    BOOST_REQUIRE(_rotaryMotor != nullptr);
-  }
+  _motorControlerDummy->setPositiveEndSwitch(POSITIVE_END_SWITCH_POSITION);
+  _motorControlerDummy->resetInternalStateToDefaults();
 
-  RotaryStepperMotorFixture::~RotaryStepperMotorFixture() {
-    // A calibration thread which is still running would keep stepping a motor which is about to be destroyed.
-    _stepperMotor->setEnabled(false);
-    waitFor([this] { return !_motorControlerDummy->isMotorMoving(); });
-    _stepperMotor.reset();
-    _motorControlerDummy->resetInternalStateToDefaults();
-  }
+  _stepperMotorParameters.motorType = StepperMotorType::ROTARY;
+  _stepperMotorParameters.deviceName = DUMMY_DEVICE_FILE_NAME;
+  _stepperMotorParameters.moduleName = moduleName;
+  _stepperMotorParameters.configFileName = stepperMotorDeviceConfigFile;
+  _stepperMotor = StepperMotorFactory::instance().create(_stepperMotorParameters);
+  _rotaryMotor = std::dynamic_pointer_cast<RotaryStepperMotor>(_stepperMotor);
+  BOOST_REQUIRE(_rotaryMotor != nullptr);
+}
 
-  void RotaryStepperMotorFixture::startCalibration() {
-    _stepperMotor->setEnabled(true);
-    BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
-    BOOST_CHECK(_stepperMotor->calibrate() == ExitStatus::SUCCESS);
-    BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "calibrating"; }));
-  }
+RotaryStepperMotorFixture::~RotaryStepperMotorFixture() {
+  // A calibration which is still running would keep stepping a motor which is about to be destroyed, and its state
+  // machine would still be directable by a later test. A blocked motor never finishes its search, so the stop has to
+  // abort it. The motor may then be in the error state, from which only a reset leads back to a settleable state.
+  waitFor([this] {
+    _stepperMotor->stop();
+    _stepperMotor->resetError();
+    return _stepperMotor->isSystemIdle();
+  });
+  _stepperMotor->setEnabled(false);
+  _stepperMotor.reset();
+  _motorControlerDummy->resetInternalStateToDefaults();
+}
 
-  void RotaryStepperMotorFixture::driveTo(int motorControllerPosition) {
-    // The dummy only steps while the motor current is on and lets the motor stop at an end switch.
-    _stepperMotor->setEnabled(true);
-    _motorControlerDummy->setTargetPosition(motorControllerPosition);
-    while(_motorControlerDummy->isMotorMoving()) {
-      _motorControlerDummy->moveTowardsTarget(1.0F, false);
-    }
-  }
+void RotaryStepperMotorFixture::startCalibration() {
+  _stepperMotor->setEnabled(true);
+  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_CHECK(_stepperMotor->calibrate() == ExitStatus::SUCCESS);
+  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "calibrating"; }));
+}
 
-  void RotaryStepperMotorFixture::driveToEndSwitch() {
-    driveTo(POSITIVE_END_SWITCH_POSITION);
-    BOOST_REQUIRE(_stepperMotor->isPositiveReferenceActive());
-  }
-
-  void RotaryStepperMotorFixture::advanceOneChunk() {
-    std::this_thread::sleep_for(CHUNK_PERIOD);
+void RotaryStepperMotorFixture::driveTo(int motorControllerPosition) {
+  // The dummy only steps while the motor current is on and lets the motor stop at an end switch.
+  _stepperMotor->setEnabled(true);
+  _motorControlerDummy->setTargetPosition(motorControllerPosition);
+  while(_motorControlerDummy->isMotorMoving()) {
     _motorControlerDummy->moveTowardsTarget(1.0F, false);
   }
+}
 
-  void RotaryStepperMotorFixture::runCalibrationToEnd() {
-    // Each chunk moves the motor to its target, so the background thread only issues the next one afterwards.
-    for(unsigned chunk = 0; chunk < MAX_CALIBRATION_CHUNKS; ++chunk) {
-      if(_stepperMotor->isSystemIdle()) {
-        return;
-      }
-      advanceOneChunk();
+void RotaryStepperMotorFixture::driveToEndSwitch() {
+  driveTo(POSITIVE_END_SWITCH_POSITION);
+  BOOST_REQUIRE(_stepperMotor->isPositiveReferenceActive());
+}
+
+void RotaryStepperMotorFixture::advanceOneChunk() const {
+  std::this_thread::sleep_for(CHUNK_PERIOD);
+  _motorControlerDummy->moveTowardsTarget(1.0F, false);
+}
+
+[[nodiscard]] bool RotaryStepperMotorFixture::isChunkTargetSet() const {
+  return !_motorControlerDummy->isMotorMoving() &&
+      _motorControlerDummy->getTargetPosition() != _motorControlerDummy->getActualPosition();
+}
+
+void RotaryStepperMotorFixture::runToleranceCalculationToEnd() {
+  // The tolerance calculation waits for each move to reach its target, so the dummy has to reach its target for the
+  // worker to continue. A move towards an active end switch does not start in the dummy, so it is left alone.
+  for(unsigned iteration = 0; iteration < MAX_TOLERANCE_ITERATIONS; ++iteration) {
+    if(_stepperMotor->isSystemIdle()) {
+      return;
     }
-    BOOST_REQUIRE_MESSAGE(
-        _stepperMotor->isSystemIdle(), "calibration did not finish within " << MAX_CALIBRATION_CHUNKS << " chunks");
+    if(_motorControlerDummy->isMotorMoving()) {
+      _motorControlerDummy->moveTowardsTarget(1.0F, false);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_PERIOD_MS));
   }
+  BOOST_FAIL("tolerance calculation did not finish within " << MAX_TOLERANCE_ITERATIONS << " iterations");
+}
 
-} // namespace
+void RotaryStepperMotorFixture::runCalibrationToEnd() {
+  // Each chunk moves the motor to its target, so the background thread only issues the next one afterwards.
+  for(unsigned chunk = 0; chunk < MAX_CALIBRATION_CHUNKS; ++chunk) {
+    if(_stepperMotor->isSystemIdle()) {
+      return;
+    }
+    advanceOneChunk();
+  }
+  BOOST_REQUIRE_MESSAGE(
+      _stepperMotor->isSystemIdle(), "calibration did not finish within " << MAX_CALIBRATION_CHUNKS << " chunks");
+}
 
 BOOST_FIXTURE_TEST_SUITE(RotaryStepperMotorTest, RotaryStepperMotorFixture)
 
@@ -178,6 +209,60 @@ BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
   BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), true);
   BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), _stepperMotor->getNegativeEndReferenceInSteps());
   BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), POSITIVE_END_SWITCH_POSITION);
+}
+
+/**
+ * Specification: `RotaryStepperMotor::verifyMoveAction()`.
+ *
+ * "Override the base disjunction: accept the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target
+ * position equals the actual position."
+ * "Prevents the ignored negative switch bit from masking a blocked move."
+ *
+ * The tolerance calculation moves away from the end switch and verifies that move while the positive switch is
+ * inactive. With the conditions combined as a conjunction the calculation would fail.
+ */
+BOOST_AUTO_TEST_CASE(ToleranceCalculationSucceedsAfterHoming) {
+  startCalibration();
+  runCalibrationToEnd();
+  BOOST_REQUIRE(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
+
+  BOOST_CHECK(_stepperMotor->determineTolerance() == ExitStatus::SUCCESS);
+  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
+
+  runToleranceCalculationToEnd();
+
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
+  BOOST_CHECK(_stepperMotor->getError() == Error::NO_ERROR);
+  BOOST_CHECK(std::isfinite(_stepperMotor->getTolerancePositiveEndSwitch()));
+}
+
+/**
+ * Specification: `ReferenceStateMachine`.
+ *
+ * "`_calculatingTolerance` shares `actionStop()`, so stopping a tolerance calculation also commands standstill."
+ *
+ * The first move issued by the tolerance calculation is held, so the motor is still moving when the stop is
+ * processed. The standstill command has to take the target back to the actual position, and the worker must not
+ * issue the second move of the iteration afterwards.
+ */
+BOOST_AUTO_TEST_CASE(StopDuringToleranceCalculationCommandsStandstill) {
+  startCalibration();
+  runCalibrationToEnd();
+  BOOST_REQUIRE(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
+
+  BOOST_REQUIRE(_stepperMotor->determineTolerance() == ExitStatus::SUCCESS);
+  BOOST_REQUIRE(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
+
+  BOOST_REQUIRE(waitFor([this] {
+    return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - 1000;
+  }));
+
+  _stepperMotor->stop();
+
+  BOOST_CHECK_EQUAL(_stepperMotor->isMoving(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
+  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
 }
 
 /**
@@ -224,7 +309,8 @@ BOOST_AUTO_TEST_CASE(BlockedMoveReportedAsInterrupted) {
   BOOST_REQUIRE_EQUAL(_motorControlerDummy->getReferenceSwitchData().getNegativeSwitchActive(), 1U);
   BOOST_REQUIRE(!_stepperMotor->isPositiveReferenceActive());
 
-  _stepperMotor->setTargetPositionInSteps(POSITIVE_END_SWITCH_POSITION - 2 * END_SWITCH_SEARCH_OFFSET);
+  BOOST_REQUIRE(_stepperMotor->setTargetPositionInSteps(POSITIVE_END_SWITCH_POSITION - 2 * END_SWITCH_SEARCH_OFFSET) ==
+      ExitStatus::SUCCESS);
   _motorControlerDummy->setTargetPosition(POSITIVE_END_SWITCH_POSITION - 2 * END_SWITCH_SEARCH_OFFSET);
   _motorControlerDummy->simulateBlockedMotor(true);
   _stepperMotor->start();
@@ -272,6 +358,30 @@ BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
 
   BOOST_REQUIRE(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET &&
+        _motorControlerDummy->isMotorMoving();
+  }));
+
+  _stepperMotor->stop();
+
+  BOOST_CHECK(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
+  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+}
+
+/**
+ * Specification: `RotaryStepperMotorStateMachine::performCalibration()`.
+ *
+ * "Abort the release search on stop or move interruption."
+ *
+ * The positive switch is active at the start, so the calibration runs the release search. Stopping after the first
+ * negative chunk target must abort that search.
+ */
+BOOST_AUTO_TEST_CASE(StopDuringReleaseSearchStopsMotor) {
+  driveToEndSwitch();
+  startCalibration();
+
+  BOOST_REQUIRE(waitFor([this] {
+    return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET &&
         _motorControlerDummy->isMotorMoving();
   }));
 
