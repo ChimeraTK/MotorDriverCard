@@ -418,9 +418,9 @@ dummy through the factory, so the methods must exist and be harmless.
   alias-created controler can outlive its card today
   (backend/include/impl/MotorControlerImpl.h:23-30), so alias-based behaviour
   does change in that respect.
-- DI-12 [NEW] The test plan omits `tests/src/backend/testMotorControler.cpp`,
-  which the new lifetime rule breaks:
-  `MotorControlerTest::createMotorController()`
+- DI-12 [FOLDED-IN] The test plan omits
+  `tests/src/backend/testMotorControler.cpp`, which the new lifetime rule
+  breaks: `MotorControlerTest::createMotorController()`
   (tests/src/backend/testMotorControler.cpp:607-612) returns a controler while
   the local card (and its device shared pointer) die at return. Today
   `MotorControlerImpl` copies the device shared pointer, so the returned
