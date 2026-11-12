@@ -32,7 +32,8 @@ Recovery:
 - The caller does not use the card while a reconfigure runs.
 - Existing `MotorControler` references stay valid across a reconfigure.
 - It does not open, close or replace the device.
-- A failed reconfigure throws; the card must not be used afterwards.
+- A failed reconfigure throws; the card must not be used until a successful
+  reconfigure has restored it.
 - The dummy card accepts both calls without effect.
 
 Failure detection:
@@ -46,7 +47,9 @@ Failure detection:
 
 ## Specifications
 
-### MotorDriverCard (modified) in backend/include/MotorDriverCard.h (modified)
+- File paths in this section are relative to `backend/`.
+
+### MotorDriverCard (modified) in include/MotorDriverCard.h (modified)
 
 - `[[nodiscard]] virtual bool isFunctional() const = 0;`
   - Reports the functional state of the underlying device.
@@ -71,7 +74,7 @@ Failure detection:
   - Adds two pure virtual methods: out-of-tree implementations of the
     interface must implement them.
 
-### MotorDriverCardImpl (modified) in backend/{include/impl/MotorDriverCardImpl.h,src/MotorDriverCardImpl.cc} (modified)
+### MotorDriverCardImpl (modified) in include/impl/MotorDriverCardImpl.h (modified), src/MotorDriverCardImpl.cc (modified)
 
 - `boost::shared_ptr<ChimeraTK::Device> _ownedDevice;`
   - Holds the device for cards created by the alias-based factory overload.
@@ -113,7 +116,7 @@ Failure detection:
 - `getStatusWord()` also locks `_reconfigureMutex`.
   - It uses the re-created status accessor while a reconfigure may replace it.
 
-### MotorControlerImpl (modified) in backend/{include/impl/MotorControlerImpl.h,src/MotorControlerImpl.cc} (modified)
+### MotorControlerImpl (modified) in include/impl/MotorControlerImpl.h (modified), src/MotorControlerImpl.cc (modified)
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
   - `boost::shared_ptr<ChimeraTK::Device> _device` becomes the non-owning
@@ -141,17 +144,27 @@ Failure detection:
 - New private `void applyConfiguration(bool enableMotor);`
   - Holds the configuration block currently in the constructor, ending with
     the motor-current enable.
-  - Lock-free, like the existing private setters: the caller holds `_mutex`.
-    `reconfigure()` locks it, the constructor does not yet share the object.
+  - Lock-free: the caller holds `_mutex`. `reconfigure()` locks it, the
+    constructor does not yet share the object.
   - The constructor passes the configured enable flag, so construction is
     unchanged.
   - `reconfigure()` passes its argument.
+- The configuration setters the constructor uses are split into a lock-free core
+  and a thin locking wrapper.
+  - The core holds the current setter body, including the `DEFINE_*` macro
+    bodies, and uses the existing lock-free private helpers.
+  - The public wrapper takes `_mutex` and calls the core, so its behaviour is
+    unchanged.
+  - The constructor and `applyConfiguration()` call the cores, not the public
+    setters.
+  - Calling the public setters from `applyConfiguration()` would lock the
+    non-recursive `_mutex` a second time and self-deadlock.
 - Accessor creation moves into a private helper shared by the constructor and
   `reconfigure()`.
   - Keeps the current handling of the optional end-switch power register for
     old firmware.
 
-### SPIviaPCIe (modified) in backend/{include/impl/SPIviaPCIe.h,src/SPIviaPCIe.cc} (modified)
+### SPIviaPCIe (modified) in include/impl/SPIviaPCIe.h (modified), src/SPIviaPCIe.cc (modified)
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
   - The stored `ChimeraTK::Device* _device` is non-owning; the comment
@@ -165,11 +178,15 @@ Failure detection:
     stored names and device.
   - Holds the mutex across the whole replacement, so concurrent `read()` and
     `write()` calls see either the old or the new accessor set.
+- New `static unsigned int const SPI_RETRY_COUNT = 5;`
+  - Threshold of consecutive failed transactions of one SPI object.
+  - Private and shared by every SPIviaPCIe instance.
 - New `unsigned int _consecutiveErrorCount{0};`
   - Counts failed transactions of this SPI, not of the card.
 - New private `void noteSpiFailure(std::string const& message);`
   - Increments the counter.
-  - Past `SPI_RETRY_COUNT` (5), calls `_device->setException(message)` and
+  - Calls `_device->setException(message)` when the incremented counter
+    exceeds `SPI_RETRY_COUNT`, i.e. on the sixth consecutive failure, and
     resets the counter.
   - The threshold and the reset follow the detection the motor application
     module implements today, so recovery timing stays the same.
@@ -181,20 +198,20 @@ Failure detection:
   - Exceptions thrown by the accessors themselves are not counted: the device
     is already in its exception state then.
 
-### TMC429SPI (modified) in backend/{include/impl/TMC429SPI.h,src/TMC429SPI.cc} (modified)
+### TMC429SPI (modified) in include/impl/TMC429SPI.h (modified), src/TMC429SPI.cc (modified)
 
 - Constructor takes `ChimeraTK::Device&`.
 - New `void reconnect();`
   - Delegates to `_spiViaPCIe.reconnect()`.
 
-### MotorDriverCardDummy (modified) in backend/{include/MotorDriverCardDummy.h,src/MotorDriverCardDummy.cc} (modified)
+### MotorDriverCardDummy (modified) in include/MotorDriverCardDummy.h (modified), src/MotorDriverCardDummy.cc (modified)
 
 - `[[nodiscard]] bool isFunctional() const override;`
   - Returns true.
 - `void reconfigure(bool enableMotor = false) override;`
   - Does nothing.
 
-### MotorDriverCardFactory (modified) in backend/{include/MotorDriverCardFactory.h,src/MotorDriverCardFactory.cc} (modified)
+### MotorDriverCardFactory (modified) in include/MotorDriverCardFactory.h (modified), src/MotorDriverCardFactory.cc (modified)
 
 - New overload
   `boost::shared_ptr<MotorDriverCard> createMotorDriverCard(ChimeraTK::Device& device, std::string mapModuleName, std::string motorConfigFileName);`
@@ -278,6 +295,12 @@ Failure detection:
     configured maximum, reset by `reconfigure()`.
     - Covers the `_currentVmax` reset; configuration re-application alone
       would not update the cached limit.
+  - `ReconfigureKeepsActualPosition`: the actual position is set after the
+    reopen, `reconfigure()` runs, and the actual position register is
+    unchanged.
+    - Covers the requirement that the actual position is left untouched; no
+      other case reads the actual position, and the close and open before
+      the call reset it.
   - `ReconfigureOnClosedDeviceThrows`: `reconfigure()` on a closed device
     throws, and a later reopen plus `reconfigure()` succeeds.
     - Covers the failure reporting; no current test provokes a failure inside
@@ -296,12 +319,16 @@ Failure detection:
     - Covers the signature change; without it the file does not compile, and
       `testSPIviaPCIe.cpp` alone would not show the break.
 - `tests/src/backend/testSPIviaPCIe.cpp` (modified)
+  - Existing fixture constructs both SPIviaPCIe objects from `*_device`
+    after the constructor change.
+    - Covers the signature change at the second construction site beside
+      `testTMC429SPI.cc`; without it the file does not compile.
   - `ReconnectAfterDeviceReopen`: use the SPI, close and reopen the device,
     `reconnect()`, use it again.
     - Covers `reconnect()` directly; the recovery tests would also fail on a
       broken reconnect, but not localise it.
   - `SpiFailuresEscalateToTheDevice`: with the dummy answering an SPI error,
-    the first six failures throw and leave the device functional, the seventh
+    the first five failures throw and leave the device functional, the sixth
     puts it into its exception state.
     - Covers the threshold; nothing else provokes repeated failures.
   - `SuccessfulTransactionResetsTheFailureCount`: five failures, one
