@@ -12,9 +12,12 @@
 Device injection:
 
 - Applications can create a card from an open device they own.
-- Repeated requests for the same device and module return the same card.
+- Repeated requests for the same device and module return the same card while
+  the previously returned card is still alive.
 - The library never opens, closes or replaces an injected device.
 - The injected device must outlive the card.
+- A motor controler must not outlive its card; this holds for both factory
+  overloads.
 - Alias-based creation keeps its current behaviour.
 - Dummy mode does not apply to an injected device.
 
@@ -32,24 +35,12 @@ Recovery:
 - The caller does not use the card while a reconfigure runs.
 - Existing `MotorControler` references stay valid across a reconfigure.
 - It does not open, close or replace the device.
-- A failed reconfigure throws; the card must not be used until a successful
-  reconfigure has restored it.
+- A failed reconfigure throws; the card must not be used afterwards.
 - The dummy card accepts both calls without effect.
-
-Failure detection:
-
-- More than five consecutive failed SPI transactions put the device into its
-  exception state.
-- A successful transaction resets the count.
-- The failure is reported to the caller unchanged.
-- Device managers of the owning application then reopen the device and run
-  their initialisation handlers, so no separate crash detection is needed.
 
 ## Specifications
 
-- File paths in this section are relative to `backend/`.
-
-### MotorDriverCard (modified) in include/MotorDriverCard.h (modified)
+### MotorDriverCard (modified) in backend/include/MotorDriverCard.h (modified)
 
 - `[[nodiscard]] virtual bool isFunctional() const = 0;`
   - Reports the functional state of the underlying device.
@@ -74,7 +65,7 @@ Failure detection:
   - Adds two pure virtual methods: out-of-tree implementations of the
     interface must implement them.
 
-### MotorDriverCardImpl (modified) in include/impl/MotorDriverCardImpl.h (modified), src/MotorDriverCardImpl.cc (modified)
+### MotorDriverCardImpl (modified) in backend/{include/impl/MotorDriverCardImpl.h,src/MotorDriverCardImpl.cc} (modified)
 
 - `boost::shared_ptr<ChimeraTK::Device> _ownedDevice;`
   - Holds the device for cards created by the alias-based factory overload.
@@ -116,13 +107,16 @@ Failure detection:
 - `getStatusWord()` also locks `_reconfigureMutex`.
   - It uses the re-created status accessor while a reconfigure may replace it.
 
-### MotorControlerImpl (modified) in include/impl/MotorControlerImpl.h (modified), src/MotorControlerImpl.cc (modified)
+### MotorControlerImpl (modified) in backend/{include/impl/MotorControlerImpl.h,src/MotorControlerImpl.cc} (modified)
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
   - `boost::shared_ptr<ChimeraTK::Device> _device` becomes the non-owning
     `ChimeraTK::Device* _device`; the class comment about keeping the device
     alive is dropped.
-  - Uniform with the card and the SPI, which hold no ownership either.
+  - Non-owning, so a `MotorControler` must not outlive its card, for both
+    factory overloads.
+  - This differs from the current class, which copies the device shared
+    pointer and so keeps the device alive past the card.
 - New `std::string const _moduleName;`
   - Stored for accessor re-creation.
 - New public `void reconfigure(bool enableMotor);`
@@ -144,27 +138,17 @@ Failure detection:
 - New private `void applyConfiguration(bool enableMotor);`
   - Holds the configuration block currently in the constructor, ending with
     the motor-current enable.
-  - Lock-free: the caller holds `_mutex`. `reconfigure()` locks it, the
-    constructor does not yet share the object.
+  - Lock-free, like the existing private setters: the caller holds `_mutex`.
+    `reconfigure()` locks it, the constructor does not yet share the object.
   - The constructor passes the configured enable flag, so construction is
     unchanged.
   - `reconfigure()` passes its argument.
-- The configuration setters the constructor uses are split into a lock-free core
-  and a thin locking wrapper.
-  - The core holds the current setter body, including the `DEFINE_*` macro
-    bodies, and uses the existing lock-free private helpers.
-  - The public wrapper takes `_mutex` and calls the core, so its behaviour is
-    unchanged.
-  - The constructor and `applyConfiguration()` call the cores, not the public
-    setters.
-  - Calling the public setters from `applyConfiguration()` would lock the
-    non-recursive `_mutex` a second time and self-deadlock.
 - Accessor creation moves into a private helper shared by the constructor and
   `reconfigure()`.
   - Keeps the current handling of the optional end-switch power register for
     old firmware.
 
-### SPIviaPCIe (modified) in include/impl/SPIviaPCIe.h (modified), src/SPIviaPCIe.cc (modified)
+### SPIviaPCIe (modified) in backend/{include/impl/SPIviaPCIe.h,src/SPIviaPCIe.cc} (modified)
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
   - The stored `ChimeraTK::Device* _device` is non-owning; the comment
@@ -178,40 +162,21 @@ Failure detection:
     stored names and device.
   - Holds the mutex across the whole replacement, so concurrent `read()` and
     `write()` calls see either the old or the new accessor set.
-- New `static unsigned int const SPI_RETRY_COUNT = 5;`
-  - Threshold of consecutive failed transactions of one SPI object.
-  - Private and shared by every SPIviaPCIe instance.
-- New `unsigned int _consecutiveErrorCount{0};`
-  - Counts failed transactions of this SPI, not of the card.
-- New private `void noteSpiFailure(std::string const& message);`
-  - Increments the counter.
-  - Calls `_device->setException(message)` when the incremented counter
-    exceeds `SPI_RETRY_COUNT`, i.e. on the sixth consecutive failure, and
-    resets the counter.
-  - The threshold and the reset follow the detection the motor application
-    module implements today, so recovery timing stays the same.
-  - Called from the failure paths of `write()`, which `read()` uses too, while
-    `_spiMutex` is held; the original error is thrown afterwards.
-  - The exception state covers the whole device, so other modules on the same
-    board fail with it.
-- `write()` resets the counter on a successful handshake.
-  - Exceptions thrown by the accessors themselves are not counted: the device
-    is already in its exception state then.
 
-### TMC429SPI (modified) in include/impl/TMC429SPI.h (modified), src/TMC429SPI.cc (modified)
+### TMC429SPI (modified) in backend/{include/impl/TMC429SPI.h,src/TMC429SPI.cc} (modified)
 
 - Constructor takes `ChimeraTK::Device&`.
 - New `void reconnect();`
   - Delegates to `_spiViaPCIe.reconnect()`.
 
-### MotorDriverCardDummy (modified) in include/MotorDriverCardDummy.h (modified), src/MotorDriverCardDummy.cc (modified)
+### MotorDriverCardDummy (modified) in backend/{include/MotorDriverCardDummy.h,src/MotorDriverCardDummy.cc} (modified)
 
 - `[[nodiscard]] bool isFunctional() const override;`
   - Returns true.
 - `void reconfigure(bool enableMotor = false) override;`
   - Does nothing.
 
-### MotorDriverCardFactory (modified) in include/MotorDriverCardFactory.h (modified), src/MotorDriverCardFactory.cc (modified)
+### MotorDriverCardFactory (modified) in backend/{include/MotorDriverCardFactory.h,src/MotorDriverCardFactory.cc} (modified)
 
 - New overload
   `boost::shared_ptr<MotorDriverCard> createMotorDriverCard(ChimeraTK::Device& device, std::string mapModuleName, std::string motorConfigFileName);`
@@ -256,10 +221,6 @@ Failure detection:
   application's initialisation handler, when nothing else uses the card.
 - One cache for both overloads: rejected, the owning overload would have to
   return a card whose device it does not own.
-- Counting failures in the card instead of the SPI: rejected, the card holds
-  several SPIs and would count one failure several times.
-- Reporting through a proxy device as the motor application module does today:
-  rejected, it reopens the proxy rather than the device the card reads.
 
 ## Test plan
 
@@ -282,6 +243,12 @@ Failure detection:
   - `ReconfigureRestoresConfiguration`: a configured value read back, reset by
     close and open, restored by `reconfigure()`.
     - Covers accessor re-creation and configuration re-application.
+  - `ReconfigureKeepsStatusWordReadable`: `getStatusWord()` through a
+    `dynamic_pointer_cast<MotorDriverCardExpert>` works after a reopen and
+    `reconfigure()`.
+    - Covers the re-created `_controlerStatusRegister` and its locking through
+      `_reconfigureMutex`; no other case reads the status word after a
+      reconfigure.
   - `ReconfigureLeavesMotorDisabledByDefault`: the configuration enables the
     motors; after reopen and `reconfigure()` the motor current is disabled, and
     `reconfigure(true)` enables it.
@@ -295,12 +262,6 @@ Failure detection:
     configured maximum, reset by `reconfigure()`.
     - Covers the `_currentVmax` reset; configuration re-application alone
       would not update the cached limit.
-  - `ReconfigureKeepsActualPosition`: the actual position is set after the
-    reopen, `reconfigure()` runs, and the actual position register is
-    unchanged.
-    - Covers the requirement that the actual position is left untouched; no
-      other case reads the actual position, and the close and open before
-      the call reset it.
   - `ReconfigureOnClosedDeviceThrows`: `reconfigure()` on a closed device
     throws, and a later reopen plus `reconfigure()` succeeds.
     - Covers the failure reporting; no current test provokes a failure inside
@@ -319,24 +280,42 @@ Failure detection:
     - Covers the signature change; without it the file does not compile, and
       `testSPIviaPCIe.cpp` alone would not show the break.
 - `tests/src/backend/testSPIviaPCIe.cpp` (modified)
-  - Existing fixture constructs both SPIviaPCIe objects from `*_device`
-    after the constructor change.
-    - Covers the signature change at the second construction site beside
-      `testTMC429SPI.cc`; without it the file does not compile.
   - `ReconnectAfterDeviceReopen`: use the SPI, close and reopen the device,
     `reconnect()`, use it again.
     - Covers `reconnect()` directly; the recovery tests would also fail on a
       broken reconnect, but not localise it.
-  - `SpiFailuresEscalateToTheDevice`: with the dummy answering an SPI error,
-    the first five failures throw and leave the device functional, the sixth
-    puts it into its exception state.
-    - Covers the threshold; nothing else provokes repeated failures.
-  - `SuccessfulTransactionResetsTheFailureCount`: five failures, one
-    successful transaction, five more failures; the device stays functional.
-    - Covers the reset; without it, a card failing now and then would escalate
-      eventually.
 - `tests/src/backend/testMotorDriverCardDummy.cpp` (modified)
   - `DummyIsFunctionalAndAcceptsReconfigure`: `isFunctional()` is true and both
     `reconfigure()` calls leave the controlers intact.
     - Covers the dummy implementation; applications and tests switch to the
       dummy through the factory, so the methods must exist and be harmless.
+
+## Deferred issue
+
+- DI-1 [NEW] Losing the controler's device ownership silently breaks a currently
+  working use: `MotorControlerImpl::_device` becomes a non-owning
+  `ChimeraTK::Device*` (CR lines 121-125), while only the card owns the device,
+  and only for alias-created cards (`_ownedDevice`). Today `MotorControlerImpl`
+  copies the device shared pointer, so a controler outliving its card keeps the
+  device alive and stays usable (documented at
+  `backend/include/impl/MotorControlerImpl.h:23-27`); after the change such a
+  controler holds a dangling pointer (use-after-free) that no requirement,
+  alternative or test mentions. The stated justification 'uniform with the card
+  and the SPI, which hold no ownership either' is wrong for the card, which does
+  own the device. Either keep shared ownership in the controler, or state the
+  new lifetime rule (a `MotorControler` must not outlive its card, for both
+  factory overloads) in the requirements and specifications.
+- DI-2 [NEW] Requirement 'Repeated requests for the same device and module
+  return the same card' (CR line 15) is unqualified and cannot be met by the
+  planned `weak_ptr` cache, which returns the cached card only while it is alive
+  (CR lines 225-232, test at line 267). A cache that always returns the same
+  card would keep device and card alive forever, which the alternatives reject.
+  Qualify the requirement (e.g. 'while the previously returned card is still
+  alive').
+- DI-3 [NEW] Test plan does not cover `MotorDriverCardImpl::getStatusWord()`
+  after a reconfigure, although the plan re-creates `_controlerStatusRegister`
+  and adds `_reconfigureMutex` locking specifically for it (CR lines 100-101,
+  116-117). Add a case (or extend `ReconfigureRestoresConfiguration`) that reads
+  the status word after `reconfigure()`, e.g. via
+  `dynamic_pointer_cast<MotorDriverCardExpert>`, as
+  `tests/src/backend/testMotorDriverCard.cpp:221` already does.
