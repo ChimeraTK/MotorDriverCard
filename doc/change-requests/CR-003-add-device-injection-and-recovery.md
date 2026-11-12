@@ -35,6 +35,10 @@ speed limit, to the configured values.
 - The caller does not use the card while a reconfigure runs.
 - Existing `MotorControler` references stay valid across a reconfigure.
 - It does not open, close or replace the device.
+- It does not restore the state cached in the stepper motor layer
+(`BasicStepperMotor`'s target position, error and calibration mode, and its
+state machine state); the application re-synchronises its stepper motors
+after recovery.
 - A failed reconfigure throws; the caller must then not use the card except
 to reopen the device and call `reconfigure()` again.
 - The dummy card accepts both calls without effect.
@@ -58,6 +62,8 @@ stored by the implementation.
 - Writes the motor-current enable last: enabled when `enableMotor` is true,
 disabled otherwise.
 - Does not write the actual position.
+- Does not restore the state cached in `BasicStepperMotor` objects; see the
+recovery requirement on the stepper motor layer.
 - Intended for the device recovery path of the owning application.
 - Each SPI transaction still serialises through the SPI mutex; the
 accessors of one object are replaced atomically.
@@ -115,8 +121,12 @@ cycle with `MotorControlerImpl.h` stays out of the header.
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
 - `boost::shared_ptr<ChimeraTK::Device> _device` becomes the non-owning
-`ChimeraTK::Device* _device`; the class comment about keeping the device
-alive is dropped.
+`ChimeraTK::Device* _device`.
+- The whole class comment
+(`backend/include/impl/MotorControlerImpl.h:23-26`) is replaced: besides
+keeping the device alive it claims the constructor copies the device shared
+pointer and that the configuration is not kept in the class, and both claims
+are wrong now.
 - Non-owning, so a `MotorControler` must not outlive its card, for both
 factory overloads.
 - This differs from the current class, which copies the device shared
@@ -281,6 +291,14 @@ the only current path that writes the enable register.
 unchanged across `reconfigure()`.
 - Covers the requirement that application-held controler pointers stay
 valid.
+- `ReconfigureLeavesPositionUntouched`: a distinctive actual position is set,
+the device is closed and reopened, `reconfigure()` is called, and the
+position register read through the dummy backend register interface still
+holds that value.
+- Covers the requirement that `reconfigure()` leaves the actual position
+untouched, which nothing else covers.
+- Guards the commented-out position write in the extracted configuration
+block, which an implementer could re-enable unnoticed.
 - `ReconfigureResetsRuntimeState`: a user speed limit different from the
 configured maximum, reset by `reconfigure()`.
 - Covers the `_currentVmax` reset; configuration re-application alone
@@ -431,3 +449,39 @@ dummy through the factory, so the methods must exist and be harmless.
   implementing the plan as written leaves use-after-free in the existing suite.
   The test plan must state that this helper keeps the card alive (e.g. a member
   or returned card), because a controler must not outlive its card.
+- DI-13 [NEW] Missing test for the requirement 'It leaves the actual position
+  untouched' (CR:32): no case in the test plan asserts the position, although
+  the configuration block the plan extracts into applyConfiguration() contains
+  the commented-out position write (backend/src/MotorControlerImpl.cc:105, '//
+  setActualPosition( motorControlerConfig.actualPosition );'), which
+  MotorControlerConfig no longer carries
+  (backend/include/MotorControlerConfig.h:15). An implementer extracting the
+  block can easily re-enable it unnoticed. Add a case to
+  testMotorDriverCardRecovery.cpp that sets a distinctive actual position,
+  closes and reopens the device, calls reconfigure() and checks the position
+  register still holds that value. A reopen resets the register to the dummy
+  test pattern (backend/src/DFMC_MD22Dummy.cc:27-39), so read it through the
+  dummy backend register interface (as
+  tests/src/backend/testMotorDriverCard.cpp:221-227 does with getRegisterInfo)
+  before and after reconfigure().
+- DI-14 [NEW] Unstated scope: the plan restores card and controler state but
+  says nothing about the library's own stepper motor layer, which caches state
+  that reconfigure() leaves stale while its objects stay valid
+  (steppermotor/include/BasicStepperMotor.h:500-518: _targetPositionInSteps,
+  _errorMode, _calibrationMode, plus the state machine state). The alternatives
+  reject recreating the card exactly because application modules hold such
+  objects (CR:230-232), and 'Existing MotorControler references stay valid
+  across a reconfigure' (CR:36) invites keeping them, so the change request must
+  state whether BasicStepperMotor's cached state is out of scope (the
+  application re-synchronises its motors after recovery) or must be restored.
+  The recovery test case 'ReconfigureKeepsControlerInstances' currently hides
+  the question by keeping only controlers.
+- DI-15 [NEW] Under-specified comment update in MotorControlerImpl: the plan
+  only drops 'the class comment about keeping the device alive' (CR:117-119),
+  but that comment (backend/include/impl/MotorControlerImpl.h:23-26) has two
+  further claims which both become wrong: the constructor no longer copies
+  shared pointers (it takes ChimeraTK::Device&), and 'The config is only used in
+  the constuctor, no reference is kept in the class' is already false and
+  becomes more so because reconfigure() re-applies _controlerConfig. Name the
+  whole comment for replacement, as the plan already does for both SPIviaPCIe
+  comments (CR:169-171).
