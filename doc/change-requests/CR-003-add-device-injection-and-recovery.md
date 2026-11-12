@@ -310,6 +310,16 @@ signal.
 `reconnect()`, use it again.
 - Covers `reconnect()` directly; the recovery tests would also fail on a
 broken reconnect, but not localise it.
+- `tests/src/backend/testMotorControler.cpp` (modified)
+- `MotorControlerTest::createMotorController()` keeps the card it creates
+alive alongside the returned controler, instead of letting it go out of
+scope at return.
+- The thread-safety and end-switch-power cases then hold card and controler
+together.
+- Covers the rule that a controler must not outlive its card, which this
+helper violates today: it returns a controler whose local card and device
+die at return, and only the controler's current device ownership keeps it
+usable.
 - `tests/src/backend/testMotorDriverCardDummy.cpp` (modified)
 - `DummyIsFunctionalAndAcceptsReconfigure`: `isFunctional()` is true and both
 `reconfigure()` calls leave the controlers intact.
@@ -408,3 +418,16 @@ dummy through the factory, so the methods must exist and be harmless.
   alias-created controler can outlive its card today
   (backend/include/impl/MotorControlerImpl.h:23-30), so alias-based behaviour
   does change in that respect.
+- DI-12 [NEW] The test plan omits `tests/src/backend/testMotorControler.cpp`,
+  which the new lifetime rule breaks:
+  `MotorControlerTest::createMotorController()`
+  (tests/src/backend/testMotorControler.cpp:607-612) returns a controler while
+  the local card (and its device shared pointer) die at return. Today
+  `MotorControlerImpl` copies the device shared pointer, so the returned
+  controler stays usable; with the planned non-owning
+  `MotorControlerImpl::_device` (CR:117-121) both card and device are gone and
+  the controler dangles. Its users are the thread-safety and end-switch-power
+  cases at tests/src/backend/testMotorControler.cpp:335, 356 and 364, so
+  implementing the plan as written leaves use-after-free in the existing suite.
+  The test plan must state that this helper keeps the card alive (e.g. a member
+  or returned card), because a controler must not outlive its card.
