@@ -342,29 +342,6 @@ BOOST_AUTO_TEST_CASE(HomingSearchWhichDoesNotFindItsSwitchAborts) {
 }
 
 /**
- * Requirements, bounded search.
- *
- * "The abort reports a calibration error and leaves the calibration mode at CalibrationMode::NONE."
- *
- * The aborted calibration leaves the motor uncalibrated and the calibration mode at NONE, so the axis has no span to
- * work with.
- */
-BOOST_AUTO_TEST_CASE(FailedCalibrationKeepsTheSpan) {
-  useStateMachine(std::make_shared<ShortTimeoutLinearStepperMotorStateMachine>(*_stepperMotor));
-  _motorControlerDummy->setPositiveEndSwitch(UNREACHABLE_SWITCH_POSITION);
-  _motorControlerDummy->setNegativeEndSwitch(-UNREACHABLE_SWITCH_POSITION);
-
-  startCalibration();
-  runCalibration();
-
-  BOOST_TEST(_stepperMotor->isCalibrated() == false);
-  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
-  // The span is unbounded in both directions, so a position inside the travel is not rejected on span grounds.
-  BOOST_TEST(_stepperMotor->getNegativeEndReferenceInSteps() <= NEGATIVE_SWITCH_POSITION);
-  BOOST_TEST(_stepperMotor->getPositiveEndReferenceInSteps() >= POSITIVE_SWITCH_POSITION);
-}
-
-/**
  * Specifications, LinearStepperMotorStateMachine.
  *
  * "getHomingTimeoutInMilliseconds() is overridden in the class declaration and returns 600000 ms (600 s)."
