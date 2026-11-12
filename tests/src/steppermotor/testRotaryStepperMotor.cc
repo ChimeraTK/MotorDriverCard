@@ -235,9 +235,9 @@ BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
 /**
  * Specification: `RotaryStepperMotor::verifyMoveAction()`.
  *
- * "Override the base disjunction: accept the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target
+ * "Keep the base disjunction: accept the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target
  * position equals the actual position."
- * "Prevents the ignored negative switch bit from masking a blocked move."
+ * "Drop only the negative switch bit, so it cannot mask a blocked move."
  *
  * The tolerance calculation moves away from the end switch and verifies that move while the positive switch is
  * inactive. With the conditions combined as a conjunction the calculation would fail.
