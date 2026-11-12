@@ -58,7 +58,7 @@ namespace ChimeraTK::MotorDriver {
     virtual int getOffset() const = 0;
     virtual void findEndSwitch(Sign sign) = 0;
     /// Maximum duration of a single search loop of moveOffEndSwitch() and findEndSwitch().
-    virtual int getHomingTimeoutInMilliseconds() const { return HOMING_TIMEOUT_MS; }
+    [[nodiscard]] virtual int getHomingTimeoutInMilliseconds() const { return HOMING_TIMEOUT_MS; }
     /// Default for getHomingTimeoutInMilliseconds().
     static constexpr int HOMING_TIMEOUT_MS = 60000;
     // private:

@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: READY TO IMPLEMENT (from TESTS PASSED)
+- Status: IMPLEMENTED (from TESTS PASSED)
 
 ## Requirements
 
@@ -50,8 +50,9 @@ unchanged target means a blocked motor and sets `_moveInterrupted`.
 `_moveInterrupted`; the caller decides on the abort. A switch which stays
 active although the motor keeps moving therefore ends in the timeout abort of
 the release search.
-- New virtual `getHomingTimeoutInMilliseconds()`, defaulting to 60 s. The rotary
-state machine keeps the default.
+- New virtual `getHomingTimeoutInMilliseconds()`, defaulting to 60 s, and marked
+`[[nodiscard]]` like the query accessors of `StepperMotor`. The rotary state
+machine keeps the default.
 - New protected `homingTimedOut(start)` helper for the search loops, replacing
 the inline checks of the rotary search. It sets `_moveInterrupted` and returns
 true on expiry, so a timed-out search never returns as if it had succeeded.
@@ -73,8 +74,9 @@ order, each only when the previous one did not set `_stopAction` or
 no chunk is issued over an end switch. The positive search therefore waits for
 the motor to reach the switch after the release search has passed it.
 - `getHomingTimeoutInMilliseconds()` is overridden in the class declaration and
-returns 600000 ms (600 s). One search chunk is 50 000 steps, so the rotary limit would
-expire within a single chunk.
+returns 600000 ms (600 s), marked `[[nodiscard]]` like the base accessor. One
+search chunk is 50 000 steps, so the rotary limit would expire within a single
+chunk.
 - `findEndSwitch()` keeps its blocked-move check and gains the timeout check.
 - The existing `_moveInterrupted` handling of `performCalibration()` reports
 both aborts as `Error::CALIBRATION_ERROR`, so there is no new error path.
@@ -132,7 +134,7 @@ release search.
 - DI-11 [FOLDED-IN] Specifications mix the timeout units (DI-7): the linear accessor is documented as returning 600 s while `getHomingTimeoutInMilliseconds()` returns 600000 ms (steppermotor/include/LinearStepperMotorStateMachine.h:21). The text must give 600000 ms (600 s) so the accessor, the value and the code agree.
 - DI-12 [FOLDED-IN] Test plan item 2 is not expressible with the dummy (DI-6): 'positive switch forced to stay active' has no dummy counterpart. The switch stays active only because the motor cannot move, which is the blocked-move check of moveOffEndSwitch(). The dummy's only stuck-switch mode (bothEndSwitchesAlwaysOn) makes the negative switch active too and raises Error::BOTH_END_SWITCHES_ON (steppermotor/src/ReferenceStepperMotor.cc:229-232), not the specified CALIBRATION_ERROR. The item must say that it relies on the blocked motor only.
 - DI-13 [FOLDED-IN] Test plan item 3's timeout scenario is not realisable as written (DI-5): the dummy resolves its switches from the hardware position and clamps every move at a switch (backend/src/MotorControlerDummy.cc:297-301, :359-363, :411-423), so no placement keeps the positive switch inactive while the search keeps issuing chunks; a chunk either reaches the positive switch or is clamped at the other switch. The timeout is reachable by giving the test subclass a timeout shorter than the time the test needs to finish the first chunk, so the next loop iteration aborts with `_moveInterrupted` set. The item also still asks for a separate thread stepping the loop, whereas the search already runs on the calibration thread and the test only advances the dummy.
-- DI-14 [NEW] tests/src/steppermotor/testLinearStepperMotorHoming.cc:7-26: the include block and using-directives are out of order. The boost headers come before the project headers, the standard library headers sit between them, and `using namespace boost::unit_test_framework;` (line 16) is placed inside the include block. The sibling test tests/src/steppermotor/testRotaryStepperMotor.cc:8-25 puts the project headers first, then boost, then the standard library, followed by both using-directives. Move the using-directive below all includes and order the include groups accordingly.
-- DI-15 [NEW] tests/src/steppermotor/testLinearStepperMotorHoming.cc:29: `static const std::string moduleName("");` triggers readability-redundant-string-init; use the plain declaration `static const std::string moduleName;` as in tests/src/steppermotor/testRotaryStepperMotor.cc:24 (no linter warnings allowed).
-- DI-16 [NEW] getHomingTimeoutInMilliseconds() is a pure query but is not marked [[nodiscard]] (clang-tidy modernize-use-nodiscard at tests/src/steppermotor/testLinearStepperMotorHoming.cc:64). Mark the declaration in steppermotor/include/ReferenceStateMachine.h:61 and the override in steppermotor/include/LinearStepperMotorStateMachine.h the same way as the query accessors in steppermotor/include/StepperMotor.h.
-- DI-17 [NEW] tests/src/steppermotor/testLinearStepperMotorHoming.cc:59: `ShortTimeoutLinearStepperMotorStateMachine::HOMING_TIMEOUT_MS = 100` hides the inherited `ReferenceStateMachine::HOMING_TIMEOUT_MS = 60000` with a different value, so the same name means two different timeouts in the hierarchy. Rename the test constant (e.g. SHORT_HOMING_TIMEOUT_MS).
+- DI-14 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:7-26: the include block and using-directives are out of order. The boost headers come before the project headers, the standard library headers sit between them, and `using namespace boost::unit_test_framework;` (line 16) is placed inside the include block. The sibling test tests/src/steppermotor/testRotaryStepperMotor.cc:8-25 puts the project headers first, then boost, then the standard library, followed by both using-directives. Move the using-directive below all includes and order the include groups accordingly.
+- DI-15 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:29: `static const std::string moduleName("");` triggers readability-redundant-string-init; use the plain declaration `static const std::string moduleName;` as in tests/src/steppermotor/testRotaryStepperMotor.cc:24 (no linter warnings allowed).
+- DI-16 [IMPLEMENTED] getHomingTimeoutInMilliseconds() is a pure query but is not marked [[nodiscard]] (clang-tidy modernize-use-nodiscard at tests/src/steppermotor/testLinearStepperMotorHoming.cc:64). Mark the declaration in steppermotor/include/ReferenceStateMachine.h:61 and the override in steppermotor/include/LinearStepperMotorStateMachine.h the same way as the query accessors in steppermotor/include/StepperMotor.h.
+- DI-17 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:59: `ShortTimeoutLinearStepperMotorStateMachine::HOMING_TIMEOUT_MS = 100` hides the inherited `ReferenceStateMachine::HOMING_TIMEOUT_MS = 60000` with a different value, so the same name means two different timeouts in the hierarchy. Rename the test constant (e.g. SHORT_HOMING_TIMEOUT_MS).

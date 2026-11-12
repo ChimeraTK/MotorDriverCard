@@ -18,7 +18,7 @@ namespace ChimeraTK::MotorDriver {
     int getPositionEndSwitch(Sign) override;
     void findEndSwitch(Sign sign) override;
     /// A chunk is 50 000 steps, so the default of ReferenceStateMachine would expire within a single chunk.
-    int getHomingTimeoutInMilliseconds() const override { return 600000; }
+    [[nodiscard]] int getHomingTimeoutInMilliseconds() const override { return 600000; }
     /// Offset in steps used when searching for the end switch from the current position.
     static constexpr int END_SWITCH_SEARCH_OFFSET = 50000;
     int getOffset() const override { return END_SWITCH_SEARCH_OFFSET; }

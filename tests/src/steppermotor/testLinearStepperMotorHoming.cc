@@ -4,6 +4,14 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE LinearStepperMotorHomingTest
 
+#include "LinearStepperMotor.h"
+#include "LinearStepperMotorStateMachine.h"
+#include "MotorControlerDummy.h"
+#include "MotorDriverCard.h"
+#include "MotorDriverCardFactory.h"
+#include "StepperMotor.h"
+#include "testConfigConstants.h"
+
 #include <boost/pointer_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
@@ -14,19 +22,10 @@
 #include <thread>
 
 using namespace boost::unit_test_framework;
-
-#include "LinearStepperMotor.h"
-#include "LinearStepperMotorStateMachine.h"
-#include "MotorControlerDummy.h"
-#include "MotorDriverCard.h"
-#include "MotorDriverCardFactory.h"
-#include "StepperMotor.h"
-#include "testConfigConstants.h"
-
 using namespace ChimeraTK::MotorDriver;
 
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-static const std::string moduleName("");
+static const std::string moduleName;
 
 // The offset of the production searches, which is also the chunk of every step in the tests.
 const int SEARCH_OFFSET = 50000;
@@ -56,12 +55,12 @@ namespace {
    */
   class ShortTimeoutLinearStepperMotorStateMachine : public LinearStepperMotorStateMachine {
    public:
-    static constexpr int HOMING_TIMEOUT_MS = 100;
+    static constexpr int SHORT_HOMING_TIMEOUT_MS = 100;
 
     explicit ShortTimeoutLinearStepperMotorStateMachine(LinearStepperMotor& motor)
     : LinearStepperMotorStateMachine(motor) {}
 
-    int getHomingTimeoutInMilliseconds() const override { return HOMING_TIMEOUT_MS; }
+    [[nodiscard]] int getHomingTimeoutInMilliseconds() const override { return SHORT_HOMING_TIMEOUT_MS; }
   };
 
   /// Linear state machine which only exposes the production homing timeout.
