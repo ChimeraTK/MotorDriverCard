@@ -257,7 +257,7 @@ namespace ChimeraTK::MotorDriver {
       return posActive;
     }
 
-    return negativeSwitchChecked && negActive;
+    return negActive;
   }
 
   bool ReferenceStepperMotor::positiveSwitchActive() const {
