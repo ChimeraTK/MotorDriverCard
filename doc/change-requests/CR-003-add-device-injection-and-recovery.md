@@ -449,14 +449,14 @@ dummy through the factory, so the methods must exist and be harmless.
   implementing the plan as written leaves use-after-free in the existing suite.
   The test plan must state that this helper keeps the card alive (e.g. a member
   or returned card), because a controler must not outlive its card.
-- DI-13 [NEW] Missing test for the requirement 'It leaves the actual position
-  untouched' (CR:32): no case in the test plan asserts the position, although
-  the configuration block the plan extracts into applyConfiguration() contains
-  the commented-out position write (backend/src/MotorControlerImpl.cc:105, '//
-  setActualPosition( motorControlerConfig.actualPosition );'), which
-  MotorControlerConfig no longer carries
-  (backend/include/MotorControlerConfig.h:15). An implementer extracting the
-  block can easily re-enable it unnoticed. Add a case to
+- DI-13 [FOLDED-IN] Missing test for the requirement 'It leaves the actual
+  position untouched' (CR:32): no case in the test plan asserts the position,
+  although the configuration block the plan extracts into applyConfiguration()
+  contains the commented-out position write
+  (backend/src/MotorControlerImpl.cc:105, '// setActualPosition(
+  motorControlerConfig.actualPosition );'), which MotorControlerConfig no longer
+  carries (backend/include/MotorControlerConfig.h:15). An implementer extracting
+  the block can easily re-enable it unnoticed. Add a case to
   testMotorDriverCardRecovery.cpp that sets a distinctive actual position,
   closes and reopens the device, calls reconfigure() and checks the position
   register still holds that value. A reopen resets the register to the dummy
@@ -464,9 +464,9 @@ dummy through the factory, so the methods must exist and be harmless.
   dummy backend register interface (as
   tests/src/backend/testMotorDriverCard.cpp:221-227 does with getRegisterInfo)
   before and after reconfigure().
-- DI-14 [NEW] Unstated scope: the plan restores card and controler state but
-  says nothing about the library's own stepper motor layer, which caches state
-  that reconfigure() leaves stale while its objects stay valid
+- DI-14 [FOLDED-IN] Unstated scope: the plan restores card and controler state
+  but says nothing about the library's own stepper motor layer, which caches
+  state that reconfigure() leaves stale while its objects stay valid
   (steppermotor/include/BasicStepperMotor.h:500-518: _targetPositionInSteps,
   _errorMode, _calibrationMode, plus the state machine state). The alternatives
   reject recreating the card exactly because application modules hold such
@@ -476,12 +476,13 @@ dummy through the factory, so the methods must exist and be harmless.
   application re-synchronises its motors after recovery) or must be restored.
   The recovery test case 'ReconfigureKeepsControlerInstances' currently hides
   the question by keeping only controlers.
-- DI-15 [NEW] Under-specified comment update in MotorControlerImpl: the plan
-  only drops 'the class comment about keeping the device alive' (CR:117-119),
-  but that comment (backend/include/impl/MotorControlerImpl.h:23-26) has two
-  further claims which both become wrong: the constructor no longer copies
-  shared pointers (it takes ChimeraTK::Device&), and 'The config is only used in
-  the constuctor, no reference is kept in the class' is already false and
-  becomes more so because reconfigure() re-applies _controlerConfig. Name the
-  whole comment for replacement, as the plan already does for both SPIviaPCIe
-  comments (CR:169-171).
+- DI-15 [FOLDED-IN] Under-specified comment update in MotorControlerImpl: the
+  plan only drops 'the class comment about keeping the device alive'
+  (CR:117-119), but that comment
+  (backend/include/impl/MotorControlerImpl.h:23-26) has two further claims which
+  both become wrong: the constructor no longer copies shared pointers (it takes
+  ChimeraTK::Device&), and 'The config is only used in the constuctor, no
+  reference is kept in the class' is already false and becomes more so because
+  reconfigure() re-applies _controlerConfig. Name the whole comment for
+  replacement, as the plan already does for both SPIviaPCIe comments
+  (CR:169-171).
