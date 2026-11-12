@@ -164,13 +164,13 @@ void RotaryStepperMotorFixture::stopDuringChunkAt(int chunkStartPosition) {
   // stop has to wait until the motor has not reached the chunk target yet: only then can the stop thread stay ahead
   // of the position. The motor must also be moving, because a chunk left alone anyway must stay a race.
   const int stopAheadOfPosition = 2 * CHUNK_STEP;
-  _stopThread = std::thread([this, chunkStartPosition, stopAheadOfPosition] {
+  _stopThread = std::thread([this, chunkStartPosition] {
     BOOST_TEST(waitFor([this, chunkStartPosition] {
       return _stepperMotor->getTargetPositionInSteps() != chunkStartPosition &&
           _stepperMotor->getTargetPositionInSteps() != _stepperMotor->getCurrentPositionInSteps();
     }));
     BOOST_TEST(waitFor([this] { return _motorControlerDummy->isMotorMoving(); }));
-    BOOST_TEST(waitFor([this, chunkStartPosition, stopAheadOfPosition] {
+    BOOST_TEST(waitFor([this, chunkStartPosition] {
       return _stepperMotor->getCurrentPositionInSteps() > chunkStartPosition - stopAheadOfPosition;
     }));
     _stepperMotor->stop();
