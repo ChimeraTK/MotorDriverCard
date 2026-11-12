@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: READY TO TEST (from IMPLEMENTATION REVIEWED)
+- Status: TESTS PASSED (from IMPLEMENTATION REVIEWED)
 
 ## Requirements
 
@@ -98,8 +98,8 @@ point is harmless because the homing search returns to the switch.
 calibration completes with `CalibrationMode::FULL` and the negative reference
 is zero. The positive search ends on the switch, because its chunk target is
 the switch position. The calibration measures the positive reference from the
-negative switch, so the reference is the distance between the two switch
-positions.
+negative switch, so the reference is `POSITIVE_SWITCH_POSITION -
+NEGATIVE_SWITCH_POSITION`, i.e. the distance between the two switch positions.
 - Linear motor, positive switch active and the motor blocked: the motor cannot
 move, so the switch stays active and the per-chunk blocked-move check aborts
 the release search. Calibration error and `CalibrationMode::NONE`. The
@@ -110,17 +110,18 @@ expressible with the dummy: a switch follows the hardware position and the
 blocked-move check fires first. The blocked motor is therefore the only case
 covering 'the switch does not release'; placing the switch out of the release
 chunk's reach does not help, because the chunk stops on the switch and the
-switch then releases.
+switch then releases. No separate case exercises the timeout abort of the
+release search.
 - Linear search which does not find its switch within the timeout: a test
 subclass returns a timeout shorter than the time the test needs to finish the
-first chunk, and the positive switch is placed at a reachable position beyond
-that chunk. The calibration thread issues the first chunk and waits for it,
+first chunk, and both switches are placed at a reachable position beyond that
+chunk. The calibration thread issues the first chunk and waits for it,
 the test advances the dummy to the chunk target, and the next iteration of the
 search finds the timeout expired, sets `_moveInterrupted` and aborts the
-calibration with a calibration error and `CalibrationMode::NONE`. A blocked
-motor is not used, because the blocked-move check would fire first, and no
-dummy placement keeps the positive switch inactive while the search keeps
-issuing chunks. The search runs on the calibration thread, so the test only
+calibration with a calibration error and `CalibrationMode::NONE`. The switches
+are reachable, so the abort comes solely from the timeout being shorter than
+the per-chunk wait; a blocked motor is not used, because the blocked-move check
+would fire first. The search runs on the calibration thread, so the test only
 advances the dummy and needs no thread of its own.
 - The rotary homing cases must keep passing unchanged against the shared
 release search.
@@ -145,6 +146,6 @@ release search.
 - DI-16 [DONE] getHomingTimeoutInMilliseconds() is a pure query but is not marked [[nodiscard]] (clang-tidy modernize-use-nodiscard at tests/src/steppermotor/testLinearStepperMotorHoming.cc:64). Mark the declaration in steppermotor/include/ReferenceStateMachine.h:61 and the override in steppermotor/include/LinearStepperMotorStateMachine.h the same way as the query accessors in steppermotor/include/StepperMotor.h.
 - DI-17 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:59: `ShortTimeoutLinearStepperMotorStateMachine::HOMING_TIMEOUT_MS = 100` hides the inherited `ReferenceStateMachine::HOMING_TIMEOUT_MS = 60000` with a different value, so the same name means two different timeouts in the hierarchy. Rename the test constant (e.g. SHORT_HOMING_TIMEOUT_MS).
 - DI-18 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:48: `bool _motorBlocked = false;` is a mutable flag in the anonymous namespace but carries the private-member `_` prefix, which the naming rule reserves for protected/private data members; a namespace-scope identifier starting with `_` is also in reserved-identifier territory. Every use (lines 133, 148, 210, 283) sits in a member function of `LinearStepperMotorHomingTestFixture`, so make it a data member of that fixture (declared with the other members next to `_stepperMotor`) and drop the file-global state.
-- DI-19 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:293-321 (`MovingMotorWhichDoesNotReleaseTheSwitchFailsWithCalibrationError`): the case does not exercise the scenario it documents. With the positive switch at `UNREACHABLE_SWITCH_POSITION` (400000) and the motor hand-driven onto it, the release search's first chunk targets actual-50000, so the dummy moves to 350000 and the switch releases (`MotorControlerDummy::moveTowardsTarget` clamps only a target strictly beyond the switch). The calibration then ends the positive search on the switch and aborts in the *negative* search, because the injected 100 ms timeout is shorter than the ~500 ms per-chunk wait in `moveToEndSwitch()`. The test therefore passes even if the release search is broken and gives no coverage of 'the switch does not release'; its comment ('a switch which never releases, as its position is behind both ends of the travel') has no counterpart in the dummy. The release-search timeout abort is not expressible with the dummy (a switch follows the hardware position; the blocked-move check fires first, see DI-12/DI-13), so delete the case; the blocked-motor case already covers the requirement.
-- DI-20 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:249-259 and :267 (`PositiveReferenceIsTheApproachedPosition`): the rationale is wrong and the expected value is expressed misleadingly. The positive search ends exactly on the switch (its chunk target is the switch position), not 'one chunk past the switch'; the reference is 250000 because the calibration measures it from the negative switch at -50000, i.e. it is the switch-to-switch distance `POSITIVE_SWITCH_POSITION - NEGATIVE_SWITCH_POSITION`, not `POSITIVE_SWITCH_POSITION + SEARCH_OFFSET`. The assertion happens to be correct, so state the real reason and use the difference expression. The same wrong claim is in the change request test plan (lines 99-102), see doc_updates.
-- DI-21 [IMPLEMENTED] tests/src/steppermotor/testLinearStepperMotorHoming.cc:323-330 and :38-39 (`HomingSearchWhichDoesNotFindItsSwitchAborts`, `UNREACHABLE_SWITCH_POSITION`): the comments contradict the mechanism. Both switches (at +/-400000) are reachable and the searches would find them within 8 to 16 chunks; the abort comes solely from the 100 ms timeout being shorter than the ~500 ms chunk wait, exactly as the test plan item 3 describes. Rephrase the comment to that mechanism and give the constant a name matching its two uses (reachable switch position beyond the first chunk), since the release case at :305 uses it for a switch that is reached and released.
+- DI-19 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:293-321 (`MovingMotorWhichDoesNotReleaseTheSwitchFailsWithCalibrationError`): the case does not exercise the scenario it documents. With the positive switch at `UNREACHABLE_SWITCH_POSITION` (400000) and the motor hand-driven onto it, the release search's first chunk targets actual-50000, so the dummy moves to 350000 and the switch releases (`MotorControlerDummy::moveTowardsTarget` clamps only a target strictly beyond the switch). The calibration then ends the positive search on the switch and aborts in the *negative* search, because the injected 100 ms timeout is shorter than the ~500 ms per-chunk wait in `moveToEndSwitch()`. The test therefore passes even if the release search is broken and gives no coverage of 'the switch does not release'; its comment ('a switch which never releases, as its position is behind both ends of the travel') has no counterpart in the dummy. The release-search timeout abort is not expressible with the dummy (a switch follows the hardware position; the blocked-move check fires first, see DI-12/DI-13), so delete the case; the blocked-motor case already covers the requirement.
+- DI-20 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:249-259 and :267 (`PositiveReferenceIsTheApproachedPosition`): the rationale is wrong and the expected value is expressed misleadingly. The positive search ends exactly on the switch (its chunk target is the switch position), not 'one chunk past the switch'; the reference is 250000 because the calibration measures it from the negative switch at -50000, i.e. it is the switch-to-switch distance `POSITIVE_SWITCH_POSITION - NEGATIVE_SWITCH_POSITION`, not `POSITIVE_SWITCH_POSITION + SEARCH_OFFSET`. The assertion happens to be correct, so state the real reason and use the difference expression. The same wrong claim is in the change request test plan (lines 99-102), see doc_updates.
+- DI-21 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:323-330 and :38-39 (`HomingSearchWhichDoesNotFindItsSwitchAborts`, `UNREACHABLE_SWITCH_POSITION`): the comments contradict the mechanism. Both switches (at +/-400000) are reachable and the searches would find them within 8 to 16 chunks; the abort comes solely from the 100 ms timeout being shorter than the ~500 ms chunk wait, exactly as the test plan item 3 describes. Rephrase the comment to that mechanism and give the constant a name matching its two uses (reachable switch position beyond the first chunk), since the release case at :305 uses it for a switch that is reached and released.
