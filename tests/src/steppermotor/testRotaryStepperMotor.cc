@@ -113,7 +113,7 @@ RotaryStepperMotorFixture::RotaryStepperMotorFixture() {
   _stepperMotorParameters.configFileName = stepperMotorDeviceConfigFile;
   _stepperMotor = StepperMotorFactory::instance().create(_stepperMotorParameters);
   _rotaryMotor = std::dynamic_pointer_cast<RotaryStepperMotor>(_stepperMotor);
-  BOOST_REQUIRE(_rotaryMotor != nullptr);
+  BOOST_TEST_REQUIRE(_rotaryMotor != nullptr);
 }
 
 RotaryStepperMotorFixture::~RotaryStepperMotorFixture() {
@@ -135,9 +135,9 @@ RotaryStepperMotorFixture::~RotaryStepperMotorFixture() {
 
 void RotaryStepperMotorFixture::startCalibration() {
   _stepperMotor->setEnabled(true);
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
-  BOOST_CHECK(_stepperMotor->calibrate() == ExitStatus::SUCCESS);
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "calibrating"; }));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_TEST(static_cast<int>(_stepperMotor->calibrate()) == static_cast<int>(ExitStatus::SUCCESS));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "calibrating"; }));
 }
 
 void RotaryStepperMotorFixture::driveTo(int motorControllerPosition) {
@@ -151,7 +151,7 @@ void RotaryStepperMotorFixture::driveTo(int motorControllerPosition) {
 
 void RotaryStepperMotorFixture::driveToEndSwitch() {
   driveTo(POSITIVE_END_SWITCH_POSITION);
-  BOOST_REQUIRE(_stepperMotor->isPositiveReferenceActive());
+  BOOST_TEST_REQUIRE(_stepperMotor->isPositiveReferenceActive());
 }
 
 void RotaryStepperMotorFixture::advanceOneChunk() const {
@@ -165,12 +165,12 @@ void RotaryStepperMotorFixture::stopDuringChunkAt(int chunkStartPosition) {
   // of the position. The motor must also be moving, because a chunk left alone anyway must stay a race.
   const int stopAheadOfPosition = 2 * CHUNK_STEP;
   _stopThread = std::thread([this, chunkStartPosition, stopAheadOfPosition] {
-    BOOST_CHECK(waitFor([this, chunkStartPosition] {
+    BOOST_TEST(waitFor([this, chunkStartPosition] {
       return _stepperMotor->getTargetPositionInSteps() != chunkStartPosition &&
           _stepperMotor->getTargetPositionInSteps() != _stepperMotor->getCurrentPositionInSteps();
     }));
-    BOOST_CHECK(waitFor([this] { return _motorControlerDummy->isMotorMoving(); }));
-    BOOST_CHECK(waitFor([this, chunkStartPosition, stopAheadOfPosition] {
+    BOOST_TEST(waitFor([this] { return _motorControlerDummy->isMotorMoving(); }));
+    BOOST_TEST(waitFor([this, chunkStartPosition, stopAheadOfPosition] {
       return _stepperMotor->getCurrentPositionInSteps() > chunkStartPosition - stopAheadOfPosition;
     }));
     _stepperMotor->stop();
@@ -200,7 +200,7 @@ void RotaryStepperMotorFixture::runCalibrationToEnd() {
     }
     advanceOneChunk();
   }
-  BOOST_REQUIRE_MESSAGE(
+  BOOST_TEST_REQUIRE(
       _stepperMotor->isSystemIdle(), "calibration did not finish within " << MAX_CALIBRATION_CHUNKS << " chunks");
 }
 
@@ -218,18 +218,18 @@ BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
   startCalibration();
 
   // The release search moves negatively, away from the positive end switch.
-  BOOST_CHECK(waitFor([this] {
+  BOOST_TEST(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET;
   }));
 
   runCalibrationToEnd();
 
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
-  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), true);
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
-  BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), _stepperMotor->getNegativeEndReferenceInSteps());
-  BOOST_CHECK_EQUAL(_stepperMotor->getPositiveEndReferenceInSteps(), POSITIVE_END_SWITCH_POSITION);
+  BOOST_TEST(_stepperMotor->getState() == "idle");
+  BOOST_TEST(_stepperMotor->isCalibrated() == true);
+  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
+  BOOST_TEST(_stepperMotor->isPositiveReferenceActive() == true);
+  BOOST_TEST(_stepperMotor->getPositiveEndReferenceInSteps() == _stepperMotor->getNegativeEndReferenceInSteps());
+  BOOST_TEST(_stepperMotor->getPositiveEndReferenceInSteps() == POSITIVE_END_SWITCH_POSITION);
 }
 
 /**
@@ -245,16 +245,16 @@ BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
 BOOST_AUTO_TEST_CASE(ToleranceCalculationSucceedsAfterHoming) {
   startCalibration();
   runCalibrationToEnd();
-  BOOST_REQUIRE(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
+  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
 
-  BOOST_CHECK(_stepperMotor->determineTolerance() == ExitStatus::SUCCESS);
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
+  BOOST_TEST(static_cast<int>(_stepperMotor->determineTolerance()) == static_cast<int>(ExitStatus::SUCCESS));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
 
   runToleranceCalculationToEnd();
 
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
-  BOOST_CHECK(_stepperMotor->getError() == Error::NO_ERROR);
-  BOOST_CHECK(std::isfinite(_stepperMotor->getTolerancePositiveEndSwitch()));
+  BOOST_TEST(_stepperMotor->getState() == "idle");
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::NO_ERROR));
+  BOOST_TEST(std::isfinite(_stepperMotor->getTolerancePositiveEndSwitch()));
 }
 
 /**
@@ -267,23 +267,23 @@ BOOST_AUTO_TEST_CASE(ToleranceCalculationSucceedsAfterHoming) {
 BOOST_AUTO_TEST_CASE(StopDuringToleranceCalculationCommandsStandstill) {
   startCalibration();
   runCalibrationToEnd();
-  BOOST_REQUIRE(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
+  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
 
-  BOOST_REQUIRE(_stepperMotor->determineTolerance() == ExitStatus::SUCCESS);
-  BOOST_REQUIRE(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
+  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->determineTolerance()) == static_cast<int>(ExitStatus::SUCCESS));
+  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
 
   // The calculation starts by moving close to the end switch, 1000 steps away from it. The move is left running, so
   // the stop takes the target of a moving motor back.
-  BOOST_REQUIRE(waitFor([this] {
+  BOOST_TEST_REQUIRE(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - 1000 &&
         _motorControlerDummy->isMotorMoving();
   }));
 
   _stepperMotor->stop();
 
-  BOOST_CHECK(!_motorControlerDummy->isMotorMoving());
-  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_TEST(!_motorControlerDummy->isMotorMoving());
+  BOOST_TEST(_stepperMotor->getTargetPositionInSteps() == _stepperMotor->getCurrentPositionInSteps());
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
 }
 
 /**
@@ -298,12 +298,12 @@ BOOST_AUTO_TEST_CASE(NegativeSwitchBitIsIgnored) {
   _stepperMotor->setEnabled(true);
   _motorControlerDummy->moveTowardsTarget(0.0F, false, true);
 
-  BOOST_REQUIRE_EQUAL(_motorControlerDummy->getReferenceSwitchBit(), 1U);
+  BOOST_TEST_REQUIRE(_motorControlerDummy->getReferenceSwitchBit() == 1U);
 
-  BOOST_CHECK_EQUAL(_stepperMotor->isNegativeReferenceActive(), false);
-  BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), true);
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
-  BOOST_CHECK(_stepperMotor->getError() == Error::NO_ERROR);
+  BOOST_TEST(_stepperMotor->isNegativeReferenceActive() == false);
+  BOOST_TEST(_stepperMotor->isPositiveReferenceActive() == true);
+  BOOST_TEST(_stepperMotor->getState() == "idle");
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::NO_ERROR));
 }
 
 /**
@@ -318,27 +318,27 @@ BOOST_AUTO_TEST_CASE(BlockedMoveReportedAsInterrupted) {
   // Calibrate first, a move is only accepted on a calibrated motor.
   startCalibration();
   runCalibrationToEnd();
-  BOOST_REQUIRE(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
+  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
 
   // Calibration left the motor on the positive end switch, so it has to move away before a move can be checked.
   driveTo(POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET);
-  BOOST_REQUIRE(!_stepperMotor->isPositiveReferenceActive());
+  BOOST_TEST_REQUIRE(!_stepperMotor->isPositiveReferenceActive());
 
   // The dummy reports a negative end switch at the low end of its travel, which a rotary motor has to ignore.
   _motorControlerDummy->setNegativeEndSwitch(POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET);
   _motorControlerDummy->moveTowardsTarget(0.0F, false, false);
-  BOOST_REQUIRE_EQUAL(_motorControlerDummy->getReferenceSwitchData().getNegativeSwitchActive(), 1U);
-  BOOST_REQUIRE(!_stepperMotor->isPositiveReferenceActive());
+  BOOST_TEST_REQUIRE(_motorControlerDummy->getReferenceSwitchData().getNegativeSwitchActive() == 1U);
+  BOOST_TEST_REQUIRE(!_stepperMotor->isPositiveReferenceActive());
 
-  BOOST_REQUIRE(_stepperMotor->setTargetPositionInSteps(POSITIVE_END_SWITCH_POSITION - 2 * END_SWITCH_SEARCH_OFFSET) ==
-      ExitStatus::SUCCESS);
+  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->setTargetPositionInSteps(POSITIVE_END_SWITCH_POSITION -
+                         2 * END_SWITCH_SEARCH_OFFSET)) == static_cast<int>(ExitStatus::SUCCESS));
   _motorControlerDummy->setTargetPosition(POSITIVE_END_SWITCH_POSITION - 2 * END_SWITCH_SEARCH_OFFSET);
   _motorControlerDummy->simulateBlockedMotor(true);
   _stepperMotor->start();
 
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "error"; }));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "error"; }));
 
-  BOOST_CHECK(_stepperMotor->getError() == Error::MOVE_INTERRUPTED);
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::MOVE_INTERRUPTED));
 }
 
 /**
@@ -353,19 +353,19 @@ BOOST_AUTO_TEST_CASE(BlockedMotorDuringReleaseSearchFailsWithCalibrationError) {
   driveToEndSwitch();
   startCalibration();
 
-  BOOST_REQUIRE(waitFor([this] {
+  BOOST_TEST_REQUIRE(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET;
   }));
 
   // The motor cannot move and the switch stays active, so the search has to give up instead of grinding chunks.
   _motorControlerDummy->simulateBlockedMotor(true);
 
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() != "calibrating"; }));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() != "calibrating"; }));
 
-  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
-  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
-  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
+  BOOST_TEST(_stepperMotor->getState() == "idle");
+  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::CALIBRATION_ERROR));
+  BOOST_TEST(_stepperMotor->isCalibrated() == false);
 }
 
 /**
@@ -379,16 +379,16 @@ BOOST_AUTO_TEST_CASE(BlockedMotorDuringReleaseSearchFailsWithCalibrationError) {
 BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
   startCalibration();
 
-  BOOST_REQUIRE(waitFor([this] {
+  BOOST_TEST_REQUIRE(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET &&
         _motorControlerDummy->isMotorMoving();
   }));
 
   _stepperMotor->stop();
 
-  BOOST_CHECK(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_TEST(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
 }
 
 /**
@@ -403,18 +403,18 @@ BOOST_AUTO_TEST_CASE(StopDuringReleaseSearchStopsMotor) {
   driveToEndSwitch();
   startCalibration();
 
-  BOOST_REQUIRE(waitFor([this] {
+  BOOST_TEST_REQUIRE(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET &&
         _motorControlerDummy->isMotorMoving();
   }));
   stopDuringChunkAt(POSITIVE_END_SWITCH_POSITION);
 
-  BOOST_CHECK(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
+  BOOST_TEST(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
   // The released switch makes the search stop moving at once, so the stop may also be processed between two chunks.
-  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
-  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
+  BOOST_TEST(_stepperMotor->getTargetPositionInSteps() == _stepperMotor->getCurrentPositionInSteps());
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::CALIBRATION_ERROR));
 }
 
 /**
@@ -426,20 +426,20 @@ BOOST_AUTO_TEST_CASE(StopDuringReleaseSearchStopsMotor) {
 BOOST_AUTO_TEST_CASE(DisableDuringCalibrationStopsMotorAndDisables) {
   startCalibration();
 
-  BOOST_REQUIRE(waitFor([this] {
+  BOOST_TEST_REQUIRE(waitFor([this] {
     return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET &&
         _motorControlerDummy->isMotorMoving();
   }));
 
   _stepperMotor->setEnabled(false);
 
-  BOOST_CHECK(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
-  BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "disabled"; }));
-  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
-  BOOST_CHECK_EQUAL(_motorControlerDummy->isMotorCurrentEnabled(), false);
-  BOOST_CHECK_EQUAL(_motorControlerDummy->isEndSwitchPowerEnabled(), false);
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
-  BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
+  BOOST_TEST(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "disabled"; }));
+  BOOST_TEST(_stepperMotor->getEnabled() == false);
+  BOOST_TEST(_motorControlerDummy->isMotorCurrentEnabled() == false);
+  BOOST_TEST(_motorControlerDummy->isEndSwitchPowerEnabled() == false);
+  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
+  BOOST_TEST(_stepperMotor->isCalibrated() == false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
