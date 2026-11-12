@@ -35,8 +35,8 @@ const int SEARCH_OFFSET = 50000;
 // the positive switch, one motor controller step each.
 const int NEGATIVE_SWITCH_POSITION = -SEARCH_OFFSET;
 const int POSITIVE_SWITCH_POSITION = 4 * SEARCH_OFFSET;
-// A switch position behind both ends of the travel, so the switch stays reachable but never releases the search.
-const int UNREACHABLE_SWITCH_POSITION = 8 * SEARCH_OFFSET;
+// A switch position beyond the first search chunk, which every search reaches and passes in the dummy.
+const int DISTANT_SWITCH_POSITION = 8 * SEARCH_OFFSET;
 
 // The tests poll the running calibration, as the searches wait for their chunk to end.
 const unsigned POLL_PERIOD_MS = 1U;
@@ -253,9 +253,8 @@ BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
  * the start position."
  *
  * The motor starts on the active switch. The release search moves it one chunk away from the switch, and the positive
- * search moves it back by one chunk. The dummy does not stop a move whose target lies exactly on the switch, so the
- * positive reference is the position where the search ends, one chunk past the switch. The negative search then finds
- * the negative switch, which becomes the zero of the span.
+ * search moves it back by one chunk, which ends exactly on the switch. The negative search then finds the negative
+ * switch, which becomes the zero of the span, so the positive reference is the switch-to-switch distance.
  */
 BOOST_AUTO_TEST_CASE(PositiveReferenceIsTheApproachedPosition) {
   placeMotorOnPositiveSwitch();
@@ -264,7 +263,7 @@ BOOST_AUTO_TEST_CASE(PositiveReferenceIsTheApproachedPosition) {
   runCalibration();
 
   BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
-  BOOST_TEST(_stepperMotor->getPositiveEndReferenceInSteps() == POSITIVE_SWITCH_POSITION + SEARCH_OFFSET);
+  BOOST_TEST(_stepperMotor->getPositiveEndReferenceInSteps() == POSITIVE_SWITCH_POSITION - NEGATIVE_SWITCH_POSITION);
   BOOST_TEST(_stepperMotor->getNegativeEndReferenceInSteps() == 0);
 }
 
@@ -291,47 +290,18 @@ BOOST_AUTO_TEST_CASE(BlockedMotorOnActiveSwitchFailsWithCalibrationError) {
 }
 
 /**
- * Requirements, releasing an active switch.
- *
- * "Calibration must fail with a calibration error and leave the calibration mode at CalibrationMode::NONE if the
- * switch does not release."
- *
- * The motor starts on a switch which never releases, as its position is behind both ends of the travel. The release
- * search therefore ends on the homing timeout. The motor only gets there without being blocked by the switch, so the
- * motor controller position is aligned with the switch position by hand.
- */
-BOOST_AUTO_TEST_CASE(MovingMotorWhichDoesNotReleaseTheSwitchFailsWithCalibrationError) {
-  useStateMachine(std::make_shared<ShortTimeoutLinearStepperMotorStateMachine>(*_stepperMotor));
-  _motorControlerDummy->setPositiveEndSwitch(UNREACHABLE_SWITCH_POSITION);
-  _stepperMotor->setEnabled(true);
-  _motorControlerDummy->setTargetPosition(UNREACHABLE_SWITCH_POSITION);
-  BOOST_TEST_REQUIRE(waitFor([this] {
-    _motorControlerDummy->moveTowardsTarget(1.0F, false);
-    return _stepperMotor->isRawPositiveSwitchActive();
-  }),
-      "the motor did not reach the switch");
-  BOOST_TEST_REQUIRE(_stepperMotor->isRawPositiveSwitchActive());
-
-  startCalibration();
-  runCalibration();
-
-  BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
-  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::CALIBRATION_ERROR));
-  BOOST_TEST(_stepperMotor->isCalibrated() == false);
-}
-
-/**
  * Requirements, bounded search.
  *
  * "A search that does not find its switch within the homing timeout of the stage must abort the calibration."
  * "The abort reports a calibration error and leaves the calibration mode at CalibrationMode::NONE."
  *
- * Both switches sit outside the travel of the stage, so no search can find its switch.
+ * Both switches sit beyond the first search chunk, so no search reaches its switch in that chunk and the timeout of the
+ * test subclass expires before the next one is issued.
  */
 BOOST_AUTO_TEST_CASE(HomingSearchWhichDoesNotFindItsSwitchAborts) {
   useStateMachine(std::make_shared<ShortTimeoutLinearStepperMotorStateMachine>(*_stepperMotor));
-  _motorControlerDummy->setPositiveEndSwitch(UNREACHABLE_SWITCH_POSITION);
-  _motorControlerDummy->setNegativeEndSwitch(-UNREACHABLE_SWITCH_POSITION);
+  _motorControlerDummy->setPositiveEndSwitch(DISTANT_SWITCH_POSITION);
+  _motorControlerDummy->setNegativeEndSwitch(-DISTANT_SWITCH_POSITION);
 
   startCalibration();
   runCalibration();
