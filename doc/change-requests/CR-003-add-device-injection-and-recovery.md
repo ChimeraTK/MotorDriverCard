@@ -326,14 +326,14 @@ dummy through the factory, so the methods must exist and be harmless.
   card would keep device and card alive forever, which the alternatives reject.
   Qualify the requirement (e.g. 'while the previously returned card is still
   alive').
-- DI-3 [FOLDED-IN] Test plan does not cover
-  `MotorDriverCardImpl::getStatusWord()` after a reconfigure, although the plan
-  re-creates `_controlerStatusRegister` and adds `_reconfigureMutex` locking
-  specifically for it (CR lines 100-101, 116-117). Add a case (or extend
-  `ReconfigureRestoresConfiguration`) that reads the status word after
-  `reconfigure()`, e.g. via `dynamic_pointer_cast<MotorDriverCardExpert>`, as
+- DI-3 [NEW] Test plan does not cover `MotorDriverCardImpl::getStatusWord()`
+  after a reconfigure, although the plan re-creates `_controlerStatusRegister`
+  and adds `_reconfigureMutex` locking specifically for it (CR lines 100-101,
+  116-117). Add a case (or extend `ReconfigureRestoresConfiguration`) that reads
+  the status word after `reconfigure()`, e.g. via
+  `dynamic_pointer_cast<MotorDriverCardExpert>`, as
   `tests/src/backend/testMotorDriverCard.cpp:221` already does.
-- DI-4 [NEW] DI-3 fold is technically wrong: the test plan reaches
+- DI-4 [FOLDED-IN] DI-3 fold is technically wrong: the test plan reaches
   getStatusWord() through boost::dynamic_pointer_cast<MotorDriverCardExpert>
   (CR:246-248), but getStatusWord() is declared only on MotorDriverCardImpl
   (backend/include/impl/MotorDriverCardImpl.h:61). Neither MotorDriverCardExpert
@@ -344,7 +344,7 @@ dummy through the factory, so the methods must exist and be harmless.
   (tests/src/backend/testMotorDriverCard.cpp:44-62,221), which also works for
   the injected factory overload because the tests already include the impl
   header.
-- DI-5 [NEW] Contradiction between the planned locking and the extracted
+- DI-5 [FOLDED-IN] Contradiction between the planned locking and the extracted
   configuration block in MotorControlerImpl: reconfigure() locks _mutex (CR:125)
   and re-applies the configuration through applyConfiguration() (CR:129), which
   is specified as 'Lock-free, like the existing private setters: the caller
@@ -358,8 +358,8 @@ dummy through the factory, so the methods must exist and be harmless.
   block is rewritten to write through lock-free private helpers (or that _mutex
   becomes recursive, or that reconfigure() does not hold it), and drop the
   incorrect claim that private setters already exist for these writes.
-- DI-6 [NEW] SPIviaPCIe::reconnect() is under-specified in a way that changes
-  behaviour: all three accessors are currently created with
+- DI-6 [FOLDED-IN] SPIviaPCIe::reconnect() is under-specified in a way that
+  changes behaviour: all three accessors are currently created with
   {ChimeraTK::AccessMode::raw} (backend/src/SPIviaPCIe.cc:26-31), but the plan
   only says they are re-created 'from the stored names and device' (CR:159-164),
   so a naive implementation would get default-access-mode accessors. Also
