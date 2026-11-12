@@ -109,8 +109,13 @@ namespace ChimeraTK::MotorDriver::utility {
     virtual ~StateMachine() = default;
 
     /**
-     * Runs the current state's internal event callback before reading the state, so a completed async action is
-     * reported in this call.
+     * @brief get the current state
+     *
+     * Reads the current state first and runs its internal event callback afterwards. A state transition requested by
+     * that callback is therefore only visible to the next call, so a completed async action is reported one call
+     * late. This delay is intentional, see the change request.
+     *
+     * @return the state which was current before the callback ran
      */
     State* getCurrentState();
     void setAndProcessUserEvent(const Event& event);

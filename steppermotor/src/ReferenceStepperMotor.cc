@@ -222,9 +222,9 @@ namespace ChimeraTK::MotorDriver {
 
   bool ReferenceStepperMotor::isEndSwitchActive(Sign sign) {
     bool posActive = positiveSwitchActive();
-    bool negativeSwitchChecked = hasNegativeReferenceSwitch();
-    // Without a negative switch the bit is meaningless, so it must neither raise an error nor influence checks.
-    bool negActive = negativeSwitchChecked && negativeSwitchActive();
+    // Without a negative switch the bit is meaningless, so it must neither raise an error nor influence checks. This
+    // is the only place which decides that.
+    bool negActive = hasNegativeReferenceSwitch() && negativeSwitchActive();
 
     if(posActive && negActive) {
       _errorMode.exchange(Error::BOTH_END_SWITCHES_ON);
