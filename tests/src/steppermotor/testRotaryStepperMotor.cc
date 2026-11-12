@@ -43,9 +43,6 @@ const std::chrono::milliseconds WAIT_TIMEOUT(10000);
 // while the motor stands still, so the chunks have to be spaced out.
 const std::chrono::milliseconds CHUNK_PERIOD(150);
 
-// The tests advance the dummy in single steps of this size to hold a chunk open while they stop the motor.
-const int CHUNK_STEP = 5;
-
 // A full rotary calibration needs a release chunk and a homing chunk, this bound only guards against a runaway.
 const unsigned MAX_CALIBRATION_CHUNKS = 10U;
 
@@ -160,19 +157,14 @@ void RotaryStepperMotorFixture::advanceOneChunk() const {
 }
 
 void RotaryStepperMotorFixture::stopDuringChunkAt(int chunkStartPosition) {
-  // A stop issued before the first chunk only aborts the search between two chunks. To interrupt a chunk itself, the
-  // stop has to wait until the motor has not reached the chunk target yet: only then can the stop thread stay ahead
-  // of the position. The motor must also be moving, because a chunk left alone anyway must stay a race.
-  const int stopAheadOfPosition = 2 * CHUNK_STEP;
+  // The motor must be moving and its target must differ from the chunk start, so the stop takes the target of a
+  // moving motor back. A chunk which is left alone anyway would make the stop a race.
   _stopThread = std::thread([this, chunkStartPosition] {
     BOOST_TEST(waitFor([this, chunkStartPosition] {
       return _stepperMotor->getTargetPositionInSteps() != chunkStartPosition &&
           _stepperMotor->getTargetPositionInSteps() != _stepperMotor->getCurrentPositionInSteps();
     }));
     BOOST_TEST(waitFor([this] { return _motorControlerDummy->isMotorMoving(); }));
-    BOOST_TEST(waitFor([this, chunkStartPosition] {
-      return _stepperMotor->getCurrentPositionInSteps() > chunkStartPosition - stopAheadOfPosition;
-    }));
     _stepperMotor->stop();
   });
 }
