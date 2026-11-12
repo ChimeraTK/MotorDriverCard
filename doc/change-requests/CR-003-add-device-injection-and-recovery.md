@@ -138,8 +138,14 @@ disabled otherwise.
 - New private `void applyConfiguration(bool enableMotor);`
 - Holds the configuration block currently in the constructor, ending with
 the motor-current enable.
-- Lock-free, like the existing private setters: the caller holds `_mutex`.
-`reconfigure()` locks it, the constructor does not yet share the object.
+- Writes the registers through new lock-free private helpers, because the
+configuration block currently calls the public setters, which each lock the
+non-recursive `_mutex`.
+- `reconfigure()` holds `_mutex`, so it must not go through the public setters.
+The constructor does not yet share the object, so the missing locks are
+harmless there as well.
+- The public setters stay unchanged; they are no longer used by the
+configuration path.
 - The constructor passes the configured enable flag, so construction is
 unchanged.
 - `reconfigure()` passes its argument.
@@ -151,8 +157,10 @@ old firmware.
 ### SPIviaPCIe (modified) in backend/{include/impl/SPIviaPCIe.h,src/SPIviaPCIe.cc} (modified)
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
-- The stored `ChimeraTK::Device* _device` is non-owning; the comment
-explaining that no device is kept at all is dropped.
+- New non-owning `ChimeraTK::Device* _device;`.
+- The class keeps no device reference today, so the member is new rather than
+stored. Both the class comment and the comment in the private section are
+replaced.
 - New `std::string _readbackRegisterName;` stores the readback name for
 re-creation.
 - Standalone users must keep the device alive; the SPI tests do.
@@ -160,6 +168,9 @@ re-creation.
 - Locks `_spiMutex`.
 - Re-creates the write, synchronisation and readback accessors from the
 stored names and device.
+- Passes `{ChimeraTK::AccessMode::raw}` for each accessor, as the constructors
+do. Without the flag the re-created accessors would get the default access
+mode and the SPI transfers would change.
 - Holds the mutex across the whole replacement, so concurrent `read()` and
 `write()` calls see either the old or the new accessor set.
 
@@ -244,8 +255,11 @@ implementation constructor needs no test friend.
 close and open, restored by `reconfigure()`.
 - Covers accessor re-creation and configuration re-application.
 - `ReconfigureKeepsStatusWordReadable`: `getStatusWord()` through a
-`dynamic_pointer_cast<MotorDriverCardExpert>` works after a reopen and
+`dynamic_pointer_cast<MotorDriverCardImpl>` works after a reopen and
 `reconfigure()`.
+- `getStatusWord()` is a public member of the implementation only, not of
+`MotorDriverCard` or `MotorDriverCardExpert`, so the cast target is the
+implementation class.
 - Covers the re-created `_controlerStatusRegister` and its locking through
 `_reconfigureMutex`; no other case reads the status word after a
 reconfigure.
@@ -319,3 +333,38 @@ dummy through the factory, so the methods must exist and be harmless.
   `ReconfigureRestoresConfiguration`) that reads the status word after
   `reconfigure()`, e.g. via `dynamic_pointer_cast<MotorDriverCardExpert>`, as
   `tests/src/backend/testMotorDriverCard.cpp:221` already does.
+- DI-4 [NEW] DI-3 fold is technically wrong: the test plan reaches
+  getStatusWord() through boost::dynamic_pointer_cast<MotorDriverCardExpert>
+  (CR:246-248), but getStatusWord() is declared only on MotorDriverCardImpl
+  (backend/include/impl/MotorDriverCardImpl.h:61). Neither MotorDriverCardExpert
+  (backend/include/MotorDriverCardExpert.h:11-43) nor MotorDriverCard
+  (backend/include/MotorDriverCard.h:16-28) declares it, so the cast yields a
+  type without the method and the test cannot compile. The existing test reaches
+  it through a shared_ptr<MotorDriverCardImpl>
+  (tests/src/backend/testMotorDriverCard.cpp:44-62,221), which also works for
+  the injected factory overload because the tests already include the impl
+  header.
+- DI-5 [NEW] Contradiction between the planned locking and the extracted
+  configuration block in MotorControlerImpl: reconfigure() locks _mutex (CR:125)
+  and re-applies the configuration through applyConfiguration() (CR:129), which
+  is specified as 'Lock-free, like the existing private setters: the caller
+  holds _mutex' (CR:138-142). The configuration block in the constructor
+  (backend/src/MotorControlerImpl.cc:104-127) does not use private setters: it
+  calls the public setters, and each of them locks the non-recursive std::mutex
+  _mutex (e.g. setMotorCurrentEnabled at
+  backend/src/MotorControlerImpl.cc:566-570, reached through setEnabled at
+  230-233; the DEFINE_SET_GET_* macros at 25-65 lock too). Calling that block
+  while reconfigure() holds _mutex self-deadlocks. The plan must state that the
+  block is rewritten to write through lock-free private helpers (or that _mutex
+  becomes recursive, or that reconfigure() does not hold it), and drop the
+  incorrect claim that private setters already exist for these writes.
+- DI-6 [NEW] SPIviaPCIe::reconnect() is under-specified in a way that changes
+  behaviour: all three accessors are currently created with
+  {ChimeraTK::AccessMode::raw} (backend/src/SPIviaPCIe.cc:26-31), but the plan
+  only says they are re-created 'from the stored names and device' (CR:159-164),
+  so a naive implementation would get default-access-mode accessors. Also
+  SPIviaPCIe holds no device pointer today
+  (backend/include/impl/SPIviaPCIe.h:68) - the member is new, not 'stored' - and
+  both class comments claim the class keeps no device reference
+  (backend/include/impl/SPIviaPCIe.h:29-32 and 68), so the plan should name both
+  comments to update.
