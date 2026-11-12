@@ -82,7 +82,7 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  /******************************************************************************************************************/
+  /********************************************************************************************************************/
 
   void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
     auto startTime = std::chrono::steady_clock::now();
