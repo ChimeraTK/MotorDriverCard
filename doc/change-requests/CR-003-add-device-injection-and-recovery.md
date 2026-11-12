@@ -263,7 +263,11 @@ registers; the case asserts only that the two pointers differ.
 - Covers the cache of the injected overload and the one-card-per-device-and-module
 guarantee behind the SPI mutex.
 - `CreateFromDeviceIgnoresDummyMode`: dummy mode set, injected creation
-returns a real card that works on the dummy backend.
+returns a real card that works on the dummy backend; the case resets dummy
+mode to false before it returns.
+- The factory is a singleton and the other cases of this file create
+alias-based cards, while `testCreateDummy` leaves dummy mode true. Without the
+reset those cases would get a dummy card depending on test order.
 - Covers the dummy-mode exclusion; the alias overload is the only tested
 dummy-mode path today.
 - `CreateFromDeviceKeepsItOpen`: the device is open after creation and after
@@ -285,9 +289,13 @@ implementation class.
 - Covers the re-created `_controlerStatusRegister` and its locking through
 `_reconfigureMutex`; no other case reads the status word after a
 reconfigure.
-- `ReconfigureLeavesMotorDisabledByDefault`: the configuration enables the
-motors; after reopen and `reconfigure()` the motor current is disabled, and
-`reconfigure(true)` enables it.
+- `ReconfigureLeavesMotorDisabledByDefault`: creates the card with
+`MotorDriverCardConfig_complete_test.xml`, which enables the motors of both
+modules, instead of `CONFIG_FILE`; after reopen and `reconfigure()` the motor
+current is disabled, and `reconfigure(true)` enables it.
+- `CONFIG_FILE` (`VT21-MotorDriverCardConfig.xml`) carries no `enabled`
+register, so it leaves `MotorControlerConfig::enabled` at its default false and
+could not detect a motor wrongly left enabled.
 - Covers the enable rule; not covered elsewhere because construction is
 the only current path that writes the enable register.
 - `ReconfigureKeepsControlerInstances`: the controler pointer and ID are
@@ -517,3 +525,20 @@ dummy through the factory, so the methods must exist and be harmless.
   actual-position, actual-velocity, actual-acceleration and micro-step registers
   by the mirroring in `setControlerSpiRegistersForOperation()` (`:41,141-157`),
   so the reference value after a reopen is 0.
+- DI-18 [NEW] Test plan, ReconfigureLeavesMotorDisabledByDefault (CR:288-290):
+  justified with "the configuration enables the motors", but the recovery tests
+  are planned on CONFIG_FILE = tests/hardware/VT21-MotorDriverCardConfig.xml
+  (tests/include/testConfigConstants.h:18), which has no enabled register (only
+  the comment "end switches enabled", line 10). MotorControlerConfig::enabled
+  stays at its default false (backend/src/MotorControlerConfig.cc:12), so the
+  case cannot detect a motor wrongly left enabled. An enabling configuration
+  exists: tests/MotorDriverCardConfig_complete_test.xml sets enabled=true for
+  motorID 0 (line 20) and 1 (line 42). The plan must name the configuration used
+  for this case.
+- DI-19 [NEW] Test plan, CreateFromDeviceIgnoresDummyMode (planned for
+  tests/src/backend/testMotorDriverCardFactory.cpp): MotorDriverCardFactory is a
+  singleton and setDummyMode() is never reset in that file - the existing
+  testCreateDummy leaves dummy mode true (line 89). A case that sets dummy mode
+  true to prove the injected overload ignores it must restore the flag,
+  otherwise the alias-based cases in the same executable get a dummy card
+  depending on test order. The plan does not mention restoring the flag.
