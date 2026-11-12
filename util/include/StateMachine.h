@@ -108,6 +108,10 @@ namespace ChimeraTK::MotorDriver::utility {
     StateMachine& operator=(const StateMachine& stateMachine);
     virtual ~StateMachine() = default;
 
+    /**
+     * Runs the current state's internal event callback before reading the state, so a completed async action is
+     * reported in this call.
+     */
     State* getCurrentState();
     void setAndProcessUserEvent(const Event& event);
     Event getUserEvent();

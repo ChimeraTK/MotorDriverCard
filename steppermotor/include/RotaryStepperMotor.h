@@ -10,8 +10,9 @@ namespace ChimeraTK::MotorDriver {
   /** Rotary stepper motor (continuous 360° rotation, no negative end switch).
    *
    *  The rotary stage has no physical negative end switch. The software handles
-   *  this by overriding hasNegativeReferenceSwitch() and negativeSwitchActive()
-   *  to return false, and limitsOK() to skip the end-switch range check.
+   *  this by overriding hasNegativeReferenceSwitch() to return false, which makes
+   *  isEndSwitchActive() ignore the negative switch, and by overriding limitsOK()
+   *  to skip the end-switch range check.
    *
    *  At the hardware level, the TMC429 chip can also be configured to ignore
    *  end switches via the referenceConfigAndRampModeData register.
@@ -29,7 +30,9 @@ namespace ChimeraTK::MotorDriver {
 
    protected:
     bool hasNegativeReferenceSwitch() const override { return false; }
-    bool negativeSwitchActive() const override { return false; }
+
+    /// Accepts the move when the positive switch is active or the position matches; the negative switch is ignored.
+    bool verifyMoveAction() override;
   };
 
 } // namespace ChimeraTK::MotorDriver

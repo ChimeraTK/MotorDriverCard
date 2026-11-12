@@ -32,6 +32,8 @@ namespace ChimeraTK::MotorDriver {
     std::atomic<bool> _moveInterrupted;
 
     void actionStop();
+    /// Aborts a running calibration and disables the motor.
+    void actionCalibDisable();
     void actionStartCalib();
     void actionEndCallback();
     void actionStartCalcTolercance();

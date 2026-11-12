@@ -33,6 +33,9 @@ namespace ChimeraTK::MotorDriver {
       actionEmergencyStop();
     });
     _calibrating.setTransition(BasicStepperMotor::StateMachine::errorEvent, &_error, [] {});
+    // A calibration run cannot be left to the worker, it has to be told to abort before entering the disabled state.
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::disableEvent, &_disabled,
+        std::bind(&ReferenceStateMachine::actionCalibDisable, this));
 
     _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this] { actionStop(); });
     _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
@@ -44,7 +47,15 @@ namespace ChimeraTK::MotorDriver {
 
   void ReferenceStateMachine::actionStop() {
     _stopAction.exchange(true);
-    return;
+    actionMovetoStop();
+  }
+
+  /******************************************************************************************************************/
+
+  void ReferenceStateMachine::actionCalibDisable() {
+    _stopAction.exchange(true);
+    actionMovetoStop();
+    actionDisable();
   }
 
   void ReferenceStateMachine::actionStartCalib() {
@@ -88,6 +99,11 @@ namespace ChimeraTK::MotorDriver {
   void ReferenceStateMachine::moveToEndSwitch(Sign sign) {
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+      // The stop may have been processed while waiting for the lock, and its standstill command must not be
+      // overridden by a further chunk.
+      if(_stopAction.load()) {
+        return;
+      }
       _motor._motorController->setTargetPosition(
           _motor._motorController->getActualPosition() + static_cast<int>(sign) * getOffset());
     }
