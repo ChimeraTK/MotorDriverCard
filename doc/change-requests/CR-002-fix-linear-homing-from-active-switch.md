@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: READY TO IMPLEMENT (from TESTS REVIEWED)
+- Status: IMPLEMENTED (from TESTS REVIEWED)
 
 ## Requirements
 
@@ -77,7 +77,10 @@ the motor to reach the switch after the release search has passed it.
 returns 600000 ms (600 s), marked `[[nodiscard]]` like the base accessor. One
 search chunk is 50 000 steps, so the rotary limit would expire within a single
 chunk.
-- `findEndSwitch()` keeps its blocked-move check and gains the timeout check.
+- `findEndSwitch()` gains the timeout check. Its blocked-move check stays as it
+is: the search keeps running while neither reference switch is active. A motor
+which does not move therefore ends in the timeout abort, not in the
+blocked-move check.
 - The existing `_moveInterrupted` handling of `performCalibration()` reports
 both aborts as `Error::CALIBRATION_ERROR`, so there is no new error path.
 
@@ -156,4 +159,4 @@ release search.
 - DI-21 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:323-330 and :38-39 (`HomingSearchWhichDoesNotFindItsSwitchAborts`, `UNREACHABLE_SWITCH_POSITION`): the comments contradict the mechanism. Both switches (at +/-400000) are reachable and the searches would find them within 8 to 16 chunks; the abort comes solely from the 100 ms timeout being shorter than the ~500 ms chunk wait, exactly as the test plan item 3 describes. Rephrase the comment to that mechanism and give the constant a name matching its two uses (reachable switch position beyond the first chunk), since the release case at :305 uses it for a switch that is reached and released.
 - DI-22 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:39: the comment on DISTANT_SWITCH_POSITION says the position is 'which every search reaches and passes in the dummy', but the only test using it, HomingSearchWhichDoesNotFindItsSwitchAborts (:302-313), aborts on the 100 ms timeout before either search reaches its switch. The comment still describes the mechanism DI-21 asked to remove; it must say the position is reachable (not unreachable), so the abort comes solely from the timeout being shorter than the ~500 ms chunk wait, as the change request test plan and the test's own header comment (:299-300) state.
 - DI-23 [DONE] tests/src/steppermotor/testLinearStepperMotorHoming.cc:318-343 (HomingSearchWhichDoesNotFindItsSwitchAborts): the case does not run the mechanism it documents and the change request test plan (item 3) describes. The 100 ms timeout is shorter than the ~500 ms chunk wait in ReferenceStateMachine::moveToEndSwitch() (steppermotor/src/ReferenceStateMachine.cc:112-114), so findEndSwitch() (steppermotor/src/LinearStepperMotorStateMachine.cc:92) times out at the top of its second loop iteration and never issues a second chunk. stepPositiveSearchChunk() (tests/src/steppermotor/testLinearStepperMotorHoming.cc:214-224, called at :337) therefore sets the dummy target to 2 * SEARCH_OFFSET itself while the search sleeps (or after the calibration has already aborted), i.e. it moves the dummy to a position the search never requested; its comment 'sends the second one on behalf of the search, which then waits for it' (:324-327) has no counterpart in the code. Removing the call still leaves the assertions valid (abort after the first chunk). The call also makes the case racy: if the search thread skips its 500 ms sleep before the test steps the dummy, it issues the second chunk and stepPositiveSearchChunk's first requirement (target == current position) fails. Fix in the tests-write phase: drop the stepPositiveSearchChunk() call and the now unused helper, and reword the header comment to the one-chunk mechanism of the test plan (test finishes the first chunk, the next loop iteration finds the timeout expired, sets _moveInterrupted and aborts). DI-21's requested comment rephrasing is not complete.
-- DI-24 [NEW] Rebase the branch jgeorg-agent/CR-002-fix-linear-homing-from-active-switch onto the current state of CR-001: our branch is based on CR-001 at ff36bb5, but origin/jgeorg-agent/CR-001-fix-rotary-homing-and-calibration-abort has moved on to 350256b. Rebase onto that tip, resolve any overlap with CR-001's newer changes (in particular steppermotor/src/RotaryStepperMotorStateMachine.cc, steppermotor/src/ReferenceStateMachine.cc and the rotary tests, which CR-002 modified by moving moveOffEndSwitch() into ReferenceStateMachine), and re-verify the implementation and tests against the new base.
+- DI-24 [IMPLEMENTED] Rebase the branch jgeorg-agent/CR-002-fix-linear-homing-from-active-switch onto the current state of CR-001: our branch is based on CR-001 at ff36bb5, but origin/jgeorg-agent/CR-001-fix-rotary-homing-and-calibration-abort has moved on to 350256b. Rebase onto that tip, resolve any overlap with CR-001's newer changes (in particular steppermotor/src/RotaryStepperMotorStateMachine.cc, steppermotor/src/ReferenceStateMachine.cc and the rotary tests, which CR-002 modified by moving moveOffEndSwitch() into ReferenceStateMachine), and re-verify the implementation and tests against the new base.
