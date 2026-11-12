@@ -30,6 +30,15 @@ Stopping and disabling a linear calibration need no change; CR-001 covers them.
 
 ## Specifications
 
+`BasicStepperMotor`:
+
+- Forward-declares and befriends the linear homing test fixture, so the fixture
+can replace `_stateMachine` with a state machine whose
+`getHomingTimeoutInMilliseconds()` is short. The state machine and
+`initStateMachine()` are private, so the tests have no other route to a short
+timeout.
+- The declaration is test-only access; no behaviour changes.
+
 `ReferenceStateMachine`:
 
 - New protected `moveOffEndSwitch()`, moved from
@@ -37,7 +46,10 @@ Stopping and disabling a linear calibration need no change; CR-001 covers them.
 until `isEndSwitchActive(Sign::POSITIVE)` is false.
 - Per chunk it compares the target position before and after the chunk. An
 unchanged target means a blocked motor and sets `_moveInterrupted`.
-- Returns on stop or move interruption; the caller decides on the abort.
+- Returns on stop, on move interruption and on the homing timeout, which sets
+`_moveInterrupted`; the caller decides on the abort. A switch which stays
+active although the motor keeps moving therefore ends in the timeout abort of
+the release search.
 - New virtual `getHomingTimeoutInMilliseconds()`, defaulting to 60 s. The rotary
 state machine keeps the default.
 - New protected `homingTimedOut(start)` helper for the search loops, replacing
@@ -61,7 +73,7 @@ order, each only when the previous one did not set `_stopAction` or
 no chunk is issued over an end switch. The positive search therefore waits for
 the motor to reach the switch after the release search has passed it.
 - `getHomingTimeoutInMilliseconds()` is overridden in the class declaration and
-returns 600 s. One search chunk is 50 000 steps, so the rotary limit would
+returns 600000 ms (600 s). One search chunk is 50 000 steps, so the rotary limit would
 expire within a single chunk.
 - `findEndSwitch()` keeps its blocked-move check and gains the timeout check.
 - The existing `_moveInterrupted` handling of `performCalibration()` reports
@@ -83,13 +95,22 @@ point is harmless because the homing search returns to the switch.
 - Linear motor, positive switch already active: the motor moves off, the
 calibration completes with `CalibrationMode::FULL` and the negative reference
 is zero.
-- Linear motor, positive switch forced to stay active with a blocked motor: the
-release search aborts, calibration error and `CalibrationMode::NONE`.
-- Linear search which never reaches its switch: a test subclass shortens
-`getHomingTimeoutInMilliseconds()` and exposes the search loop. The motor keeps
-moving with the positive switch out of reach, because a blocked motor trips the
-blocked-move check first. The loop is stepped from a separate thread, and it
-returns with `_moveInterrupted` set.
+- Linear motor, positive switch active and the motor blocked: the motor cannot
+move, so the switch stays active and the per-chunk blocked-move check aborts
+the release search. Calibration error and `CalibrationMode::NONE`. The
+both-end-switches-always-on mode of the dummy is not used, because it raises
+`Error::BOTH_END_SWITCHES_ON` instead.
+- Linear search which does not find its switch within the timeout: a test
+subclass returns a timeout shorter than the time the test needs to finish the
+first chunk, and the positive switch is placed beyond that chunk. The
+calibration thread issues the first chunk and waits for it, the test advances
+the dummy to the chunk target, and the next iteration of the search finds the
+timeout expired, sets `_moveInterrupted` and aborts the calibration with a
+calibration error and `CalibrationMode::NONE`. A blocked motor is not used,
+because the blocked-move check would fire first, and no dummy placement keeps
+the positive switch inactive while the search keeps issuing chunks. The search
+runs on the calibration thread, so the test only advances the dummy and needs
+no thread of its own.
 - The rotary homing cases must keep passing unchanged against the shared
 release search.
 
@@ -103,3 +124,8 @@ release search.
 - DI-6 [NEW] Test plan item 2 (switch does not release) cannot end in CALIBRATION_ERROR with the dummy: every placement in which the negative switch also reads active raises Error::BOTH_END_SWITCHES_ON and the errorEvent inside ReferenceStepperMotor::isEndSwitchActive (steppermotor/src/ReferenceStepperMotor.cc:229-232), so the calibration leaves with error 4, not 2. The plan needs a switch simulation that does not involve the negative switch.
 - DI-7 [NEW] The change request specification states the linear homing timeout is 600 s, while steppermotor/include/LinearStepperMotorStateMachine.h:21 returns 600000 (milliseconds, i.e. 600 s by value). The units of the specification and the code have to be made consistent before tests pin the value down.
 - DI-8 [NEW] Current test state: tests/src/steppermotor/testLinearStepperMotorHoming.cc (new, untracked) compiles without warnings; HomingFromActiveSwitchMovesOffFirst passes, the other four cases fail for the reasons above. Sources are otherwise clean (no leftover instrumentation); unrelated stale copy sources/mtca4u-MotorDriverCard-maki-tmp was deleted.
+- DI-9 [NEW] Specifications do not cover the test access needed by test plan item 3 (DI-4): replacing the motor state machine to shorten the homing timeout needs access to the private `BasicStepperMotor::_stateMachine`, and `initStateMachine()` is private as well, so no public route exists. The working tree already carries the test-only `friend class ::LinearStepperMotorHomingTestFixture;` plus its forward declaration (steppermotor/include/BasicStepperMotor.h:23 and :417). The plan must either list that production-header change or name another route.
+- DI-10 [NEW] Specifications are wrong about the release search's abort paths: `moveOffEndSwitch()` is documented to return only on stop or move interruption, but the implementation also aborts it on the homing timeout (steppermotor/src/ReferenceStateMachine.cc:125). Without that, the requirement case 'the switch does not release although the motor moves' has no specification at all.
+- DI-11 [NEW] Specifications mix the timeout units (DI-7): the linear accessor is documented as returning 600 s while `getHomingTimeoutInMilliseconds()` returns 600000 ms (steppermotor/include/LinearStepperMotorStateMachine.h:21). The text must give 600000 ms (600 s) so the accessor, the value and the code agree.
+- DI-12 [NEW] Test plan item 2 is not expressible with the dummy (DI-6): 'positive switch forced to stay active' has no dummy counterpart. The switch stays active only because the motor cannot move, which is the blocked-move check of moveOffEndSwitch(). The dummy's only stuck-switch mode (bothEndSwitchesAlwaysOn) makes the negative switch active too and raises Error::BOTH_END_SWITCHES_ON (steppermotor/src/ReferenceStepperMotor.cc:229-232), not the specified CALIBRATION_ERROR. The item must say that it relies on the blocked motor only.
+- DI-13 [NEW] Test plan item 3's timeout scenario is not realisable as written (DI-5): the dummy resolves its switches from the hardware position and clamps every move at a switch (backend/src/MotorControlerDummy.cc:297-301, :359-363, :411-423), so no placement keeps the positive switch inactive while the search keeps issuing chunks; a chunk either reaches the positive switch or is clamped at the other switch. The timeout is reachable by giving the test subclass a timeout shorter than the time the test needs to finish the first chunk, so the next loop iteration aborts with `_moveInterrupted` set. The item also still asks for a separate thread stepping the loop, whereas the search already runs on the calibration thread and the test only advances the dummy.
