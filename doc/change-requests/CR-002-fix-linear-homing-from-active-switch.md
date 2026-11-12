@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: IMPLEMENTED
+- Status: READY TO TEST
 
 ## Requirements
 
@@ -94,7 +94,10 @@ point is harmless because the homing search returns to the switch.
 
 - Linear motor, positive switch already active: the motor moves off, the
 calibration completes with `CalibrationMode::FULL` and the negative reference
-is zero.
+is zero. The positive reference is the position where the positive search ends.
+The dummy does not stop a move whose target lies exactly on the switch, so with
+the switch one search chunk away from where the release search leaves the motor
+the reference is one chunk past the switch.
 - Linear motor, positive switch active and the motor blocked: the motor cannot
 move, so the switch stays active and the per-chunk blocked-move check aborts
 the release search. Calibration error and `CalibrationMode::NONE`. The
@@ -123,7 +126,7 @@ release search.
 - DI-5 [FOLDED-IN] Test plan item 3 is unrealisable against the current implementation: LinearStepperMotorStateMachine::findEndSwitch() (steppermotor/src/LinearStepperMotorStateMachine.cc:80-97) keeps a search going while either reference switch is active, so with the dummy placed as the test needs it the positive homing search never passes its first chunk and the timeout is never reached. The plan assumes the search runs on while only the sign under search is inactive.
 - DI-6 [FOLDED-IN] Test plan item 2 (switch does not release) cannot end in CALIBRATION_ERROR with the dummy: every placement in which the negative switch also reads active raises Error::BOTH_END_SWITCHES_ON and the errorEvent inside ReferenceStepperMotor::isEndSwitchActive (steppermotor/src/ReferenceStepperMotor.cc:229-232), so the calibration leaves with error 4, not 2. The plan needs a switch simulation that does not involve the negative switch.
 - DI-7 [FOLDED-IN] The change request specification states the linear homing timeout is 600 s, while steppermotor/include/LinearStepperMotorStateMachine.h:21 returns 600000 (milliseconds, i.e. 600 s by value). The units of the specification and the code have to be made consistent before tests pin the value down.
-- DI-8 [NEW] Current test state: tests/src/steppermotor/testLinearStepperMotorHoming.cc (new, untracked) compiles without warnings; HomingFromActiveSwitchMovesOffFirst passes, the other four cases fail for the reasons above. Sources are otherwise clean (no leftover instrumentation); unrelated stale copy sources/mtca4u-MotorDriverCard-maki-tmp was deleted.
+- DI-8 [IMPLEMENTED] Current test state: tests/src/steppermotor/testLinearStepperMotorHoming.cc (new, untracked) compiles without warnings; HomingFromActiveSwitchMovesOffFirst passes, the other four cases fail for the reasons above. Sources are otherwise clean (no leftover instrumentation); unrelated stale copy sources/mtca4u-MotorDriverCard-maki-tmp was deleted.
 - DI-9 [FOLDED-IN] Specifications do not cover the test access needed by test plan item 3 (DI-4): replacing the motor state machine to shorten the homing timeout needs access to the private `BasicStepperMotor::_stateMachine`, and `initStateMachine()` is private as well, so no public route exists. The working tree already carries the test-only `friend class ::LinearStepperMotorHomingTestFixture;` plus its forward declaration (steppermotor/include/BasicStepperMotor.h:23 and :417). The plan must either list that production-header change or name another route.
 - DI-10 [FOLDED-IN] Specifications are wrong about the release search's abort paths: `moveOffEndSwitch()` is documented to return only on stop or move interruption, but the implementation also aborts it on the homing timeout (steppermotor/src/ReferenceStateMachine.cc:125). Without that, the requirement case 'the switch does not release although the motor moves' has no specification at all.
 - DI-11 [FOLDED-IN] Specifications mix the timeout units (DI-7): the linear accessor is documented as returning 600 s while `getHomingTimeoutInMilliseconds()` returns 600000 ms (steppermotor/include/LinearStepperMotorStateMachine.h:21). The text must give 600000 ms (600 s) so the accessor, the value and the code agree.
