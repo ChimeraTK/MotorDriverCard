@@ -14,14 +14,9 @@ namespace ChimeraTK::MotorDriver {
 
    protected:
     void performCalibration() override;
-    /// Moves the motor negatively in chunks of getOffset() until an active positive end switch releases. Aborts on
-    /// stop, on a blocked move and on timeout, and sets _moveInterrupted for the latter two.
-    void moveOffEndSwitch();
     void calculateToleranceValues() override;
     int getPositionEndSwitch(Sign) override;
     void findEndSwitch(Sign sign) override;
-    /// Shared with findEndSwitch(): a search which takes longer than this is treated as interrupted.
-    static constexpr int HOMING_TIMEOUT_MS = 60000;
     /// Offset in steps used when searching for the end switch from the current position.
     static constexpr int END_SWITCH_SEARCH_OFFSET = 5000;
     int getOffset() const override { return END_SWITCH_SEARCH_OFFSET; }

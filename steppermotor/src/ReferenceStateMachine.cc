@@ -114,6 +114,39 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
+  void ReferenceStateMachine::moveOffEndSwitch() {
+    // A motor that does not move for a chunk leaves target and position untouched, so the release would take the full
+    // timeout. Detect that per chunk instead.
+    auto startTime = std::chrono::steady_clock::now();
+    while(_motor.isEndSwitchActive(Sign::POSITIVE)) {
+      if(_stopAction.load() || _moveInterrupted.load()) {
+        return;
+      }
+      if(homingTimedOut(startTime)) {
+        return;
+      }
+      int targetPositionBeforeMove = _motor.getTargetPositionInSteps();
+      moveToEndSwitch(Sign::NEGATIVE);
+      if(_motor.getTargetPositionInSteps() == targetPositionBeforeMove) {
+        _moveInterrupted.exchange(true);
+        return;
+      }
+    }
+  }
+
+  /********************************************************************************************************************/
+
+  bool ReferenceStateMachine::homingTimedOut(std::chrono::steady_clock::time_point start) {
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+    if(elapsed.count() > getHomingTimeoutInMilliseconds()) {
+      _moveInterrupted.exchange(true);
+      return true;
+    }
+    return false;
+  }
+
+  /********************************************************************************************************************/
+
   void ReferenceStateMachine::toleranceCalcThreadFunction() {
     _motor._toleranceCalcFailed.exchange(false);
     _motor._toleranceCalculated.exchange(false);

@@ -60,28 +60,6 @@ namespace ChimeraTK::MotorDriver {
     _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
   }
 
-  void RotaryStepperMotorStateMachine::moveOffEndSwitch() {
-    // A motor that does not move for a chunk leaves target and position untouched, so the release would take the full
-    // timeout. Detect that per chunk instead.
-    auto startTime = std::chrono::steady_clock::now();
-    while(_motor.isEndSwitchActive(Sign::POSITIVE)) {
-      if(_stopAction.load() || _moveInterrupted.load()) {
-        return;
-      }
-      auto now = std::chrono::steady_clock::now();
-      if(std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count() > HOMING_TIMEOUT_MS) {
-        _moveInterrupted.exchange(true);
-        return;
-      }
-      int targetPositionBeforeMove = _motor.getTargetPositionInSteps();
-      moveToEndSwitch(Sign::NEGATIVE);
-      if(_motor.getTargetPositionInSteps() == targetPositionBeforeMove) {
-        _moveInterrupted.exchange(true);
-        return;
-      }
-    }
-  }
-
   /********************************************************************************************************************/
 
   void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
@@ -90,9 +68,7 @@ namespace ChimeraTK::MotorDriver {
       if(_stopAction.load() || _moveInterrupted.load()) {
         return;
       }
-      auto now = std::chrono::steady_clock::now();
-      if(std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count() > HOMING_TIMEOUT_MS) {
-        _moveInterrupted.exchange(true);
+      if(homingTimedOut(startTime)) {
         return;
       }
       if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&

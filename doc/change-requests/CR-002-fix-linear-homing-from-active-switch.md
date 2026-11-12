@@ -6,7 +6,7 @@
 records its current position as the calibrated switch position. An end-switch
 search that never finds its switch runs without end.
 - Depends on: CR-001
-- Status: READY TO IMPLEMENT
+- Status: IMPLEMENTED
 
 ## Requirements
 
@@ -54,8 +54,15 @@ release search.
 
 - `performCalibration()` releases an active positive switch before homing and
 homes only when neither `_stopAction` nor `_moveInterrupted` is set.
-- `getHomingTimeoutInMilliseconds()` returns 600 s. One search chunk is
-50 000 steps, so the rotary limit would expire within a single chunk.
+- The release search, the positive search and the negative search run in that
+order, each only when the previous one did not set `_stopAction` or
+`_moveInterrupted`.
+- A search issues its next chunk only after the previous move has finished, so
+no chunk is issued over an end switch. The positive search therefore waits for
+the motor to reach the switch after the release search has passed it.
+- `getHomingTimeoutInMilliseconds()` is overridden in the class declaration and
+returns 600 s. One search chunk is 50 000 steps, so the rotary limit would
+expire within a single chunk.
 - `findEndSwitch()` keeps its blocked-move check and gains the timeout check.
 - The existing `_moveInterrupted` handling of `performCalibration()` reports
 both aborts as `Error::CALIBRATION_ERROR`, so there is no new error path.
@@ -88,6 +95,6 @@ release search.
 
 ## Deferred issue
 
-- DI-1 [FOLDED-IN] Requirements: no bullet requires the linear calibration to fail when the switch does not release, although the specification (line 38, 'the caller decides on the abort') and test plan item 2 (lines 76-77) both depend on it; CR-001 carries that requirement for the rotary stage, so its omission here leaves test plan item 2 without a requirement basis
-- DI-2 [FOLDED-IN] Specifications line 41-42: the contract of the new `homingTimedOut(start)` helper is ambiguous. Because every search loop relies on `_moveInterrupted` to reach the error branch, a helper that only returns true would let the caller return from a timed-out search silently, and the calibration would then report success with a bogus switch position. The plan must state that the helper sets `_moveInterrupted` as the replaced inline rotary check does
-- DI-3 [FOLDED-IN] Test plan line 78-80: the timeout case is not executable as written. A blocked motor cannot be used, because the blocked-move check (`LinearStepperMotorStateMachine.cc:80-84`) fires before the timeout; the motor must keep moving with the switch out of reach, and the loop must be stepped from a separate thread while the test subclass calls it, since `moveToEndSwitch()` blocks until the dummy has been hand-stepped
+- DI-1 [IMPLEMENTED] Requirements: no bullet requires the linear calibration to fail when the switch does not release, although the specification (line 38, 'the caller decides on the abort') and test plan item 2 (lines 76-77) both depend on it; CR-001 carries that requirement for the rotary stage, so its omission here leaves test plan item 2 without a requirement basis
+- DI-2 [IMPLEMENTED] Specifications line 41-42: the contract of the new `homingTimedOut(start)` helper is ambiguous. Because every search loop relies on `_moveInterrupted` to reach the error branch, a helper that only returns true would let the caller return from a timed-out search silently, and the calibration would then report success with a bogus switch position. The plan must state that the helper sets `_moveInterrupted` as the replaced inline rotary check does
+- DI-3 [IMPLEMENTED] Test plan line 78-80: the timeout case is not executable as written. A blocked motor cannot be used, because the blocked-move check (`LinearStepperMotorStateMachine.cc:80-84`) fires before the timeout; the motor must keep moving with the switch out of reach, and the loop must be stepped from a separate thread while the test subclass calls it, since `moveToEndSwitch()` blocks until the dummy has been hand-stepped

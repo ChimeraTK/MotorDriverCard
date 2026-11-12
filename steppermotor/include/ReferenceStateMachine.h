@@ -7,6 +7,9 @@
 
 #include <ChimeraTK/Exception.h>
 
+#include <atomic>
+#include <chrono>
+
 namespace ChimeraTK::MotorDriver {
 
   /**
@@ -42,12 +45,22 @@ namespace ChimeraTK::MotorDriver {
     void toleranceCalcThreadFunction();
     void moveToEndSwitch(Sign sign);
     double getToleranceEndSwitch(Sign sign);
+    /// Moves the motor negatively in chunks of getOffset() until an active positive end switch releases. Aborts on
+    /// stop, on a blocked move and on timeout, and sets _moveInterrupted for the latter two.
+    void moveOffEndSwitch();
+    /// Returns true once the search started at start has run for getHomingTimeoutInMilliseconds(). Sets
+    /// _moveInterrupted, so a timed-out search never returns as if it had succeeded.
+    bool homingTimedOut(std::chrono::steady_clock::time_point start);
 
     virtual void performCalibration() = 0;
     virtual void calculateToleranceValues() = 0;
     virtual int getPositionEndSwitch(Sign) = 0;
     virtual int getOffset() const = 0;
     virtual void findEndSwitch(Sign sign) = 0;
+    /// Maximum duration of a single search loop of moveOffEndSwitch() and findEndSwitch().
+    virtual int getHomingTimeoutInMilliseconds() const { return HOMING_TIMEOUT_MS; }
+    /// Default for getHomingTimeoutInMilliseconds().
+    static constexpr int HOMING_TIMEOUT_MS = 60000;
     // private:
     // std::jthread _worker;
   };

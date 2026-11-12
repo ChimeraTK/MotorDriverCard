@@ -15,10 +15,6 @@ namespace ChimeraTK::MotorDriver {
     _moveInterrupted.exchange(false);
 
     try {
-      // Local variables for calibrated position
-      int calibPositiveEndSwitchInSteps = 0;
-      int calibNegativeEndSwitchInSteps = 0;
-
       // At least one end switch disabled -> calibration not possible
       if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
         _motor._motorController->setCalibrationTime(0);
@@ -27,10 +23,20 @@ namespace ChimeraTK::MotorDriver {
         _motor._calibrationMode.exchange(CalibrationMode::NONE);
       }
       else {
-        findEndSwitch(Sign::POSITIVE);
-        calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
-        findEndSwitch(Sign::NEGATIVE);
-        calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+        // A switch which is already active has to release first, otherwise homing would not leave its position.
+        if(_motor.isEndSwitchActive(Sign::POSITIVE)) {
+          moveOffEndSwitch();
+        }
+
+        if(!_stopAction.load() && !_moveInterrupted.load()) {
+          findEndSwitch(Sign::POSITIVE); // "home direction search"
+        }
+        int calibPositiveEndSwitchInSteps = _motor.getCurrentPositionInSteps();
+
+        if(!_stopAction.load() && !_moveInterrupted.load()) {
+          findEndSwitch(Sign::NEGATIVE);
+        }
+        int calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
 
         if(_moveInterrupted.load() || _stopAction.load()) {
           _motor._motorController->setCalibrationTime(0);
@@ -72,6 +78,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void LinearStepperMotorStateMachine::findEndSwitch(Sign sign) {
+    auto startTime = std::chrono::steady_clock::now();
     while(!_motor.isEndSwitchActive(sign)) {
       if(_stopAction.load() || _moveInterrupted.load()) {
         return;
@@ -80,6 +87,9 @@ namespace ChimeraTK::MotorDriver {
       if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
           !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
         _moveInterrupted.exchange(true);
+        return;
+      }
+      if(homingTimedOut(startTime)) {
         return;
       }
       moveToEndSwitch(sign);
