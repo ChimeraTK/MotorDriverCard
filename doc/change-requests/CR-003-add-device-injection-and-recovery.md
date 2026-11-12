@@ -497,22 +497,22 @@ dummy through the factory, so the methods must exist and be harmless.
   reconfigure() re-applies _controlerConfig. Name the whole comment for
   replacement, as the plan already does for both SPIviaPCIe comments
   (CR:169-171).
-- DI-16 [NEW] The only test for the requirement 'It leaves the actual position
-  untouched' cannot pass as described: `ReconfigureLeavesPositionUntouched`
-  (CR:294-301) asserts that the position register 'still holds that value' after
-  the device was closed and reopened. A close and reopen re-runs
-  `DFMC_MD22Dummy::open()` (`_opened` is cleared by `DummyBackend::close()`,
-  ChimeraTK DummyBackend.cc:41), which first writes the test pattern
-  (`backend/src/DFMC_MD22Dummy.cc:36,94-105`) and then zeroes the emulated
-  controller SPI space and mirrors it into the actual-position register
+- DI-16 [FOLDED-IN] The only test for the requirement 'It leaves the actual
+  position untouched' cannot pass as described:
+  `ReconfigureLeavesPositionUntouched` (CR:294-301) asserts that the position
+  register 'still holds that value' after the device was closed and reopened. A
+  close and reopen re-runs `DFMC_MD22Dummy::open()` (`_opened` is cleared by
+  `DummyBackend::close()`, ChimeraTK DummyBackend.cc:41), which first writes the
+  test pattern (`backend/src/DFMC_MD22Dummy.cc:36,94-105`) and then zeroes the
+  emulated controller SPI space and mirrors it into the actual-position register
   (`:41,141-157,343-360`). After the reopen the register reads 0, and
   `reconfigure()` keeps it at 0, because nothing writes `IDX_ACTUAL_POSITION`
   (only `MotorControlerImpl::setActualPosition` does,
   `backend/src/MotorControlerImpl.cc:161-165`). The case must compare against
   the post-reopen value instead of the pre-close position.
-- DI-17 [NEW] The folded text of DI-13 (CR:462-466) carries the same factual
-  error and would lead the implementer astray: it states that a reopen resets
-  the register to the dummy test pattern, but the test pattern written at
+- DI-17 [FOLDED-IN] The folded text of DI-13 (CR:462-466) carries the same
+  factual error and would lead the implementer astray: it states that a reopen
+  resets the register to the dummy test pattern, but the test pattern written at
   `backend/src/DFMC_MD22Dummy.cc:36` is immediately overwritten for the
   actual-position, actual-velocity, actual-acceleration and micro-step registers
   by the mirroring in `setControlerSpiRegistersForOperation()` (`:41,141-157`),
