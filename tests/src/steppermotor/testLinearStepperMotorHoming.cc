@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 
 using namespace boost::unit_test_framework;
 using namespace ChimeraTK::MotorDriver;
