@@ -43,6 +43,9 @@ const std::chrono::milliseconds WAIT_TIMEOUT(10000);
 // while the motor stands still, so the chunks have to be spaced out.
 const std::chrono::milliseconds CHUNK_PERIOD(150);
 
+// The tests advance the dummy in single steps of this size to hold a chunk open while they stop the motor.
+const int CHUNK_STEP = 5;
+
 // A full rotary calibration needs a release chunk and a homing chunk, this bound only guards against a runaway.
 const unsigned MAX_CALIBRATION_CHUNKS = 10U;
 
@@ -76,14 +79,16 @@ class RotaryStepperMotorFixture {
   void runToleranceCalculationToEnd();
   /// Runs the calibration until the motor is idle.
   void runCalibrationToEnd();
+  /// Stops the motor while the chunk which starts at the given position runs.
+  void stopDuringChunkAt(int chunkStartPosition);
 
  protected:
   RotaryStepperMotorFixture();
   ~RotaryStepperMotorFixture();
 
-  /// Whether the dummy has a target it has not reached yet, i.e. whether the background thread has issued the next
-  /// chunk. A move is only issued while the motor stands still.
-  [[nodiscard]] bool isChunkTargetSet() const;
+  /// The thread which stops the motor, see stopDuringChunkAt(). It runs alongside the calibration thread, so the
+  /// object holding the threads is a member and not a temporary.
+  std::thread _stopThread;
 
   StepperMotorParameters _stepperMotorParameters;
   std::shared_ptr<StepperMotor> _stepperMotor;
@@ -120,6 +125,9 @@ RotaryStepperMotorFixture::~RotaryStepperMotorFixture() {
     _stepperMotor->resetError();
     return _stepperMotor->isSystemIdle();
   });
+  if(_stopThread.joinable()) {
+    _stopThread.join();
+  }
   _stepperMotor->setEnabled(false);
   _stepperMotor.reset();
   _motorControlerDummy->resetInternalStateToDefaults();
@@ -151,9 +159,22 @@ void RotaryStepperMotorFixture::advanceOneChunk() const {
   _motorControlerDummy->moveTowardsTarget(1.0F, false);
 }
 
-[[nodiscard]] bool RotaryStepperMotorFixture::isChunkTargetSet() const {
-  return !_motorControlerDummy->isMotorMoving() &&
-      _motorControlerDummy->getTargetPosition() != _motorControlerDummy->getActualPosition();
+void RotaryStepperMotorFixture::stopDuringChunkAt(int chunkStartPosition) {
+  // A stop issued before the first chunk only aborts the search between two chunks. To interrupt a chunk itself, the
+  // stop has to wait until the motor has not reached the chunk target yet: only then can the stop thread stay ahead
+  // of the position. The motor must also be moving, because a chunk left alone anyway must stay a race.
+  const int stopAheadOfPosition = 2 * CHUNK_STEP;
+  _stopThread = std::thread([this, chunkStartPosition, stopAheadOfPosition] {
+    BOOST_CHECK(waitFor([this, chunkStartPosition] {
+      return _stepperMotor->getTargetPositionInSteps() != chunkStartPosition &&
+          _stepperMotor->getTargetPositionInSteps() != _stepperMotor->getCurrentPositionInSteps();
+    }));
+    BOOST_CHECK(waitFor([this] { return _motorControlerDummy->isMotorMoving(); }));
+    BOOST_CHECK(waitFor([this, chunkStartPosition, stopAheadOfPosition] {
+      return _stepperMotor->getCurrentPositionInSteps() > chunkStartPosition - stopAheadOfPosition;
+    }));
+    _stepperMotor->stop();
+  });
 }
 
 void RotaryStepperMotorFixture::runToleranceCalculationToEnd() {
@@ -241,9 +262,7 @@ BOOST_AUTO_TEST_CASE(ToleranceCalculationSucceedsAfterHoming) {
  *
  * "`_calculatingTolerance` shares `actionStop()`, so stopping a tolerance calculation also commands standstill."
  *
- * The first move issued by the tolerance calculation is held, so the motor is still moving when the stop is
- * processed. The standstill command has to take the target back to the actual position, and the worker must not
- * issue the second move of the iteration afterwards.
+ * During the calculation the motor is moving already before the first iteration completes.
  */
 BOOST_AUTO_TEST_CASE(StopDuringToleranceCalculationCommandsStandstill) {
   startCalibration();
@@ -253,16 +272,18 @@ BOOST_AUTO_TEST_CASE(StopDuringToleranceCalculationCommandsStandstill) {
   BOOST_REQUIRE(_stepperMotor->determineTolerance() == ExitStatus::SUCCESS);
   BOOST_REQUIRE(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
 
+  // The calculation starts by moving close to the end switch, 1000 steps away from it. The move is left running, so
+  // the stop takes the target of a moving motor back.
   BOOST_REQUIRE(waitFor([this] {
-    return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - 1000;
+    return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - 1000 &&
+        _motorControlerDummy->isMotorMoving();
   }));
 
   _stepperMotor->stop();
 
-  BOOST_CHECK_EQUAL(_stepperMotor->isMoving(), false);
+  BOOST_CHECK(!_motorControlerDummy->isMotorMoving());
   BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
   BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
-  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
 }
 
 /**
@@ -352,6 +373,8 @@ BOOST_AUTO_TEST_CASE(BlockedMotorDuringReleaseSearchFailsWithCalibrationError) {
  *
  * "Stopping during calibration must stop motion."
  * "The motor must end in the idle state."
+ *
+ * The positive switch is inactive at the start, so the stop aborts the homing search.
  */
 BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
   startCalibration();
@@ -373,8 +396,8 @@ BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
  *
  * "Abort the release search on stop or move interruption."
  *
- * The positive switch is active at the start, so the calibration runs the release search. Stopping after the first
- * negative chunk target must abort that search.
+ * The positive switch is active at the start, so the calibration runs the release search. The stop lands while the
+ * first negative chunk runs.
  */
 BOOST_AUTO_TEST_CASE(StopDuringReleaseSearchStopsMotor) {
   driveToEndSwitch();
@@ -384,12 +407,14 @@ BOOST_AUTO_TEST_CASE(StopDuringReleaseSearchStopsMotor) {
     return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET &&
         _motorControlerDummy->isMotorMoving();
   }));
-
-  _stepperMotor->stop();
+  stopDuringChunkAt(POSITIVE_END_SWITCH_POSITION);
 
   BOOST_CHECK(waitFor([this] { return !_motorControlerDummy->isMotorMoving(); }));
+  // The released switch makes the search stop moving at once, so the stop may also be processed between two chunks.
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
   BOOST_CHECK(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
 }
 
 /**
