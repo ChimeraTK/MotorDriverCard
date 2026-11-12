@@ -11,6 +11,9 @@
 
 constexpr unsigned wakeupPeriodInMilliseconds = 500U;
 
+// The tolerance calculation polls for each move to finish, so it only has to notice a finished move quickly.
+constexpr unsigned tolerancePollPeriodInMilliseconds = 5U;
+
 namespace ChimeraTK::MotorDriver {
 
   const utility::StateMachine::Event ReferenceStateMachine::calibEvent("calibEvent");
@@ -21,18 +24,20 @@ namespace ChimeraTK::MotorDriver {
     _calculatingTolerance("calculatingTolerance"), _motor(stepperMotorWithReference), _stopAction(false),
     _moveInterrupted(false) {
     _idle.setTransition(calibEvent, &_calibrating, [this]() { actionStartCalib(); }, [this]() { actionEndCallback(); });
-    _idle.setTransition(ReferenceStateMachine::calcToleranceEvent, &_calculatingTolerance,
-        std::bind(&ReferenceStateMachine::actionStartCalcTolercance, this),
-        std::bind(&ReferenceStateMachine::actionEndCallback, this));
+    _idle.setTransition(
+        ReferenceStateMachine::calcToleranceEvent, &_calculatingTolerance, [this]() { actionStartCalcTolercance(); },
+        [this]() { actionEndCallback(); });
 
-    _calibrating.setTransition(
-        BasicStepperMotor::StateMachine::stopEvent, &_idle, std::bind(&ReferenceStateMachine::actionStop, this));
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this]() { actionStop(); });
     _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
       _stopAction.exchange(true);
       _moveInterrupted.exchange(true);
       actionEmergencyStop();
     });
     _calibrating.setTransition(BasicStepperMotor::StateMachine::errorEvent, &_error, [] {});
+    // A calibration run cannot be left to the worker, it has to be told to abort before entering the disabled state.
+    _calibrating.setTransition(
+        BasicStepperMotor::StateMachine::disableEvent, &_disabled, [this]() { actionCalibDisable(); });
 
     _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this] { actionStop(); });
     _calculatingTolerance.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
@@ -44,7 +49,15 @@ namespace ChimeraTK::MotorDriver {
 
   void ReferenceStateMachine::actionStop() {
     _stopAction.exchange(true);
-    return;
+    actionMovetoStop();
+  }
+
+  /********************************************************************************************************************/
+
+  void ReferenceStateMachine::actionCalibDisable() {
+    _stopAction.exchange(true);
+    actionMovetoStop();
+    actionDisable();
   }
 
   void ReferenceStateMachine::actionStartCalib() {
@@ -88,6 +101,11 @@ namespace ChimeraTK::MotorDriver {
   void ReferenceStateMachine::moveToEndSwitch(Sign sign) {
     {
       boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+      // The stop may have been processed while waiting for the lock, and its standstill command must not be
+      // overridden by a further chunk.
+      if(_stopAction.load()) {
+        return;
+      }
       _motor._motorController->setTargetPosition(
           _motor._motorController->getActualPosition() + static_cast<int>(sign) * getOffset());
     }
@@ -152,13 +170,17 @@ namespace ChimeraTK::MotorDriver {
         break;
       }
 
-      // Move close to end switch
+      // Move close to end switch. The stop is re-checked under the lock, so no target is issued after a stop has
+      // been processed, like in findEndSwitch().
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        if(_stopAction.load()) {
+          break;
+        }
         _motor._motorController->setTargetPosition(endSwitchPosition - static_cast<int>(sign) * 1000);
       }
       while(_motor._motorController->isMotorMoving()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+        std::this_thread::sleep_for(std::chrono::milliseconds(tolerancePollPeriodInMilliseconds));
       }
 
       // Check if in expected position
@@ -170,10 +192,13 @@ namespace ChimeraTK::MotorDriver {
       // Try to move beyond end switch
       {
         boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        if(_stopAction.load()) {
+          break;
+        }
         _motor._motorController->setTargetPosition(endSwitchPosition + static_cast<int>(sign) * 1000);
       }
       while(_motor._motorController->isMotorMoving()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+        std::this_thread::sleep_for(std::chrono::milliseconds(tolerancePollPeriodInMilliseconds));
       }
       if(!_motor.isEndSwitchActive(sign)) {
         _moveInterrupted.exchange(true);
