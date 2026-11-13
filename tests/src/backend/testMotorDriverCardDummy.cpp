@@ -35,4 +35,23 @@ namespace mtca4u {
     BOOST_CHECK_THROW(_motorDriverCardDummy.getPowerMonitor(), ChimeraTK::logic_error);
   }
 
+  /**
+   * @anchor DummyIsFunctionalAndAcceptsReconfigure
+   * MotorDriverCardDummy
+   *
+   * "`isFunctional()` is true and both `reconfigure()` calls leave the controlers
+   * intact."
+   */
+  BOOST_FIXTURE_TEST_CASE(DummyIsFunctionalAndAcceptsReconfigure, MotorDriverCardDummyTest) {
+    auto controler0 = _motorDriverCardDummy.getMotorControler(0);
+
+    BOOST_TEST(_motorDriverCardDummy.isFunctional());
+
+    _motorDriverCardDummy.reconfigure();
+    _motorDriverCardDummy.reconfigure(true);
+
+    BOOST_TEST(_motorDriverCardDummy.getMotorControler(0).get() == controler0.get());
+    BOOST_TEST(controler0->getID() == 0u);
+  }
+
 } // namespace mtca4u

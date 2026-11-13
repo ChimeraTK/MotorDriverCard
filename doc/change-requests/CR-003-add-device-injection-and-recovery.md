@@ -3,9 +3,9 @@
 ## Header
 
 - Synopsis: A MotorDriverCard can be created from an ApplicationCore-owned
-device and restored after that device has been reopened. Applications no
-longer need a second proxy device or a recreated card to recover.
-- Status: IMPLEMENTED
+  device and restored after that device has been reopened. Applications no
+  longer need a second proxy device or a recreated card to recover.
+- Status: READY TO TEST
 
 ## Requirements
 
@@ -13,11 +13,11 @@ Device injection:
 
 - Applications can create a card from an open device they own.
 - Repeated requests for the same device and module return the same card while
-the previously returned card is still alive.
+  the previously returned card is still alive.
 - The library never opens, closes or replaces an injected device.
 - The injected device must outlive the card.
 - A motor controler must not outlive its card; this holds for both factory
-overloads.
+  overloads.
 - Alias-based creation is otherwise unchanged.
 - Dummy mode does not apply to an injected device.
 
@@ -26,9 +26,9 @@ Recovery:
 - `isFunctional()` reports whether the underlying device is functional.
 - `reconfigure()` restores a card after its device was closed and reopened.
 - It re-applies the complete card and motor configuration from the
-configuration objects already held by the library.
+  configuration objects already held by the library.
 - It resets the cached runtime state and runtime settings, such as a user
-speed limit, to the configured values.
+  speed limit, to the configured values.
 - It leaves the actual position untouched.
 - It leaves the motor current disabled unless the caller asks to enable it.
 - Repeated calls leave the configured values unchanged.
@@ -36,11 +36,11 @@ speed limit, to the configured values.
 - Existing `MotorControler` references stay valid across a reconfigure.
 - It does not open, close or replace the device.
 - It does not restore the state cached in the stepper motor layer
-(`BasicStepperMotor`'s target position, error and calibration mode, and its
-state machine state); the application re-synchronises its stepper motors
-after recovery.
+  (`BasicStepperMotor`'s target position, error and calibration mode, and its
+  state machine state); the application re-synchronises its stepper motors
+  after recovery.
 - A failed reconfigure throws; the caller must then not use the card except
-to reopen the device and call `reconfigure()` again.
+  to reopen the device and call `reconfigure()` again.
 - The dummy card accepts both calls without effect.
 
 ## Specifications
@@ -51,26 +51,29 @@ to reopen the device and call `reconfigure()` again.
 - Reports the functional state of the underlying device.
 - Returns false while the device is closed or in a known error state.
 - Not a card-readiness signal: it can be true while accessors are still
-stale after a reopen.
+  stale after a reopen.
 - Serves both injected and alias-created cards, so it stays on the card
-interface.
+  interface.
 - `virtual void reconfigure(bool enableMotor = false) = 0;`
 - Restores the card after the device has been closed and reopened.
 - Re-creates every register accessor and re-applies the configuration
-stored by the implementation.
+  stored by the implementation.
 - Resets cached runtime state and runtime settings to the configured values.
 - Writes the motor-current enable last: enabled when `enableMotor` is true,
-disabled otherwise.
+  disabled otherwise.
+- Propagates `ChimeraTK::logic_error` from the device while the device is
+  closed; the card stays unusable until a `reconfigure()` succeeds on an open
+  device.
 - Does not write the actual position.
 - Does not restore the state cached in `BasicStepperMotor` objects; see the
-recovery requirement on the stepper motor layer.
+  recovery requirement on the stepper motor layer.
 - Intended for the device recovery path of the owning application.
 - Each SPI transaction still serialises through the SPI mutex; the
-accessors of one object are replaced atomically.
+  accessors of one object are replaced atomically.
 - The caller must not use the card while it runs, as nothing excludes
-concurrent card or controler operations.
+  concurrent card or controler operations.
 - Adds two pure virtual methods: out-of-tree implementations of the
-interface must implement them.
+  interface must implement them.
 
 ### MotorDriverCardImpl (modified) in backend/{include/impl/MotorDriverCardImpl.h,src/MotorDriverCardImpl.cc} (modified)
 
@@ -81,13 +84,13 @@ interface must implement them.
 - `ChimeraTK::Device* _device` replaces the owning shared pointer.
 - Non-owning; valid for the lifetime of the card.
 - New private constructor
-`MotorDriverCardImpl(ChimeraTK::Device& device, std::string const& moduleName, MotorDriverCardConfig const& cardConfiguration)`.
+  `MotorDriverCardImpl(ChimeraTK::Device& device, std::string const& moduleName, MotorDriverCardConfig const& cardConfiguration)`.
 - Non-owning; used for injected devices and by the owning constructor.
 - Existing constructor taking `boost::shared_ptr<ChimeraTK::Device>`.
 - Delegates to the new constructor and keeps the shared pointer in
-`_ownedDevice` afterwards.
+  `_ownedDevice` afterwards.
 - The caller's shared pointer keeps the device alive during the delegated
-configuration, which is why the member can be assigned after delegation.
+  configuration, which is why the member can be assigned after delegation.
 - Preserves the behaviour of the alias-based factory overload.
 - `MotorDriverCardConfig _config;`
 - Copy of the configuration passed by the factory, used by `reconfigure()`.
@@ -97,9 +100,9 @@ configuration, which is why the member can be assigned after delegation.
 - Locks a new `std::mutex _reconfigureMutex`.
 - Re-checks the firmware version.
 - Re-creates `_controlerStatusRegister` with
-`{ChimeraTK::AccessMode::raw}`, as the constructor does.
+  `{ChimeraTK::AccessMode::raw}`, as the constructor does.
 - Without the flag the re-created accessor would use the default access mode
-and the status word would change.
+  and the status word would change.
 - Calls `_controlerSPI->reconnect()`.
 - Re-applies the card-wide configuration with `applyConfiguration()`.
 - Calls `reconfigure(enableMotor)` on every motor controler.
@@ -107,14 +110,14 @@ and the status word would change.
 - Holds the card-wide register writes currently in the constructor.
 - Used by the constructor and by `reconfigure()`.
 - `_motorControlers` becomes
-`std::vector<boost::shared_ptr<MotorControlerImpl>>`.
+  `std::vector<boost::shared_ptr<MotorControlerImpl>>`.
 - Lets `reconfigure()` call the implementation method.
 - `getMotorControler()` returns the upcast pointer
-(`boost::static_pointer_cast<MotorControler>`), so existing pointers stay
-valid.
+  (`boost::static_pointer_cast<MotorControler>`), so existing pointers stay
+  valid.
 - `MotorControlerImpl` is only forward-declared in the header; the
-constructor and the destructor move to the source file, so the include
-cycle with `MotorControlerImpl.h` stays out of the header.
+  constructor and the destructor move to the source file, so the include
+  cycle with `MotorControlerImpl.h` stays out of the header.
 - `getStatusWord()` also locks `_reconfigureMutex`.
 - It uses the re-created status accessor while a reconfigure may replace it.
 
@@ -122,16 +125,16 @@ cycle with `MotorControlerImpl.h` stays out of the header.
 
 - Constructors take `ChimeraTK::Device&` instead of a shared pointer.
 - `boost::shared_ptr<ChimeraTK::Device> _device` becomes the non-owning
-`ChimeraTK::Device* _device`.
+  `ChimeraTK::Device* _device`.
 - The whole class comment
-(`backend/include/impl/MotorControlerImpl.h:23-26`) is replaced: besides
-keeping the device alive it claims the constructor copies the device shared
-pointer and that the configuration is not kept in the class, and both claims
-are wrong now.
+  (`backend/include/impl/MotorControlerImpl.h:23-26`) is replaced: besides
+  keeping the device alive it claims the constructor copies the device shared
+  pointer and that the configuration is not kept in the class, and both claims
+  are wrong now.
 - Non-owning, so a `MotorControler` must not outlive its card, for both
-factory overloads.
+  factory overloads.
 - This differs from the current class, which copies the device shared
-pointer and so keeps the device alive past the card.
+  pointer and so keeps the device alive past the card.
 - New `std::string const _moduleName;`
 - Stored for accessor re-creation.
 - New public `void reconfigure(bool enableMotor);`
@@ -139,10 +142,10 @@ pointer and so keeps the device alive past the card.
 - `reconfigure()`:
 - Locks `_mutex`.
 - Re-creates all scalar accessors from `*_device` and `_moduleName`,
-including the optional end-switch power accessor.
+  including the optional end-switch power accessor.
 - Every accessor, `_controlerStatus` included, is created with
-`{ChimeraTK::AccessMode::raw}` through one helper (`getRawAccessor()`),
-so the flag cannot get lost.
+  `{ChimeraTK::AccessMode::raw}` through one helper (`getRawAccessor()`),
+  so the flag cannot get lost.
 - Calls `_driverSPI.reconnect()`.
 - Resets `_currentVmax` to the configured maximum velocity.
 - Resets `_usrSetCurrentScale` to the configured current scale.
@@ -150,66 +153,66 @@ so the flag cannot get lost.
 - Recomputes `_userMicroStepSize`.
 - Re-applies `_controlerConfig` through the shared `applyConfiguration()`.
 - Reads `_localTargetPosition` from the target position register after the
-configuration is applied.
+  configuration is applied.
 - Writes the motor-current enable last: enabled when `enableMotor` is
-true, disabled otherwise.
+  true, disabled otherwise.
 - New private `void applyConfiguration(bool enableMotor);`
 - Holds the configuration block currently in the constructor, ending with
-the motor-current enable.
+  the motor-current enable.
 - Writes the registers through new lock-free private helpers, because the
-configuration block currently calls the public setters, which each lock the
-non-recursive `_mutex`.
+  configuration block currently calls the public setters, which each lock the
+  non-recursive `_mutex`.
 - The scalar controller registers are written as
-`_controlerSPI->write(_id, IDX_*, value)`, the typed ones through the
-existing `writeTypedControlerRegister()`.
+  `_controlerSPI->write(_id, IDX_*, value)`, the typed ones through the
+  existing `writeTypedControlerRegister()`.
 - The driver data registers get lock-free `write<Name>()` variants generated
-by `DEFINE_SET_GET_TYPED_DRIVER_DATA()`; the public setters delegate to
-them.
+  by `DEFINE_SET_GET_TYPED_DRIVER_DATA()`; the public setters delegate to
+  them.
 - `setMaximumVelocity()` stays unchanged and is not used by the
-configuration path, so re-applying the configuration cannot overwrite a
-user speed limit.
+  configuration path, so re-applying the configuration cannot overwrite a
+  user speed limit.
 - `reconfigure()` holds `_mutex`, so it must not go through the public setters.
-The constructor does not yet share the object, so the missing locks are
-harmless there as well.
+  The constructor does not yet share the object, so the missing locks are
+  harmless there as well.
 - The public setters stay unchanged; they are no longer used by the
-configuration path.
+  configuration path.
 - The constructor passes the configured enable flag, so construction is
-unchanged.
+  unchanged.
 - `reconfigure()` passes its argument.
 - Accessor creation moves into a private `createRegisterAccessors()` helper
-shared by the constructor and `reconfigure()`.
+  shared by the constructor and `reconfigure()`.
 - Keeps the current handling of the optional end-switch power register for
-old firmware.
+  old firmware.
 - The helper takes the register paths from `_device` and `_moduleName`
-instead of constructor parameters, so the constructor initialises the
-accessors in its body, after those members.
+  instead of constructor parameters, so the constructor initialises the
+  accessors in its body, after those members.
 - The constructor computes `_userMicroStepSize` after
-`createRegisterAccessors()` and before `applyConfiguration()`, because the
-configuration writes the dividers and micro-step resolution data.
+  `createRegisterAccessors()` and before `applyConfiguration()`, because the
+  configuration writes the dividers and micro-step resolution data.
 
 ### SPIviaPCIe (modified) in backend/{include/impl/SPIviaPCIe.h,src/SPIviaPCIe.cc} (modified)
 
 - The two constructors collapse into one taking `ChimeraTK::Device&`
-instead of a shared pointer, together with the module name, the write,
-sync and readback register names and the waiting time.
+  instead of a shared pointer, together with the module name, the write,
+  sync and readback register names and the waiting time.
 - The write-only overload stays as a delegating constructor that passes the
-write register name as the readback name, as the constructors did before.
+  write register name as the readback name, as the constructors did before.
 - New non-owning `ChimeraTK::Device* _device;`.
 - The class keeps no device reference today, so the member is new rather than
-stored. Both the class comment and the comment in the private section are
-replaced.
+  stored. Both the class comment and the comment in the private section are
+  replaced.
 - New `std::string _readbackRegisterName;` stores the readback name for
-re-creation.
+  re-creation.
 - Standalone users must keep the device alive; the SPI tests do.
 - New `void reconnect();`
 - Locks `_spiMutex`.
 - Re-creates the write, synchronisation and readback accessors from the
-stored names and device.
+  stored names and device.
 - Passes `{ChimeraTK::AccessMode::raw}` for each accessor, as the constructors
-do. Without the flag the re-created accessors would get the default access
-mode and the SPI transfers would change.
+  do. Without the flag the re-created accessors would get the default access
+  mode and the SPI transfers would change.
 - Holds the mutex across the whole replacement, so concurrent `read()` and
-`write()` calls see either the old or the new accessor set.
+  `write()` calls see either the old or the new accessor set.
 
 ### TMC429SPI (modified) in backend/{include/impl/TMC429SPI.h,src/TMC429SPI.cc} (modified)
 
@@ -224,161 +227,178 @@ mode and the SPI transfers would change.
 - `void reconfigure(bool enableMotor = false) override;`
 - Does nothing.
 
+### DFMC_MD22Dummy (modified) in backend/src/DFMC_MD22Dummy.cc (modified)
+
+- `open()` clears `_writeCallbackFunctions` before it registers the SPI write
+  callbacks again.
+- `DummyBackend` stores the callbacks in a multimap that neither `close()` nor
+  `DummyBackend::open()` clears, so a reopen registers every callback a second
+  time. The duplicate invocation reads the already-consumed sync word and answers
+  `SPI_SYNC_ERROR`, which fails every SPI transfer after a reopen.
+
 ### MotorDriverCardFactory (modified) in backend/{include/MotorDriverCardFactory.h,src/MotorDriverCardFactory.cc} (modified)
 
 - New overload
-`boost::shared_ptr<MotorDriverCard> createMotorDriverCard(ChimeraTK::Device& device, std::string mapModuleName, std::string motorConfigFileName);`
+  `boost::shared_ptr<MotorDriverCard> createMotorDriverCard(ChimeraTK::Device& device, std::string mapModuleName, std::string motorConfigFileName);`
 - Builds the card on the supplied open device.
 - Never opens, closes or replaces the device.
 - Reads the configuration file only when it creates a new card.
 - The device must outlive the returned card.
 - `ChimeraTK::Device` is forward-declared in the header.
 - The header stays free of deviceaccess includes, as for the other
-overloads.
+  overloads.
 - New cache `std::map<std::pair<ChimeraTK::Device*, std::string>, boost::weak_ptr<MotorDriverCard>> _deviceMotorDriverCards;`
 - Key is the device address and the module name.
 - Returns the cached card while it is alive.
 - Guarded by the existing `_factoryMutex`.
 - The guarantee is one card per device and module, matching the cache key.
-Mixing the alias and the injected overload for the same alias is
-unsupported.
+  Mixing the alias and the injected overload for the same alias is
+  unsupported.
 - A stale entry needs a destroyed device; the device must outlive the card,
-so the address cannot be reused while the card is alive.
+  so the address cannot be reused while the card is alive.
 - The overload ignores dummy mode.
 - A caller that passes a device has already chosen its backend.
 - The existing overload is unchanged.
 - It still opens and owns its device through the owning implementation
-constructor.
+  constructor.
 
 ### Alternatives considered
 
 - An overload taking `boost::shared_ptr<ChimeraTK::Device>`: rejected,
-`DeviceManager` exposes only `Device&`.
+  `DeviceManager` exposes only `Device&`.
 - An injected overload without caching: rejected, two cards would have
-independent SPI mutexes on one device.
+  independent SPI mutexes on one device.
 - Dropping and recreating the card for recovery: rejected, it invalidates
-`MotorControler` pointers held by application modules and re-reads the
-configuration file.
+  `MotorControler` pointers held by application modules and re-reads the
+  configuration file.
 - A non-owning `shared_ptr` internally: rejected, it hides the lifetime
-contract in a reference count that never dies.
+  contract in a reference count that never dies.
 - Re-applying the configured enable flag during recovery: rejected, it could
-energise a motor whose position is unknown after a device reset.
+  energise a motor whose position is unknown after a device reset.
 - Separate public `reconnect()` and `reconfigure()` methods: rejected, callers
-would have an ordering rule to get wrong.
+  would have an ordering rule to get wrong.
 - A card-wide lock held by every card and controler operation: rejected, it
-would put a nesting order across the whole library. Recovery runs from the
-application's initialisation handler, when nothing else uses the card.
+  would put a nesting order across the whole library. Recovery runs from the
+  application's initialisation handler, when nothing else uses the card.
 - One cache for both overloads: rejected, the owning overload would have to
-return a card whose device it does not own.
+  return a card whose device it does not own.
 
 ## Test plan
 
 - `tests/src/backend/testMotorDriverCardFactory.cpp` (modified)
 - `CreateFromDeviceReturnsTheSameCard`: two calls with one open device and
-one module return the same pointer, a second module returns a different one.
+  one module return the same pointer, a second module returns a different one.
 - `newer_firmware_mapfile.map` defines `MD22_1` at the same addresses as
-`MD22_0`, so the second card re-applies its configuration to the same dummy
-registers; the case asserts only that the two pointers differ.
+  `MD22_0`, so the second card re-applies its configuration to the same dummy
+  registers; the case asserts only that the two pointers differ.
 - Covers the cache of the injected overload and the one-card-per-device-and-module
-guarantee behind the SPI mutex.
+  guarantee behind the SPI mutex.
 - `CreateFromDeviceIgnoresDummyMode`: dummy mode set, injected creation
-returns a real card that works on the dummy backend; the case resets dummy
-mode to false before it returns.
+  returns a real card that works on the dummy backend; the case resets dummy
+  mode to false before it returns.
 - The factory is a singleton and the other cases of this file create
-alias-based cards, while `testCreateDummy` leaves dummy mode true. Without the
-reset those cases would get a dummy card depending on test order.
+  alias-based cards, while `testCreateDummy` leaves dummy mode true. Without the
+  reset those cases would get a dummy card depending on test order.
 - Covers the dummy-mode exclusion; the alias overload is the only tested
-dummy-mode path today.
+  dummy-mode path today.
 - `CreateFromDeviceKeepsItOpen`: the device is open after creation and after
-the card is released.
+  the card is released.
 - Covers the no-open/no-close requirement; the recovery tests reopen
-explicitly and would not notice a close.
+  explicitly and would not notice a close.
 - `tests/src/backend/testMotorDriverCardRecovery.cpp` (new)
 - Creates its cards through the injected factory overload, so the private
-implementation constructor needs no test friend.
-- `ReconfigureRestoresConfiguration`: a configured value read back, reset by
-close and open, restored by `reconfigure()`.
+  implementation constructor needs no test friend.
+- `ReconfigureRestoresConfiguration`: a configured value read back, disturbed
+  through the backend, restored by `reconfigure()`.
 - Covers accessor re-creation and configuration re-application.
+- Does not require the status word register to be restored: it carries firmware
+  state, not configuration. `ReconfigureKeepsStatusWordReadable` covers its
+  accessor instead.
 - `ReconfigureKeepsStatusWordReadable`: `getStatusWord()` through a
-`dynamic_pointer_cast<MotorDriverCardImpl>` works after a reopen and
-`reconfigure()`.
+  `dynamic_pointer_cast<MotorDriverCardImpl>` works after a reopen and
+  `reconfigure()`.
 - `getStatusWord()` is a public member of the implementation only, not of
-`MotorDriverCard` or `MotorDriverCardExpert`, so the cast target is the
-implementation class.
+  `MotorDriverCard` or `MotorDriverCardExpert`, so the cast target is the
+  implementation class.
 - Covers the re-created `_controlerStatusRegister` and its locking through
-`_reconfigureMutex`; no other case reads the status word after a
-reconfigure.
+  `_reconfigureMutex`; no other case reads the status word after a
+  reconfigure.
 - `ReconfigureLeavesMotorDisabledByDefault`: creates the card with
-`MotorDriverCardConfig_complete_test.xml`, which enables the motors of both
-modules, instead of `CONFIG_FILE`; after reopen and `reconfigure()` the motor
-current is disabled, and `reconfigure(true)` enables it.
+  `MotorDriverCardConfig_complete_test.xml`, which enables the motors of both
+  modules, instead of `CONFIG_FILE`; after a disturbance and `reconfigure()` the
+  motor current is disabled, and `reconfigure(true)` enables it.
+- `setRegistersForTesting()` fills the enable register with the debug pattern,
+  which reads as enabled, so the disturbance writes 0 to both enable registers.
 - `CONFIG_FILE` (`VT21-MotorDriverCardConfig.xml`) carries no `enabled`
-register, so it leaves `MotorControlerConfig::enabled` at its default false and
-could not detect a motor wrongly left enabled.
+  register, so it leaves `MotorControlerConfig::enabled` at its default false and
+  could not detect a motor wrongly left enabled.
 - Covers the enable rule; not covered elsewhere because construction is
-the only current path that writes the enable register.
+  the only current path that writes the enable register.
 - `ReconfigureKeepsControlerInstances`: the controler pointer and ID are
-unchanged across `reconfigure()`.
+  unchanged across `reconfigure()`.
 - Covers the requirement that application-held controler pointers stay
-valid.
+  valid.
 - `ReconfigureLeavesPositionUntouched`: a distinctive actual position is set,
-the device is closed and reopened, and the actual-position register is read
-through the dummy backend register interface as the reference value;
-`reconfigure()` is called and the register still holds that reference value
-and not the distinctive position.
+  the device is closed and reopened, and the actual-position register is read
+  through the dummy backend register interface as the reference value;
+  `reconfigure()` is called and the register still holds that reference value
+  and not the distinctive position.
 - The reopen zeroes the emulated controller SPI space and mirrors it into the
-actual-position register, so the reference value is read after the reopen and
-not before the close.
+  actual-position register, so the reference value is read after the reopen and
+  not before the close.
 - A re-enabled position write would mirror the distinctive position back into
-the register, so the case fails then.
+  the register, so the case fails then.
 - Covers the requirement that `reconfigure()` leaves the actual position
-untouched, which nothing else covers.
+  untouched, which nothing else covers.
 - Guards the commented-out position write in the extracted configuration
-block, which an implementer could re-enable unnoticed.
+  block, which an implementer could re-enable unnoticed.
 - `ReconfigureResetsRuntimeState`: a user speed limit different from the
-configured maximum, reset by `reconfigure()`.
+  configured maximum, reset by `reconfigure()`.
 - Covers the `_currentVmax` reset; configuration re-application alone
-would not update the cached limit.
+  would not update the cached limit.
 - `ReconfigureOnClosedDeviceThrows`: `reconfigure()` on a closed device
-throws, and a later reopen plus `reconfigure()` succeeds.
+  throws `ChimeraTK::logic_error`, and a later reopen plus `reconfigure()`
+  succeeds.
 - Covers the failure reporting; no current test provokes a failure inside
-a card call.
+  a card call.
 - `RepeatedReconfigureLeavesConfiguredValues`: a second call after a reopen
-leaves the configured values unchanged.
+  leaves the configured values unchanged.
 - Covers the repeated-call requirement; it is the case an initialisation
-handler produces when it also runs on the first open.
+  handler produces when it also runs on the first open.
 - `IsFunctionalFollowsTheDevice`: true while open, false while closed, true
-after reopen.
+  after reopen.
 - Covers the delegation to the device; the card has no other health
-signal.
+  signal.
 - `tests/src/backend/testTMC429SPI.cc` (modified)
 - Existing cases construct the SPI from a shared pointer; they pass
-`*_mappedDevice` after the constructor change.
+  `*_mappedDevice` after the constructor change.
 - Covers the signature change; without it the file does not compile, and
-`testSPIviaPCIe.cpp` alone would not show the break.
+  `testSPIviaPCIe.cpp` alone would not show the break.
 - `tests/src/backend/testSPIviaPCIe.cpp` (modified)
 - Existing cases construct both SPI objects from a shared pointer; they pass
-`*_device` after the constructor change, as `testTMC429SPI.cc` does.
+  `*_device` after the constructor change, as `testTMC429SPI.cc` does.
 - Covers the signature change; the file would not compile otherwise.
 - `ReconnectAfterDeviceReopen`: use the SPI, close and reopen the device,
-`reconnect()`, use it again.
+  `reconnect()`, then write a new value and read it back.
+- The open sequence leaves the emulated controller SPI space in its
+  operational state, so the case does not assert debug-pattern content.
 - Covers `reconnect()` directly; the recovery tests would also fail on a
-broken reconnect, but not localise it.
+  broken reconnect, but not localise it.
 - `tests/src/backend/testMotorControler.cpp` (modified)
 - `MotorControlerTest::createMotorController()` keeps the card it creates
-alive alongside the returned controler, instead of letting it go out of
-scope at return.
+  alive alongside the returned controler, instead of letting it go out of
+  scope at return.
 - The thread-safety and end-switch-power cases then hold card and controler
-together.
+  together.
 - Covers the rule that a controler must not outlive its card, which this
-helper violates today: it returns a controler whose local card and device
-die at return, and only the controler's current device ownership keeps it
-usable.
+  helper violates today: it returns a controler whose local card and device
+  die at return, and only the controler's current device ownership keeps it
+  usable.
 - `tests/src/backend/testMotorDriverCardDummy.cpp` (modified)
 - `DummyIsFunctionalAndAcceptsReconfigure`: `isFunctional()` is true and both
-`reconfigure()` calls leave the controlers intact.
+  `reconfigure()` calls leave the controlers intact.
 - Covers the dummy implementation; applications and tests switch to the
-dummy through the factory, so the methods must exist and be harmless.
+  dummy through the factory, so the methods must exist and be harmless.
 
 ## Deferred issue
 
@@ -562,3 +582,31 @@ dummy through the factory, so the methods must exist and be harmless.
   true to prove the injected overload ignores it must restore the flag,
   otherwise the alias-based cases in the same executable get a dummy card
   depending on test order. The plan does not mention restoring the flag.
+- DI-20 [IMPLEMENTED] Recovery is untestable on the dummy without a backend
+  fix: `DFMC_MD22Dummy::open()` re-registers its SPI write callbacks on every
+  reopen, and `DummyBackend::setWriteCallbackFunction()` inserts into a
+  multimap that `close()` never clears. Each SPI write therefore runs the
+  handler twice; the second run reads the consumed sync word and writes
+  `SPI_SYNC_ERROR` (0xaa), so every SPI transfer after a reopen fails with
+  `runtime_error`. The plan needs the `open()` fix (specification added).
+- DI-21 [IMPLEMENTED] `ReconnectAfterDeviceReopen` (planned for
+  tests/src/backend/testSPIviaPCIe.cpp) expected the reopened emulated
+  controller SPI space to hold `tmc429::testWordFromSpiAddress(...)` content.
+  That is wrong: the dummy open sequence ends with
+  `setControlerSpiRegistersForOperation()`, so the space holds operational
+  values. The case now writes a new value and reads it back.
+- DI-22 [IMPLEMENTED] `ReconfigureRestoresConfiguration` asserted that the card
+  status word register equals its pre-disturbance value after `reconfigure()`.
+  The status bits register carries firmware state, not configuration, so
+  `reconfigure()` re-creates its accessor but does not rewrite it. The
+  assertion is removed; `ReconfigureKeepsStatusWordReadable` covers the
+  accessor.
+- DI-23 [IMPLEMENTED] `disturbRegisters()` used
+  `DFMC_MD22Dummy::setRegistersForTesting()`, which fills the enable register
+  with the debug pattern. The pattern reads as enabled, so
+  `ReconfigureLeavesMotorDisabledByDefault` could not show that the
+  disturbance disabled the motor. The helper now writes 0 to both enable
+  registers.
+- DI-24 [IMPLEMENTED] `reconfigure()` on a closed device propagates
+  `ChimeraTK::logic_error` from the device, not `runtime_error` as the test
+  planned. Specification and test plan now state the exception type.

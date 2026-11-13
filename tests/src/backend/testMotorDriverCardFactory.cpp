@@ -4,10 +4,13 @@
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
+#include "MotorControler.h"
+#include "MotorDriverCard.h"
 #include "MotorDriverCardDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
 
+#include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/Device.h>
 
 #include <boost/filesystem.hpp>
@@ -94,6 +97,86 @@ BOOST_AUTO_TEST_CASE(testCreateDummy) {
               MODULE_NAME_0, "alsoIrrelevant"));
 
   BOOST_CHECK(motorDriverCardDummy);
+}
+
+/**
+ * @anchor testCreateFromDeviceReturnsSameCard
+ * MotorDriverCardFactory::createMotorDriverCard(ChimeraTK::Device&, ...)
+ *
+ * "Repeated requests for the same device and module return the same card while
+ * the previously returned card is still alive." and "The guarantee is one card
+ * per device and module, matching the cache key."
+ */
+BOOST_AUTO_TEST_CASE(CreateFromDeviceReturnsTheSameCard) {
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("dummies.dmap");
+  ChimeraTK::Device device;
+  device.open(DFMC_ALIAS);
+
+  boost::shared_ptr<mtca4u::MotorDriverCard> card0 =
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(device, MODULE_NAME_0, CONFIG_FILE);
+  boost::shared_ptr<mtca4u::MotorDriverCard> sameCard0 =
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(device, MODULE_NAME_0, CONFIG_FILE);
+
+  BOOST_TEST(card0.get() == sameCard0.get());
+
+  // newer_firmware_mapfile.map defines MD22_1 at the same addresses as MD22_0,
+  // so the second card configures the same dummy registers. Assert only that
+  // the pointer differs.
+  boost::shared_ptr<mtca4u::MotorDriverCard> card1 =
+      mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(device, MODULE_NAME_1, CONFIG_FILE);
+
+  BOOST_TEST(card1.get() != card0.get());
+}
+
+/**
+ * @anchor testCreateFromDeviceIgnoresDummyMode
+ * MotorDriverCardFactory::createMotorDriverCard(ChimeraTK::Device&, ...)
+ *
+ * "Dummy mode does not apply to an injected device." and "The overload ignores
+ * dummy mode."
+ */
+BOOST_AUTO_TEST_CASE(CreateFromDeviceIgnoresDummyMode) {
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("dummies.dmap");
+
+  auto& factory = mtca4u::MotorDriverCardFactory::instance();
+  // The factory is a singleton and the alias-based cases above run with the
+  // dummy backend, so restore the flag before leaving.
+  factory.setDummyMode(true);
+
+  ChimeraTK::Device device;
+  device.open(DFMC_ALIAS);
+  boost::shared_ptr<mtca4u::MotorDriverCard> card = factory.createMotorDriverCard(device, MODULE_NAME_0, CONFIG_FILE);
+  factory.setDummyMode(false);
+
+  BOOST_TEST(!boost::dynamic_pointer_cast<mtca4u::MotorDriverCardDummy>(card));
+  BOOST_TEST(card);
+  // A real card reads the configuration back from the dummy registers.
+  BOOST_TEST(card->isFunctional());
+  BOOST_TEST(card->getMotorControler(0)->getID() == 0u);
+}
+
+/**
+ * @anchor testCreateFromDeviceKeepsItOpen
+ * MotorDriverCardFactory::createMotorDriverCard(ChimeraTK::Device&, ...)
+ *
+ * "The library never opens, closes or replaces an injected device." and "The
+ * injected device must outlive the card."
+ */
+BOOST_AUTO_TEST_CASE(CreateFromDeviceKeepsItOpen) {
+  ChimeraTK::BackendFactory::getInstance().setDMapFilePath("dummies.dmap");
+  ChimeraTK::Device device;
+  device.open(DFMC_ALIAS);
+
+  {
+    boost::shared_ptr<mtca4u::MotorDriverCard> card =
+        mtca4u::MotorDriverCardFactory::instance().createMotorDriverCard(device, MODULE_NAME_0, CONFIG_FILE);
+    BOOST_TEST(device.isOpened());
+    BOOST_TEST(card->isFunctional());
+  }
+
+  // Releasing the card must not close the device the caller owns.
+  BOOST_TEST(device.isOpened());
+  BOOST_TEST(device.isFunctional());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

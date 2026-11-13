@@ -26,6 +26,7 @@ using namespace mtca4u::dfmc_md22;
 #include <ChimeraTK/Utilities.h>
 
 #include <memory>
+#include <vector>
 #define DECLARE_GET_SET_TEST(NAME)                                                                                     \
   void testGet##NAME();                                                                                                \
   void testSet##NAME()
@@ -193,6 +194,9 @@ namespace mtca4u {
    private:
     boost::shared_ptr<MotorControlerImpl> _motorControler;
     boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
+
+    /// Cards kept alive by createMotorController() for the returned controlers.
+    std::vector<boost::shared_ptr<MotorDriverCardImpl>> _motorDriverCards;
 
     template<class T>
     void testGetTypedData(T (MotorControlerImpl::*getterFunction)());
@@ -607,8 +611,11 @@ namespace mtca4u {
   boost::shared_ptr<MotorControler> MotorControlerTest::createMotorController(const std::string deviceName) {
     boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device());
     device->open(deviceName);
-    boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));
-    return driver->getMotorControler(0);
+    // A controler must not outlive its card, so the card is kept alive for as
+    // long as the controlers of this test are used.
+    _motorDriverCards.push_back(
+        boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig())));
+    return _motorDriverCards.back()->getMotorControler(0);
   }
 
 } // namespace mtca4u

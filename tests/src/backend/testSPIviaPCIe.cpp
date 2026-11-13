@@ -124,3 +124,37 @@ BOOST_FIXTURE_TEST_CASE(TestGetSetWaitingTime, SPIviaPCIeTestFixture) {
   _writeSPIviaPCIe->setSpiWaitingTime(2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
   BOOST_CHECK(_writeSPIviaPCIe->getSpiWaitingTime() == 2 * mtca4u::SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 }
+
+/**
+ * @anchor ReconnectAfterDeviceReopen
+ * SPIviaPCIe::reconnect()
+ *
+ * "use the SPI, close and reopen the device, `reconnect()`, use it again."
+ */
+BOOST_FIXTURE_TEST_CASE(ReconnectAfterDeviceReopen, SPIviaPCIeTestFixture) {
+  mtca4u::TMC429InputWord coverDatagram;
+  coverDatagram.setSMDA(mtca4u::tmc429::SMDA_COMMON);
+  coverDatagram.setADDRESS(mtca4u::tmc429::JDX_COVER_DATAGRAM);
+  coverDatagram.setDATA(0xAAAAAA);
+  _readWriteSPIviaPCIe->write(int32_t(coverDatagram.getDataWord()));
+
+  _device->close();
+  _device->open(DFMC_ALIAS);
+  _readWriteSPIviaPCIe->reconnect();
+  _writeSPIviaPCIe->reconnect();
+
+  // The re-open leaves the emulated controller SPI space in its operational
+  // state, so a new value proves the transfer works.
+  coverDatagram.setRW(mtca4u::tmc429::RW_WRITE);
+  coverDatagram.setDATA(0x123456);
+  _readWriteSPIviaPCIe->write(int32_t(coverDatagram.getDataWord()));
+
+  coverDatagram.setRW(mtca4u::tmc429::RW_READ);
+  coverDatagram.setDATA(0);
+  mtca4u::TMC429OutputWord readbackWord;
+  readbackWord.setDataWord(_readWriteSPIviaPCIe->read(int32_t(coverDatagram.getDataWord())));
+  BOOST_CHECK(readbackWord.getDATA() == 0x123456);
+
+  // The write-only object is usable as well.
+  BOOST_CHECK_NO_THROW(_writeSPIviaPCIe->write(int32_t(coverDatagram.getDataWord())));
+}

@@ -33,6 +33,12 @@ namespace mtca4u {
     }
 
     DummyBackend::open();
+
+    // The base backend never drops write callbacks, so a re-open would register
+    // each callback a second time. The duplicate invocation would then see the
+    // sync word already consumed and report a spurious SPI error.
+    _writeCallbackFunctions.clear();
+
     setPCIeRegistersForTesting(); // some of them will be overwritten if a
     // defined behavior exists for them
 
