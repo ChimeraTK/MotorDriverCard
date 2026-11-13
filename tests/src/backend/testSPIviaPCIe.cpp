@@ -38,11 +38,11 @@ SPIviaPCIeTestFixture::SPIviaPCIeTestFixture() {
   _device = boost::make_shared<ChimeraTK::Device>();
   _device->open(DFMC_ALIAS);
 
-  _readWriteSPIviaPCIe = boost::make_shared<mtca4u::SPIviaPCIe>(_device, moduleName,
+  _readWriteSPIviaPCIe = boost::make_shared<mtca4u::SPIviaPCIe>(*_device, moduleName,
       mtca4u::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING, mtca4u::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
       mtca4u::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING);
 
-  _writeSPIviaPCIe = boost::make_shared<mtca4u::SPIviaPCIe>(_device, moduleName,
+  _writeSPIviaPCIe = boost::make_shared<mtca4u::SPIviaPCIe>(*_device, moduleName,
       mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_WRITE_SUFFIX,
       mtca4u::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" + mtca4u::dfmc_md22::SPI_SYNC_SUFFIX);
 }

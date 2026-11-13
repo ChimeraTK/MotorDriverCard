@@ -5,7 +5,7 @@
 - Synopsis: A MotorDriverCard can be created from an ApplicationCore-owned
 device and restored after that device has been reopened. Applications no
 longer need a second proxy device or a recreated card to recover.
-- Status: READY TO IMPLEMENT
+- Status: IMPLEMENTED
 
 ## Requirements
 
@@ -109,7 +109,8 @@ and the status word would change.
 - `_motorControlers` becomes
 `std::vector<boost::shared_ptr<MotorControlerImpl>>`.
 - Lets `reconfigure()` call the implementation method.
-- `getMotorControler()` returns the upcast pointer; existing pointers stay
+- `getMotorControler()` returns the upcast pointer
+(`boost::static_pointer_cast<MotorControler>`), so existing pointers stay
 valid.
 - `MotorControlerImpl` is only forward-declared in the header; the
 constructor and the destructor move to the source file, so the include
@@ -139,26 +140,34 @@ pointer and so keeps the device alive past the card.
 - Locks `_mutex`.
 - Re-creates all scalar accessors from `*_device` and `_moduleName`,
 including the optional end-switch power accessor.
-- `_controlerStatus` is created with `{ChimeraTK::AccessMode::raw}`, as the
-constructor does. It is created with an explicit raw mode there instead of
-through `RAW_ACCESSOR_FROM_SUFFIX`, so the shared accessor-creation helper
-keeps that flag.
+- Every accessor, `_controlerStatus` included, is created with
+`{ChimeraTK::AccessMode::raw}` through one helper (`getRawAccessor()`),
+so the flag cannot get lost.
 - Calls `_driverSPI.reconnect()`.
-- Re-applies `_controlerConfig` through the shared `applyConfiguration()`.
 - Resets `_currentVmax` to the configured maximum velocity.
 - Resets `_usrSetCurrentScale` to the configured current scale.
 - Clears `_moveOnlyFullStep`.
 - Recomputes `_userMicroStepSize`.
+- Re-applies `_controlerConfig` through the shared `applyConfiguration()`.
 - Reads `_localTargetPosition` from the target position register after the
 configuration is applied.
-- Writes the motor-current enable last: enabled when `enableMotor` is true,
-disabled otherwise.
+- Writes the motor-current enable last: enabled when `enableMotor` is
+true, disabled otherwise.
 - New private `void applyConfiguration(bool enableMotor);`
 - Holds the configuration block currently in the constructor, ending with
 the motor-current enable.
 - Writes the registers through new lock-free private helpers, because the
 configuration block currently calls the public setters, which each lock the
 non-recursive `_mutex`.
+- The scalar controller registers are written as
+`_controlerSPI->write(_id, IDX_*, value)`, the typed ones through the
+existing `writeTypedControlerRegister()`.
+- The driver data registers get lock-free `write<Name>()` variants generated
+by `DEFINE_SET_GET_TYPED_DRIVER_DATA()`; the public setters delegate to
+them.
+- `setMaximumVelocity()` stays unchanged and is not used by the
+configuration path, so re-applying the configuration cannot overwrite a
+user speed limit.
 - `reconfigure()` holds `_mutex`, so it must not go through the public setters.
 The constructor does not yet share the object, so the missing locks are
 harmless there as well.
@@ -167,14 +176,24 @@ configuration path.
 - The constructor passes the configured enable flag, so construction is
 unchanged.
 - `reconfigure()` passes its argument.
-- Accessor creation moves into a private helper shared by the constructor and
-`reconfigure()`.
+- Accessor creation moves into a private `createRegisterAccessors()` helper
+shared by the constructor and `reconfigure()`.
 - Keeps the current handling of the optional end-switch power register for
 old firmware.
+- The helper takes the register paths from `_device` and `_moduleName`
+instead of constructor parameters, so the constructor initialises the
+accessors in its body, after those members.
+- The constructor computes `_userMicroStepSize` after
+`createRegisterAccessors()` and before `applyConfiguration()`, because the
+configuration writes the dividers and micro-step resolution data.
 
 ### SPIviaPCIe (modified) in backend/{include/impl/SPIviaPCIe.h,src/SPIviaPCIe.cc} (modified)
 
-- Constructors take `ChimeraTK::Device&` instead of a shared pointer.
+- The two constructors collapse into one taking `ChimeraTK::Device&`
+instead of a shared pointer, together with the module name, the write,
+sync and readback register names and the waiting time.
+- The write-only overload stays as a delegating constructor that passes the
+write register name as the readback name, as the constructors did before.
 - New non-owning `ChimeraTK::Device* _device;`.
 - The class keeps no device reference today, so the member is new rather than
 stored. Both the class comment and the comment in the private section are
@@ -363,7 +382,7 @@ dummy through the factory, so the methods must exist and be harmless.
 
 ## Deferred issue
 
-- DI-1 [FOLDED-IN] Losing the controler's device ownership silently breaks a
+- DI-1 [IMPLEMENTED] Losing the controler's device ownership silently breaks a
   currently working use: `MotorControlerImpl::_device` becomes a non-owning
   `ChimeraTK::Device*` (CR lines 121-125), while only the card owns the device,
   and only for alias-created cards (`_ownedDevice`). Today `MotorControlerImpl`
@@ -376,32 +395,32 @@ dummy through the factory, so the methods must exist and be harmless.
   own the device. Either keep shared ownership in the controler, or state the
   new lifetime rule (a `MotorControler` must not outlive its card, for both
   factory overloads) in the requirements and specifications.
-- DI-2 [FOLDED-IN] Requirement 'Repeated requests for the same device and module
-  return the same card' (CR line 15) is unqualified and cannot be met by the
-  planned `weak_ptr` cache, which returns the cached card only while it is alive
-  (CR lines 225-232, test at line 267). A cache that always returns the same
-  card would keep device and card alive forever, which the alternatives reject.
-  Qualify the requirement (e.g. 'while the previously returned card is still
-  alive').
-- DI-3 [FOLDED-IN] Test plan does not cover
+- DI-2 [IMPLEMENTED] Requirement 'Repeated requests for the same device and
+  module return the same card' (CR line 15) is unqualified and cannot be met by
+  the planned `weak_ptr` cache, which returns the cached card only while it is
+  alive (CR lines 225-232, test at line 267). A cache that always returns the
+  same card would keep device and card alive forever, which the alternatives
+  reject. Qualify the requirement (e.g. 'while the previously returned card is
+  still alive').
+- DI-3 [IMPLEMENTED] Test plan does not cover
   `MotorDriverCardImpl::getStatusWord()` after a reconfigure, although the plan
   re-creates `_controlerStatusRegister` and adds `_reconfigureMutex` locking
   specifically for it (CR lines 100-101, 116-117). Add a case (or extend
   `ReconfigureRestoresConfiguration`) that reads the status word after
   `reconfigure()`, e.g. via `dynamic_pointer_cast<MotorDriverCardExpert>`, as
   `tests/src/backend/testMotorDriverCard.cpp:221` already does.
-- DI-4 [FOLDED-IN] DI-3 fold is technically wrong: the test plan reaches
-  getStatusWord() through boost::dynamic_pointer_cast<MotorDriverCardExpert>
+- DI-4 [IMPLEMENTED] DI-3 fold is technically wrong: the test plan reaches
+  getStatusWord() through `boost::dynamic_pointer_cast<MotorDriverCardExpert>`
   (CR:246-248), but getStatusWord() is declared only on MotorDriverCardImpl
   (backend/include/impl/MotorDriverCardImpl.h:61). Neither MotorDriverCardExpert
   (backend/include/MotorDriverCardExpert.h:11-43) nor MotorDriverCard
   (backend/include/MotorDriverCard.h:16-28) declares it, so the cast yields a
   type without the method and the test cannot compile. The existing test reaches
-  it through a shared_ptr<MotorDriverCardImpl>
+  it through a `shared_ptr<MotorDriverCardImpl>`
   (tests/src/backend/testMotorDriverCard.cpp:44-62,221), which also works for
   the injected factory overload because the tests already include the impl
   header.
-- DI-5 [FOLDED-IN] Contradiction between the planned locking and the extracted
+- DI-5 [IMPLEMENTED] Contradiction between the planned locking and the extracted
   configuration block in MotorControlerImpl: reconfigure() locks _mutex (CR:125)
   and re-applies the configuration through applyConfiguration() (CR:129), which
   is specified as 'Lock-free, like the existing private setters: the caller
@@ -415,7 +434,7 @@ dummy through the factory, so the methods must exist and be harmless.
   block is rewritten to write through lock-free private helpers (or that _mutex
   becomes recursive, or that reconfigure() does not hold it), and drop the
   incorrect claim that private setters already exist for these writes.
-- DI-6 [FOLDED-IN] SPIviaPCIe::reconnect() is under-specified in a way that
+- DI-6 [IMPLEMENTED] SPIviaPCIe::reconnect() is under-specified in a way that
   changes behaviour: all three accessors are currently created with
   {ChimeraTK::AccessMode::raw} (backend/src/SPIviaPCIe.cc:26-31), but the plan
   only says they are re-created 'from the stored names and device' (CR:159-164),
@@ -425,7 +444,7 @@ dummy through the factory, so the methods must exist and be harmless.
   both class comments claim the class keeps no device reference
   (backend/include/impl/SPIviaPCIe.h:29-32 and 68), so the plan should name both
   comments to update.
-- DI-7 [FOLDED-IN] Re-created card status accessor loses its raw access mode:
+- DI-7 [IMPLEMENTED] Re-created card status accessor loses its raw access mode:
   the plan says `reconfigure()` only 're-creates `_controlerStatusRegister`'
   (CR:92), but the constructor creates it with `{ChimeraTK::AccessMode::raw}`
   (backend/src/MotorDriverCardImpl.cc:23-24). Without the flag the re-created
@@ -434,26 +453,26 @@ dummy through the factory, so the methods must exist and be harmless.
   explicit raw mode outside `RAW_ACCESSOR_FROM_SUFFIX`
   (backend/src/MotorControlerImpl.cc:85-86), so the shared accessor-creation
   helper must keep it.
-- DI-8 [FOLDED-IN] Cache guarantee is misstated: 'The one-card-per-device
+- DI-8 [IMPLEMENTED] Cache guarantee is misstated: 'The one-card-per-device
   guarantee is per device object' (CR:205-206) contradicts the cache key (device
   address plus module name) and the test plan, where a second module returns a
   different card (CR:239-242). The guarantee is one card per device and module.
-- DI-9 [FOLDED-IN] Requirement 'A failed reconfigure throws; the card must not
+- DI-9 [IMPLEMENTED] Requirement 'A failed reconfigure throws; the card must not
   be used afterwards' (CR:38) contradicts `ReconfigureOnClosedDeviceThrows`,
   which reopens the device and calls `reconfigure()` again (CR:279-280). The
   requirement must allow the retry it prescribes.
-- DI-10 [FOLDED-IN] `tests/src/backend/testSPIviaPCIe.cpp` also constructs both
-  SPI objects from the device shared pointer
+- DI-10 [IMPLEMENTED] `tests/src/backend/testSPIviaPCIe.cpp` also constructs
+  both SPI objects from the device shared pointer
   (tests/src/backend/testSPIviaPCIe.cpp:41-47), but the test plan names the
   `*_device` update only for `testTMC429SPI.cc` (CR:291-295). Its entry only
   adds `ReconnectAfterDeviceReopen`, so the fixture update is missing.
-- DI-11 [FOLDED-IN] Requirement 'Alias-based creation keeps its current
+- DI-11 [IMPLEMENTED] Requirement 'Alias-based creation keeps its current
   behaviour' (CR:21) contradicts the new rule 'A motor controler must not
   outlive its card; this holds for both factory overloads' (CR:19-20): an
   alias-created controler can outlive its card today
   (backend/include/impl/MotorControlerImpl.h:23-30), so alias-based behaviour
   does change in that respect.
-- DI-12 [FOLDED-IN] The test plan omits
+- DI-12 [IMPLEMENTED] The test plan omits
   `tests/src/backend/testMotorControler.cpp`, which the new lifetime rule
   breaks: `MotorControlerTest::createMotorController()`
   (tests/src/backend/testMotorControler.cpp:607-612) returns a controler while
@@ -466,7 +485,7 @@ dummy through the factory, so the methods must exist and be harmless.
   implementing the plan as written leaves use-after-free in the existing suite.
   The test plan must state that this helper keeps the card alive (e.g. a member
   or returned card), because a controler must not outlive its card.
-- DI-13 [FOLDED-IN] Missing test for the requirement 'It leaves the actual
+- DI-13 [IMPLEMENTED] Missing test for the requirement 'It leaves the actual
   position untouched' (CR:32): no case in the test plan asserts the position,
   although the configuration block the plan extracts into applyConfiguration()
   contains the commented-out position write
@@ -483,7 +502,7 @@ dummy through the factory, so the methods must exist and be harmless.
   dummy backend register interface (as
   tests/src/backend/testMotorDriverCard.cpp:221-227 does with getRegisterInfo)
   before and after reconfigure().
-- DI-14 [FOLDED-IN] Unstated scope: the plan restores card and controler state
+- DI-14 [IMPLEMENTED] Unstated scope: the plan restores card and controler state
   but says nothing about the library's own stepper motor layer, which caches
   state that reconfigure() leaves stale while its objects stay valid
   (steppermotor/include/BasicStepperMotor.h:500-518: _targetPositionInSteps,
@@ -495,7 +514,7 @@ dummy through the factory, so the methods must exist and be harmless.
   application re-synchronises its motors after recovery) or must be restored.
   The recovery test case 'ReconfigureKeepsControlerInstances' currently hides
   the question by keeping only controlers.
-- DI-15 [FOLDED-IN] Under-specified comment update in MotorControlerImpl: the
+- DI-15 [IMPLEMENTED] Under-specified comment update in MotorControlerImpl: the
   plan only drops 'the class comment about keeping the device alive'
   (CR:117-119), but that comment
   (backend/include/impl/MotorControlerImpl.h:23-26) has two further claims which
@@ -505,7 +524,7 @@ dummy through the factory, so the methods must exist and be harmless.
   reconfigure() re-applies _controlerConfig. Name the whole comment for
   replacement, as the plan already does for both SPIviaPCIe comments
   (CR:169-171).
-- DI-16 [FOLDED-IN] The only test for the requirement 'It leaves the actual
+- DI-16 [IMPLEMENTED] The only test for the requirement 'It leaves the actual
   position untouched' cannot pass as described:
   `ReconfigureLeavesPositionUntouched` (CR:294-301) asserts that the position
   register 'still holds that value' after the device was closed and reopened. A
@@ -518,14 +537,14 @@ dummy through the factory, so the methods must exist and be harmless.
   (only `MotorControlerImpl::setActualPosition` does,
   `backend/src/MotorControlerImpl.cc:161-165`). The case must compare against
   the post-reopen value instead of the pre-close position.
-- DI-17 [FOLDED-IN] The folded text of DI-13 (CR:462-466) carries the same
+- DI-17 [IMPLEMENTED] The folded text of DI-13 (CR:462-466) carries the same
   factual error and would lead the implementer astray: it states that a reopen
   resets the register to the dummy test pattern, but the test pattern written at
   `backend/src/DFMC_MD22Dummy.cc:36` is immediately overwritten for the
   actual-position, actual-velocity, actual-acceleration and micro-step registers
   by the mirroring in `setControlerSpiRegistersForOperation()` (`:41,141-157`),
   so the reference value after a reopen is 0.
-- DI-18 [FOLDED-IN] Test plan, ReconfigureLeavesMotorDisabledByDefault
+- DI-18 [IMPLEMENTED] Test plan, ReconfigureLeavesMotorDisabledByDefault
   (CR:288-290): justified with "the configuration enables the motors", but the
   recovery tests are planned on CONFIG_FILE =
   tests/hardware/VT21-MotorDriverCardConfig.xml
@@ -536,7 +555,7 @@ dummy through the factory, so the methods must exist and be harmless.
   exists: tests/MotorDriverCardConfig_complete_test.xml sets enabled=true for
   motorID 0 (line 20) and 1 (line 42). The plan must name the configuration used
   for this case.
-- DI-19 [FOLDED-IN] Test plan, CreateFromDeviceIgnoresDummyMode (planned for
+- DI-19 [IMPLEMENTED] Test plan, CreateFromDeviceIgnoresDummyMode (planned for
   tests/src/backend/testMotorDriverCardFactory.cpp): MotorDriverCardFactory is a
   singleton and setDummyMode() is never reset in that file - the existing
   testCreateDummy leaves dummy mode true (line 89). A case that sets dummy mode

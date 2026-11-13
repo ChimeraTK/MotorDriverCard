@@ -35,4 +35,13 @@ namespace mtca4u {
     throw ChimeraTK::logic_error("getPowerMonitor() is not implemented inMotorDriverCardDummy");
   }
 
+  bool MotorDriverCardDummy::isFunctional() const {
+    return true;
+  }
+
+  void MotorDriverCardDummy::reconfigure(bool /* enableMotor */) {
+    // The dummy keeps no device state that could go stale, and the motor
+    // current has no meaning for it.
+  }
+
 } // namespace mtca4u

@@ -20,14 +20,12 @@ namespace mtca4u {
    public:
     MotorControlerImpl(MotorControlerImpl&&) = delete;
     MotorControlerImpl& operator=(MotorControlerImpl&&) = delete;
-    /** The constructor gets references shared pointers which it copies
-     * internally, so the object stays valid even if the original shared pointer
-     * goes out of scope. The config is only used in the constuctor, no reference
-     * is kept in the class.
+    /** The device and the controler SPI are held non-owning and must outlive
+     *  this object: a MotorControler must not outlive its MotorDriverCard.
+     *  The config is kept for re-applying it in reconfigure().
      */
-    MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
-        std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
-        MotorControlerConfig const& motorControlerConfig);
+    MotorControlerImpl(unsigned int ID, ChimeraTK::Device& device, std::string const& moduleName,
+        boost::shared_ptr<TMC429SPI> const& controlerSPI, MotorControlerConfig const& motorControlerConfig);
 
     /// The class is non-copyable
     MotorControlerImpl(MotorControlerImpl const&) = delete;
@@ -208,12 +206,23 @@ namespace mtca4u {
 
     unsigned int getReferenceSwitchBit() override;
 
+    /** Restore the controler after its device was closed and re-opened.
+     *  Not part of the MotorControler interface, the rejecting card calls it.
+     *  @param enableMotor Enable the motor current after the configuration was
+     *      applied.
+     */
+    void reconfigure(bool enableMotor);
+
    private:
     static const unsigned int COMMUNICATION_DELAY = 20000; /// in microseconds
     // Reason for mtable keyword:
     // http://stackoverflow.com/questions/25521570/can-mutex-locking-function-be-marked-as-const
     mutable std::mutex _mutex;
-    boost::shared_ptr<ChimeraTK::Device> _device;
+    /// Non-owning, the card owns the device.
+    ChimeraTK::Device* _device;
+
+    /// For re-creating the accessors in reconfigure().
+    std::string const _moduleName;
 
     unsigned int _id;
     const MotorControlerConfig _controlerConfig;
@@ -293,6 +302,28 @@ namespace mtca4u {
     void roundToNextFullStep(int& targetPosition);
 
     inline unsigned int readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue);
+
+    /// Create all scalar register accessors from _device and _moduleName.
+    void createRegisterAccessors();
+
+    /// Write the configured registers. The caller holds _mutex.
+    /// @param enableMotor Written last, as the final step.
+    void applyConfiguration(bool enableMotor);
+
+    // Lock-free write variants of the setters, for the configuration path.
+    void writeActualVelocity(int stepsPerFIXME);
+    void writeDecoderReadoutMode(unsigned int decoderReadoutMode);
+    void writeAccelerationThresholdData(AccelerationThresholdData const& accelerationThresholdData);
+    void writeProportionalityFactorData(ProportionalityFactorData const& proportionalityFactorData);
+    void writeReferenceConfigAndRampModeData(ReferenceConfigAndRampModeData const& referenceConfigAndRampModeData);
+    void writeInterruptData(InterruptData const& interruptData);
+    void writeDividersAndMicroStepResolutionData(
+        DividersAndMicroStepResolutionData const& dividersAndMicroStepResolutionData);
+    void writeDriverControlData(DriverControlData const& driverControlData);
+    void writeChopperControlData(ChopperControlData const& chopperControlData);
+    void writeCoolStepControlData(CoolStepControlData const& coolStepControlData);
+    void writeStallGuardControlData(StallGuardControlData const& stallGuardControlData);
+    void writeDriverConfigData(DriverConfigData const& driverConfigData);
   };
 
 } // namespace mtca4u

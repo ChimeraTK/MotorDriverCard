@@ -10,9 +10,12 @@ namespace mtca4u {
    */
   class TMC429SPI {
    public:
-    TMC429SPI(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-        std::string const& writeRegisterName, std::string const& syncRegisterName,
-        std::string const& readbackRegisterName, unsigned int spiWaitingTime = SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+    TMC429SPI(ChimeraTK::Device& device, std::string const& moduleName, std::string const& writeRegisterName,
+        std::string const& syncRegisterName, std::string const& readbackRegisterName,
+        unsigned int spiWaitingTime = SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
+
+    /// Re-create the register accessors after the device was re-opened.
+    void reconnect();
 
     TMC429OutputWord read(unsigned int smda, unsigned int idx_jdx);
     void write(unsigned int smda, unsigned int idx_jdx, unsigned int data);

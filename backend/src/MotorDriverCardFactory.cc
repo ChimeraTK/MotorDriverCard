@@ -53,6 +53,25 @@ namespace mtca4u {
     return motorDriverCard;
   }
 
+  boost::shared_ptr<MotorDriverCard> MotorDriverCardFactory::createMotorDriverCard(
+      ChimeraTK::Device& device, std::string mapModuleName, std::string motorConfigFileName) {
+    boost::lock_guard<boost::mutex> guard(_factoryMutex);
+
+    // Dummy mode is ignored: a caller passing a device has chosen its backend.
+    auto id = std::make_pair(&device, mapModuleName);
+    auto iterator = _deviceMotorDriverCards.find(id);
+    if(iterator != _deviceMotorDriverCards.end()) {
+      auto card = iterator->second.lock();
+      if(card) return card;
+    }
+
+    MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
+    boost::shared_ptr<MotorDriverCard> motorDriverCard(new MotorDriverCardImpl(device, mapModuleName, cardConfig));
+    _deviceMotorDriverCards[id] = motorDriverCard;
+
+    return motorDriverCard;
+  }
+
   bool MotorDriverCardFactory::getDummyMode() {
     return _dummyMode;
   }

@@ -4,12 +4,13 @@
 
 namespace mtca4u {
 
-  // TMC429SPI::TMC429SPI(  boost::shared_ptr< Device<BaseDevice> > const &
-  // device,
-  TMC429SPI::TMC429SPI(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-      std::string const& writeRegisterName, std::string const& syncRegisterName,
-      std::string const& readbackRegisterName, unsigned int spiWaitingTime)
+  TMC429SPI::TMC429SPI(ChimeraTK::Device& device, std::string const& moduleName, std::string const& writeRegisterName,
+      std::string const& syncRegisterName, std::string const& readbackRegisterName, unsigned int spiWaitingTime)
   : _spiViaPCIe(device, moduleName, writeRegisterName, syncRegisterName, readbackRegisterName, spiWaitingTime) {}
+
+  void TMC429SPI::reconnect() {
+    _spiViaPCIe.reconnect();
+  }
 
   TMC429OutputWord TMC429SPI::read(unsigned int smda, unsigned int idx_jdx) {
     // Although the first half is almost identical to write,

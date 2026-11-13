@@ -8,6 +8,10 @@
 #include <map>
 #include <string>
 
+namespace ChimeraTK {
+  class Device;
+}
+
 namespace mtca4u {
 
   class MotorDriverCard;
@@ -38,6 +42,11 @@ namespace mtca4u {
     /// Map of all devices which have ever been requested.
     std::map<MotorDriverCardKey, boost::weak_ptr<MotorDriverCard>> _motorDriverCards;
     std::map<MotorDriverCardKey, boost::shared_ptr<MotorDriverCard>> _dummyMotorDriverCards;
+
+    using InjectedDeviceKey = std::pair<ChimeraTK::Device*, std::string>;
+
+    /// Cards on injected devices, guarded by _factoryMutex.
+    std::map<InjectedDeviceKey, boost::weak_ptr<MotorDriverCard>> _deviceMotorDriverCards;
     bool _dummyMode{false};
 
    public:
@@ -54,6 +63,22 @@ namespace mtca4u {
      */
     boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
         std::string alias, std::string mapModuleName, std::string motorConfigFileName);
+
+    /** Create a motor driver card on a device the application owns.
+     *
+     *  The device is neither opened, closed nor replaced. It must outlive the
+     *  returned card. While a card for the same device and module is alive,
+     *  repeated calls return that same card, so one SPI mutex guards the device.
+     *  Dummy mode does not apply. Mixing this overload with the alias-based one
+     *  for the same device is unsupported.
+     *
+     *  @param device Open device to build the card on.
+     *  @param mapModuleName Module name in the map file, e.g. "MD22_0".
+     *  @param motorConfigFileName File name for the motor config, read only
+     *      when a new card is created.
+     */
+    boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
+        ChimeraTK::Device& device, std::string mapModuleName, std::string motorConfigFileName);
 
     /** Set the application wide dmap file to use.
      *  \attention This static function is setting the dmap file for ALL devices

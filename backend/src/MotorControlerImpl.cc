@@ -16,12 +16,21 @@ using namespace mtca4u::tmc429;
   device->getScalarRegisterAccessor<int32_t>(                                                                          \
       MODULE_NAME + "/" + createMotorRegisterName(_id, SUFFIX), 0, {ChimeraTK::AccessMode::raw})
 
+// Raw accessor of a register the class has to be constructed with.
+static ChimeraTK::ScalarRegisterAccessor<int32_t> getRawAccessor(
+    ChimeraTK::Device& device, std::string const& registerPath) {
+  return device.getScalarRegisterAccessor<int32_t>(registerPath, 0, {ChimeraTK::AccessMode::raw});
+}
+
 // Macros which cover more than one line are not good for the code coverage
 // test, as only the macro call is checked. In this case it is probably ok
 // because we gain a lot of code because we have to define many variables, AND
 // there is only one line per function without branching, which is covered by
 // the function coverage test (not the line coverage test). Otherwise we would
 // need a complete test which checks the macro.
+//
+// Each setter gets a lock-free write variant, which the configuration path uses
+// while it holds _mutex itself.
 #define DEFINE_GET_SET_VALUE(NAME, IDX)                                                                                \
   unsigned int MotorControlerImpl::get##NAME() {                                                                       \
     lock_guard guard(_mutex);                                                                                          \
@@ -40,8 +49,7 @@ using namespace mtca4u::tmc429;
   }                                                                                                                    \
   void MotorControlerImpl::set##NAME(int value) {                                                                      \
     lock_guard guard(_mutex);                                                                                          \
-    unsigned int writeValue = static_cast<unsigned int>(CONVERTER.thirtyTwoToCustom(value));                           \
-    _controlerSPI->write(_id, IDX, writeValue);                                                                        \
+    _controlerSPI->write(_id, IDX, static_cast<unsigned int>(CONVERTER.thirtyTwoToCustom(value)));                     \
   }
 
 #define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(NAME)                                                                  \
@@ -62,16 +70,18 @@ using namespace mtca4u::tmc429;
   void MotorControlerImpl::set##NAME(NAME const& driverData) {                                                         \
     lock_guard guard(_mutex);                                                                                          \
     setTypedDriverData<NAME>(driverData, LOCAL_DATA_INSTANCE);                                                         \
+  }                                                                                                                    \
+  void MotorControlerImpl::write##NAME(NAME const& driverData) {                                                       \
+    setTypedDriverData<NAME>(driverData, LOCAL_DATA_INSTANCE);                                                         \
   }
 
 typedef std::lock_guard<std::mutex> lock_guard;
 typedef std::unique_lock<std::mutex> unique_lock;
 
 namespace mtca4u {
-  MotorControlerImpl::MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
-      std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
-      MotorControlerConfig const& motorControlerConfig)
-  : _mutex(), _device(device), _id(ID), _controlerConfig(motorControlerConfig),
+  MotorControlerImpl::MotorControlerImpl(unsigned int ID, ChimeraTK::Device& device, std::string const& moduleName,
+      boost::shared_ptr<TMC429SPI> const& controlerSPI, MotorControlerConfig const& motorControlerConfig)
+  : _mutex(), _device(&device), _moduleName(moduleName), _id(ID), _controlerConfig(motorControlerConfig),
     _conversionFactor(calculateConversionFactor(motorControlerConfig)),
     _currentVmax(motorControlerConfig.maximumVelocity),
     _usrSetCurrentScale(_controlerConfig.stallGuardControlData.getCurrentScale()), _driverControlData(), // set later in
@@ -82,52 +92,50 @@ namespace mtca4u {
     _coolStepControlData(),   // set later in the constructor body
     _stallGuardControlData(), // set later in the constructor body
     _driverConfigData(),      // set later in the constructor body
-    _controlerStatus{device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})},
-    _actualPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_POSITION_SUFFIX)},
-    _actualVelocity{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_VELOCITY_SUFFIX)},
-    _actualAcceleration{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_ACCELETATION_SUFFIX)},
-    _microStepCount{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MICRO_STEP_COUNT_SUFFIX)},
-    _stallGuardValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STALL_GUARD_VALUE_SUFFIX)},
-    _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)},
-    _status{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STATUS_SUFFIX)},
-    _motorCurrentEnabled{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MOTOR_CURRENT_ENABLE_SUFFIX)},
-    _decoderReadoutMode{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_READOUT_MODE_SUFFIX)},
-    _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
-    _calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)},
-    _endSwitchPositive{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_POSITIVE_SUFFIX)},
-    _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)}, _endSwitchPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
     _controlerSPI(controlerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false),
     _userMicroStepSize(0), _localTargetPosition(0) {
-    setAccelerationThresholdData(motorControlerConfig.accelerationThresholdData);
-    // setActualPosition( motorControlerConfig.actualPosition );
-    setChopperControlData(motorControlerConfig.chopperControlData);
-    setCoolStepControlData(motorControlerConfig.coolStepControlData);
-    setDecoderReadoutMode(motorControlerConfig.decoderReadoutMode);
-    setDividersAndMicroStepResolutionData(motorControlerConfig.dividersAndMicroStepResolutionData);
-    setDriverConfigData(motorControlerConfig.driverConfigData);
-    setDriverControlData(motorControlerConfig.driverControlData);
-    setInterruptData(motorControlerConfig.interruptData);
-    setMaximumAcceleration(motorControlerConfig.maximumAcceleration);
-    setMaximumVelocity(motorControlerConfig.maximumVelocity);
-    setMicroStepCount(motorControlerConfig.microStepCount);
-    setMinimumVelocity(motorControlerConfig.minimumVelocity);
-    setPositionTolerance(motorControlerConfig.positionTolerance);
-    setProportionalityFactorData(motorControlerConfig.proportionalityFactorData);
-    setReferenceConfigAndRampModeData(motorControlerConfig.referenceConfigAndRampModeData);
-    setStallGuardControlData(motorControlerConfig.stallGuardControlData);
-    setTargetVelocity(motorControlerConfig.targetVelocity);
+    createRegisterAccessors();
 
-    _localTargetPosition = retrieveTargetPositonAndConvert();
     _userMicroStepSize = pow(2, motorControlerConfig.driverControlData.getMicroStepResolution());
 
-    // enabling the motor is the last step after setting all registers
-    setEnabled(motorControlerConfig.enabled);
+    // the object is not shared yet, so the missing locks are harmless
+    applyConfiguration(motorControlerConfig.enabled);
+  }
+
+  void MotorControlerImpl::createRegisterAccessors() {
+    _controlerStatus.replace(getRawAccessor(*_device, _moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING));
+    _actualPosition.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, ACTUAL_POSITION_SUFFIX)));
+    _actualVelocity.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, ACTUAL_VELOCITY_SUFFIX)));
+    _actualAcceleration.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, ACTUAL_ACCELETATION_SUFFIX)));
+    _microStepCount.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, MICRO_STEP_COUNT_SUFFIX)));
+    _stallGuardValue.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, STALL_GUARD_VALUE_SUFFIX)));
+    _coolStepValue.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, COOL_STEP_VALUE_SUFFIX)));
+    _status.replace(getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, STATUS_SUFFIX)));
+    _motorCurrentEnabled.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, MOTOR_CURRENT_ENABLE_SUFFIX)));
+    _decoderReadoutMode.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, DECODER_READOUT_MODE_SUFFIX)));
+    _decoderPosition.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, DECODER_POSITION_SUFFIX)));
+    _calibrationTime.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, CALIBRATION_TIME_SUFFIX)));
+    _endSwitchPositive.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, END_SWITCH_POSITIVE_SUFFIX)));
+    _endSwitchNegative.replace(
+        getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, END_SWITCH_NEGATIVE_SUFFIX)));
+
     try {
       // this must throw on mapfile not having this register
-      _endSwitchPowerIndicator.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, ENDSWITCH_ENABLE_SUFFIX));
+      _endSwitchPowerIndicator.replace(
+          getRawAccessor(*_device, _moduleName + "/" + createMotorRegisterName(_id, ENDSWITCH_ENABLE_SUFFIX)));
     }
     catch(std::exception& a) {
       // ignore exception when creating the accessor with the consequence that
@@ -136,6 +144,50 @@ namespace mtca4u {
       // WORD_M1_VOLTAGE_EN register in the mapfile. Methods using this accessor
       // have to check its isInitialised() method prior to using it.
     }
+  }
+
+  void MotorControlerImpl::applyConfiguration(bool enableMotor) {
+    auto const& config = _controlerConfig;
+
+    // The public setters lock _mutex, which the caller holds, so write directly.
+    writeTypedControlerRegister(config.accelerationThresholdData);
+    writeChopperControlData(config.chopperControlData);
+    writeCoolStepControlData(config.coolStepControlData);
+    writeDecoderReadoutMode(config.decoderReadoutMode);
+    writeTypedControlerRegister(config.dividersAndMicroStepResolutionData);
+    writeDriverConfigData(config.driverConfigData);
+    writeDriverControlData(config.driverControlData);
+    writeTypedControlerRegister(config.interruptData);
+    _controlerSPI->write(_id, IDX_MAXIMUM_ACCELERATION, config.maximumAcceleration);
+    _controlerSPI->write(_id, IDX_MAXIMUM_VELOCITY, config.maximumVelocity);
+    _controlerSPI->write(_id, IDX_MICRO_STEP_COUNT, config.microStepCount);
+    _controlerSPI->write(_id, IDX_MINIMUM_VELOCITY, config.minimumVelocity);
+    _controlerSPI->write(_id, IDX_DELTA_X_REFERENCE_TOLERANCE, config.positionTolerance);
+    writeTypedControlerRegister(config.proportionalityFactorData);
+    writeTypedControlerRegister(config.referenceConfigAndRampModeData);
+    writeStallGuardControlData(config.stallGuardControlData);
+    _controlerSPI->write(
+        _id, IDX_TARGET_VELOCITY, static_cast<unsigned int>(_converter12bits.thirtyTwoToCustom(config.targetVelocity)));
+
+    _localTargetPosition = retrieveTargetPositonAndConvert();
+
+    // enabling the motor is the last step after setting all registers
+    _motorCurrentEnabled = (enableMotor ? 1 : 0);
+    _motorCurrentEnabled.write();
+  }
+
+  void MotorControlerImpl::reconfigure(bool enableMotor) {
+    lock_guard guard(_mutex);
+
+    createRegisterAccessors();
+    _driverSPI.reconnect();
+
+    _currentVmax = _controlerConfig.maximumVelocity;
+    _usrSetCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
+    _moveOnlyFullStep = false;
+    _userMicroStepSize = pow(2, _controlerConfig.driverControlData.getMicroStepResolution());
+
+    applyConfiguration(enableMotor);
   }
 
   unsigned int MotorControlerImpl::getID() {
@@ -170,10 +222,14 @@ namespace mtca4u {
     return _converter12bits.customToThirtyTwo(_actualVelocity);
   }
 
-  void MotorControlerImpl::setActualVelocity(int velocity) {
-    lock_guard guard(_mutex);
+  void MotorControlerImpl::writeActualVelocity(int velocity) {
     _controlerSPI->write(
         _id, IDX_ACTUAL_VELOCITY, static_cast<unsigned int>(_converter12bits.thirtyTwoToCustom(velocity)));
+  }
+
+  void MotorControlerImpl::setActualVelocity(int velocity) {
+    lock_guard guard(_mutex);
+    writeActualVelocity(velocity);
   }
 
   unsigned int MotorControlerImpl::getActualAcceleration() {
@@ -211,10 +267,14 @@ namespace mtca4u {
     return DriverStatusData(readRegisterAccessor(_status));
   }
 
-  void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode) {
-    lock_guard guard(_mutex);
+  void MotorControlerImpl::writeDecoderReadoutMode(unsigned int readoutMode) {
     _decoderReadoutMode = static_cast<int32_t>(readoutMode);
     _decoderReadoutMode.write();
+  }
+
+  void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode) {
+    lock_guard guard(_mutex);
+    writeDecoderReadoutMode(readoutMode);
   }
 
   unsigned int MotorControlerImpl::getDecoderReadoutMode() {
@@ -307,8 +367,8 @@ namespace mtca4u {
 
   void MotorControlerImpl::setMaximumVelocity(unsigned int value) {
     lock_guard guard(_mutex);
-    _currentVmax = value;
     _controlerSPI->write(_id, IDX_MAXIMUM_VELOCITY, value);
+    _currentVmax = value;
   }
 
   template<class T>
@@ -351,7 +411,6 @@ namespace mtca4u {
   DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(InterruptData)
   DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(DividersAndMicroStepResolutionData)
 
-  DEFINE_SET_GET_TYPED_DRIVER_DATA(DriverControlData, _driverControlData)
   DEFINE_SET_GET_TYPED_DRIVER_DATA(ChopperControlData, _chopperControlData)
   DEFINE_SET_GET_TYPED_DRIVER_DATA(CoolStepControlData, _coolStepControlData)
   DEFINE_SET_GET_TYPED_DRIVER_DATA(StallGuardControlData, _stallGuardControlData)
@@ -363,6 +422,8 @@ namespace mtca4u {
     // Remember the written word for readback.
     localDataInstance = driverData;
   }
+
+  DEFINE_SET_GET_TYPED_DRIVER_DATA(DriverControlData, _driverControlData)
 
   MotorReferenceSwitchData MotorControlerImpl::getReferenceSwitchData() {
     lock_guard guard(_mutex);

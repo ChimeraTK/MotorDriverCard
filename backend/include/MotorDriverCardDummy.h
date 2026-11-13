@@ -15,6 +15,17 @@ namespace mtca4u {
     boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID) override;
 
     PowerMonitor& getPowerMonitor() override;
+
+    /// Report the functional state of the underlying device.
+    [[nodiscard]] bool isFunctional() const override;
+
+    /** Restore the card after its device was closed and re-opened.
+     *
+     *  @param enableMotor Enable the motor current after the configuration was
+     *      applied.
+     */
+    void reconfigure(bool enableMotor = false) override;
+
     ~MotorDriverCardDummy() override = default;
 
    private:

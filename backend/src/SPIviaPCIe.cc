@@ -16,21 +16,32 @@ using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u {
 
-  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-      std::string const& writeRegisterName, std::string const& syncRegisterName, unsigned int spiWaitingTime)
+  SPIviaPCIe::SPIviaPCIe(ChimeraTK::Device& device, std::string const& moduleName, std::string const& writeRegisterName,
+      std::string const& syncRegisterName, unsigned int spiWaitingTime)
   : SPIviaPCIe(device, moduleName, writeRegisterName, syncRegisterName, writeRegisterName, spiWaitingTime) {}
 
-  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-      std::string const& writeRegisterName, std::string const& syncRegisterName,
-      std::string const& readbackRegisterName, unsigned int spiWaitingTime)
-  : _writeRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + writeRegisterName, 0, {ChimeraTK::AccessMode::raw})),
-    _synchronisationRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + syncRegisterName, 0, {ChimeraTK::AccessMode::raw})),
-    _readbackRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + readbackRegisterName, 0, {ChimeraTK::AccessMode::raw})),
+  SPIviaPCIe::SPIviaPCIe(ChimeraTK::Device& device, std::string const& moduleName, std::string const& writeRegisterName,
+      std::string const& syncRegisterName, std::string const& readbackRegisterName, unsigned int spiWaitingTime)
+  : _device(&device), _writeRegister(), _synchronisationRegister(), _readbackRegister(),
     _spiWaitingTime(spiWaitingTime), _moduleName(moduleName), _writeRegisterName(writeRegisterName),
-    _syncRegisterName(syncRegisterName) {}
+    _syncRegisterName(syncRegisterName), _readbackRegisterName(readbackRegisterName) {
+    createRegisterAccessors();
+  }
+
+  void SPIviaPCIe::reconnect() {
+    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
+    createRegisterAccessors();
+  }
+
+  void SPIviaPCIe::createRegisterAccessors() {
+    // The raw access mode is part of the transfer format, so it must be kept.
+    _writeRegister.replace(_device->getScalarRegisterAccessor<int32_t>(
+        _moduleName + "/" + _writeRegisterName, 0, {ChimeraTK::AccessMode::raw}));
+    _synchronisationRegister.replace(_device->getScalarRegisterAccessor<int32_t>(
+        _moduleName + "/" + _syncRegisterName, 0, {ChimeraTK::AccessMode::raw}));
+    _readbackRegister.replace(_device->getScalarRegisterAccessor<int32_t>(
+        _moduleName + "/" + _readbackRegisterName, 0, {ChimeraTK::AccessMode::raw}));
+  }
 
   void SPIviaPCIe::write(int32_t spiCommand) {
     boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);

@@ -42,7 +42,7 @@ TMC429SPITestFixture::TMC429SPITestFixture()
   _mappedDevice->open(DFMC_ALIAS);
   _dummyDevice->setRegistersForTesting();
 
-  _tmc429Spi = boost::make_shared<TMC429SPI>(_mappedDevice, MODULE_NAME_0, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+  _tmc429Spi = boost::make_shared<TMC429SPI>(*_mappedDevice, MODULE_NAME_0, CONTROLER_SPI_WRITE_ADDRESS_STRING,
       CONTROLER_SPI_SYNC_ADDRESS_STRING, CONTROLER_SPI_READBACK_ADDRESS_STRING);
 }
 

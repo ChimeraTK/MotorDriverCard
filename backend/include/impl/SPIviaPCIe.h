@@ -26,18 +26,22 @@ namespace mtca4u {
      *  The spiWaitingTime is in microseconds. It defaults to 40 microseconds
      * which should be ok for writing 32 bits at 1 MHz.
      *
-     *  An internal copy of the shared pointer of the mapped device is held in
-     * this class, so the SPIviaPCIe always stays valid, even if the original
-     * shared pointer goes out of scope.
+     *  The device is held non-owning: it must outlive this object, so the
+     *  accessors can be rebuilt by reconnect().
      */
-    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-        std::string const& writeRegisterName, std::string const& syncRegisterName,
-        unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
+    SPIviaPCIe(ChimeraTK::Device& device, std::string const& moduleName, std::string const& writeRegisterName,
+        std::string const& syncRegisterName, unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
 
     /// Constructor for write and readback.
-    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-        std::string const& writeRegisterName, std::string const& syncRegisterName,
-        std::string const& readbackRegisterName, unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
+    SPIviaPCIe(ChimeraTK::Device& device, std::string const& moduleName, std::string const& writeRegisterName,
+        std::string const& syncRegisterName, std::string const& readbackRegisterName,
+        unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
+
+    /** Re-create all register accessors on the device.
+     *  Needed after the device was closed and re-opened, which invalidates the
+     *  accessors. Takes the SPI mutex, so no transfer runs concurrently.
+     */
+    void reconnect();
 
     uint32_t read(int32_t spiCommand); ///< Write the command and return the readback value.
 
@@ -65,10 +69,15 @@ namespace mtca4u {
     unsigned int getSpiWaitingTime() const;
 
    private:
-    // No need to keep an instance of the  shared pointer. Each accessor has one.
+    // Non-owning, used only to re-create the accessors in reconnect().
+    ChimeraTK::Device* _device{nullptr};
+
     ChimeraTK::ScalarRegisterAccessor<int32_t> _writeRegister;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _synchronisationRegister;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _readbackRegister;
+
+    /// Create the accessors on _device. The caller holds _spiMutex.
+    void createRegisterAccessors();
 
     static void sleepMicroSeconds(unsigned int microSeconds);
     /** Time in microseconds to wait for the transaction to be finished on the SPI
@@ -78,9 +87,11 @@ namespace mtca4u {
     boost::chrono::microseconds _spiWaitingTime;
     // store module name for debug purposes
     std::string _moduleName;
-    // store these two register names for debug output (exception messages)
+    // store these three register names for debug output (exception messages)
+    // and for re-creating the accessors in reconnect()
     std::string _writeRegisterName;
     std::string _syncRegisterName;
+    std::string _readbackRegisterName;
 
     mutable boost::recursive_mutex _spiMutex;
   };

@@ -15,47 +15,74 @@ using namespace mtca4u::dfmc_md22;
 
 namespace mtca4u {
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr<ChimeraTK::Device> const& device,
-      std::string const& moduleName,
-      MotorDriverCardConfig const& cardConfiguration)
-  : _motorControlers(),               // done later in the constructor body
-    _device(device), _powerMonitor(), // done later in the constructor body
-    _controlerSPI(),                  // done later in the constructor body
-    _controlerStatusRegister(device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})),
-    _moduleName(moduleName) {
+      std::string const& moduleName, MotorDriverCardConfig const& cardConfiguration)
+  : MotorDriverCardImpl(*device, moduleName, cardConfiguration) {
+    // The caller's shared pointer kept the device alive during the delegation.
+    _ownedDevice = device;
+  }
+
+  MotorDriverCardImpl::MotorDriverCardImpl(
+      ChimeraTK::Device& device, std::string const& moduleName, MotorDriverCardConfig const& cardConfiguration)
+  : _ownedDevice(), _device(&device), _config(cardConfiguration), _reconfigureMutex(), _motorControlers(),
+    _powerMonitor(), _controlerSPI(), _controlerStatusRegister(), _moduleName(moduleName) {
     checkFirmwareVersion();
 
-    // the shared pointers can only be initialised inside the constructor because
-    // execution order of the new operations is not defined in the contructor. As
-    // any new can throw, it might be that the other object is allocated, but the
-    // corresponding smart pointer is not initialised yet, which would lead to a
-    // memory leak.
+    createRegisterAccessors();
     _powerMonitor.reset(new PowerMonitor);
-    _controlerSPI.reset(
-        new TMC429SPI(device, moduleName, CONTROLER_SPI_WRITE_ADDRESS_STRING, CONTROLER_SPI_SYNC_ADDRESS_STRING,
-            CONTROLER_SPI_READBACK_ADDRESS_STRING, cardConfiguration.controlerSpiWaitingTime));
+    _controlerSPI.reset(new TMC429SPI(*_device, _moduleName, CONTROLER_SPI_WRITE_ADDRESS_STRING,
+        CONTROLER_SPI_SYNC_ADDRESS_STRING, CONTROLER_SPI_READBACK_ADDRESS_STRING, _config.controlerSpiWaitingTime));
 
-    // initialise common registers
-    setCoverDatagram(cardConfiguration.coverDatagram);
-    setCoverPositionAndLength(cardConfiguration.coverPositionAndLength);
-    setDatagramHighWord(cardConfiguration.datagramHighWord);
-    setDatagramLowWord(cardConfiguration.datagramLowWord);
-    setInterfaceConfiguration(cardConfiguration.interfaceConfiguration);
-    setPositionCompareInterruptData(cardConfiguration.positionCompareInterruptData);
-    setPositionCompareWord(cardConfiguration.positionCompareWord);
-    setStepperMotorGlobalParameters(cardConfiguration.stepperMotorGlobalParameters);
+    applyConfiguration();
 
     // initialise motors
     _motorControlers.resize(N_MOTORS_MAX);
     for(unsigned int i = 0; i < _motorControlers.size(); ++i) {
-      _motorControlers[i].reset(new MotorControlerImpl(
-          i, device, moduleName, _controlerSPI, cardConfiguration.motorControlerConfigurations[i]));
+      _motorControlers[i].reset(
+          new MotorControlerImpl(i, *_device, _moduleName, _controlerSPI, _config.motorControlerConfigurations[i]));
+    }
+  }
+
+  MotorDriverCardImpl::~MotorDriverCardImpl() = default;
+
+  void MotorDriverCardImpl::createRegisterAccessors() {
+    // the raw access mode is part of the status word
+    _controlerStatusRegister.replace(_device->getScalarRegisterAccessor<int32_t>(
+        _moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw}));
+  }
+
+  void MotorDriverCardImpl::applyConfiguration() {
+    // initialise common registers
+    setCoverDatagram(_config.coverDatagram);
+    setCoverPositionAndLength(_config.coverPositionAndLength);
+    setDatagramHighWord(_config.datagramHighWord);
+    setDatagramLowWord(_config.datagramLowWord);
+    setInterfaceConfiguration(_config.interfaceConfiguration);
+    setPositionCompareInterruptData(_config.positionCompareInterruptData);
+    setPositionCompareWord(_config.positionCompareWord);
+    setStepperMotorGlobalParameters(_config.stepperMotorGlobalParameters);
+  }
+
+  bool MotorDriverCardImpl::isFunctional() const {
+    return _device->isFunctional();
+  }
+
+  void MotorDriverCardImpl::reconfigure(bool enableMotor) {
+    std::lock_guard<std::mutex> guard(_reconfigureMutex);
+
+    checkFirmwareVersion();
+
+    createRegisterAccessors();
+    _controlerSPI->reconnect();
+    applyConfiguration();
+
+    for(auto& motorControler : _motorControlers) {
+      motorControler->reconfigure(enableMotor);
     }
   }
 
   boost::shared_ptr<MotorControler> MotorDriverCardImpl::getMotorControler(unsigned int motorControlerID) {
     try {
-      return _motorControlers.at(motorControlerID);
+      return boost::static_pointer_cast<MotorControler>(_motorControlers.at(motorControlerID));
     }
     catch(std::out_of_range& e) {
       std::stringstream errorMessage;
@@ -148,6 +175,7 @@ namespace mtca4u {
   }
 
   TMC429StatusWord MotorDriverCardImpl::getStatusWord() {
+    std::lock_guard<std::mutex> guard(_reconfigureMutex);
     _controlerStatusRegister.read();
     return TMC429StatusWord(_controlerStatusRegister);
   }
