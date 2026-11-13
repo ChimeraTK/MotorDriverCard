@@ -5,7 +5,7 @@
 - Synopsis: A MotorDriverCard can be created from an ApplicationCore-owned
 device and restored after that device has been reopened. Applications no
 longer need a second proxy device or a recreated card to recover.
-- Status: PLANNED
+- Status: READY TO IMPLEMENT
 
 ## Requirements
 
