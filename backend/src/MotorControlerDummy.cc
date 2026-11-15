@@ -284,6 +284,17 @@ namespace mtca4u {
     throw ChimeraTK::logic_error("MotorControlerDummy:getPositionLatched() is not implemented yet!");
   }
 
+  void MotorControlerDummy::setReferenceConfigAndRampModeData(
+      ReferenceConfigAndRampModeData const& referenceConfigAndRampModeData) {
+    LockGuard guard(_motorControllerDummyMutex);
+    _referenceConfigAndRampModeData = referenceConfigAndRampModeData;
+  }
+
+  ReferenceConfigAndRampModeData MotorControlerDummy::getReferenceConfigAndRampModeData() {
+    LockGuard guard(_motorControllerDummyMutex);
+    return _referenceConfigAndRampModeData;
+  }
+
   bool MotorControlerDummy::targetPositionReached() {
     LockGuard guard(_motorControllerDummyMutex);
     return (_currentPosition == _targetPosition);

@@ -41,7 +41,13 @@ namespace ChimeraTK { namespace MotorDriver {
    * object return this to provide user feedback in case an input can
    * not be applied due to the system's current state or an invalid value.
    */
-  enum class ExitStatus { SUCCESS, ERR_SYSTEM_IN_ACTION, ERR_INVALID_PARAMETER, ERR_SYSTEM_NOT_CALIBRATED };
+  enum class ExitStatus {
+    SUCCESS,
+    ERR_SYSTEM_IN_ACTION,
+    ERR_INVALID_PARAMETER,
+    ERR_SYSTEM_NOT_CALIBRATED,
+    ERR_SYSTEM_IN_ERROR_STATE ///< System is in the "error" state, reset the error first
+  };
 
   std::string toString(ExitStatus& status);
 

@@ -3,6 +3,7 @@
 
 #include "MotorReferenceSwitchData.h"
 #include "TMC260Words.h"
+#include "TMC429Words.h"
 
 // NOLINTBEGIN(bugprone-macro-parentheses)
 #define MC_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                              \
@@ -117,6 +118,11 @@ namespace mtca4u {
         steps); ///< Get the position tolerance in steps
     MC_DECLARE_SET_GET_VALUE(PositionLatched,
         steps); ///< Get the latched position in steps
+    MC_DECLARE_SET_GET_TYPED_REGISTER(ReferenceConfigAndRampModeData,
+        referenceConfigAndRampModeData); ///< Reference switch configuration and ramp mode register.
+                                         ///< Exposed on the public interface so that the calibration
+                                         ///< logic can enable the hardware stop at the reference
+                                         ///< switch during homing.
 
     /** Extracts the correct bit from the controller status word. */
     virtual bool targetPositionReached() = 0;
