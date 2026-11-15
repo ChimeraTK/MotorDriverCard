@@ -22,6 +22,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class RotaryStepperMotor : public ReferenceStepperMotor {
    public:
+    /// Throws std::logic_error if either hardware reference stop is enabled.
     explicit RotaryStepperMotor(const StepperMotorParameters&);
     ~RotaryStepperMotor() override = default;
 

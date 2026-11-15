@@ -56,6 +56,10 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   ExitStatus BasicStepperMotor::checkNewPosition(int newPositionInSteps) {
+    // Reject moves while the state machine is in the "error" state:
+    if(_stateMachine && _stateMachine->getCurrentState()->getName() == "error") {
+      return ExitStatus::ERR_SYSTEM_IN_ERROR_STATE;
+    }
     if(_calibrationMode.load() == CalibrationMode::NONE) {
       return ExitStatus::ERR_SYSTEM_NOT_CALIBRATED;
     }
@@ -272,6 +276,8 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::resetMotorControllerPositions(int actualPositionInSteps) {
+    // Turn off motor current while updating the two position registers.
+    // Restore the previous enable state only after both writes succeed.
     bool enable = _motorController->isEnabled();
     _motorController->setEnabled(false);
     _motorController->setActualPosition(actualPositionInSteps);
