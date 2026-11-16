@@ -15,25 +15,47 @@ namespace ChimeraTK::MotorDriver {
   : ReferenceStateMachine(motor) {}
 
   void RotaryStepperMotorStateMachine::performCalibration() {
+    // This function runs in a detached thread (see ReferenceStateMachine::actionStartCalib)
+    // and must not let an exception escape: that would terminate the process
+    // and leave _asyncActionActive stuck, locking the machine in "calibrating".
+    // The guard guarantees the flag is cleared on every exit path.
+    struct AsyncActionGuard {
+      std::atomic<bool>& flag;
+      ~AsyncActionGuard() { flag.exchange(false); }
+    } asyncActionGuard{_asyncActionActive};
     std::cerr << "rotary calibration: starting home search" << std::endl;
     _motor._calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
-    // Sync the hardware target with the actual position so that a stale
-    // target left over from an interrupted move cannot abort the
-    // calibration search immediately ("position mismatch").
-    {
-      boost::lock_guard<boost::mutex&> lck(_motor._mutex);
-      _motor._motorController->setTargetPosition(_motor._motorController->getActualPosition());
-    }
-    // During the home search enable the TMC429 hardware stop for the
-    // positive (home) reference switch and only disable the stop for the
-    // (usually unconnected) negative switch, so the motor reliably stops
-    // when it reaches the switch. The configured register value is
-    // restored on all exit paths.
+    // Shared failure handling. Safe to run even if the communication link is
+    // down: the cleanup I/O is allowed to fail.
+    auto failCalibration = [this]() {
+      try {
+        _motor._motorController->setCalibrationTime(0);
+      }
+      catch(const std::exception& e) {
+        std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): additionally failed to clear the "
+                  << "calibration time: " << e.what() << std::endl;
+      }
+      _motor._calibrationFailed.exchange(true);
+      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
+      _motor._calibrationMode.exchange(CalibrationMode::NONE);
+    };
     auto savedConfig = mtca4u::ReferenceConfigAndRampModeData();
     bool registerSwapped = false;
     try {
+      // Sync the hardware target with the actual position so that a stale
+      // target left over from an interrupted move cannot abort the
+      // calibration search immediately ("position mismatch").
+      {
+        boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+        _motor._motorController->setTargetPosition(_motor._motorController->getActualPosition());
+      }
+      // During the home search enable the TMC429 hardware stop for the
+      // positive (home) reference switch and only disable the stop for the
+      // (usually unconnected) negative switch, so the motor reliably stops
+      // when it reaches the switch. The configured register value is
+      // restored on all exit paths.
       savedConfig = _motor._motorController->getReferenceConfigAndRampModeData();
       // 0x100 = DISABLE_STOP_L only: HW stop ON for the home switch (REF_R)
       _motor._motorController->setReferenceConfigAndRampModeData(mtca4u::ReferenceConfigAndRampModeData(0x100));
@@ -43,10 +65,7 @@ namespace ChimeraTK::MotorDriver {
 
       if(_moveInterrupted.load() || _stopAction.load()) {
         std::cerr << "rotary calibration: home search interrupted before completion" << std::endl;
-        _motor._motorController->setCalibrationTime(0);
-        _motor._calibrationFailed.exchange(true);
-        _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-        _motor._calibrationMode.exchange(CalibrationMode::NONE);
+        failCalibration();
       }
       else {
         std::cerr << "rotary calibration: home switch found at position " << homePosition << " steps" << std::endl;
@@ -63,31 +82,27 @@ namespace ChimeraTK::MotorDriver {
     }
     catch(ChimeraTK::runtime_error& e) {
       std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): homing failed: " << e.what() << std::endl;
-      _motor._motorController->setCalibrationTime(0);
-
-      _motor._calibrationFailed.exchange(true);
-      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-      _motor._calibrationMode.exchange(CalibrationMode::NONE);
+      failCalibration();
     }
     catch(const std::exception& e) {
       std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): unexpected exception during homing: "
                 << e.what() << std::endl;
-      _motor._motorController->setCalibrationTime(0);
-
-      _motor._calibrationFailed.exchange(true);
-      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-      _motor._calibrationMode.exchange(CalibrationMode::NONE);
+      failCalibration();
     }
     if(registerSwapped) {
       try {
         _motor._motorController->setReferenceConfigAndRampModeData(savedConfig);
       }
-      catch(const std::exception&) {
-        // The configured register value could not be restored (communication
-        // error); the motor keeps the homing configuration.
+      catch(const std::exception& e) {
+        // The motor would keep the homing configuration (hardware stop active
+        // on the home switch) instead of the configured value. Calibration
+        // must leave the motor in its configured operating state, so report
+        // this as a failure.
+        std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): could not restore the configured "
+                  << "reference register: " << e.what() << "; calibration marked as failed" << std::endl;
+        failCalibration();
       }
     }
-    _asyncActionActive.exchange(false);
   }
 
   void RotaryStepperMotorStateMachine::calculateToleranceValues() {
