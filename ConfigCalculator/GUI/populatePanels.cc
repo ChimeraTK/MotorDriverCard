@@ -23,6 +23,7 @@ void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
   ADD_INT_PARAMETER(maximumVelocity, "(*)");
   ADD_INT_PARAMETER(microStepCount, "");
   ADD_INT_PARAMETER(minimumVelocity, "");
+  ADD_INT_PARAMETER(positionTolerance, "");
   ADD_TMC429_PARAMETER(proportionalityFactorData, "(*)");
   ADD_TMC429_PARAMETER(referenceConfigAndRampModeData, "(*)");
   ADD_INT_PARAMETER(targetPosition, "");

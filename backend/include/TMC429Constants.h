@@ -33,6 +33,7 @@ namespace mtca4u { namespace tmc429 {
   uint32_t const IDX_REFERENCE_CONFIG_AND_RAMP_MODE = 0xA;
   uint32_t const IDX_INTERRUPT_MASK_AND_FLAGS = 0xB;
   uint32_t const IDX_DIVIDERS_AND_MICRO_STEP_RESOLUTION = 0xC;
+  uint32_t const IDX_DELTA_X_REFERENCE_TOLERANCE = 0xD;
   uint32_t const IDX_POSITION_LATCHED = 0xE;
   uint32_t const IDX_MICRO_STEP_COUNT = 0xF;
 

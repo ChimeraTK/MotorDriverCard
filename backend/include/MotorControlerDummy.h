@@ -73,6 +73,9 @@ namespace mtca4u {
     void setMaximumAcceleration(unsigned int stepsPerSquareFIXME) override;
     unsigned int getMaximumAcceleration() override;
 
+    void setPositionTolerance(unsigned int steps) override;
+    unsigned int getPositionTolerance() override;
+
     void setPositionLatched(unsigned int steps) override;
     unsigned int getPositionLatched() override;
 

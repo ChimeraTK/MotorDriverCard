@@ -145,6 +145,9 @@ namespace mtca4u {
     void testGetMaximumAcceleration();
     void testSetMaximumAcceleration();
 
+    void testGetPositionTolerance();
+    void testSetPositionTolerance();
+
     void testGetPositionLatched();
     void testSetPositionLatched();
 
@@ -286,6 +289,7 @@ namespace mtca4u {
   ADD_GET_SET_TEST(MaximumVelocity);
   ADD_GET_SET_TEST(TargetVelocity);
   ADD_GET_SET_TEST(MaximumAcceleration);
+  ADD_GET_SET_TEST(PositionTolerance);
   ADD_GET_SET_TEST(PositionLatched);
 
   ADD_GET_SET_TEST(AccelerationThresholdData);
@@ -405,6 +409,7 @@ namespace mtca4u {
   DEFINE_GET_SET_TEST(MaximumVelocity, mtca4u::tmc429::IDX_MAXIMUM_VELOCITY, 0xAAAAAA)
   DEFINE_SIGNED_GET_SET_TEST(TargetVelocity, mtca4u::tmc429::IDX_TARGET_VELOCITY, 12)
   DEFINE_GET_SET_TEST(MaximumAcceleration, mtca4u::tmc429::IDX_MAXIMUM_ACCELERATION, 0xFFFFFF)
+  DEFINE_GET_SET_TEST(PositionTolerance, mtca4u::tmc429::IDX_DELTA_X_REFERENCE_TOLERANCE, 0xAAAAAA)
   DEFINE_GET_SET_TEST(PositionLatched, mtca4u::tmc429::IDX_POSITION_LATCHED, 0x555555)
 
   template<class T>
@@ -578,6 +583,8 @@ namespace mtca4u {
     controllerImpl->setTargetVelocity(controllerImpl->getTargetVelocity());
 
     controllerImpl->setMaximumAcceleration(controllerImpl->getMaximumAcceleration());
+
+    controllerImpl->setPositionTolerance(controllerImpl->getPositionTolerance());
 
     controllerImpl->setPositionLatched(controllerImpl->getPositionLatched());
 

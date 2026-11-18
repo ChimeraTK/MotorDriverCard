@@ -268,6 +268,14 @@ namespace mtca4u {
     throw ChimeraTK::logic_error("MotorControlerDummy::getMaximumAcceleration() is not implemented yet!");
   }
 
+  void MotorControlerDummy::setPositionTolerance(unsigned int /*steps*/) {
+    throw ChimeraTK::logic_error("MotorControlerDummy::setPositionTolerance() is not implemented yet!");
+  }
+
+  unsigned int MotorControlerDummy::getPositionTolerance() {
+    throw ChimeraTK::logic_error("MotorControlerDummy::getPositionTolerance() is not implemented yet!");
+  }
+
   void MotorControlerDummy::setPositionLatched(unsigned int /*steps*/) {
     throw ChimeraTK::logic_error("MotorControlerDummy::setPositionLatched() is not implemented yet!");
   }
