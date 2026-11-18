@@ -25,6 +25,7 @@ mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel
   ASSIGN_FIELD(maximumVelocity);
   ASSIGN_FIELD(microStepCount);
   ASSIGN_FIELD(minimumVelocity);
+  ASSIGN_FIELD(positionTolerance);
   SET_FIELD(proportionalityFactorData);
   SET_FIELD(referenceConfigAndRampModeData);
   SET_FIELD(stallGuardControlData);

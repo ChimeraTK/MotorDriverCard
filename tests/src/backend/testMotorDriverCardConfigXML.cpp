@@ -66,6 +66,7 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest() {
   _plusOneControlerConfig.maximumVelocity++;
   _plusOneControlerConfig.microStepCount++;
   _plusOneControlerConfig.minimumVelocity++;
+  _plusOneControlerConfig.positionTolerance++;
   ASSIGN_PLUS_ONE_CONTROLER(proportionalityFactorData);
   ASSIGN_PLUS_ONE_CONTROLER(referenceConfigAndRampModeData);
   ASSIGN_PLUS_ONE_CONTROLER(stallGuardControlData);
@@ -150,6 +151,7 @@ void MotorDriverCardConfigXMLTest::checkControlerConfig(
   CONTROLER_CHECK(maximumVelocity);
   CONTROLER_CHECK(microStepCount);
   CONTROLER_CHECK(minimumVelocity);
+  CONTROLER_CHECK(positionTolerance);
   CONTROLER_CHECK(proportionalityFactorData);
   CONTROLER_CHECK(referenceConfigAndRampModeData);
   CONTROLER_CHECK(stallGuardControlData);

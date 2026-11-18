@@ -18,6 +18,7 @@
     <Register name="maximumVelocity" value="0x65"/>
     <Register name="microStepCount" value="0x1"/>
     <Register name="minimumVelocity" value="0x2"/>
+    <Register name="positionTolerance" value="0x1"/>
     <Register name="proportionalityFactorData" value="0xC50B"/>
     <Register name="referenceConfigAndRampModeData" value="0x1"/>
     <Register name="stallGuardControlData" value="0x10001"/>
