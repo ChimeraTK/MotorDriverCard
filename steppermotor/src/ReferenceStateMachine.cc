@@ -3,7 +3,7 @@
 
 #include "ReferenceStateMachine.h"
 
-#include "MotorControler.h"
+#include "MotorController.h"
 
 #include <ChimeraTK/Exception.h>
 
@@ -118,7 +118,7 @@ namespace ChimeraTK::MotorDriver {
 
         // TODO include
         //        _asyncActionActive.exchange(false);
-        //        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+        //        _motorController->setTargetPosition(_motorController->getActualPosition());
         _motor._errorMode = Error::CALIBRATION_ERROR;
         //        return;
       }

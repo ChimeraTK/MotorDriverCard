@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
-#include "MotorControlerExpert.h"
+#include "MotorControllerExpert.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
 
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   if(argc != 4) {
     std::cout << argv[0]
               << "This is a long term test which performs SPI communication to the "
-                 "controler"
+                 "controller"
               << " and driver chips by writing to the corresponding PCIe regsiters.\n"
               << "It performs evaluation by reading back the written values.\n"
               << "The programme uses the first device listed in the given DMap "
@@ -53,10 +53,12 @@ int main(int argc, char* argv[]) {
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, moduleName,
           motorConfig); // default motor config
 
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControlerExpert> motor0 =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControlerExpert>(motorDriverCard->getMotorControler(0));
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControlerExpert> motor1 =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControlerExpert>(motorDriverCard->getMotorControler(1));
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerExpert> motor0 =
+      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerExpert>(
+          motorDriverCard->getMotorController(0));
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerExpert> motor1 =
+      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerExpert>(
+          motorDriverCard->getMotorController(1));
 
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;
@@ -70,9 +72,9 @@ int main(int argc, char* argv[]) {
   unsigned int initialPositionTolerance[2] = {motor0->getPositionTolerance(), motor1->getPositionTolerance()};
 
   while(1) {
-    // controler registers (only they can be read back)
+    // controller registers (only they can be read back)
     for(unsigned int motorID = 0; motorID <= 1; ++motorID) {
-      boost::shared_ptr<ChimeraTK::MotorDriver::MotorControler> motor = motorDriverCard->getMotorControler(motorID);
+      boost::shared_ptr<ChimeraTK::MotorDriver::MotorController> motor = motorDriverCard->getMotorController(motorID);
 
       // test that writing values in a row work
       // mask then in case the initial values are at the 24 bit data word
@@ -105,8 +107,8 @@ int main(int argc, char* argv[]) {
       PRINT_AND_COUNT_ERRORS(motor->getPositionTolerance() == initialPositionTolerance[motorID], motorID);
     }
 
-    // patterns for both motors, including writing to controler and driver
-    // registers, where only controler registers can be checked. Nevertheless
+    // patterns for both motors, including writing to controller and driver
+    // registers, where only controller registers can be checked. Nevertheless
     // there might be interference.
     motor0->setTargetPosition(0xAAAAAA);
     motor1->setTargetPosition(0x555555);

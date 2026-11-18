@@ -3,7 +3,7 @@
 
 #include "RotaryStepperMotorStateMachine.h"
 
-#include "MotorControler.h"
+#include "MotorController.h"
 #include "RotaryStepperMotor.h"
 
 namespace ChimeraTK::MotorDriver {

@@ -4,7 +4,7 @@
 
 // This file should only be included for testing/debugging. It should not be
 // necessary to use these constants in any production code (except for the
-// MotorControlerConfig implementation of course).
+// MotorControllerConfig implementation of course).
 
 namespace ChimeraTK::MotorDriver {
 
@@ -17,7 +17,7 @@ namespace ChimeraTK::MotorDriver {
   unsigned int const DRIVER_CONFIG_DEFAULT = 0x00040; ///< full-scale sense register voltage is 165 mV. Do not modify
                                                       ///< for MD22
 
-  // registers on the controler chip
+  // registers on the controller chip
   unsigned int const DIVIDIERS_AND_MICRO_STEP_RESOLUTION_DEFAULT = 0x003704;
   unsigned int const MAXIMUM_ACCELERATION_DEFAULT = 0x14;
   unsigned int const MAXIMUM_VELOCITY_DEFAULT = 0x64;
@@ -25,8 +25,8 @@ namespace ChimeraTK::MotorDriver {
   unsigned int const PROPORTIONALITY_FACTORS_DEFAULT = 0xC50A;
   unsigned int const REFERENCE_CONFIG_AND_RAMP_MODE_DEFAULT = 0x0;
 
-  // spi communication parametes
+  // spi communication parameters
   unsigned int const DRIVER_SPI_WAITING_TIME_DEFAULT = 50; ///< in microseconds
-  // (contolrer SPI waiting time default is in the MotorDriverCard config)
+  // (controller SPI waiting time default is in the MotorDriverCard config)
 
 } // namespace ChimeraTK::MotorDriver

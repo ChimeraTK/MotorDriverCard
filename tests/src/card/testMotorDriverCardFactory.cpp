@@ -39,10 +39,10 @@ BOOST_AUTO_TEST_CASE(testGetSetDMapFilePath) {
   // we have to use real files, otherwise we get an exception here.
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath("MD22_on_DAMC2.dmap");
   // check that you can read it through the MotorDriverCardFactory interface
-  BOOST_CHECK(ChimeraTK::MotorDriver::MotorDriverCardFactory::getDeviceaccessDMapFilePath() == "MD22_on_DAMC2.dmap");
+  BOOST_CHECK(ChimeraTK::MotorDriver::MotorDriverCardFactory::getDeviceAccessDMapFilePath() == "MD22_on_DAMC2.dmap");
 
   // set using the MotorDriverCardFactory's interface
-  ChimeraTK::MotorDriver::MotorDriverCardFactory::setDeviceaccessDMapFilePath("dummies.dmap");
+  ChimeraTK::MotorDriver::MotorDriverCardFactory::setDeviceAccessDMapFilePath("dummies.dmap");
   // check that it arrived correctly in the BackendFactory
   BOOST_CHECK(ChimeraTK::BackendFactory::getInstance().getDMapFilePath() == "dummies.dmap");
 }

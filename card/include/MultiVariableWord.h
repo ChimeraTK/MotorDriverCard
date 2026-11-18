@@ -17,7 +17,7 @@
 // The result is cast back to 32 bit.
 #define INPUT_MASK(FIRST_BIT, LAST_BIT) static_cast<unsigned int>((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)
 
-/** Generate an outpu mask from the position of the first and the last bit
+/** Generate an output mask from the position of the first and the last bit
  *  of the mask. The output mask is the mask applied to the combined word.
  *  <br> Example:
  *  bits 12 to 15 describe a 4 bit wide sub word with an output mask of \c
@@ -64,7 +64,7 @@ namespace ChimeraTK::MotorDriver {
    *  value. All other bits are empty/unused.
    *
    *  This class is used as a base class. The derived class can conveniently be
-   * populated with the ADD_VARIABLE() macro.<br> Example for a 32 bit treshold
+   * populated with the ADD_VARIABLE() macro.<br> Example for a 32 bit threshold
    * register which holds an upper and a lower threshold value.
    */
   // doxygen description in several blocks to work around a bug in doxygen.
@@ -99,7 +99,7 @@ namespace ChimeraTK::MotorDriver {
      */
     MultiVariableWord(unsigned int dataWord = 0);
 
-    /** The desructor of a base class should be virtual
+    /** The destructor of a base class should be virtual
      */
     virtual ~MultiVariableWord();
 
@@ -129,7 +129,7 @@ namespace ChimeraTK::MotorDriver {
      * length of the sub word.
      *
      *  The code throws an OutOfRangeException if the word is too large to fit the
-     * input mask. Like this the trunkation of words is avoided which could lead
+     * input mask. Like this the truncation of words is avoided which could lead
      * to unwanted results like setting a position to 0 instead of max+1.
      *
      *  N.B. The offset information is redundant and could be extracted from the

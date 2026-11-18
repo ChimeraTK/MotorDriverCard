@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
-#include "MotorControler.h"
+#include "MotorController.h"
 #include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardExpert.h"
 #include "MotorDriverCardFactory.h"
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
 
   unsigned int nStepsMax = (strtoul(argv[4], nullptr, 0) & 0x7FFFFFU); // limit to the maximal possible position
 
-  auto motor0 = motorDriverCard->getMotorControler(0);
+  auto motor0 = motorDriverCard->getMotorController(0);
 
   // check that one or both end switches are inactive. Otherwise there probably
   // is no motor connected.

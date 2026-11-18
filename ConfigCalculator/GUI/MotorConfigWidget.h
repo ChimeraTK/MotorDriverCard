@@ -26,7 +26,7 @@ class MotorConfigWidget : public QWidget {
 
   /** Get access to the config calculated from the chip parameters.
    */
-  ChimeraTK::MotorDriver::MotorControlerConfig getConfig();
+  ChimeraTK::MotorDriver::MotorControllerConfig getConfig();
 
   /** Check whether the motor is enabled. This allows
    *  to ignore the config and write sparse config files

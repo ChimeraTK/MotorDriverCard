@@ -1,11 +1,11 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MotorControlerTest
+#define BOOST_TEST_MODULE MotorControllerTest
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "DFMC_MD22Constants.h"
 #include "DFMC_MD22Dummy.h"
-#include "impl/MotorControlerImpl.h"
+#include "impl/MotorControllerImpl.h"
 #include "impl/MotorDriverCardImpl.h"
 #include "MotorDriverCard.h"
 #include "testWordFromPCIeAddress.h"
@@ -14,7 +14,7 @@ using namespace boost::unit_test_framework;
 #include <thread>
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include "ChimeraTK/BackendFactory.h"
-#include "MotorControlerConfigDefaults.h"
+#include "MotorControllerConfigDefaults.h"
 #include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
 #include "testWordFromSpiAddress.h"
@@ -32,85 +32,86 @@ using namespace ChimeraTK::MotorDriver;
   void testSet##NAME()
 
 #define ADD_TEST(NAME, ...)                                                                                            \
-  BOOST_FIXTURE_TEST_CASE(Test##NAME##0, MotorControlerTestFixture<0>) {                                               \
-    _motorControlerTest->test##NAME(__VA_ARGS__);                                                                      \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##0, MotorControllerTestFixture<0>) {                                              \
+    _motorControllerTest->test##NAME(__VA_ARGS__);                                                                     \
   }                                                                                                                    \
-  BOOST_FIXTURE_TEST_CASE(Test##NAME##1, MotorControlerTestFixture<1>) {                                               \
-    _motorControlerTest->test##NAME(__VA_ARGS__);                                                                      \
+  BOOST_FIXTURE_TEST_CASE(Test##NAME##1, MotorControllerTestFixture<1>) {                                              \
+    _motorControllerTest->test##NAME(__VA_ARGS__);                                                                     \
   }
 
 #define ADD_GET_SET_TEST(NAME, ...)                                                                                    \
-  BOOST_FIXTURE_TEST_CASE(TestSet##NAME##0, MotorControlerTestFixture<0>) {                                            \
-    _motorControlerTest->testSet##NAME(__VA_ARGS__);                                                                   \
+  BOOST_FIXTURE_TEST_CASE(TestSet##NAME##0, MotorControllerTestFixture<0>) {                                           \
+    _motorControllerTest->testSet##NAME(__VA_ARGS__);                                                                  \
   }                                                                                                                    \
-  BOOST_FIXTURE_TEST_CASE(TestSet##NAME##1, MotorControlerTestFixture<1>) {                                            \
-    _motorControlerTest->testSet##NAME(__VA_ARGS__);                                                                   \
+  BOOST_FIXTURE_TEST_CASE(TestSet##NAME##1, MotorControllerTestFixture<1>) {                                           \
+    _motorControllerTest->testSet##NAME(__VA_ARGS__);                                                                  \
   }                                                                                                                    \
-  BOOST_FIXTURE_TEST_CASE(TestGet##NAME##0, MotorControlerTestFixture<0>) {                                            \
-    _motorControlerTest->testGet##NAME(__VA_ARGS__);                                                                   \
+  BOOST_FIXTURE_TEST_CASE(TestGet##NAME##0, MotorControllerTestFixture<0>) {                                           \
+    _motorControllerTest->testGet##NAME(__VA_ARGS__);                                                                  \
   }                                                                                                                    \
-  BOOST_FIXTURE_TEST_CASE(TestGet##NAME##1, MotorControlerTestFixture<1>) {                                            \
-    _motorControlerTest->testGet##NAME(__VA_ARGS__);                                                                   \
+  BOOST_FIXTURE_TEST_CASE(TestGet##NAME##1, MotorControllerTestFixture<1>) {                                           \
+    _motorControllerTest->testGet##NAME(__VA_ARGS__);                                                                  \
   }
 
 #define DEFINE_GET_SET_TEST(NAME, IDX, PATTERN)                                                                        \
-  void MotorControlerTest::testGet##NAME() {                                                                           \
+  void MotorControllerTest::testGet##NAME() {                                                                          \
     unsigned int expectedValue =                                                                                       \
-        ChimeraTK::MotorDriver::tmc429::testWordFromSpiAddress(_motorControler->getID(), IDX);                         \
-    BOOST_CHECK(_motorControler->get##NAME() == expectedValue);                                                        \
+        ChimeraTK::MotorDriver::tmc429::testWordFromSpiAddress(_motorController->getID(), IDX);                        \
+    BOOST_CHECK(_motorController->get##NAME() == expectedValue);                                                       \
   }                                                                                                                    \
-  void MotorControlerTest::testSet##NAME() {                                                                           \
-    _motorControler->set##NAME(PATTERN);                                                                               \
-    BOOST_CHECK(_motorControler->get##NAME() == (PATTERN & ChimeraTK::MotorDriver::tmc429::SPI_DATA_MASK));            \
+  void MotorControllerTest::testSet##NAME() {                                                                          \
+    _motorController->set##NAME(PATTERN);                                                                              \
+    BOOST_CHECK(_motorController->get##NAME() == (PATTERN & ChimeraTK::MotorDriver::tmc429::SPI_DATA_MASK));           \
   }
 
 #define DEFINE_SIGNED_GET_SET_TEST(NAME, IDX, NBITS)                                                                   \
-  void MotorControlerTest::testGet##NAME() {                                                                           \
+  void MotorControllerTest::testGet##NAME() {                                                                          \
     SignedIntConverter converter(NBITS);                                                                               \
     unsigned int expectedValue =                                                                                       \
-        ChimeraTK::MotorDriver::tmc429::testWordFromSpiAddress(_motorControler->getID(), IDX);                         \
-    BOOST_CHECK(_motorControler->get##NAME() == converter.customToThirtyTwo(expectedValue));                           \
+        ChimeraTK::MotorDriver::tmc429::testWordFromSpiAddress(_motorController->getID(), IDX);                        \
+    BOOST_CHECK(_motorController->get##NAME() == converter.customToThirtyTwo(expectedValue));                          \
   }                                                                                                                    \
-  void MotorControlerTest::testSet##NAME() {                                                                           \
+  void MotorControllerTest::testSet##NAME() {                                                                          \
     unsigned int positiveMask = (1U << ((NBITS) - 1)) - 1;                                                             \
     unsigned int negativeBit = (1U << ((NBITS) - 1));                                                                  \
-    _motorControler->set##NAME(0xAAAAAAAA & positiveMask); /* something positive */                                    \
-    BOOST_CHECK(_motorControler->get##NAME() == static_cast<int>(0xAAAAAAAA & positiveMask));                          \
-    _motorControler->set##NAME((0x55555555 & positiveMask) | negativeBit); /* out of range positive with the           \
+    _motorController->set##NAME(0xAAAAAAAA & positiveMask); /* something positive */                                   \
+    BOOST_CHECK(_motorController->get##NAME() == static_cast<int>(0xAAAAAAAA & positiveMask));                         \
+    _motorController->set##NAME((0x55555555 & positiveMask) | negativeBit); /* out of range positive with the          \
                                                                               custom negative bit active*/             \
-    BOOST_CHECK(_motorControler->get##NAME() == -static_cast<int>((0xAAAAAAAA + 1) & positiveMask)); /* is interpreted \
-                                                                                                        as negative*/  \
-    _motorControler->set##NAME(-1); /* a normal neagative number */                                                    \
-    BOOST_CHECK(_motorControler->get##NAME() == -1);                                                                   \
-    _motorControler->set##NAME(0xFFFFFFFF & ~negativeBit); /* something negative with the negative                     \
+    BOOST_CHECK(                                                                                                       \
+        _motorController->get##NAME() == -static_cast<int>((0xAAAAAAAA + 1) & positiveMask)); /* is interpreted        \
+                                                                                                as negative*/          \
+    _motorController->set##NAME(-1); /* a normal neagative number */                                                   \
+    BOOST_CHECK(_motorController->get##NAME() == -1);                                                                  \
+    _motorController->set##NAME(0xFFFFFFFF & ~negativeBit); /* something negative with the negative                    \
                                                               bit of the custom variable not set*/                     \
-    BOOST_CHECK(_motorControler->get##NAME() == static_cast<int>(0xFFFFFFFF & positiveMask)); /* is interpreted as     \
+    BOOST_CHECK(_motorController->get##NAME() == static_cast<int>(0xFFFFFFFF & positiveMask)); /* is interpreted as    \
                                                                                                  positive */           \
   }
 
 #define DEFINE_TYPED_GET_SET_TEST(NAME)                                                                                \
-  void MotorControlerTest::testGet##NAME() {                                                                           \
-    testGetTypedData<NAME>(&MotorControlerImpl::get##NAME);                                                            \
+  void MotorControllerTest::testGet##NAME() {                                                                          \
+    testGetTypedData<NAME>(&MotorControllerImpl::get##NAME);                                                           \
   }                                                                                                                    \
-  void MotorControlerTest::testSet##NAME() {                                                                           \
-    testSetTypedData<NAME>(&MotorControlerImpl::get##NAME, &MotorControlerImpl::set##NAME);                            \
+  void MotorControllerTest::testSet##NAME() {                                                                          \
+    testSetTypedData<NAME>(&MotorControllerImpl::get##NAME, &MotorControllerImpl::set##NAME);                          \
   }
 
 #define DEFINE_GET_SET_DRIVER_SPI_DATA(NAME, SPI_ADDRESS, CONFIG_DEFAULT, TEST_PATTERN)                                \
-  void MotorControlerTest::testGet##NAME() {                                                                           \
-    testGetDriverSpiData<NAME>(&MotorControlerImpl::get##NAME, SPI_ADDRESS, CONFIG_DEFAULT);                           \
+  void MotorControllerTest::testGet##NAME() {                                                                          \
+    testGetDriverSpiData<NAME>(&MotorControllerImpl::get##NAME, SPI_ADDRESS, CONFIG_DEFAULT);                          \
   }                                                                                                                    \
-  void MotorControlerTest::testSet##NAME() {                                                                           \
+  void MotorControllerTest::testSet##NAME() {                                                                          \
     testSetDriverSpiData<NAME>(                                                                                        \
-        &MotorControlerImpl::set##NAME, &MotorControlerImpl::get##NAME, SPI_ADDRESS, TEST_PATTERN);                    \
+        &MotorControllerImpl::set##NAME, &MotorControllerImpl::get##NAME, SPI_ADDRESS, TEST_PATTERN);                  \
   }
 
 namespace ChimeraTK::MotorDriver {
 
-  class MotorControlerTest {
+  class MotorControllerTest {
    public:
-    MotorControlerTest(
-        boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
+    MotorControllerTest(
+        boost::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
     // getID() is tested in the MotorDriver card, where
     // different ID are known. This test is for just one
     // Motor with one ID, which is now known to be ok.
@@ -122,11 +123,11 @@ namespace ChimeraTK::MotorDriver {
     // for testing direct read from pcie registers (with default values from the
     // dummy)
     void testReadPCIeRegister(
-        unsigned int (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix);
+        unsigned int (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix);
 
     // for reading registers which do not return an int but a MultiVariableWord
     template<class T>
-    void testReadTypedPCIeRegister(T (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix);
+    void testReadTypedPCIeRegister(T (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix);
 
     void testSetIsEnabled();
 
@@ -194,38 +195,38 @@ namespace ChimeraTK::MotorDriver {
     void testSetEndSwitchPowerEnabled();
 
    private:
-    boost::shared_ptr<MotorControlerImpl> _motorControler;
+    boost::shared_ptr<MotorControllerImpl> _motorController;
     boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
     template<class T>
-    void testGetTypedData(T (MotorControlerImpl::*getterFunction)());
+    void testGetTypedData(T (MotorControllerImpl::*getterFunction)());
 
     template<class T>
     void testSetTypedData(
-        T (MotorControlerImpl::*getterFunction)(), void (MotorControlerImpl::*setterFunction)(T const&));
+        T (MotorControllerImpl::*getterFunction)(), void (MotorControllerImpl::*setterFunction)(T const&));
     template<class T>
-    void testGetDriverSpiData(T const& (MotorControlerImpl::*getterFunction)() const, unsigned int driverSpiAddress,
+    void testGetDriverSpiData(T const& (MotorControllerImpl::*getterFunction)() const, unsigned int driverSpiAddress,
         unsigned int configDefault);
     template<class T>
-    void testSetDriverSpiData(void (MotorControlerImpl::*setterFunction)(T const&),
-        T const& (MotorControlerImpl::*getterFunction)() const, unsigned int driverSpiAddress,
+    void testSetDriverSpiData(void (MotorControllerImpl::*setterFunction)(T const&),
+        T const& (MotorControllerImpl::*getterFunction)() const, unsigned int driverSpiAddress,
         unsigned int testPattern);
 
     unsigned int testWordFromPCIeSuffix(std::string const& registerSuffix);
-    void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorControler> controller);
-    boost::shared_ptr<MotorControler> createMotorController(const std::string deviceName);
+    void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorController> controller);
+    boost::shared_ptr<MotorController> createMotorController(const std::string deviceName);
 
-  }; /*class MotorControlerTest*/
+  }; /*class MotorControllerTest*/
 
   template<unsigned int motorId>
-  class MotorControlerTestFixture : public test_suite {
+  class MotorControllerTestFixture : public test_suite {
    protected:
     boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
-    boost::shared_ptr<MotorControlerTest> _motorControlerTest;
+    boost::shared_ptr<MotorControllerTest> _motorControllerTest;
 
    public:
-    explicit MotorControlerTestFixture()
-    : test_suite(" MotorControler test suite" + std::to_string(motorId)), _motorDriverCard() {
+    explicit MotorControllerTestFixture()
+    : test_suite(" MotorController test suite" + std::to_string(motorId)), _motorDriverCard() {
       ChimeraTK::setDMapFilePath("./dummies.dmap");
 
       std::list<std::string> parameters;
@@ -239,14 +240,14 @@ namespace ChimeraTK::MotorDriver {
       device->open("DFMC_MD22");
 
       // We need the motor driver card as private variable because it has to
-      // survive the constructor. Otherwise the MotorControlers passed to
+      // survive the constructor. Otherwise the MotorControllers passed to
       // the tests will be invalid.
       _motorDriverCard.reset(new MotorDriverCardImpl(device, MODULE_NAME_0, motorDriverCardConfig));
 
       dummyDevice->setRegistersForTesting();
 
-      _motorControlerTest =
-          boost::make_shared<MotorControlerTest>(_motorDriverCard->getMotorControler(motorId), dummyDevice);
+      _motorControllerTest =
+          boost::make_shared<MotorControllerTest>(_motorDriverCard->getMotorController(motorId), dummyDevice);
     }
   };
 
@@ -256,36 +257,36 @@ namespace ChimeraTK::MotorDriver {
   // ADD_GET_SET_TEST(AccelerationThreshold);
   ADD_GET_SET_TEST(MicroStepCount);
 
-  BOOST_FIXTURE_TEST_CASE(TestGetStallGuardValue0, MotorControlerTestFixture<0>) {
-    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX);
+  BOOST_FIXTURE_TEST_CASE(TestGetStallGuardValue0, MotorControllerTestFixture<0>) {
+    _motorControllerTest->testReadPCIeRegister(&MotorControllerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX);
   }
-  BOOST_FIXTURE_TEST_CASE(TestGetStallGuardValue1, MotorControlerTestFixture<1>) {
-    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX);
-  }
-
-  BOOST_FIXTURE_TEST_CASE(TestGetCoolStepValue0, MotorControlerTestFixture<0>) {
-    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX);
-  }
-  BOOST_FIXTURE_TEST_CASE(TestGetCoolStepValue1, MotorControlerTestFixture<1>) {
-    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX);
+  BOOST_FIXTURE_TEST_CASE(TestGetStallGuardValue1, MotorControllerTestFixture<1>) {
+    _motorControllerTest->testReadPCIeRegister(&MotorControllerImpl::getStallGuardValue, STALL_GUARD_VALUE_SUFFIX);
   }
 
-  BOOST_FIXTURE_TEST_CASE(TestGetDriverStatus0, MotorControlerTestFixture<0>) {
-    _motorControlerTest->testReadTypedPCIeRegister<DriverStatusData>(&MotorControlerImpl::getStatus, STATUS_SUFFIX);
+  BOOST_FIXTURE_TEST_CASE(TestGetCoolStepValue0, MotorControllerTestFixture<0>) {
+    _motorControllerTest->testReadPCIeRegister(&MotorControllerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX);
   }
-  BOOST_FIXTURE_TEST_CASE(TestGetDriverStatus1, MotorControlerTestFixture<1>) {
-    _motorControlerTest->testReadTypedPCIeRegister<DriverStatusData>(&MotorControlerImpl::getStatus, STATUS_SUFFIX);
+  BOOST_FIXTURE_TEST_CASE(TestGetCoolStepValue1, MotorControllerTestFixture<1>) {
+    _motorControllerTest->testReadPCIeRegister(&MotorControllerImpl::getCoolStepValue, COOL_STEP_VALUE_SUFFIX);
+  }
+
+  BOOST_FIXTURE_TEST_CASE(TestGetDriverStatus0, MotorControllerTestFixture<0>) {
+    _motorControllerTest->testReadTypedPCIeRegister<DriverStatusData>(&MotorControllerImpl::getStatus, STATUS_SUFFIX);
+  }
+  BOOST_FIXTURE_TEST_CASE(TestGetDriverStatus1, MotorControllerTestFixture<1>) {
+    _motorControllerTest->testReadTypedPCIeRegister<DriverStatusData>(&MotorControllerImpl::getStatus, STATUS_SUFFIX);
   }
 
   ADD_TEST(SetIsEnabled);
 
   ADD_GET_SET_TEST(DecoderReadoutMode);
 
-  BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition0, MotorControlerTestFixture<0>) {
-    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getDecoderPosition, DECODER_POSITION_SUFFIX);
+  BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition0, MotorControllerTestFixture<0>) {
+    _motorControllerTest->testReadPCIeRegister(&MotorControllerImpl::getDecoderPosition, DECODER_POSITION_SUFFIX);
   }
-  BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition1, MotorControlerTestFixture<1>) {
-    _motorControlerTest->testReadPCIeRegister(&MotorControlerImpl::getDecoderPosition, DECODER_POSITION_SUFFIX);
+  BOOST_FIXTURE_TEST_CASE(TestGetDecoderPosition1, MotorControllerTestFixture<1>) {
+    _motorControllerTest->testReadPCIeRegister(&MotorControllerImpl::getDecoderPosition, DECODER_POSITION_SUFFIX);
   }
 
   ADD_GET_SET_TEST(MinimumVelocity);
@@ -315,28 +316,28 @@ namespace ChimeraTK::MotorDriver {
   ADD_TEST(ThreadSaftey);
   ADD_TEST(SetEndSwitchPowerEnabled);
 
-  MotorControlerTest::MotorControlerTest(
-      boost::shared_ptr<MotorControler> const& motorControler, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
-  : _motorControler(boost::dynamic_pointer_cast<MotorControlerImpl>(motorControler)), _dummyDevice(dummyDevice) {}
+  MotorControllerTest::MotorControllerTest(
+      boost::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
+  : _motorController(boost::dynamic_pointer_cast<MotorControllerImpl>(motorController)), _dummyDevice(dummyDevice) {}
 
   DEFINE_SIGNED_GET_SET_TEST(ActualPosition, ChimeraTK::MotorDriver::tmc429::IDX_ACTUAL_POSITION, 24)
   DEFINE_SIGNED_GET_SET_TEST(ActualVelocity, ChimeraTK::MotorDriver::tmc429::IDX_ACTUAL_VELOCITY, 12)
   DEFINE_GET_SET_TEST(ActualAcceleration, ChimeraTK::MotorDriver::tmc429::IDX_ACTUAL_ACCELERATION, 0xFFFFFF)
   DEFINE_GET_SET_TEST(MicroStepCount, ChimeraTK::MotorDriver::tmc429::IDX_MICRO_STEP_COUNT, 0xAAAAAA)
 
-  void MotorControlerTest::testReadPCIeRegister(
-      unsigned int (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix) {
+  void MotorControllerTest::testReadPCIeRegister(
+      unsigned int (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix) {
     unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
     std::stringstream message;
-    message << "read () " << ((*_motorControler).*readFunction)() << ", expected " << expectedValue << std::endl;
-    BOOST_CHECK_MESSAGE(((*_motorControler).*readFunction)() == expectedValue, message.str());
+    message << "read () " << ((*_motorController).*readFunction)() << ", expected " << expectedValue << std::endl;
+    BOOST_CHECK_MESSAGE(((*_motorController).*readFunction)() == expectedValue, message.str());
   }
 
-  void MotorControlerTest::testThreadSaftey() {
+  void MotorControllerTest::testThreadSaftey() {
     // FIXME: these tests may not be complex enough
     // These tests are meant to be run with thread sanitizer/ Helgrind
     auto controller = createMotorController("CONTROLLER_TESTS_OLD_MAPFILE");
-    auto apiList = std::bind(&MotorControlerTest::listOfMotorControllerPubilcMethods, this, controller);
+    auto apiList = std::bind(&MotorControllerTest::listOfMotorControllerPubilcMethods, this, controller);
     std::thread t1(apiList);
     std::thread t2(apiList);
     std::thread t3(apiList);
@@ -353,7 +354,7 @@ namespace ChimeraTK::MotorDriver {
     t7.join();
   }
 
-  void MotorControlerTest::testSetEndSwitchPowerEnabled() {
+  void MotorControllerTest::testSetEndSwitchPowerEnabled() {
     // Test with the old firmware mapfile which is lacking this register:
     // (MD22.0.WORD_M1_VOLTAGE_EN)
     auto controller_new = createMotorController("CONTROLLER_TESTS_NEW_MAPFILE");
@@ -373,38 +374,38 @@ namespace ChimeraTK::MotorDriver {
     BOOST_CHECK(controller_old->isEndSwitchPowerEnabled() == false);
   }
 
-  unsigned int MotorControlerTest::testWordFromPCIeSuffix(std::string const& registerSuffix) {
-    std::string registerName = createMotorRegisterName(_motorControler->getID(), registerSuffix);
+  unsigned int MotorControllerTest::testWordFromPCIeSuffix(std::string const& registerSuffix) {
+    std::string registerName = createMotorRegisterName(_motorController->getID(), registerSuffix);
     auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / registerName);
     return testWordFromPCIeAddress(registerInfo.address);
   }
 
   template<class T>
-  void MotorControlerTest::testReadTypedPCIeRegister(
-      T (MotorControlerImpl::*readFunction)(void), std::string const& registerSuffix) {
+  void MotorControllerTest::testReadTypedPCIeRegister(
+      T (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix) {
     unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
     std::stringstream message;
-    message << "read () " << ((*_motorControler).*readFunction)().getDataWord() << ", expected " << expectedValue
+    message << "read () " << ((*_motorController).*readFunction)().getDataWord() << ", expected " << expectedValue
             << std::endl;
-    BOOST_CHECK_MESSAGE(((*_motorControler).*readFunction)().getDataWord() == expectedValue, message.str());
+    BOOST_CHECK_MESSAGE(((*_motorController).*readFunction)().getDataWord() == expectedValue, message.str());
   }
 
-  void MotorControlerTest::testGetDecoderReadoutMode() {
-    testReadPCIeRegister(&MotorControlerImpl::getDecoderReadoutMode, DECODER_READOUT_MODE_SUFFIX);
+  void MotorControllerTest::testGetDecoderReadoutMode() {
+    testReadPCIeRegister(&MotorControllerImpl::getDecoderReadoutMode, DECODER_READOUT_MODE_SUFFIX);
   }
 
-  void MotorControlerTest::testSetDecoderReadoutMode() {
-    unsigned int readoutMode = _motorControler->getDecoderReadoutMode();
-    _motorControler->setDecoderReadoutMode(++readoutMode);
-    BOOST_CHECK(_motorControler->getDecoderReadoutMode() == readoutMode);
+  void MotorControllerTest::testSetDecoderReadoutMode() {
+    unsigned int readoutMode = _motorController->getDecoderReadoutMode();
+    _motorController->setDecoderReadoutMode(++readoutMode);
+    BOOST_CHECK(_motorController->getDecoderReadoutMode() == readoutMode);
   }
 
-  void MotorControlerTest::testSetIsEnabled() {
-    BOOST_CHECK(_motorControler->isEnabled());
-    _motorControler->setEnabled(false);
-    BOOST_CHECK(_motorControler->isEnabled() == false);
-    _motorControler->setEnabled();
-    BOOST_CHECK(_motorControler->isEnabled());
+  void MotorControllerTest::testSetIsEnabled() {
+    BOOST_CHECK(_motorController->isEnabled());
+    _motorController->setEnabled(false);
+    BOOST_CHECK(_motorController->isEnabled() == false);
+    _motorController->setEnabled();
+    BOOST_CHECK(_motorController->isEnabled());
   }
 
   DEFINE_SIGNED_GET_SET_TEST(TargetPosition, ChimeraTK::MotorDriver::tmc429::IDX_TARGET_POSITION, 24)
@@ -416,27 +417,27 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_GET_SET_TEST(PositionLatched, ChimeraTK::MotorDriver::tmc429::IDX_POSITION_LATCHED, 0x555555)
 
   template<class T>
-  void MotorControlerTest::testGetTypedData(T (MotorControlerImpl::*getterFunction)()) {
+  void MotorControllerTest::testGetTypedData(T (MotorControllerImpl::*getterFunction)()) {
     T typedWord;
     unsigned int idx = typedWord.getIDX_JDX();
     // std::cout << idx << std::endl;
-    unsigned int expectedContent = tmc429::testWordFromSpiAddress(_motorControler->getID(), idx);
+    unsigned int expectedContent = tmc429::testWordFromSpiAddress(_motorController->getID(), idx);
     // this assignment checks that the delivered data object actually is the right
     // type of object.
-    typedWord = ((*_motorControler).*getterFunction)();
+    typedWord = ((*_motorController).*getterFunction)();
     BOOST_CHECK(typedWord.getDATA() == expectedContent);
     // std::cout << typedWord.getDATA() << " " << expectedContent << std::endl;
-    BOOST_CHECK(typedWord.getSMDA() == _motorControler->getID());
+    BOOST_CHECK(typedWord.getSMDA() == _motorController->getID());
   }
 
   template<class T>
-  void MotorControlerTest::testSetTypedData(
-      T (MotorControlerImpl::*getterFunction)(), void (MotorControlerImpl::*setterFunction)(T const&)) {
-    T typedWord = ((*_motorControler).*getterFunction)();
+  void MotorControllerTest::testSetTypedData(
+      T (MotorControllerImpl::*getterFunction)(), void (MotorControllerImpl::*setterFunction)(T const&)) {
+    T typedWord = ((*_motorController).*getterFunction)();
     unsigned int dataContent = typedWord.getDATA();
     typedWord.setDATA(++dataContent);
-    ((*_motorControler).*setterFunction)(typedWord);
-    BOOST_CHECK(((*_motorControler).*getterFunction)() == typedWord);
+    ((*_motorController).*setterFunction)(typedWord);
+    BOOST_CHECK(((*_motorController).*getterFunction)() == typedWord);
   }
 
   DEFINE_TYPED_GET_SET_TEST(AccelerationThresholdData)
@@ -446,26 +447,27 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_TYPED_GET_SET_TEST(DividersAndMicroStepResolutionData)
 
   template<class T>
-  void MotorControlerTest::testGetDriverSpiData(T const& (MotorControlerImpl::*getterFunction)() const,
+  void MotorControllerTest::testGetDriverSpiData(T const& (MotorControllerImpl::*getterFunction)() const,
       unsigned int driverSpiAddress, unsigned int configDefault) {
-    T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorControler->getID());
+    T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorController->getID());
 
-    BOOST_CHECK(_dummyDevice->readDriverSpiRegister(_motorControler->getID(), driverSpiAddress) ==
+    BOOST_CHECK(_dummyDevice->readDriverSpiRegister(_motorController->getID(), driverSpiAddress) ==
         expectedWord.getPayloadData());
-    BOOST_CHECK(((*_motorControler).*getterFunction)() == T(configDefault)); // T is uninitialised at the moment
+    BOOST_CHECK(((*_motorController).*getterFunction)() == T(configDefault)); // T is uninitialised at the moment
   }
 
   template<class T>
-  void MotorControlerTest::testSetDriverSpiData(void (MotorControlerImpl::*setterFunction)(T const&),
-      T const& (MotorControlerImpl::*getterFunction)() const, unsigned int driverSpiAddress, unsigned int testPattern) {
+  void MotorControllerTest::testSetDriverSpiData(void (MotorControllerImpl::*setterFunction)(T const&),
+      T const& (MotorControllerImpl::*getterFunction)() const, unsigned int driverSpiAddress,
+      unsigned int testPattern) {
     T testWord(testPattern);
-    ((*_motorControler).*setterFunction)(testWord);
+    ((*_motorController).*setterFunction)(testWord);
 
     // the new word must arrive at the spi register in the "hardware" and a copy
-    // has to be in the motor controler
+    // has to be in the motor controller
     BOOST_CHECK(
-        _dummyDevice->readDriverSpiRegister(_motorControler->getID(), driverSpiAddress) == testWord.getPayloadData());
-    BOOST_CHECK(((*_motorControler).*getterFunction)() == testWord);
+        _dummyDevice->readDriverSpiRegister(_motorController->getID(), driverSpiAddress) == testWord.getPayloadData());
+    BOOST_CHECK(((*_motorController).*getterFunction)() == testWord);
   }
 
   DEFINE_GET_SET_DRIVER_SPI_DATA(
@@ -479,13 +481,13 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_GET_SET_DRIVER_SPI_DATA(
       DriverConfigData, ChimeraTK::MotorDriver::tmc260::ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT, 0x1AAAA)
 
-  void MotorControlerTest::testGetReferenceSwitchData(boost::shared_ptr<MotorDriverCardImpl> motorDriverCard) {
+  void MotorControllerTest::testGetReferenceSwitchData(boost::shared_ptr<MotorDriverCardImpl> motorDriverCard) {
     // This approach is intentinally clumsy and manual in order not to use the
     // same algorithm as in the implementation, but still be felxible if the
     // register content changes.
     unsigned int referenceWord = 0; // setting to 0 to avoid compiler warning in default case.
 
-    switch(_motorControler->getID()) {
+    switch(_motorController->getID()) {
       case 0:
         referenceWord = motorDriverCard->getReferenceSwitchData().getDATA() & 0x3;
         break;
@@ -500,56 +502,56 @@ namespace ChimeraTK::MotorDriver {
                    "or the test has to be adapted.");
     }
 
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getSwitchesActiveWord() == referenceWord);
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getPositiveSwitchEnabled() ==
-        !_motorControler->getReferenceConfigAndRampModeData().getDISABLE_STOP_R());
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getNegativeSwitchEnabled() ==
-        !_motorControler->getReferenceConfigAndRampModeData().getDISABLE_STOP_L());
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getSwitchesActiveWord() == referenceWord);
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getPositiveSwitchEnabled() ==
+        !_motorController->getReferenceConfigAndRampModeData().getDISABLE_STOP_R());
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getNegativeSwitchEnabled() ==
+        !_motorController->getReferenceConfigAndRampModeData().getDISABLE_STOP_L());
   }
 
-  void MotorControlerTest::testSetReferenceSwitchEnabled() {
-    MotorReferenceSwitchData originalSetting = _motorControler->getReferenceSwitchData();
+  void MotorControllerTest::testSetReferenceSwitchEnabled() {
+    MotorReferenceSwitchData originalSetting = _motorController->getReferenceSwitchData();
 
-    _motorControler->setPositiveReferenceSwitchEnabled(true);
-    _motorControler->setNegativeReferenceSwitchEnabled(true);
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x3);
+    _motorController->setPositiveReferenceSwitchEnabled(true);
+    _motorController->setNegativeReferenceSwitchEnabled(true);
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getSwitchesEnabledWord() == 0x3);
 
-    _motorControler->setPositiveReferenceSwitchEnabled(false);
-    _motorControler->setNegativeReferenceSwitchEnabled(true);
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x2);
+    _motorController->setPositiveReferenceSwitchEnabled(false);
+    _motorController->setNegativeReferenceSwitchEnabled(true);
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getSwitchesEnabledWord() == 0x2);
 
-    _motorControler->setPositiveReferenceSwitchEnabled(true);
-    _motorControler->setNegativeReferenceSwitchEnabled(false);
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x1);
+    _motorController->setPositiveReferenceSwitchEnabled(true);
+    _motorController->setNegativeReferenceSwitchEnabled(false);
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getSwitchesEnabledWord() == 0x1);
 
-    _motorControler->setPositiveReferenceSwitchEnabled(false);
-    _motorControler->setNegativeReferenceSwitchEnabled(false);
-    BOOST_CHECK(_motorControler->getReferenceSwitchData().getSwitchesEnabledWord() == 0x0);
+    _motorController->setPositiveReferenceSwitchEnabled(false);
+    _motorController->setNegativeReferenceSwitchEnabled(false);
+    BOOST_CHECK(_motorController->getReferenceSwitchData().getSwitchesEnabledWord() == 0x0);
 
-    _motorControler->setPositiveReferenceSwitchEnabled(originalSetting.getPositiveSwitchEnabled());
-    _motorControler->setNegativeReferenceSwitchEnabled(originalSetting.getNegativeSwitchEnabled());
+    _motorController->setPositiveReferenceSwitchEnabled(originalSetting.getPositiveSwitchEnabled());
+    _motorController->setNegativeReferenceSwitchEnabled(originalSetting.getNegativeSwitchEnabled());
   }
 
-  void MotorControlerTest::testTargetPositionReached() {
-    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLER_STATUS_BITS_ADDRESS_STRING);
+  void MotorControllerTest::testTargetPositionReached() {
+    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLLER_STATUS_BITS_ADDRESS_STRING);
 
-    TMC429StatusWord expectedControlerStatus(testWordFromPCIeAddress(registerInfo.address));
+    TMC429StatusWord expectedControllerStatus(testWordFromPCIeAddress(registerInfo.address));
 
-    BOOST_CHECK(expectedControlerStatus.getTargetPositionReached(_motorControler->getID()) ==
-        _motorControler->targetPositionReached());
+    BOOST_CHECK(expectedControllerStatus.getTargetPositionReached(_motorController->getID()) ==
+        _motorController->targetPositionReached());
   }
 
-  void MotorControlerTest::testGetReferenceSwitchBit() {
-    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLER_STATUS_BITS_ADDRESS_STRING);
+  void MotorControllerTest::testGetReferenceSwitchBit() {
+    auto registerInfo = _dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLLER_STATUS_BITS_ADDRESS_STRING);
 
-    TMC429StatusWord expectedControlerStatus(testWordFromPCIeAddress(registerInfo.address));
+    TMC429StatusWord expectedControllerStatus(testWordFromPCIeAddress(registerInfo.address));
 
-    BOOST_CHECK(expectedControlerStatus.getReferenceSwitchBit(_motorControler->getID()) ==
-        _motorControler->getReferenceSwitchBit());
+    BOOST_CHECK(expectedControllerStatus.getReferenceSwitchBit(_motorController->getID()) ==
+        _motorController->getReferenceSwitchBit());
   }
 
-  void MotorControlerTest::listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorControler> controller) {
-    auto controllerImpl = boost::dynamic_pointer_cast<MotorControlerImpl>(controller);
+  void MotorControllerTest::listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorController> controller) {
+    auto controllerImpl = boost::dynamic_pointer_cast<MotorControllerImpl>(controller);
     controllerImpl->getID();
     controllerImpl->getStatus();
 
@@ -607,11 +609,11 @@ namespace ChimeraTK::MotorDriver {
     controllerImpl->setDriverConfigData(controllerImpl->getDriverConfigData());
   }
 
-  boost::shared_ptr<MotorControler> MotorControlerTest::createMotorController(const std::string deviceName) {
+  boost::shared_ptr<MotorController> MotorControllerTest::createMotorController(const std::string deviceName) {
     boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device());
     device->open(deviceName);
     boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));
-    return driver->getMotorControler(0);
+    return driver->getMotorController(0);
   }
 
 } // namespace ChimeraTK::MotorDriver

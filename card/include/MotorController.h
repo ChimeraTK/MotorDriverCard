@@ -34,7 +34,7 @@ namespace ChimeraTK::MotorDriver {
    *
    * @author Martin Killenberg <martin.killenberg@desy.de>
    */
-  class MotorControler {
+  class MotorController {
    public:
     /// Helper struct to hold the readout modes.
     struct DecoderReadoutMode {
@@ -113,7 +113,7 @@ namespace ChimeraTK::MotorDriver {
         stepsPerFIXME);                                             ///< Get maximum velocity in FIXME
     MC_DECLARE_SIGNED_SET_GET_VALUE(TargetVelocity, stepsPerFIXME); ///< Get target velocity in FIXME
     MC_DECLARE_SET_GET_VALUE(MaximumAcceleration,
-        stepsPerSquareFIXME); ///< Get the maximim acceleration in FIXME
+        stepsPerSquareFIXME); ///< Get the maximum acceleration in FIXME
     MC_DECLARE_SET_GET_VALUE(PositionTolerance,
         steps); ///< Get the position tolerance in steps
     MC_DECLARE_SET_GET_VALUE(PositionLatched,
@@ -128,7 +128,7 @@ namespace ChimeraTK::MotorDriver {
      *  and stores it as the least significant bit. */
     virtual unsigned int getReferenceSwitchBit() = 0;
 
-    virtual ~MotorControler() = default;
+    virtual ~MotorController() = default;
   };
 
 } // namespace ChimeraTK::MotorDriver

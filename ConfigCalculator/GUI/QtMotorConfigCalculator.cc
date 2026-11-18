@@ -100,9 +100,9 @@ void QtMotorConfigCalculator::write() {
   for(size_t motorID = 0; motorID < ChimeraTK::MotorDriver::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     // only write motors which are activated for sparse xml files
     if(motorConfigWidgets[motorID]->motorIsEnabled()) {
-      //	      cardConfig.motorControlerConfigurations[motorID] =
+      //	      cardConfig.motorControllerConfigurations[motorID] =
       //		motorConfigWidgets[motorID]->getConfig();
-      cardConfig.motorControlerConfigurations[motorID] = getMotorParameters(motorExpertWidgets[motorID]);
+      cardConfig.motorControllerConfigurations[motorID] = getMotorParameters(motorExpertWidgets[motorID]);
     }
   }
 

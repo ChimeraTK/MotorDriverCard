@@ -25,14 +25,14 @@ static const std::string WRITE_SPARSE_FIRST_HALF_OUTPUT_FILE_NAME("MotorDriverCa
 static const std::string WRITE_FULL_SECOND_HALF_OUTPUT_FILE_NAME("MotorDriverCardConfig_second_half_full_output.xml");
 static const std::string WRITE_MINIMAL_OUTPUT_FILE_NAME("MotorDriverCardConfig_minimal_output.xml");
 
-#define ASSIGN_PLUS_ONE_CONTROLER(VARIABLE)                                                                            \
-  _plusOneControlerConfig.VARIABLE.setDataWord(_defaultControlerConfig.VARIABLE.getDataWord() + 1)
+#define ASSIGN_PLUS_ONE_CONTROLLER(VARIABLE)                                                                           \
+  _plusOneControllerConfig.VARIABLE.setDataWord(_defaultControllerConfig.VARIABLE.getDataWord() + 1)
 
 #define ASSIGN_PLUS_ONE_CARD(VARIABLE, CARD_CONFIG)                                                                    \
   CARD_CONFIG.VARIABLE.setDataWord(_defaultCardConfig.VARIABLE.getDataWord() + 1)
 
-#define CONTROLER_CHECK(VARIABLE)                                                                                      \
-  BOOST_CHECK_MESSAGE(inputControlerConfig.VARIABLE == _plusOneControlerConfig.VARIABLE, message.str() + #VARIABLE)
+#define CONTROLLER_CHECK(VARIABLE)                                                                                     \
+  BOOST_CHECK_MESSAGE(inputControllerConfig.VARIABLE == _plusOneControllerConfig.VARIABLE, message.str() + #VARIABLE)
 
 class MotorDriverCardConfigXMLTest {
  public:
@@ -44,36 +44,36 @@ class MotorDriverCardConfigXMLTest {
   MotorDriverCardConfig _firstHalfCardConfig;  ///< first half differs from default
   MotorDriverCardConfig _secondHalfCardConfig; ///< second half differs from default
 
-  MotorControlerConfig _defaultControlerConfig;
-  MotorControlerConfig _plusOneControlerConfig; // all values are default + 1, true <-> false,
-                                                // signed values are -(default+1)
+  MotorControllerConfig _defaultControllerConfig;
+  MotorControllerConfig _plusOneControllerConfig; // all values are default + 1, true <-> false,
+                                                  // signed values are -(default+1)
 
-  void checkControlerConfig(MotorControlerConfig const& inputControlerConfig, unsigned int motorID) const;
+  void checkControllerConfig(MotorControllerConfig const& inputControllerConfig, unsigned int motorID) const;
 };
 
 MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest() {
-  ASSIGN_PLUS_ONE_CONTROLER(accelerationThresholdData);
-  // plusOneControlerConfig.actualPosition =
-  // -(plusOneControlerConfig.actualPosition+1);
-  ASSIGN_PLUS_ONE_CONTROLER(chopperControlData);
-  ASSIGN_PLUS_ONE_CONTROLER(coolStepControlData);
-  _plusOneControlerConfig.decoderReadoutMode++;
-  ASSIGN_PLUS_ONE_CONTROLER(dividersAndMicroStepResolutionData);
-  ASSIGN_PLUS_ONE_CONTROLER(driverConfigData);
-  ASSIGN_PLUS_ONE_CONTROLER(driverControlData);
-  _plusOneControlerConfig.enabled = !(_plusOneControlerConfig.enabled);
-  ASSIGN_PLUS_ONE_CONTROLER(interruptData);
-  _plusOneControlerConfig.maximumAcceleration++;
-  _plusOneControlerConfig.maximumVelocity++;
-  _plusOneControlerConfig.microStepCount++;
-  _plusOneControlerConfig.minimumVelocity++;
-  _plusOneControlerConfig.positionTolerance++;
-  ASSIGN_PLUS_ONE_CONTROLER(proportionalityFactorData);
-  ASSIGN_PLUS_ONE_CONTROLER(referenceConfigAndRampModeData);
-  ASSIGN_PLUS_ONE_CONTROLER(stallGuardControlData);
-  _plusOneControlerConfig.targetPosition = -(_plusOneControlerConfig.targetPosition + 1);
-  _plusOneControlerConfig.targetVelocity = -(_plusOneControlerConfig.targetVelocity + 1);
-  _plusOneControlerConfig.driverSpiWaitingTime++;
+  ASSIGN_PLUS_ONE_CONTROLLER(accelerationThresholdData);
+  // plusOneControllerConfig.actualPosition =
+  // -(plusOneControllerConfig.actualPosition+1);
+  ASSIGN_PLUS_ONE_CONTROLLER(chopperControlData);
+  ASSIGN_PLUS_ONE_CONTROLLER(coolStepControlData);
+  _plusOneControllerConfig.decoderReadoutMode++;
+  ASSIGN_PLUS_ONE_CONTROLLER(dividersAndMicroStepResolutionData);
+  ASSIGN_PLUS_ONE_CONTROLLER(driverConfigData);
+  ASSIGN_PLUS_ONE_CONTROLLER(driverControlData);
+  _plusOneControllerConfig.enabled = !(_plusOneControllerConfig.enabled);
+  ASSIGN_PLUS_ONE_CONTROLLER(interruptData);
+  _plusOneControllerConfig.maximumAcceleration++;
+  _plusOneControllerConfig.maximumVelocity++;
+  _plusOneControllerConfig.microStepCount++;
+  _plusOneControllerConfig.minimumVelocity++;
+  _plusOneControllerConfig.positionTolerance++;
+  ASSIGN_PLUS_ONE_CONTROLLER(proportionalityFactorData);
+  ASSIGN_PLUS_ONE_CONTROLLER(referenceConfigAndRampModeData);
+  ASSIGN_PLUS_ONE_CONTROLLER(stallGuardControlData);
+  _plusOneControllerConfig.targetPosition = -(_plusOneControllerConfig.targetPosition + 1);
+  _plusOneControllerConfig.targetVelocity = -(_plusOneControllerConfig.targetVelocity + 1);
+  _plusOneControllerConfig.driverSpiWaitingTime++;
 
   _completeCardConfig.coverDatagram++;
   _firstHalfCardConfig.coverDatagram++;
@@ -99,13 +99,13 @@ MotorDriverCardConfigXMLTest::MotorDriverCardConfigXMLTest() {
   ASSIGN_PLUS_ONE_CARD(stepperMotorGlobalParameters, _completeCardConfig);
   ASSIGN_PLUS_ONE_CARD(stepperMotorGlobalParameters, _secondHalfCardConfig);
 
-  _completeCardConfig.controlerSpiWaitingTime++;
-  _firstHalfCardConfig.controlerSpiWaitingTime++;
+  _completeCardConfig.controllerSpiWaitingTime++;
+  _firstHalfCardConfig.controllerSpiWaitingTime++;
 
-  _firstHalfCardConfig.motorControlerConfigurations[0] = _plusOneControlerConfig;
-  _secondHalfCardConfig.motorControlerConfigurations[1] = _plusOneControlerConfig;
-  _completeCardConfig.motorControlerConfigurations[0] = _plusOneControlerConfig;
-  _completeCardConfig.motorControlerConfigurations[1] = _plusOneControlerConfig;
+  _firstHalfCardConfig.motorControllerConfigurations[0] = _plusOneControllerConfig;
+  _secondHalfCardConfig.motorControllerConfigurations[1] = _plusOneControllerConfig;
+  _completeCardConfig.motorControllerConfigurations[0] = _plusOneControllerConfig;
+  _completeCardConfig.motorControllerConfigurations[1] = _plusOneControllerConfig;
 }
 
 BOOST_AUTO_TEST_CASE(TestInvalidInput) {
@@ -127,38 +127,38 @@ BOOST_FIXTURE_TEST_CASE(TestReadComplete, MotorDriverCardConfigXMLTest) {
   BOOST_CHECK(inputCardConfig.positionCompareInterruptData == _completeCardConfig.positionCompareInterruptData);
   BOOST_CHECK(inputCardConfig.positionCompareWord == _completeCardConfig.positionCompareWord);
   BOOST_CHECK(inputCardConfig.stepperMotorGlobalParameters == _completeCardConfig.stepperMotorGlobalParameters);
-  BOOST_CHECK(inputCardConfig.controlerSpiWaitingTime == _completeCardConfig.controlerSpiWaitingTime);
+  BOOST_CHECK(inputCardConfig.controllerSpiWaitingTime == _completeCardConfig.controllerSpiWaitingTime);
 
-  for(size_t i = 0; i < inputCardConfig.motorControlerConfigurations.size(); ++i) {
-    checkControlerConfig(inputCardConfig.motorControlerConfigurations[i], i);
+  for(size_t i = 0; i < inputCardConfig.motorControllerConfigurations.size(); ++i) {
+    checkControllerConfig(inputCardConfig.motorControllerConfigurations[i], i);
   }
 }
 
-void MotorDriverCardConfigXMLTest::checkControlerConfig(
-    MotorControlerConfig const& inputControlerConfig, unsigned int motorID) const {
+void MotorDriverCardConfigXMLTest::checkControllerConfig(
+    MotorControllerConfig const& inputControllerConfig, unsigned int motorID) const {
   std::stringstream message;
-  message << "check in motorControlerConfig " << motorID << " failed for variable ";
-  CONTROLER_CHECK(accelerationThresholdData);
-  // CONTROLER_CHECK( actualPosition );
-  CONTROLER_CHECK(chopperControlData);
-  CONTROLER_CHECK(coolStepControlData);
-  CONTROLER_CHECK(decoderReadoutMode);
-  CONTROLER_CHECK(dividersAndMicroStepResolutionData);
-  CONTROLER_CHECK(driverConfigData);
-  CONTROLER_CHECK(driverControlData);
-  CONTROLER_CHECK(enabled);
-  CONTROLER_CHECK(interruptData);
-  CONTROLER_CHECK(maximumAcceleration);
-  CONTROLER_CHECK(maximumVelocity);
-  CONTROLER_CHECK(microStepCount);
-  CONTROLER_CHECK(minimumVelocity);
-  CONTROLER_CHECK(positionTolerance);
-  CONTROLER_CHECK(proportionalityFactorData);
-  CONTROLER_CHECK(referenceConfigAndRampModeData);
-  CONTROLER_CHECK(stallGuardControlData);
-  CONTROLER_CHECK(targetPosition);
-  CONTROLER_CHECK(targetVelocity);
-  CONTROLER_CHECK(driverSpiWaitingTime);
+  message << "check in motorControllerConfig " << motorID << " failed for variable ";
+  CONTROLLER_CHECK(accelerationThresholdData);
+  // CONTROLLER_CHECK( actualPosition );
+  CONTROLLER_CHECK(chopperControlData);
+  CONTROLLER_CHECK(coolStepControlData);
+  CONTROLLER_CHECK(decoderReadoutMode);
+  CONTROLLER_CHECK(dividersAndMicroStepResolutionData);
+  CONTROLLER_CHECK(driverConfigData);
+  CONTROLLER_CHECK(driverControlData);
+  CONTROLLER_CHECK(enabled);
+  CONTROLLER_CHECK(interruptData);
+  CONTROLLER_CHECK(maximumAcceleration);
+  CONTROLLER_CHECK(maximumVelocity);
+  CONTROLLER_CHECK(microStepCount);
+  CONTROLLER_CHECK(minimumVelocity);
+  CONTROLLER_CHECK(positionTolerance);
+  CONTROLLER_CHECK(proportionalityFactorData);
+  CONTROLLER_CHECK(referenceConfigAndRampModeData);
+  CONTROLLER_CHECK(stallGuardControlData);
+  CONTROLLER_CHECK(targetPosition);
+  CONTROLLER_CHECK(targetVelocity);
+  CONTROLLER_CHECK(driverSpiWaitingTime);
 }
 
 BOOST_FIXTURE_TEST_CASE(TestReadFirstHalf, MotorDriverCardConfigXMLTest) {
@@ -171,10 +171,10 @@ BOOST_FIXTURE_TEST_CASE(TestReadFirstHalf, MotorDriverCardConfigXMLTest) {
   BOOST_CHECK(inputCardConfig.positionCompareInterruptData == _defaultCardConfig.positionCompareInterruptData);
   BOOST_CHECK(inputCardConfig.positionCompareWord == _completeCardConfig.positionCompareWord);
   BOOST_CHECK(inputCardConfig.stepperMotorGlobalParameters == _defaultCardConfig.stepperMotorGlobalParameters);
-  BOOST_CHECK(inputCardConfig.controlerSpiWaitingTime == _completeCardConfig.controlerSpiWaitingTime);
+  BOOST_CHECK(inputCardConfig.controllerSpiWaitingTime == _completeCardConfig.controllerSpiWaitingTime);
 
-  checkControlerConfig(inputCardConfig.motorControlerConfigurations[0], 0);
-  BOOST_CHECK(inputCardConfig.motorControlerConfigurations[1] == _defaultControlerConfig);
+  checkControllerConfig(inputCardConfig.motorControllerConfigurations[0], 0);
+  BOOST_CHECK(inputCardConfig.motorControllerConfigurations[1] == _defaultControllerConfig);
 }
 
 BOOST_FIXTURE_TEST_CASE(TestReadSecondHalf, MotorDriverCardConfigXMLTest) {
@@ -187,10 +187,10 @@ BOOST_FIXTURE_TEST_CASE(TestReadSecondHalf, MotorDriverCardConfigXMLTest) {
   BOOST_CHECK(inputCardConfig.positionCompareInterruptData == _completeCardConfig.positionCompareInterruptData);
   BOOST_CHECK(inputCardConfig.positionCompareWord == _defaultCardConfig.positionCompareWord);
   BOOST_CHECK(inputCardConfig.stepperMotorGlobalParameters == _completeCardConfig.stepperMotorGlobalParameters);
-  BOOST_CHECK(inputCardConfig.controlerSpiWaitingTime == _defaultCardConfig.controlerSpiWaitingTime);
+  BOOST_CHECK(inputCardConfig.controllerSpiWaitingTime == _defaultCardConfig.controllerSpiWaitingTime);
 
-  BOOST_CHECK(inputCardConfig.motorControlerConfigurations[0] == _defaultControlerConfig);
-  checkControlerConfig(inputCardConfig.motorControlerConfigurations[1], 1);
+  BOOST_CHECK(inputCardConfig.motorControllerConfigurations[0] == _defaultControllerConfig);
+  checkControllerConfig(inputCardConfig.motorControllerConfigurations[1], 1);
 }
 
 BOOST_FIXTURE_TEST_CASE(TestWrite, MotorDriverCardConfigXMLTest) {

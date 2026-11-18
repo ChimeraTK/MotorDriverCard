@@ -3,7 +3,7 @@
 
 #include "ReferenceStepperMotor.h"
 
-#include "MotorControler.h"
+#include "MotorController.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
 #include "ReferenceStateMachine.h"
@@ -104,9 +104,9 @@ namespace ChimeraTK::MotorDriver {
   Error ReferenceStepperMotor::getError() {
     LockGuard guard(_mutex);
     //    if (motorActive() &&
-    //        _motorControler->getReferenceSwitchData().getPositiveSwitchActive()
+    //        _motorController->getReferenceSwitchData().getPositiveSwitchActive()
     //        &&
-    //        _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
+    //        _motorController->getReferenceSwitchData().getNegativeSwitchActive()){
     //      return Error::BOTH_END_SWITCHES_ON;
     //    }
     //    if (!motorActive()){
@@ -116,16 +116,16 @@ namespace ChimeraTK::MotorDriver {
     //    }
     //    if (_toleranceCalculated){
     //      if
-    //      (_motorControler->getReferenceSwitchData().getPositiveSwitchActive()
+    //      (_motorController->getReferenceSwitchData().getPositiveSwitchActive()
     //      &&
-    //          std::abs(_motorControler->getActualPosition() -
+    //          std::abs(_motorController->getActualPosition() -
     //          _calibPositiveEndSwitchInSteps.load()) > 3 *
     //          _tolerancePositiveEndSwitch.load()){
     //        return Error::CALIBRATION_ERROR;
     //      }else
-    //      if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive()
+    //      if(_motorController->getReferenceSwitchData().getNegativeSwitchActive()
     //      &&
-    //          std::abs(_motorControler->getActualPosition() -
+    //          std::abs(_motorController->getActualPosition() -
     //          _calibNegativeEndSwitchInSteps.load()) > 3 *
     //          _toleranceNegativeEndSwitch.load()){
     //        return Error::CALIBRATION_ERROR;

@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "MotorControlerConfig.h"
+#include "MotorControllerConfig.h"
 #include "ParametersCalculator.h"
 
 #include <stdint.h>
 
-/** This calls privides a function to create a ChimeraTK::MotorDriver::MotorControlerConfig
+/** This calls provides a function to create a ChimeraTK::MotorDriver::MotorControllerConfig
  *  from the ConfigCalculator::ChipParameters (parameters of the
  *  TMC429 and TMC260 chips).
  */
@@ -20,10 +20,10 @@ class ConfigCalculator {
    */
   enum EndSwitchConfig { USE_BOTH = 0x000, IGNORE_NEGATIVE = 0x100, IGNORE_POSITIVE = 0x200, IGNORE_BOTH = 0x300 };
 
-  /** Calculate a MotorContolerConfig from the chip parameters
+  /** Calculate a MotorControllerConfig from the chip parameters
    *  and the end switch configuration.
    */
-  static ChimeraTK::MotorDriver::MotorControlerConfig calculateConfig(
+  static ChimeraTK::MotorDriver::MotorControllerConfig calculateConfig(
       ParametersCalculator::ChipParameters const& chipParameters, EndSwitchConfig const& endSwitchConfig);
 
  private:

@@ -8,11 +8,11 @@
 
 namespace ChimeraTK::MotorDriver {
 
-  // controler registers
+  // controller registers
   unsigned int const INTERFACE_CONFIGURATION_DEFAULT = 0x000122;
   unsigned int const STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT = 0x010701;
 
-  // spi communication parametes
-  unsigned int const CONTROLER_SPI_WAITING_TIME_DEFAULT = 50; // microseconds
+  // spi communication parameters
+  unsigned int const CONTROLLER_SPI_WAITING_TIME_DEFAULT = 50; // microseconds
 
 } // namespace ChimeraTK::MotorDriver

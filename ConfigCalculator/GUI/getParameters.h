@@ -3,14 +3,14 @@
 #pragma once
 
 class ParametersPanel;
-#include "MotorControlerConfig.h"
+#include "MotorControllerConfig.h"
 #include "MotorDriverCardConfig.h"
 
 /** Get the motor parameters from the motor panel.
  *  It cannot be a member funcion because the panel knows nothing
  *  about being a motor panel. It just has named widgets.
  */
-ChimeraTK::MotorDriver::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel);
+ChimeraTK::MotorDriver::MotorControllerConfig getMotorParameters(ParametersPanel* parametersPanel);
 
 /** Get the motor driver card parameters. The object is returning with default
  * MotorCotrolerConfigs (FIXME: does this make sense?)

@@ -11,8 +11,8 @@ using namespace ChimeraTK::MotorDriver;
 // simple data types can use the assignment operator
 #define ASSIGN_FIELD(fieldName) config.fieldName = (*parametersPanel)[#fieldName]
 
-ChimeraTK::MotorDriver::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel) {
-  ChimeraTK::MotorDriver::MotorControlerConfig config;
+ChimeraTK::MotorDriver::MotorControllerConfig getMotorParameters(ParametersPanel* parametersPanel) {
+  ChimeraTK::MotorDriver::MotorControllerConfig config;
   SET_FIELD(accelerationThresholdData);
   // ASSIGN_FIELD(actualPosition);
   SET_FIELD(chopperControlData);
@@ -40,7 +40,7 @@ ChimeraTK::MotorDriver::MotorControlerConfig getMotorParameters(ParametersPanel*
 
 ChimeraTK::MotorDriver::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel) {
   ChimeraTK::MotorDriver::MotorDriverCardConfig config;
-  ASSIGN_FIELD(controlerSpiWaitingTime);
+  ASSIGN_FIELD(controllerSpiWaitingTime);
   ASSIGN_FIELD(coverDatagram);
   SET_FIELD(coverPositionAndLength);
   ASSIGN_FIELD(datagramHighWord);

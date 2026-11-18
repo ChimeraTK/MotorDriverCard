@@ -4,7 +4,7 @@
 #include "LinearStepperMotorStateMachine.h"
 
 #include "LinearStepperMotor.h"
-#include "MotorControler.h"
+#include "MotorController.h"
 
 namespace ChimeraTK::MotorDriver {
   LinearStepperMotorStateMachine::LinearStepperMotorStateMachine(LinearStepperMotor& motor)

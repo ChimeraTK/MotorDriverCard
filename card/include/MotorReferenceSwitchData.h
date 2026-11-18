@@ -6,7 +6,7 @@
 
 namespace ChimeraTK::MotorDriver {
 
-  /** A class containing an unigned int which is
+  /** A class containing an unsigned int which is
    *  used as a bit field holding the status bits
    *  of both end switches.
    *
@@ -17,7 +17,7 @@ namespace ChimeraTK::MotorDriver {
    *  In case a switch is disabled the motor will not stop at the corresponding
    * mechanical position and the switch is always reported to be inactive.
    *
-   * If the switch is enabled the switch is inactive if the end positon is not
+   * If the switch is enabled the switch is inactive if the end position is not
    * reached and becomes active if the switch position is reached. In case of an
    * "active open" switch
    *
@@ -28,7 +28,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class MotorReferenceSwitchData : public MultiVariableWord {
    public:
-    /// The default constructor initialises everyting to 0 (all switches inactive
+    /// The default constructor initialises everything to 0 (all switches inactive
     /// and disabled);
     MotorReferenceSwitchData(unsigned int dataWord = 0);
 

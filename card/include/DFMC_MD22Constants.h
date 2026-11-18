@@ -20,10 +20,10 @@ namespace ChimeraTK::MotorDriver::dfmc_md22 {
   std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET";
   std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT";
 
-  std::string const CONTROLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
-  std::string const CONTROLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
-  std::string const CONTROLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
-  std::string const CONTROLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
+  std::string const CONTROLLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
+  std::string const CONTROLLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
+  std::string const CONTROLLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
+  std::string const CONTROLLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
 
   int32_t const SPI_SYNC_OK = 0;
   int32_t const SPI_SYNC_REQUESTED = 0xFF;
@@ -37,7 +37,7 @@ namespace ChimeraTK::MotorDriver::dfmc_md22 {
   std::string const SPI_SYNC_SUFFIX = "SPI_SYNC";
   std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
   std::string const ACTUAL_VELOCITY_SUFFIX = "V_ACTUAL";
-  std::string const ACTUAL_ACCELETATION_SUFFIX = "ACT_ACCEL";
+  std::string const ACTUAL_ACCELERATION_SUFFIX = "ACT_ACCEL";
   std::string const MICRO_STEP_COUNT_SUFFIX = "MSTEP_VAL";
   std::string const COOL_STEP_VALUE_SUFFIX = "CoolStep_VAL";
   std::string const STALL_GUARD_VALUE_SUFFIX = "SGUARD_VAL";

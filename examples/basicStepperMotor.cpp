@@ -37,10 +37,10 @@ int main() {
     std::cout << "Motor is not yet calibrated" << std::endl;
   }
 
-  // Define current positon as zero
+  // Define current position as zero
   stepperMotor->setActualPosition(0.f);
 
-  std::cout << "Current motor positon: " << stepperMotor->getCurrentPosition() << std::endl;
+  std::cout << "Current motor position: " << stepperMotor->getCurrentPosition() << std::endl;
 
   return 0;
 }

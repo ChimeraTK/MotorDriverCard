@@ -1,15 +1,15 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
-#include "MotorControlerConfig.h"
+#include "MotorControllerConfig.h"
 
-#include "MotorControler.h"
-#include "MotorControlerConfigDefaults.h"
+#include "MotorController.h"
+#include "MotorControllerConfigDefaults.h"
 
 namespace ChimeraTK::MotorDriver {
-  MotorControlerConfig::MotorControlerConfig()
+  MotorControllerConfig::MotorControllerConfig()
   : accelerationThresholdData(0), // actualPosition(0),
     chopperControlData(CHOPPER_CONTROL_DEFAULT), coolStepControlData(COOL_STEP_CONTROL_DEFAULT),
-    decoderReadoutMode(MotorControler::DecoderReadoutMode::INCREMENTAL),
+    decoderReadoutMode(MotorController::DecoderReadoutMode::INCREMENTAL),
     dividersAndMicroStepResolutionData(DIVIDIERS_AND_MICRO_STEP_RESOLUTION_DEFAULT),
     driverConfigData(DRIVER_CONFIG_DEFAULT), driverControlData(DRIVER_CONTROL_DEFAULT), enabled(false),
     interruptData(0), maximumAcceleration(MAXIMUM_ACCELERATION_DEFAULT), maximumVelocity(MAXIMUM_VELOCITY_DEFAULT),
@@ -19,7 +19,7 @@ namespace ChimeraTK::MotorDriver {
     stallGuardControlData(STALL_GUARD_CONTROL_DEFAULT), targetPosition(0), targetVelocity(0),
     driverSpiWaitingTime(DRIVER_SPI_WAITING_TIME_DEFAULT) {}
 
-  bool MotorControlerConfig::operator==(MotorControlerConfig const& right) const {
+  bool MotorControllerConfig::operator==(MotorControllerConfig const& right) const {
     return ((accelerationThresholdData == right.accelerationThresholdData) &&
         // (actualPosition			  == right.actualPosition) &&
         (chopperControlData == right.chopperControlData) && (coolStepControlData == right.coolStepControlData) &&
@@ -36,7 +36,7 @@ namespace ChimeraTK::MotorDriver {
         (targetVelocity == right.targetVelocity) && (driverSpiWaitingTime == right.driverSpiWaitingTime));
   }
 
-  bool MotorControlerConfig::operator!=(MotorControlerConfig const& right) const {
+  bool MotorControllerConfig::operator!=(MotorControllerConfig const& right) const {
     return !(*this == right);
   }
 } // namespace ChimeraTK::MotorDriver

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
-#include "MotorControlerDummy.h"
+#include "MotorControllerDummy.h"
 
 #include <ChimeraTK/Exception.h>
 
@@ -11,39 +11,39 @@ using UniqueLog = std::unique_lock<std::mutex>;
 
 namespace ChimeraTK::MotorDriver {
 
-  MotorControlerDummy::MotorControlerDummy(unsigned int id) : MotorControler(), _id(id) {}
+  MotorControllerDummy::MotorControllerDummy(unsigned int id) : MotorController(), _id(id) {}
 
-  void MotorControlerDummy::setPositiveEndSwitch(int endSwitchPos) {
+  void MotorControllerDummy::setPositiveEndSwitch(int endSwitchPos) {
     LockGuard guard(_motorControllerDummyMutex);
     _positiveEndSwitchHardwarePosition = endSwitchPos;
   }
 
-  int MotorControlerDummy::getPositiveEndSwitch() {
+  int MotorControllerDummy::getPositiveEndSwitch() {
     LockGuard guard(_motorControllerDummyMutex);
     return _positiveEndSwitchHardwarePosition;
   }
 
-  void MotorControlerDummy::setNegativeEndSwitch(int endSwitchNeg) {
+  void MotorControllerDummy::setNegativeEndSwitch(int endSwitchNeg) {
     LockGuard guard(_motorControllerDummyMutex);
     _negativeEndSwitchHardwarePosition = endSwitchNeg;
   }
 
-  int MotorControlerDummy::getNegativeEndSwitch() {
+  int MotorControllerDummy::getNegativeEndSwitch() {
     LockGuard guard(_motorControllerDummyMutex);
     return _negativeEndSwitchHardwarePosition;
   }
 
-  unsigned int MotorControlerDummy::getID() {
+  unsigned int MotorControllerDummy::getID() {
     LockGuard guard(_motorControllerDummyMutex);
     return _id;
   }
 
-  int MotorControlerDummy::getActualPosition() {
+  int MotorControllerDummy::getActualPosition() {
     LockGuard guard(_motorControllerDummyMutex);
     return _currentPosition;
   }
 
-  int MotorControlerDummy::getActualVelocity() {
+  int MotorControllerDummy::getActualVelocity() {
     LockGuard guard(_motorControllerDummyMutex);
     // the velocity is only not zero if the motor is actually moving
     // FIXME: or if the motor is stepping?
@@ -55,20 +55,20 @@ namespace ChimeraTK::MotorDriver {
     return 0;
   }
 
-  void MotorControlerDummy::enableFullStepping(bool enable) {
+  void MotorControllerDummy::enableFullStepping(bool enable) {
     _isFullStepping = enable;
   }
 
-  bool MotorControlerDummy::isFullStepping() {
+  bool MotorControllerDummy::isFullStepping() {
     return _isFullStepping;
   }
 
-  bool MotorControlerDummy::isMotorMoving() {
+  bool MotorControllerDummy::isMotorMoving() {
     LockGuard guard(_motorControllerDummyMutex);
     return (_motorCurrentEnabled && isStepping());
   }
 
-  bool MotorControlerDummy::isStepping() {
+  bool MotorControllerDummy::isStepping() {
     // if the motor is at the target position the motor is not stepping
     if(_targetPosition == _currentPosition) {
       return false;
@@ -96,18 +96,18 @@ namespace ChimeraTK::MotorDriver {
     return true;
   }
 
-  unsigned int MotorControlerDummy::getActualAcceleration() {
+  unsigned int MotorControllerDummy::getActualAcceleration() {
     // This motor accelerates instantaneously. Either it is moving or not.
     // (not very realistic, but ok for a test)
     return 0;
   }
 
-  unsigned int MotorControlerDummy::getMicroStepCount() {
+  unsigned int MotorControllerDummy::getMicroStepCount() {
     LockGuard guard(_motorControllerDummyMutex);
     return ((_currentPosition * _userMicroStepSize) - 1) & 0x3FF;
   }
 
-  DriverStatusData MotorControlerDummy::getStatus() {
+  DriverStatusData MotorControllerDummy::getStatus() {
     LockGuard guard(_motorControllerDummyMutex);
     DriverStatusData statusData;
     bool motorMoving = (_motorCurrentEnabled && isStepping());
@@ -115,76 +115,76 @@ namespace ChimeraTK::MotorDriver {
     return statusData;
   }
 
-  unsigned int MotorControlerDummy::getDecoderReadoutMode() {
+  unsigned int MotorControllerDummy::getDecoderReadoutMode() {
     LockGuard guard(_motorControllerDummyMutex);
     // I think this is absolute postion
     return DecoderReadoutMode::HEIDENHAIN;
   }
 
-  unsigned int MotorControlerDummy::getDecoderPosition() {
+  unsigned int MotorControllerDummy::getDecoderPosition() {
     LockGuard guard(_motorControllerDummyMutex);
     // make the negative end switch "decoder 0"
     return _hardwarePosition - _negativeEndSwitchHardwarePosition;
   }
 
-  void MotorControlerDummy::setActualVelocity(int /*stepsPerFIXME*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setActualVelocity() is not implemented yet!");
+  void MotorControllerDummy::setActualVelocity(int /*stepsPerFIXME*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setActualVelocity() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setActualAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setActualAcceleration() is not implemented yet!");
+  void MotorControllerDummy::setActualAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setActualAcceleration() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setMicroStepCount(unsigned int /*microStepCount*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setMicroStepCount() is not implemented yet!");
+  void MotorControllerDummy::setMicroStepCount(unsigned int /*microStepCount*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setMicroStepCount() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setEnabled(bool enable) {
+  void MotorControllerDummy::setEnabled(bool enable) {
     LockGuard guard(_motorControllerDummyMutex);
     _motorCurrentEnabled = enable;
   }
 
-  void MotorControlerDummy::setDecoderReadoutMode(unsigned int /*decoderReadoutMode*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setDecoderReadoutMode(): The Decoder readout mode "
+  void MotorControllerDummy::setDecoderReadoutMode(unsigned int /*decoderReadoutMode*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setDecoderReadoutMode(): The Decoder readout mode "
                                  "cannot be changed for the dummy motor!");
   }
 
-  bool MotorControlerDummy::isEnabled() {
+  bool MotorControllerDummy::isEnabled() {
     LockGuard guard(_motorControllerDummyMutex);
     return _motorCurrentEnabled;
   }
 
-  void MotorControlerDummy::setCalibrationTime(uint32_t calibrationTime) {
+  void MotorControllerDummy::setCalibrationTime(uint32_t calibrationTime) {
     LockGuard guard(_motorControllerDummyMutex);
     _calibrationTime = calibrationTime;
   }
 
-  uint32_t MotorControlerDummy::getCalibrationTime() {
+  uint32_t MotorControllerDummy::getCalibrationTime() {
     LockGuard guard(_motorControllerDummyMutex);
     return _calibrationTime;
   }
 
-  void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
+  void MotorControllerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
     LockGuard guard(_motorControllerDummyMutex);
     _positiveEndSwitchPosition = calibratedPosition;
   }
 
-  int MotorControlerDummy::getPositiveReferenceSwitchCalibration() {
+  int MotorControllerDummy::getPositiveReferenceSwitchCalibration() {
     LockGuard guard(_motorControllerDummyMutex);
     return _positiveEndSwitchPosition;
   }
 
-  void MotorControlerDummy::setNegativeReferenceSwitchCalibration(int calibratedPosition) {
+  void MotorControllerDummy::setNegativeReferenceSwitchCalibration(int calibratedPosition) {
     LockGuard guard(_motorControllerDummyMutex);
     _negativeEndSwitchPosition = calibratedPosition;
   }
 
-  int MotorControlerDummy::getNegativeReferenceSwitchCalibration() {
+  int MotorControllerDummy::getNegativeReferenceSwitchCalibration() {
     LockGuard guard(_motorControllerDummyMutex);
     return _negativeEndSwitchPosition;
   }
 
-  MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {
+  MotorReferenceSwitchData MotorControllerDummy::getReferenceSwitchData() {
     LockGuard guard(_motorControllerDummyMutex);
     MotorReferenceSwitchData motorReferenceSwitchData;
     motorReferenceSwitchData.setPositiveSwitchEnabled(_positiveEndSwitchEnabled);
@@ -196,22 +196,22 @@ namespace ChimeraTK::MotorDriver {
     return motorReferenceSwitchData;
   }
 
-  void MotorControlerDummy::setPositiveReferenceSwitchEnabled(bool enableStatus) {
+  void MotorControllerDummy::setPositiveReferenceSwitchEnabled(bool enableStatus) {
     LockGuard guard(_motorControllerDummyMutex);
     _positiveEndSwitchEnabled = enableStatus;
   }
 
-  void MotorControlerDummy::setNegativeReferenceSwitchEnabled(bool enableStatus) {
+  void MotorControllerDummy::setNegativeReferenceSwitchEnabled(bool enableStatus) {
     LockGuard guard(_motorControllerDummyMutex);
     _negativeEndSwitchEnabled = enableStatus;
   }
 
-  void MotorControlerDummy::setActualPosition(int steps) {
+  void MotorControllerDummy::setActualPosition(int steps) {
     LockGuard guard(_motorControllerDummyMutex);
     _currentPosition = steps;
   }
 
-  void MotorControlerDummy::setTargetPosition(int steps) {
+  void MotorControllerDummy::setTargetPosition(int steps) {
     LockGuard guard(_motorControllerDummyMutex);
     if(_isFullStepping) {
       roundToNextFullStep(steps);
@@ -219,7 +219,7 @@ namespace ChimeraTK::MotorDriver {
     _targetPosition = steps;
   }
 
-  void MotorControlerDummy::roundToNextFullStep(int& targetPosition) {
+  void MotorControllerDummy::roundToNextFullStep(int& targetPosition) {
     int delta = targetPosition - _currentPosition;
     int deltaMicroStep = delta * _userMicroStepSize;
     unsigned int actualMicroStepCount = ((_currentPosition * _userMicroStepSize) - 1) & 0x3FF;
@@ -233,101 +233,101 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  int MotorControlerDummy::getTargetPosition() {
+  int MotorControllerDummy::getTargetPosition() {
     LockGuard guard(_motorControllerDummyMutex);
     return _targetPosition;
   }
 
-  void MotorControlerDummy::setMinimumVelocity(unsigned int /*stepsPerFIXME*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setMinimumVelocity() is not implemented yet!");
+  void MotorControllerDummy::setMinimumVelocity(unsigned int /*stepsPerFIXME*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setMinimumVelocity() is not implemented yet!");
   }
 
-  unsigned int MotorControlerDummy::getMinimumVelocity() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getMinimumVelocity() is not implemented yet!");
+  unsigned int MotorControllerDummy::getMinimumVelocity() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getMinimumVelocity() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setMaximumVelocity(unsigned int /*stepsPerFIXME*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setMaximumVelocity() is not implemented yet!");
+  void MotorControllerDummy::setMaximumVelocity(unsigned int /*stepsPerFIXME*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setMaximumVelocity() is not implemented yet!");
   }
 
-  unsigned int MotorControlerDummy::getMaximumVelocity() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getMaximumVelocity() is not implemented yet!");
+  unsigned int MotorControllerDummy::getMaximumVelocity() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getMaximumVelocity() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setTargetVelocity(int /*stepsPerFIXME*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setTargetVelocity() is not implemented yet!");
+  void MotorControllerDummy::setTargetVelocity(int /*stepsPerFIXME*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setTargetVelocity() is not implemented yet!");
   }
 
-  int MotorControlerDummy::getTargetVelocity() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getTargetVelocity() is not implemented yet!");
+  int MotorControllerDummy::getTargetVelocity() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getTargetVelocity() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setMaximumAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setMaximumAcceleration() is not implemented yet!");
+  void MotorControllerDummy::setMaximumAcceleration(unsigned int /*stepsPerSquareFIXME*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setMaximumAcceleration() is not implemented yet!");
   }
 
-  unsigned int MotorControlerDummy::getMaximumAcceleration() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getMaximumAcceleration() is not implemented yet!");
+  unsigned int MotorControllerDummy::getMaximumAcceleration() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getMaximumAcceleration() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setPositionTolerance(unsigned int /*steps*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setPositionTolerance() is not implemented yet!");
+  void MotorControllerDummy::setPositionTolerance(unsigned int /*steps*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setPositionTolerance() is not implemented yet!");
   }
 
-  unsigned int MotorControlerDummy::getPositionTolerance() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getPositionTolerance() is not implemented yet!");
+  unsigned int MotorControllerDummy::getPositionTolerance() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getPositionTolerance() is not implemented yet!");
   }
 
-  void MotorControlerDummy::setPositionLatched(unsigned int /*steps*/) {
-    throw ChimeraTK::logic_error("MotorControlerDummy::setPositionLatched() is not implemented yet!");
+  void MotorControllerDummy::setPositionLatched(unsigned int /*steps*/) {
+    throw ChimeraTK::logic_error("MotorControllerDummy::setPositionLatched() is not implemented yet!");
   }
 
-  unsigned int MotorControlerDummy::getPositionLatched() {
-    throw ChimeraTK::logic_error("MotorControlerDummy:getPositionLatched() is not implemented yet!");
+  unsigned int MotorControllerDummy::getPositionLatched() {
+    throw ChimeraTK::logic_error("MotorControllerDummy:getPositionLatched() is not implemented yet!");
   }
 
-  bool MotorControlerDummy::targetPositionReached() {
+  bool MotorControllerDummy::targetPositionReached() {
     LockGuard guard(_motorControllerDummyMutex);
     return (_currentPosition == _targetPosition);
   }
 
-  unsigned int MotorControlerDummy::getReferenceSwitchBit() {
+  unsigned int MotorControllerDummy::getReferenceSwitchBit() {
     LockGuard guard(_motorControllerDummyMutex);
     return static_cast<unsigned int>(isPositiveEndSwitchActive() || isNegativeEndSwitchActive());
   }
 
-  bool MotorControlerDummy::isPositiveEndSwitchActive() {
+  bool MotorControllerDummy::isPositiveEndSwitchActive() {
     if(_bothEndSwitchesAlwaysOn) return true;
 
     return _positiveEndSwitchEnabled && (_hardwarePosition >= _positiveEndSwitchHardwarePosition);
   }
 
-  double MotorControlerDummy::getMaxSpeedCapability() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getMaxSpeedCapability() is not implemented yet!");
+  double MotorControllerDummy::getMaxSpeedCapability() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getMaxSpeedCapability() is not implemented yet!");
   }
 
-  double MotorControlerDummy::setUserSpeedLimit(double microStepsPerSecond) {
+  double MotorControllerDummy::setUserSpeedLimit(double microStepsPerSecond) {
     LockGuard guard(_motorControllerDummyMutex);
     _userSpeedLimit = microStepsPerSecond;
     return _userSpeedLimit;
   }
 
-  double MotorControlerDummy::getUserSpeedLimit() {
+  double MotorControllerDummy::getUserSpeedLimit() {
     return _userSpeedLimit;
   }
 
-  double MotorControlerDummy::setUserCurrentLimit(double currentLimit) {
+  double MotorControllerDummy::setUserCurrentLimit(double currentLimit) {
     (void)currentLimit; // To suppress parameter unused warning.
-    throw ChimeraTK::logic_error("MotorControlerDummy::setUserCurrentLimit() is not implemented yet!");
+    throw ChimeraTK::logic_error("MotorControllerDummy::setUserCurrentLimit() is not implemented yet!");
   }
-  double MotorControlerDummy::getUserCurrentLimit() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getUserCurrentLimit() is not implemented yet!");
+  double MotorControllerDummy::getUserCurrentLimit() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getUserCurrentLimit() is not implemented yet!");
   }
-  double MotorControlerDummy::getMaxCurrentLimit() {
-    throw ChimeraTK::logic_error("MotorControlerDummy::getMaxCurrentLimit() is not implemented yet!");
+  double MotorControllerDummy::getMaxCurrentLimit() {
+    throw ChimeraTK::logic_error("MotorControllerDummy::getMaxCurrentLimit() is not implemented yet!");
   }
 
-  void MotorControlerDummy::resetInternalStateToDefaults() {
+  void MotorControllerDummy::resetInternalStateToDefaults() {
     LockGuard guard(_motorControllerDummyMutex);
     _hardwarePosition = 0;
     _targetPosition = 0;
@@ -339,32 +339,32 @@ namespace ChimeraTK::MotorDriver {
     _blockMotor = false;
   }
 
-  void MotorControlerDummy::setMotorCurrentEnabled(bool enable) {
+  void MotorControllerDummy::setMotorCurrentEnabled(bool enable) {
     LockGuard guard(_motorControllerDummyMutex);
     _motorCurrentEnabled = enable;
   }
 
-  bool MotorControlerDummy::isMotorCurrentEnabled() {
+  bool MotorControllerDummy::isMotorCurrentEnabled() {
     LockGuard guard(_motorControllerDummyMutex);
     return _motorCurrentEnabled;
   }
 
-  void MotorControlerDummy::setEndSwitchPowerEnabled(bool enable) {
+  void MotorControllerDummy::setEndSwitchPowerEnabled(bool enable) {
     LockGuard guard(_motorControllerDummyMutex);
     _endSwitchPowerEnabled = enable;
   }
-  bool MotorControlerDummy::isEndSwitchPowerEnabled() {
+  bool MotorControllerDummy::isEndSwitchPowerEnabled() {
     LockGuard guard(_motorControllerDummyMutex);
     return _endSwitchPowerEnabled;
   }
 
-  bool MotorControlerDummy::isNegativeEndSwitchActive() {
+  bool MotorControllerDummy::isNegativeEndSwitchActive() {
     if(_bothEndSwitchesAlwaysOn) return true;
 
     return _negativeEndSwitchEnabled && (_hardwarePosition <= _negativeEndSwitchHardwarePosition);
   }
 
-  void MotorControlerDummy::moveTowardsTarget(
+  void MotorControllerDummy::moveTowardsTarget(
       float fraction, bool block, bool bothEndSwitchesAlwaysOn, bool zeroPositions) {
     LockGuard guard(_motorControllerDummyMutex);
     if(zeroPositions) {
@@ -402,7 +402,7 @@ namespace ChimeraTK::MotorDriver {
     int targetInThisMove = _currentPosition + relativeSteps;
 
     if(!_motorCurrentEnabled) {
-      // the motor is stepping to the target position, but the actual positon
+      // the motor is stepping to the target position, but the actual position
       // does not change. Thus no end switch will be hit.
       _currentPosition = targetInThisMove;
       return;
@@ -413,13 +413,13 @@ namespace ChimeraTK::MotorDriver {
     // check whether an end switch would be hit
     if(_positiveEndSwitchEnabled && (absoluteTargetInThisMove > _positiveEndSwitchHardwarePosition)) {
       absoluteTargetInThisMove = _positiveEndSwitchHardwarePosition;
-      // also the current positon stops if an end switch is reached
+      // also the current position stops if an end switch is reached
       int stepsToEndSwitch = _positiveEndSwitchHardwarePosition - _hardwarePosition;
       targetInThisMove = _currentPosition + stepsToEndSwitch;
     }
     if(_negativeEndSwitchEnabled && (absoluteTargetInThisMove < _negativeEndSwitchHardwarePosition)) {
       absoluteTargetInThisMove = _negativeEndSwitchHardwarePosition;
-      // also the current positon stops if an end switch is reached
+      // also the current position stops if an end switch is reached
       int stepsToEndSwitch = _negativeEndSwitchHardwarePosition - _hardwarePosition;
       targetInThisMove = _currentPosition + stepsToEndSwitch;
     }
@@ -429,7 +429,7 @@ namespace ChimeraTK::MotorDriver {
     _currentPosition = targetInThisMove;
   }
 
-  void MotorControlerDummy::simulateBlockedMotor(bool state) {
+  void MotorControllerDummy::simulateBlockedMotor(bool state) {
     LockGuard guard(_motorControllerDummyMutex);
     _blockMotor = state;
   }

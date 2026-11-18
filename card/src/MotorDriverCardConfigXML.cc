@@ -165,34 +165,34 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  MotorControlerConfig controllerConfigFromXml(const xmlpp::Node* rootNode, const std::string& controllerId) {
-    MotorControlerConfig controlerConfig;
+  MotorControllerConfig controllerConfigFromXml(const xmlpp::Node* rootNode, const std::string& controllerId) {
+    MotorControllerConfig controllerConfig;
     auto xpathHelper = "MotorControlerConfig[@motorID=" + controllerId + "]/";
 
     getFromXml(
-        "accelerationThresholdData", controlerConfig.accelerationThresholdData, rootNode, xpathHelper + "Register");
-    getFromXml("chopperControlData", controlerConfig.chopperControlData, rootNode, xpathHelper + "Register");
-    getFromXml("coolStepControlData", controlerConfig.coolStepControlData, rootNode, xpathHelper + "Register");
-    getFromXml("decoderReadoutMode", controlerConfig.decoderReadoutMode, rootNode, xpathHelper + "Register");
-    getFromXml("dividersAndMicroStepResolutionData", controlerConfig.dividersAndMicroStepResolutionData, rootNode,
+        "accelerationThresholdData", controllerConfig.accelerationThresholdData, rootNode, xpathHelper + "Register");
+    getFromXml("chopperControlData", controllerConfig.chopperControlData, rootNode, xpathHelper + "Register");
+    getFromXml("coolStepControlData", controllerConfig.coolStepControlData, rootNode, xpathHelper + "Register");
+    getFromXml("decoderReadoutMode", controllerConfig.decoderReadoutMode, rootNode, xpathHelper + "Register");
+    getFromXml("dividersAndMicroStepResolutionData", controllerConfig.dividersAndMicroStepResolutionData, rootNode,
         xpathHelper + "Register");
-    getFromXml("driverConfigData", controlerConfig.driverConfigData, rootNode, xpathHelper + "Register");
-    getFromXml("driverControlData", controlerConfig.driverControlData, rootNode, xpathHelper + "Register");
-    getFromXml("enabled", controlerConfig.enabled, rootNode, xpathHelper + "Register");
-    getFromXml("interruptData", controlerConfig.interruptData, rootNode, xpathHelper + "Register");
-    getFromXml("maximumAcceleration", controlerConfig.maximumAcceleration, rootNode, xpathHelper + "Register");
-    getFromXml("maximumVelocity", controlerConfig.maximumVelocity, rootNode, xpathHelper + "Register");
-    getFromXml("microStepCount", controlerConfig.microStepCount, rootNode, xpathHelper + "Register");
-    getFromXml("minimumVelocity", controlerConfig.minimumVelocity, rootNode, xpathHelper + "Register");
-    getFromXml("positionTolerance", controlerConfig.positionTolerance, rootNode, xpathHelper + "Register");
+    getFromXml("driverConfigData", controllerConfig.driverConfigData, rootNode, xpathHelper + "Register");
+    getFromXml("driverControlData", controllerConfig.driverControlData, rootNode, xpathHelper + "Register");
+    getFromXml("enabled", controllerConfig.enabled, rootNode, xpathHelper + "Register");
+    getFromXml("interruptData", controllerConfig.interruptData, rootNode, xpathHelper + "Register");
+    getFromXml("maximumAcceleration", controllerConfig.maximumAcceleration, rootNode, xpathHelper + "Register");
+    getFromXml("maximumVelocity", controllerConfig.maximumVelocity, rootNode, xpathHelper + "Register");
+    getFromXml("microStepCount", controllerConfig.microStepCount, rootNode, xpathHelper + "Register");
+    getFromXml("minimumVelocity", controllerConfig.minimumVelocity, rootNode, xpathHelper + "Register");
+    getFromXml("positionTolerance", controllerConfig.positionTolerance, rootNode, xpathHelper + "Register");
     getFromXml(
-        "proportionalityFactorData", controlerConfig.proportionalityFactorData, rootNode, xpathHelper + "Register");
-    getFromXml("referenceConfigAndRampModeData", controlerConfig.referenceConfigAndRampModeData, rootNode,
+        "proportionalityFactorData", controllerConfig.proportionalityFactorData, rootNode, xpathHelper + "Register");
+    getFromXml("referenceConfigAndRampModeData", controllerConfig.referenceConfigAndRampModeData, rootNode,
         xpathHelper + "Register");
-    getFromXml("stallGuardControlData", controlerConfig.stallGuardControlData, rootNode, xpathHelper + "Register");
-    getFromXml("targetPosition", controlerConfig.targetPosition, rootNode, xpathHelper + "Register");
-    getFromXml("targetVelocity", controlerConfig.targetVelocity, rootNode, xpathHelper + "Register");
-    getFromXml("driverSpiWaitingTime", controlerConfig.driverSpiWaitingTime, rootNode, xpathHelper + "Parameter");
+    getFromXml("stallGuardControlData", controllerConfig.stallGuardControlData, rootNode, xpathHelper + "Register");
+    getFromXml("targetPosition", controllerConfig.targetPosition, rootNode, xpathHelper + "Register");
+    getFromXml("targetVelocity", controllerConfig.targetVelocity, rootNode, xpathHelper + "Register");
+    getFromXml("driverSpiWaitingTime", controllerConfig.driverSpiWaitingTime, rootNode, xpathHelper + "Parameter");
 
     const auto* xpath{R"(//Register[@name="maximumAccelleration"])"};
     auto nodes = rootNode->find(xpath);
@@ -201,7 +201,7 @@ namespace ChimeraTK::MotorDriver {
       message << "Found old, invalid Register name maximumAccelleration. Please update your config file!";
       throw ChimeraTK::logic_error(message.str());
     }
-    return controlerConfig;
+    return controllerConfig;
   }
 } // namespace ChimeraTK::MotorDriver
 
@@ -211,11 +211,11 @@ namespace ChimeraTK::MotorDriver {
 #define CARD_CONFIG_ADD_PARAMETER(VALUE)                                                                               \
   cardConfigFiller.addParameter(#VALUE, motorDriverCardConfig.VALUE, defaultCardConfig.VALUE, "Parameter")
 
-#define CONTROLER_CONFIG_ADD_REGISTER(VALUE)                                                                           \
-  controlerConfigFiller.addParameter(#VALUE, motorControlerConfig.VALUE, defaultControlerConfig.VALUE)
+#define CONTROLLER_CONFIG_ADD_REGISTER(VALUE)                                                                          \
+  controllerConfigFiller.addParameter(#VALUE, motorControllerConfig.VALUE, defaultControllerConfig.VALUE)
 
-#define CONTROLER_CONFIG_ADD_PARAMETER(VALUE)                                                                          \
-  controlerConfigFiller.addParameter(#VALUE, motorControlerConfig.VALUE, defaultControlerConfig.VALUE, "Parameter")
+#define CONTROLLER_CONFIG_ADD_PARAMETER(VALUE)                                                                         \
+  controllerConfigFiller.addParameter(#VALUE, motorControllerConfig.VALUE, defaultControllerConfig.VALUE, "Parameter")
 
 namespace ChimeraTK::MotorDriver {
 
@@ -261,7 +261,7 @@ namespace ChimeraTK::MotorDriver {
     getFromXml("positionCompareInterruptData", cardConfig.positionCompareInterruptData, rootNode);
     getFromXml("positionCompareWord", cardConfig.positionCompareWord, rootNode);
     getFromXml("stepperMotorGlobalParameters", cardConfig.stepperMotorGlobalParameters, rootNode);
-    getFromXml("controlerSpiWaitingTime", cardConfig.controlerSpiWaitingTime, rootNode, "Parameter");
+    getFromXml("controlerSpiWaitingTime", cardConfig.controllerSpiWaitingTime, rootNode, "Parameter");
 
     std::string xPath{"//MotorControlerConfig"};
     auto nodes = rootNode->find(xPath);
@@ -279,7 +279,7 @@ namespace ChimeraTK::MotorDriver {
         throw ChimeraTK::logic_error("Unparseable motor id");
       }
 
-      cardConfig.motorControlerConfigurations[val] = controllerConfigFromXml(node, idString);
+      cardConfig.motorControllerConfigurations[val] = controllerConfigFromXml(node, idString);
     }
 
     return cardConfig;
@@ -310,42 +310,44 @@ namespace ChimeraTK::MotorDriver {
     CARD_CONFIG_ADD_REGISTER(positionCompareInterruptData);
     CARD_CONFIG_ADD_REGISTER(positionCompareWord);
     CARD_CONFIG_ADD_REGISTER(stepperMotorGlobalParameters);
-    CARD_CONFIG_ADD_PARAMETER(controlerSpiWaitingTime);
+    // The parameter keeps its historical, misspelled name so that existing configuration files stay readable.
+    cardConfigFiller.addParameter("controlerSpiWaitingTime", motorDriverCardConfig.controllerSpiWaitingTime,
+        defaultCardConfig.controllerSpiWaitingTime, "Parameter");
 
-    for(unsigned int i = 0; i < motorDriverCardConfig.motorControlerConfigurations.size(); ++i) {
-      MotorControlerConfig defaultControlerConfig;
-      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[i];
+    for(unsigned int i = 0; i < motorDriverCardConfig.motorControllerConfigurations.size(); ++i) {
+      MotorControllerConfig defaultControllerConfig;
+      MotorControllerConfig motorControllerConfig = motorDriverCardConfig.motorControllerConfigurations[i];
 
-      if(sparse && (motorControlerConfig == defaultControlerConfig)) {
+      if(sparse && (motorControllerConfig == defaultControllerConfig)) {
         continue;
       }
 
       auto controllerConfigNode = rootNode->add_child("MotorControlerConfig");
       controllerConfigNode->set_attribute("motorID", std::to_string(i));
 
-      detail::NodeFiller controlerConfigFiller(controllerConfigNode, sparse);
+      detail::NodeFiller controllerConfigFiller(controllerConfigNode, sparse);
 
-      CONTROLER_CONFIG_ADD_REGISTER(accelerationThresholdData);
-      // CONTROLER_CONFIG_ADD_REGISTER( actualPosition );
-      CONTROLER_CONFIG_ADD_REGISTER(chopperControlData);
-      CONTROLER_CONFIG_ADD_REGISTER(coolStepControlData);
-      CONTROLER_CONFIG_ADD_REGISTER(decoderReadoutMode);
-      CONTROLER_CONFIG_ADD_REGISTER(dividersAndMicroStepResolutionData);
-      CONTROLER_CONFIG_ADD_REGISTER(driverConfigData);
-      CONTROLER_CONFIG_ADD_REGISTER(driverControlData);
-      CONTROLER_CONFIG_ADD_REGISTER(enabled);
-      CONTROLER_CONFIG_ADD_REGISTER(interruptData);
-      CONTROLER_CONFIG_ADD_REGISTER(maximumAcceleration);
-      CONTROLER_CONFIG_ADD_REGISTER(maximumVelocity);
-      CONTROLER_CONFIG_ADD_REGISTER(microStepCount);
-      CONTROLER_CONFIG_ADD_REGISTER(minimumVelocity);
-      CONTROLER_CONFIG_ADD_REGISTER(positionTolerance);
-      CONTROLER_CONFIG_ADD_REGISTER(proportionalityFactorData);
-      CONTROLER_CONFIG_ADD_REGISTER(referenceConfigAndRampModeData);
-      CONTROLER_CONFIG_ADD_REGISTER(stallGuardControlData);
-      CONTROLER_CONFIG_ADD_REGISTER(targetPosition);
-      CONTROLER_CONFIG_ADD_REGISTER(targetVelocity);
-      CONTROLER_CONFIG_ADD_PARAMETER(driverSpiWaitingTime);
+      CONTROLLER_CONFIG_ADD_REGISTER(accelerationThresholdData);
+      // CONTROLLER_CONFIG_ADD_REGISTER( actualPosition );
+      CONTROLLER_CONFIG_ADD_REGISTER(chopperControlData);
+      CONTROLLER_CONFIG_ADD_REGISTER(coolStepControlData);
+      CONTROLLER_CONFIG_ADD_REGISTER(decoderReadoutMode);
+      CONTROLLER_CONFIG_ADD_REGISTER(dividersAndMicroStepResolutionData);
+      CONTROLLER_CONFIG_ADD_REGISTER(driverConfigData);
+      CONTROLLER_CONFIG_ADD_REGISTER(driverControlData);
+      CONTROLLER_CONFIG_ADD_REGISTER(enabled);
+      CONTROLLER_CONFIG_ADD_REGISTER(interruptData);
+      CONTROLLER_CONFIG_ADD_REGISTER(maximumAcceleration);
+      CONTROLLER_CONFIG_ADD_REGISTER(maximumVelocity);
+      CONTROLLER_CONFIG_ADD_REGISTER(microStepCount);
+      CONTROLLER_CONFIG_ADD_REGISTER(minimumVelocity);
+      CONTROLLER_CONFIG_ADD_REGISTER(positionTolerance);
+      CONTROLLER_CONFIG_ADD_REGISTER(proportionalityFactorData);
+      CONTROLLER_CONFIG_ADD_REGISTER(referenceConfigAndRampModeData);
+      CONTROLLER_CONFIG_ADD_REGISTER(stallGuardControlData);
+      CONTROLLER_CONFIG_ADD_REGISTER(targetPosition);
+      CONTROLLER_CONFIG_ADD_REGISTER(targetVelocity);
+      CONTROLLER_CONFIG_ADD_PARAMETER(driverSpiWaitingTime);
     }
 
     try {

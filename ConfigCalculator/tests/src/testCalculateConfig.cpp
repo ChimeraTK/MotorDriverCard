@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(testCalculateConfig) {
       9,                                                 // currentScale
       std::list<std::string>());                         // an empty list
 
-  ChimeraTK::MotorDriver::MotorControlerConfig controllerConfig =
+  ChimeraTK::MotorDriver::MotorControllerConfig controllerConfig =
       ConfigCalculator::calculateConfig(chipParameters, ConfigCalculator::IGNORE_BOTH);
 
   BOOST_CHECK(controllerConfig.driverControlData.getPayloadData() == 8);

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "MotorControlerConfig.h"
+#include "MotorControllerConfig.h"
 #include "TMC429Words.h"
 
 #include <vector>
@@ -23,9 +23,9 @@ namespace ChimeraTK::MotorDriver {
     unsigned int positionCompareWord;
     StepperMotorGlobalParameters stepperMotorGlobalParameters;
 
-    unsigned int controlerSpiWaitingTime;
+    unsigned int controllerSpiWaitingTime;
 
-    std::vector<MotorControlerConfig> motorControlerConfigurations;
+    std::vector<MotorControllerConfig> motorControllerConfigurations;
 
     MotorDriverCardConfig();
 

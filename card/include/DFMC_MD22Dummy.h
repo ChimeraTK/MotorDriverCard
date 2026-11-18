@@ -21,7 +21,7 @@ namespace ChimeraTK::MotorDriver {
    * Implemented features:
    * \li All registers have full 32 bit data when written directly. Most registers
    * are not write protected FIXME. \li The following registers are automatically
-   * updated to the TMC429 controler SPI values after an SPI write. They are write
+   * updated to the TMC429 controller SPI values after an SPI write. They are write
    * protected: <ul> <li> ACTUAL_POSITION </li> <li> ACTUAL_VELOCITY </li> <li>
    * ACTUAL_ACCELERATION </li> <li> MICRO_STEP_COUNT </li>
    *  </ul>
@@ -29,7 +29,7 @@ namespace ChimeraTK::MotorDriver {
    * according to the bit patterns of the TMC429 chip. \li Test words with content
    * calculated from register index for SPI registers. \li Initialisation to start
    * values of TMC429 \li An spi address space of 0x40 words is defined, which can
-   * be writen via the SPI_CTRL register. \li A read request to the SPI_CTRL
+   * be written via the SPI_CTRL register. \li A read request to the SPI_CTRL
    * register updates the value in the SPI_CTRL_B register
    */
   class DFMC_MD22Dummy : public ChimeraTK::DummyBackend {
@@ -62,9 +62,9 @@ namespace ChimeraTK::MotorDriver {
     void open();
 
     /** Writes the test pattern to all registers.
-     *  controlerSpiAddress*controlerSpiAddress+13 for the controler SPI address
+     *  controllerSpiAddress*controllerSpiAddress+13 for the controller SPI address
      * space. 3*address*address+17 for the PCIe addresses. spiAddress*spiAddress +
-     * 7 + motorID for the drivers SPI addres spaces (motor 0 and 1)
+     * 7 + motorID for the drivers SPI address spaces (motor 0 and 1)
      *
      *  Exception: The registers from the standard register set are set to their
      * no1rmal values.
@@ -147,30 +147,30 @@ namespace ChimeraTK::MotorDriver {
 
    private:
     // callback functions
-    void handleControlerSpiWrite();
+    void handleControllerSpiWrite();
     void handleDriverSpiWrite(unsigned int ID);
 
     // members
-    std::vector<unsigned int> _controlerSpiAddressSpace;
-    uint64_t _controlerSpiWriteAddress;
-    uint64_t _controlerSpiBar;
-    uint64_t _controlerSpiReadbackAddress;
-    uint64_t _controlerSpiSyncAddress;
+    std::vector<unsigned int> _controllerSpiAddressSpace;
+    uint64_t _controllerSpiWriteAddress;
+    uint64_t _controllerSpiBar;
+    uint64_t _controllerSpiReadbackAddress;
+    uint64_t _controllerSpiSyncAddress;
     bool _powerIsUp;
 
     // internal and helper functions
-    void writeContentToControlerSpiRegister(unsigned int content, unsigned int controlerSpiAddress);
-    void writeControlerSpiContentToReadbackRegister(unsigned int controlerSpiAddress);
-    void triggerActionsOnControlerSpiWrite(TMC429InputWord const& inputWord);
+    void writeContentToControllerSpiRegister(unsigned int content, unsigned int controllerSpiAddress);
+    void writeControllerSpiContentToReadbackRegister(unsigned int controllerSpiAddress);
+    void triggerActionsOnControllerSpiWrite(TMC429InputWord const& inputWord);
     void performIdxActions(unsigned int idx);
     void performJdxActions(unsigned int jdx);
 
-    /** In the DFMC_MD22 some registers of the controler SPI address space have a
+    /** In the DFMC_MD22 some registers of the controller SPI address space have a
      * copy in the PCIe address space, which is updated by a loop when the FPGA is
      * idle. The dummy simulates this behaviour.
      */
-    void synchroniseFpgaWithControlerSpiRegisters();
-    void writeControlerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix);
+    void synchroniseFpgaWithControllerSpiRegisters();
+    void writeControllerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix);
 
     void setPCIeRegistersForTesting();
     void setStandardRegisters();
@@ -181,8 +181,8 @@ namespace ChimeraTK::MotorDriver {
     void setConstantPCIeRegister(std::string registerName, int32_t content);
     void setDriverSpiRegistersForTesting(unsigned int motorID);
 
-    void setControlerSpiRegistersForOperation();
-    void setControlerSpiRegistersForTesting();
+    void setControllerSpiRegistersForOperation();
+    void setControllerSpiRegistersForTesting();
 
     void driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData);
     uint32_t getDatalengthFromMask(uint32_t mask);

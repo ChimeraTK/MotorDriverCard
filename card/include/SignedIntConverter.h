@@ -6,12 +6,12 @@
 
 namespace ChimeraTK::MotorDriver {
 
-  /** Convert signed int of arbitraty length (< 32 bits) to
+  /** Convert signed int of arbitrary length (< 32 bits) to
    *   and from 32 bits on the user side.
    */
   class SignedIntConverter {
    public:
-    /** Like a decorator the SignedInt construcotr takes a reference to an
+    /** Like a decorator the SignedInt constructor takes a reference to an
      *	accessor object, plus the number of bits the integer is representing.
      */
     SignedIntConverter(unsigned int nBits);

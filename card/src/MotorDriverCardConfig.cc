@@ -10,9 +10,9 @@ namespace ChimeraTK::MotorDriver {
   : coverDatagram(0), coverPositionAndLength(0), datagramHighWord(0), datagramLowWord(0),
     interfaceConfiguration(INTERFACE_CONFIGURATION_DEFAULT), positionCompareInterruptData(0), positionCompareWord(0),
     stepperMotorGlobalParameters(STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT),
-    controlerSpiWaitingTime(CONTROLER_SPI_WAITING_TIME_DEFAULT),
-    motorControlerConfigurations(dfmc_md22::N_MOTORS_MAX) // initialises the motor controler configs
-                                                          // with their default constructors
+    controllerSpiWaitingTime(CONTROLLER_SPI_WAITING_TIME_DEFAULT),
+    motorControllerConfigurations(dfmc_md22::N_MOTORS_MAX) // initialises the motor controller configs
+                                                           // with their default constructors
   {}
 
   bool MotorDriverCardConfig::operator==(MotorDriverCardConfig const& right) const {
@@ -40,12 +40,12 @@ namespace ChimeraTK::MotorDriver {
     if(stepperMotorGlobalParameters != right.stepperMotorGlobalParameters) {
       return false;
     }
-    if(controlerSpiWaitingTime != right.controlerSpiWaitingTime) {
+    if(controllerSpiWaitingTime != right.controllerSpiWaitingTime) {
       return false;
     }
 
-    for(size_t i = 0; i < motorControlerConfigurations.size(); ++i) {
-      if(motorControlerConfigurations[i] != right.motorControlerConfigurations[i]) {
+    for(size_t i = 0; i < motorControllerConfigurations.size(); ++i) {
+      if(motorControllerConfigurations[i] != right.motorControllerConfigurations[i]) {
         return false;
       }
     }

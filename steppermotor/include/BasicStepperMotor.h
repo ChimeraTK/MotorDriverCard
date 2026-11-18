@@ -14,7 +14,7 @@
 
 namespace ChimeraTK::MotorDriver {
   class MotorDriverCard;
-  class MotorControler;
+  class MotorController;
 } // namespace ChimeraTK::MotorDriver
 
 // Forward-declare fixture used in the test
@@ -355,7 +355,7 @@ namespace ChimeraTK::MotorDriver {
     ExitStatus setUserSpeedLimit(double speedInUstepsPerSec) override;
 
     /**
-     * @brief return user speed limit in microsteps per secon.
+     * @brief return user speed limit in microsteps per second.
      */
     double getUserSpeedLimit() override;
 
@@ -458,7 +458,7 @@ namespace ChimeraTK::MotorDriver {
       State _disabled{"disabled"};
       State _error{"error"};
       BasicStepperMotor& _stepperMotor;
-      boost::shared_ptr<ChimeraTK::MotorDriver::MotorControler>& _motorControler;
+      boost::shared_ptr<ChimeraTK::MotorDriver::MotorController>& _motorController;
       void getActionCompleteEvent();
       void waitForStandstill();
       void actionIdleToMove();
@@ -481,7 +481,7 @@ namespace ChimeraTK::MotorDriver {
     /// Common actions for setActualPosition for this and derived classes
     void setActualPositionActions(int actualPositionInSteps);
 
-    /// Resets target and actual postions of the MotorControler
+    /// Resets target and actual positions of the MotorController
     void resetMotorControllerPositions(int newPositionInStep);
 
     /// Translate positions limits, if in numerical range
@@ -498,7 +498,7 @@ namespace ChimeraTK::MotorDriver {
     void translateAxisActions(int translationInSteps);
 
     boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
-    boost::shared_ptr<ChimeraTK::MotorDriver::MotorControler> _motorController;
+    boost::shared_ptr<ChimeraTK::MotorDriver::MotorController> _motorController;
 
     std::shared_ptr<utility::MotorStepsConverter> _stepperMotorUnitsConverter;
     std::shared_ptr<utility::EncoderStepsConverter> _encoderUnitsConverter;

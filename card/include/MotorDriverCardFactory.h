@@ -22,7 +22,7 @@ namespace ChimeraTK::MotorDriver {
    *  be the map file name) a DFMC_MD22 is used in place of a real device.
    *
    *  If deviceFileName is '/dummy/MotorDriverCard' a MotorDriverCardDummy is
-   * created. As ususal there will be only one instance also for this special
+   * created. As usual there will be only one instance also for this special
    * device name.
    */
   class MotorDriverCardFactory {
@@ -72,7 +72,7 @@ namespace ChimeraTK::MotorDriver {
      *  @param dmapFileName The (absolute or relative) path to the DMap file,
      * incl. the file name.
      */
-    static void setDeviceaccessDMapFilePath(std::string dmapFileName);
+    static void setDeviceAccessDMapFilePath(std::string dmapFileName);
 
     /** Get the dmap file name that is currently set for the ChimeraTK DeviceAccess library.
      *  This is a global setting for the whole application.
@@ -81,6 +81,6 @@ namespace ChimeraTK::MotorDriver {
      *  without having to include any header of the underlying deviceaccess
      * library in case the application is not using it elsewhere.
      */
-    static std::string getDeviceaccessDMapFilePath();
+    static std::string getDeviceAccessDMapFilePath();
   };
 } // namespace ChimeraTK::MotorDriver

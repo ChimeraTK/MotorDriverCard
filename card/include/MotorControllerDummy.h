@@ -2,23 +2,23 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "MotorControler.h"
+#include "MotorController.h"
 
 #include <mutex>
 
 namespace ChimeraTK::MotorDriver {
 
-  /** The MotorControlerDummy only implements the
-   *  basic functionality defined in the MotorControler class,
-   *  not the full functionality defined in MotorControlerExpert.
+  /** The MotorControllerDummy only implements the
+   *  basic functionality defined in the MotorController class,
+   *  not the full functionality defined in MotorControllerExpert.
    *
    *  It emulates a real stepper motor with a hardware position and
    *  hardware end switches. The motion of the motor can be controlled
    *  with the additional functions in this class.
    */
-  class MotorControlerDummy : public MotorControler {
+  class MotorControllerDummy : public MotorController {
    public:
-    explicit MotorControlerDummy(unsigned int id);
+    explicit MotorControllerDummy(unsigned int id);
 
     // inherited functions
 

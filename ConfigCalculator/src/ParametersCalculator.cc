@@ -189,7 +189,7 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   double maxPossibleCurrent = std::min(iMaxTMC260, physicalParameters.iMax);
 
   // use floor to always get the current scale which is below or
-  // equal to the maximim current, never above
+  // equal to the maximum current, never above
   int currentScale = static_cast<int>(std::floor(maxPossibleCurrent / iMaxTMC260 * nCurrentScaleValues)) - 1;
 
   // For small currents < 1/32 iMaxTMC260 the calculated current scale now

@@ -3,7 +3,7 @@
 
 #include "BasicStepperMotor.h"
 
-#include "MotorControler.h"
+#include "MotorController.h"
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
 
@@ -35,7 +35,7 @@ namespace ChimeraTK::MotorDriver {
   BasicStepperMotor::BasicStepperMotor(const StepperMotorParameters& parameters)
   : _motorDriverCard(ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
         parameters.deviceName, parameters.moduleName, parameters.configFileName)),
-    _motorController(_motorDriverCard->getMotorControler(parameters.driverId)),
+    _motorController(_motorDriverCard->getMotorController(parameters.driverId)),
     _stepperMotorUnitsConverter(parameters.motorUnitsConverter),
     _encoderUnitsConverter(parameters.encoderUnitsConverter),
     _targetPositionInSteps(_motorController->getTargetPosition()) {

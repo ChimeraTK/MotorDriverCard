@@ -63,11 +63,11 @@ namespace ChimeraTK::MotorDriver {
     _dummyMode = dummyMode;
   }
 
-  void MotorDriverCardFactory::setDeviceaccessDMapFilePath(std::string dmapFileName) {
+  void MotorDriverCardFactory::setDeviceAccessDMapFilePath(std::string dmapFileName) {
     ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
   }
 
-  std::string MotorDriverCardFactory::getDeviceaccessDMapFilePath() {
+  std::string MotorDriverCardFactory::getDeviceAccessDMapFilePath() {
     return ChimeraTK::BackendFactory::getInstance().getDMapFilePath();
   }
 

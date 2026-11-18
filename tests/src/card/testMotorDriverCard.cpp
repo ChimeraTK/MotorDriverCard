@@ -1,12 +1,12 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MotorControlerTest
+#define BOOST_TEST_MODULE MotorControllerTest
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
 #include "ChimeraTK/BackendFactory.h"
 #include "DFMC_MD22Dummy.h"
 #include "impl/MotorDriverCardImpl.h"
-#include "MotorControlerExpert.h"
+#include "MotorControllerExpert.h"
 
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/MapFileParser.h>
@@ -28,7 +28,7 @@ namespace ChimeraTK::MotorDriver {
     unsigned int returnValue(0);
     unsigned int position = 0;
     std::string::reverse_iterator characterIter = text.rbegin();
-    for(/* emtpy */; (position < 4) && (characterIter != text.rend()); ++position, ++characterIter) {
+    for(/* empty */; (position < 4) && (characterIter != text.rend()); ++position, ++characterIter) {
       auto charAsInt = static_cast<unsigned int>(static_cast<unsigned char>(*characterIter));
       returnValue |= charAsInt << 4 * position;
     }
@@ -79,31 +79,31 @@ namespace ChimeraTK::MotorDriver {
     motorDriverCardConfig.positionCompareWord = asciiToInt("POSC");
     motorDriverCardConfig.stepperMotorGlobalParameters.setDATA(asciiToInt("SMGP"));
 
-    for(unsigned int motorID = 0; motorID < motorDriverCardConfig.motorControlerConfigurations.size(); ++motorID) {
-      MotorControlerConfig motorControlerConfig;
+    for(unsigned int motorID = 0; motorID < motorDriverCardConfig.motorControllerConfigurations.size(); ++motorID) {
+      MotorControllerConfig motorControllerConfig;
 
-      motorControlerConfig.accelerationThresholdData.setDATA(asciiToInt("THR") + motorID);
-      // motorControlerConfig.actualPosition = asciiToInt("ACX") + motorID;;
-      motorControlerConfig.chopperControlData.setPayloadData(asciiToInt("cp") + motorID);
-      motorControlerConfig.coolStepControlData.setPayloadData(asciiToInt("cp") + motorID);
-      motorControlerConfig.decoderReadoutMode = asciiToInt("DRM") + motorID;
-      motorControlerConfig.dividersAndMicroStepResolutionData.setDATA(asciiToInt("MUSR") + motorID);
-      motorControlerConfig.driverConfigData.setPayloadData(asciiToInt("cf") + motorID);
-      motorControlerConfig.driverControlData.setPayloadData(asciiToInt("cl") + motorID);
-      motorControlerConfig.enabled = true;
-      motorControlerConfig.interruptData.setDATA(asciiToInt("INTR") + motorID);
-      motorControlerConfig.maximumAcceleration = asciiToInt("am") + motorID;
-      motorControlerConfig.maximumVelocity = asciiToInt("vm") + motorID;
-      motorControlerConfig.microStepCount = asciiToInt("mu") + motorID;
-      motorControlerConfig.minimumVelocity = asciiToInt("vn");
-      motorControlerConfig.positionTolerance = asciiToInt("dx") + motorID;
-      motorControlerConfig.proportionalityFactorData.setDATA(asciiToInt("PROP") + motorID);
-      motorControlerConfig.referenceConfigAndRampModeData.setDATA(asciiToInt("REF") + motorID);
-      motorControlerConfig.stallGuardControlData.setPayloadData(asciiToInt("sg") + motorID);
-      motorControlerConfig.targetPosition = int32_t(asciiToInt("tx") + motorID);
-      motorControlerConfig.targetVelocity = int32_t(asciiToInt("tv") + motorID);
+      motorControllerConfig.accelerationThresholdData.setDATA(asciiToInt("THR") + motorID);
+      // motorControllerConfig.actualPosition = asciiToInt("ACX") + motorID;;
+      motorControllerConfig.chopperControlData.setPayloadData(asciiToInt("cp") + motorID);
+      motorControllerConfig.coolStepControlData.setPayloadData(asciiToInt("cp") + motorID);
+      motorControllerConfig.decoderReadoutMode = asciiToInt("DRM") + motorID;
+      motorControllerConfig.dividersAndMicroStepResolutionData.setDATA(asciiToInt("MUSR") + motorID);
+      motorControllerConfig.driverConfigData.setPayloadData(asciiToInt("cf") + motorID);
+      motorControllerConfig.driverControlData.setPayloadData(asciiToInt("cl") + motorID);
+      motorControllerConfig.enabled = true;
+      motorControllerConfig.interruptData.setDATA(asciiToInt("INTR") + motorID);
+      motorControllerConfig.maximumAcceleration = asciiToInt("am") + motorID;
+      motorControllerConfig.maximumVelocity = asciiToInt("vm") + motorID;
+      motorControllerConfig.microStepCount = asciiToInt("mu") + motorID;
+      motorControllerConfig.minimumVelocity = asciiToInt("vn");
+      motorControllerConfig.positionTolerance = asciiToInt("dx") + motorID;
+      motorControllerConfig.proportionalityFactorData.setDATA(asciiToInt("PROP") + motorID);
+      motorControllerConfig.referenceConfigAndRampModeData.setDATA(asciiToInt("REF") + motorID);
+      motorControllerConfig.stallGuardControlData.setPayloadData(asciiToInt("sg") + motorID);
+      motorControllerConfig.targetPosition = int32_t(asciiToInt("tx") + motorID);
+      motorControllerConfig.targetVelocity = int32_t(asciiToInt("tv") + motorID);
 
-      motorDriverCardConfig.motorControlerConfigurations[motorID] = motorControlerConfig;
+      motorDriverCardConfig.motorControllerConfigurations[motorID] = motorControllerConfig;
     }
 
     // has to throw because the device is not open
@@ -166,45 +166,45 @@ namespace ChimeraTK::MotorDriver {
     BOOST_CHECK(
         gTest.motorDriverCard->getStepperMotorGlobalParameters() == motorDriverCardConfig.stepperMotorGlobalParameters);
 
-    for(unsigned int motorID = 0; motorID < motorDriverCardConfig.motorControlerConfigurations.size(); ++motorID) {
-      boost::shared_ptr<MotorControlerExpert> motorControler =
-          boost::dynamic_pointer_cast<MotorControlerExpert>(gTest.motorDriverCard->getMotorControler(motorID));
-      MotorControlerConfig motorControlerConfig = motorDriverCardConfig.motorControlerConfigurations[motorID];
+    for(unsigned int motorID = 0; motorID < motorDriverCardConfig.motorControllerConfigurations.size(); ++motorID) {
+      boost::shared_ptr<MotorControllerExpert> motorController =
+          boost::dynamic_pointer_cast<MotorControllerExpert>(gTest.motorDriverCard->getMotorController(motorID));
+      MotorControllerConfig motorControllerConfig = motorDriverCardConfig.motorControllerConfigurations[motorID];
 
       // only the data content is identical. The motorID is - for the config, and
       // correct for the readback word
-      BOOST_CHECK(motorControlerConfig.accelerationThresholdData.getDATA() ==
-          motorControler->getAccelerationThresholdData().getDATA());
-      // BOOST_CHECK( motorControlerConfig.actualPosition ==
-      // motorControler->getActualPosition() );
-      BOOST_CHECK(motorControlerConfig.chopperControlData == motorControler->getChopperControlData());
-      BOOST_CHECK(motorControlerConfig.coolStepControlData == motorControler->getCoolStepControlData());
-      BOOST_CHECK(motorControlerConfig.decoderReadoutMode == motorControler->getDecoderReadoutMode());
-      BOOST_CHECK(motorControlerConfig.dividersAndMicroStepResolutionData.getDATA() ==
-          motorControler->getDividersAndMicroStepResolutionData().getDATA());
-      BOOST_CHECK(motorControlerConfig.driverConfigData == motorControler->getDriverConfigData());
-      BOOST_CHECK(motorControlerConfig.driverControlData == motorControler->getDriverControlData());
-      BOOST_CHECK(motorControlerConfig.enabled == motorControler->isEnabled());
-      BOOST_CHECK(motorControlerConfig.interruptData.getDATA() == motorControler->getInterruptData().getDATA());
-      BOOST_CHECK(motorControlerConfig.maximumAcceleration == motorControler->getMaximumAcceleration());
-      BOOST_CHECK(motorControlerConfig.maximumVelocity == motorControler->getMaximumVelocity());
-      BOOST_CHECK(motorControlerConfig.microStepCount == motorControler->getMicroStepCount());
-      BOOST_CHECK(motorControlerConfig.minimumVelocity == motorControler->getMinimumVelocity());
-      BOOST_CHECK(motorControlerConfig.positionTolerance == motorControler->getPositionTolerance());
-      BOOST_CHECK(motorControlerConfig.proportionalityFactorData.getDATA() ==
-          motorControler->getProportionalityFactorData().getDATA());
-      BOOST_CHECK(motorControlerConfig.referenceConfigAndRampModeData.getDATA() ==
-          motorControler->getReferenceConfigAndRampModeData().getDATA());
-      BOOST_CHECK(motorControlerConfig.stallGuardControlData == motorControler->getStallGuardControlData());
-      // BOOST_CHECK( motorControlerConfig.targetPosition ==
-      // motorControler->getTargetPosition() );
-      BOOST_CHECK(motorControlerConfig.targetVelocity == motorControler->getTargetVelocity());
+      BOOST_CHECK(motorControllerConfig.accelerationThresholdData.getDATA() ==
+          motorController->getAccelerationThresholdData().getDATA());
+      // BOOST_CHECK( motorControllerConfig.actualPosition ==
+      // motorController->getActualPosition() );
+      BOOST_CHECK(motorControllerConfig.chopperControlData == motorController->getChopperControlData());
+      BOOST_CHECK(motorControllerConfig.coolStepControlData == motorController->getCoolStepControlData());
+      BOOST_CHECK(motorControllerConfig.decoderReadoutMode == motorController->getDecoderReadoutMode());
+      BOOST_CHECK(motorControllerConfig.dividersAndMicroStepResolutionData.getDATA() ==
+          motorController->getDividersAndMicroStepResolutionData().getDATA());
+      BOOST_CHECK(motorControllerConfig.driverConfigData == motorController->getDriverConfigData());
+      BOOST_CHECK(motorControllerConfig.driverControlData == motorController->getDriverControlData());
+      BOOST_CHECK(motorControllerConfig.enabled == motorController->isEnabled());
+      BOOST_CHECK(motorControllerConfig.interruptData.getDATA() == motorController->getInterruptData().getDATA());
+      BOOST_CHECK(motorControllerConfig.maximumAcceleration == motorController->getMaximumAcceleration());
+      BOOST_CHECK(motorControllerConfig.maximumVelocity == motorController->getMaximumVelocity());
+      BOOST_CHECK(motorControllerConfig.microStepCount == motorController->getMicroStepCount());
+      BOOST_CHECK(motorControllerConfig.minimumVelocity == motorController->getMinimumVelocity());
+      BOOST_CHECK(motorControllerConfig.positionTolerance == motorController->getPositionTolerance());
+      BOOST_CHECK(motorControllerConfig.proportionalityFactorData.getDATA() ==
+          motorController->getProportionalityFactorData().getDATA());
+      BOOST_CHECK(motorControllerConfig.referenceConfigAndRampModeData.getDATA() ==
+          motorController->getReferenceConfigAndRampModeData().getDATA());
+      BOOST_CHECK(motorControllerConfig.stallGuardControlData == motorController->getStallGuardControlData());
+      // BOOST_CHECK( motorControllerConfig.targetPosition ==
+      // motorController->getTargetPosition() );
+      BOOST_CHECK(motorControllerConfig.targetVelocity == motorController->getTargetVelocity());
     }
   }
 
-  BOOST_AUTO_TEST_CASE(TestGetControlerChipVersion) {
+  BOOST_AUTO_TEST_CASE(TestGetControllerChipVersion) {
     unsigned int expectedContent = testWordFromSpiAddress(SMDA_COMMON, JDX_CHIP_VERSION);
-    BOOST_CHECK(gTest.motorDriverCard->getControlerChipVersion() == expectedContent);
+    BOOST_CHECK(gTest.motorDriverCard->getControllerChipVersion() == expectedContent);
   }
 
   BOOST_AUTO_TEST_CASE(TestGetReferenceSwitchData) {
@@ -215,7 +215,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   BOOST_AUTO_TEST_CASE(TestGetStatusWord) {
-    auto registerInfo = gTest.dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLER_STATUS_BITS_ADDRESS_STRING);
+    auto registerInfo = gTest.dummyDevice->getRegisterInfo(MODULE_NAME_0 / CONTROLLER_STATUS_BITS_ADDRESS_STRING);
 
     unsigned int expectedContent = testWordFromPCIeAddress(registerInfo.address);
 
@@ -313,11 +313,11 @@ namespace ChimeraTK::MotorDriver {
     BOOST_CHECK(gTest.dummyDevice->isPowerUp() == true);
   }
 
-  BOOST_AUTO_TEST_CASE(TestGetMotorControler) {
+  BOOST_AUTO_TEST_CASE(TestGetMotorController) {
     for(unsigned int i = 0; i < N_MOTORS_MAX; ++i) {
-      BOOST_CHECK(gTest.motorDriverCard->getMotorControler(i)->getID() == i);
+      BOOST_CHECK(gTest.motorDriverCard->getMotorController(i)->getID() == i);
     }
-    BOOST_CHECK_THROW(gTest.motorDriverCard->getMotorControler(N_MOTORS_MAX), ChimeraTK::logic_error);
+    BOOST_CHECK_THROW(gTest.motorDriverCard->getMotorController(N_MOTORS_MAX), ChimeraTK::logic_error);
   }
 
 } // namespace ChimeraTK::MotorDriver

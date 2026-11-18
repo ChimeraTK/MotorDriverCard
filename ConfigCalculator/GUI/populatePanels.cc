@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #include "populatePanels.h"
 
-#include "MotorControlerConfig.h"
+#include "MotorControllerConfig.h"
 #include "MotorDriverCardConfig.h"
 #include "ParametersPanel.h"
 using namespace ChimeraTK::MotorDriver;
@@ -15,7 +15,7 @@ using namespace ChimeraTK::MotorDriver;
   parametersPanel->addParameter(#parameter, defaultConfig.parameter, extraText)
 
 void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
-  ChimeraTK::MotorDriver::MotorControlerConfig defaultConfig;
+  ChimeraTK::MotorDriver::MotorControllerConfig defaultConfig;
   ADD_TMC429_PARAMETER(accelerationThresholdData, "");
   // ADD_INT_PARAMETER(actualPosition,"");
   ADD_INT_PARAMETER(decoderReadoutMode, "");
@@ -42,7 +42,7 @@ void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
 
 void populateDriverCardExpertPanel(ParametersPanel* parametersPanel) {
   ChimeraTK::MotorDriver::MotorDriverCardConfig defaultConfig;
-  ADD_INT_PARAMETER(controlerSpiWaitingTime, "");
+  ADD_INT_PARAMETER(controllerSpiWaitingTime, "");
   ADD_INT_PARAMETER(coverDatagram, "");
   ADD_TMC429_PARAMETER(coverPositionAndLength, "");
   ADD_INT_PARAMETER(datagramHighWord, "");

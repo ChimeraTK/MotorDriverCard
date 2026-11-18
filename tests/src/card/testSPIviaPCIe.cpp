@@ -1,5 +1,5 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MotorControlerTest
+#define BOOST_TEST_MODULE MotorControllerTest
 #include <boost/test/unit_test.hpp>
 
 using namespace boost::unit_test_framework;
@@ -24,7 +24,7 @@ class SPIviaPCIeTestFixture {
   boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy> _dummyBackend;
   boost::shared_ptr<ChimeraTK::Device> _device;
 
-  boost::shared_ptr<ChimeraTK::MotorDriver::SPIviaPCIe> _readWriteSPIviaPCIe; // use controler which has read/write
+  boost::shared_ptr<ChimeraTK::MotorDriver::SPIviaPCIe> _readWriteSPIviaPCIe; // use controller which has read/write
   boost::shared_ptr<ChimeraTK::MotorDriver::SPIviaPCIe> _writeSPIviaPCIe;     // use a motor address which has debug
                                                                               // readback in the dummy
 };
@@ -40,9 +40,9 @@ SPIviaPCIeTestFixture::SPIviaPCIeTestFixture() {
   _device->open(DFMC_ALIAS);
 
   _readWriteSPIviaPCIe = boost::make_shared<ChimeraTK::MotorDriver::SPIviaPCIe>(_device, moduleName,
-      ChimeraTK::MotorDriver::dfmc_md22::CONTROLER_SPI_WRITE_ADDRESS_STRING,
-      ChimeraTK::MotorDriver::dfmc_md22::CONTROLER_SPI_SYNC_ADDRESS_STRING,
-      ChimeraTK::MotorDriver::dfmc_md22::CONTROLER_SPI_READBACK_ADDRESS_STRING);
+      ChimeraTK::MotorDriver::dfmc_md22::CONTROLLER_SPI_WRITE_ADDRESS_STRING,
+      ChimeraTK::MotorDriver::dfmc_md22::CONTROLLER_SPI_SYNC_ADDRESS_STRING,
+      ChimeraTK::MotorDriver::dfmc_md22::CONTROLLER_SPI_READBACK_ADDRESS_STRING);
 
   _writeSPIviaPCIe = boost::make_shared<ChimeraTK::MotorDriver::SPIviaPCIe>(_device, moduleName,
       ChimeraTK::MotorDriver::dfmc_md22::MOTOR_REGISTER_PREFIX + "2_" +

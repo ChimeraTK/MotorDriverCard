@@ -4,7 +4,7 @@
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include "MotorControlerDummy.h"
+#include "MotorControllerDummy.h"
 #include "MotorDriverCardDummy.h"
 
 #include <ChimeraTK/Exception.h>
@@ -17,19 +17,19 @@ namespace ChimeraTK::MotorDriver {
     MotorDriverCardDummy _motorDriverCardDummy;
   };
 
-  BOOST_FIXTURE_TEST_CASE(TestMotorControler, MotorDriverCardDummyTest) {
-    boost::shared_ptr<MotorControler> controler0 = _motorDriverCardDummy.getMotorControler(0);
+  BOOST_FIXTURE_TEST_CASE(TestMotorController, MotorDriverCardDummyTest) {
+    boost::shared_ptr<MotorController> controller0 = _motorDriverCardDummy.getMotorController(0);
 
-    BOOST_CHECK(controler0->getID() == 0);
+    BOOST_CHECK(controller0->getID() == 0);
 
-    // check that we actually get a MotorControlerDummy
-    boost::shared_ptr<MotorControlerDummy> controler1 =
-        boost::dynamic_pointer_cast<MotorControlerDummy>(_motorDriverCardDummy.getMotorControler(1));
+    // check that we actually get a MotorControllerDummy
+    boost::shared_ptr<MotorControllerDummy> controller1 =
+        boost::dynamic_pointer_cast<MotorControllerDummy>(_motorDriverCardDummy.getMotorController(1));
 
     // this will cause an exception if the cast failed
-    BOOST_CHECK(controler1->getID() == 1);
+    BOOST_CHECK(controller1->getID() == 1);
 
-    BOOST_CHECK_THROW(_motorDriverCardDummy.getMotorControler(2), ChimeraTK::logic_error);
+    BOOST_CHECK_THROW(_motorDriverCardDummy.getMotorController(2), ChimeraTK::logic_error);
   }
 
   BOOST_FIXTURE_TEST_CASE(TestGetPowerMonitor, MotorDriverCardDummyTest) {

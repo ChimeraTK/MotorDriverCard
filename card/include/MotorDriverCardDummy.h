@@ -9,11 +9,11 @@
 namespace ChimeraTK::MotorDriver {
   /**
    * A dummy implementation of the MotorDriverCard. It
-   * provides MotorControlerDummys and a PowerMonitorDummy.
+   * provides MotorControllerDummys and a PowerMonitorDummy.
    */
   class MotorDriverCardDummy : public MotorDriverCard {
    public:
-    boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID) override;
+    boost::shared_ptr<MotorController> getMotorController(unsigned int motorControllerID) override;
 
     PowerMonitor& getPowerMonitor() override;
     ~MotorDriverCardDummy() override = default;
@@ -31,7 +31,7 @@ namespace ChimeraTK::MotorDriver {
     // For testing we need access to the constructor
     friend class MotorDriverCardDummyTest;
 
-    std::vector<boost::shared_ptr<MotorControler>> _motorControllers;
+    std::vector<boost::shared_ptr<MotorController>> _motorControllers;
   };
 
 } // namespace ChimeraTK::MotorDriver

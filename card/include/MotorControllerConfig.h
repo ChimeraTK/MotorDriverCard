@@ -7,11 +7,11 @@
 
 namespace ChimeraTK::MotorDriver {
   /** This configuration contains start values for all data words that
-   *  can be written to the MotorControler class. Please note that the IDX field
+   *  can be written to the MotorController class. Please note that the IDX field
    *  of the TMC429 words are ignored. It is replaced by the motor ID when the
    *  settings are applied, so settings can be reused for several motors.
    */
-  struct MotorControlerConfig {
+  struct MotorControllerConfig {
     AccelerationThresholdData accelerationThresholdData;
     //   int actualPosition;
     ChopperControlData chopperControlData;
@@ -37,10 +37,10 @@ namespace ChimeraTK::MotorDriver {
 
     /** The constructor sets reasonable default values to all data words.
      */
-    MotorControlerConfig();
+    MotorControllerConfig();
 
-    bool operator==(MotorControlerConfig const& right) const;
-    bool operator!=(MotorControlerConfig const& right) const;
+    bool operator==(MotorControllerConfig const& right) const;
+    bool operator!=(MotorControllerConfig const& right) const;
   };
 
 } // namespace ChimeraTK::MotorDriver

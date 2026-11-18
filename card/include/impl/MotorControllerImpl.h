@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "MotorControlerConfig.h"
-#include "MotorControlerExpert.h"
+#include "MotorControllerConfig.h"
+#include "MotorControllerExpert.h"
 #include "SignedIntConverter.h"
 #include "SPIviaPCIe.h"
 #include "TMC429SPI.h"
@@ -17,23 +17,23 @@
 namespace ChimeraTK::MotorDriver {
   class MotorDriverCardImpl;
 
-  class MotorControlerImpl : public MotorControlerExpert {
+  class MotorControllerImpl : public MotorControllerExpert {
    public:
-    MotorControlerImpl(MotorControlerImpl&&) = delete;
-    MotorControlerImpl& operator=(MotorControlerImpl&&) = delete;
+    MotorControllerImpl(MotorControllerImpl&&) = delete;
+    MotorControllerImpl& operator=(MotorControllerImpl&&) = delete;
     /** The constructor gets references shared pointers which it copies
      * internally, so the object stays valid even if the original shared pointer
      * goes out of scope. The config is only used in the constuctor, no reference
      * is kept in the class.
      */
-    MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
-        std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
-        MotorControlerConfig const& motorControlerConfig);
+    MotorControllerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
+        std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controllerSPI,
+        MotorControllerConfig const& motorControllerConfig);
 
     /// The class is non-copyable
-    MotorControlerImpl(MotorControlerImpl const&) = delete;
+    MotorControllerImpl(MotorControllerImpl const&) = delete;
     /// The class is non-assignable
-    MotorControlerImpl& operator=(MotorControlerImpl const&) = delete;
+    MotorControllerImpl& operator=(MotorControllerImpl const&) = delete;
 
     unsigned int getID() override;
     int getActualPosition() override;
@@ -217,7 +217,7 @@ namespace ChimeraTK::MotorDriver {
     boost::shared_ptr<ChimeraTK::Device> _device;
 
     unsigned int _id;
-    const MotorControlerConfig _controlerConfig;
+    const MotorControllerConfig _controllerConfig;
 
     /*
      * @brief:
@@ -239,7 +239,7 @@ namespace ChimeraTK::MotorDriver {
     StallGuardControlData _stallGuardControlData;
     DriverConfigData _driverConfigData;
 
-    ChimeraTK::ScalarRegisterAccessor<int32_t> _controlerStatus;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _controllerStatus;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _actualPosition;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _actualVelocity;
     ChimeraTK::ScalarRegisterAccessor<int32_t> _actualAcceleration;
@@ -256,14 +256,14 @@ namespace ChimeraTK::MotorDriver {
     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchPowerIndicator;
 
     SPIviaPCIe _driverSPI;
-    boost::shared_ptr<TMC429SPI> _controlerSPI;
+    boost::shared_ptr<TMC429SPI> _controllerSPI;
 
     static const unsigned int MD_22_DEFAULT_CLOCK_FREQ_MHZ = 32;
 
     template<class T>
     T readTypedRegister();
 
-    void writeTypedControlerRegister(TMC429InputWord inputWord);
+    void writeTypedControllerRegister(TMC429InputWord inputWord);
 
     template<class T>
     void setTypedDriverData(T const& driverData, T& localDataInstance);
@@ -283,7 +283,7 @@ namespace ChimeraTK::MotorDriver {
 
     double convertVMaxToUstepsPerSec(double vMax);
     double convertUstepsPerSecToVmax(double speedInUstepsPerSec);
-    static double calculateConversionFactor(MotorControlerConfig const& motorControlerConfig);
+    static double calculateConversionFactor(MotorControllerConfig const& motorControllerConfig);
     unsigned int validateVMaxForHardware(double calculatedVmax);
 
     double convertCurrentScaletoAmps(unsigned int currentScale);

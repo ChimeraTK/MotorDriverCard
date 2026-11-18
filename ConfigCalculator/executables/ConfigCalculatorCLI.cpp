@@ -71,14 +71,14 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  ChimeraTK::MotorDriver::MotorControlerConfig motorConfig = ConfigCalculator::calculateConfig(
+  ChimeraTK::MotorDriver::MotorControllerConfig motorConfig = ConfigCalculator::calculateConfig(
       chipParameters, static_cast<ConfigCalculator::EndSwitchConfig>(endSwitchConfig));
 
   ChimeraTK::MotorDriver::MotorDriverCardConfig cardConfig;
   // set all motor configs to the same, calculated config
-  for(std::vector<ChimeraTK::MotorDriver::MotorControlerConfig>::iterator it =
-          cardConfig.motorControlerConfigurations.begin();
-      it != cardConfig.motorControlerConfigurations.end(); ++it) {
+  for(std::vector<ChimeraTK::MotorDriver::MotorControllerConfig>::iterator it =
+          cardConfig.motorControllerConfigurations.begin();
+      it != cardConfig.motorControllerConfigurations.end(); ++it) {
     *it = motorConfig;
   }
 

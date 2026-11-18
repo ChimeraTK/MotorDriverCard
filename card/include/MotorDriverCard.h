@@ -7,20 +7,20 @@
 #include <boost/shared_ptr.hpp>
 
 namespace ChimeraTK::MotorDriver {
-  class MotorControler;
+  class MotorController;
   class PowerMonitor;
 
   /**
    * A class to access the DFMC-MD22 motor driver card, which provides two
-   * MotorControlers.
+   * MotorControllers.
    */
   class MotorDriverCard {
    public:
-    /** Get acces to one of the two motor controlers on this board.
+    /** Get access to one of the two motor controllers on this board.
      *  Valid IDs are 0 and 1.
      *  Throws a MotorDriverException if the ID is invalid.
      */
-    virtual boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID) = 0;
+    virtual boost::shared_ptr<MotorController> getMotorController(unsigned int motorControllerID) = 0;
 
     /// Get a reference to the power monitor.
     virtual PowerMonitor& getPowerMonitor() = 0;

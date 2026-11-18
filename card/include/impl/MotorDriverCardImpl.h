@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "MotorControler.h"
+#include "MotorController.h"
 #include "MotorDriverCardConfig.h"
 #include "MotorDriverCardExpert.h"
 #include "PowerMonitor.h"
@@ -20,11 +20,11 @@ namespace ChimeraTK::MotorDriver {
    */
   class MotorDriverCardImpl : public MotorDriverCardExpert {
    public:
-    boost::shared_ptr<MotorControler> getMotorControler(unsigned int motorControlerID);
+    boost::shared_ptr<MotorController> getMotorController(unsigned int motorControllerID);
     /// Get a reference to the power monitor.
     PowerMonitor& getPowerMonitor();
 
-    unsigned int getControlerChipVersion();
+    unsigned int getControllerChipVersion();
 
     void setDatagramLowWord(unsigned int datagramLowWord);
     unsigned int getDatagramLowWord();
@@ -62,17 +62,17 @@ namespace ChimeraTK::MotorDriver {
     TMC429StatusWord getStatusWord();
 
    private:
-    // Motor controlers need dynamic allocation, so we cannot store them directly.
+    // Motor controllers need dynamic allocation, so we cannot store them directly.
     // As we do not want to care about cleaning up we use shared pointers.
-    std::vector<boost::shared_ptr<MotorControler>> _motorControlers;
+    std::vector<boost::shared_ptr<MotorController>> _motorControllers;
 
     boost::shared_ptr<ChimeraTK::Device> _device;
 
     boost::shared_ptr<PowerMonitor> _powerMonitor;
 
-    boost::shared_ptr<TMC429SPI> _controlerSPI;
+    boost::shared_ptr<TMC429SPI> _controllerSPI;
 
-    ChimeraTK::ScalarRegisterAccessor<int32_t> _controlerStatusRegister;
+    ChimeraTK::ScalarRegisterAccessor<int32_t> _controllerStatusRegister;
 
     std::string _moduleName;
 
@@ -98,8 +98,8 @@ namespace ChimeraTK::MotorDriver {
     // The test suite is granted access to the constructor because it needs access
     // to the dummy device below to set it to testing mode.
     template<unsigned int motorId>
-    friend class MotorControlerTestFixture;
-    friend class MotorControlerTest;
+    friend class MotorControllerTestFixture;
+    friend class MotorControllerTest;
 
     // The card test tests the constructor, so also here we have to make it friend
     friend class MotorDriverCardTest;

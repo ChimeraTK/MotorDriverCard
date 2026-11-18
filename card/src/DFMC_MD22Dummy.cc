@@ -18,8 +18,8 @@ using namespace ChimeraTK::MotorDriver::tmc429;
 namespace ChimeraTK::MotorDriver {
 
   DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const& mapFileName, std::string const& tmc429ControllerModuleName)
-  : DummyBackend(mapFileName), _controlerSpiAddressSpace(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0),
-    _controlerSpiWriteAddress(0), _controlerSpiBar(0), _controlerSpiReadbackAddress(0), _controlerSpiSyncAddress(0),
+  : DummyBackend(mapFileName), _controllerSpiAddressSpace(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0),
+    _controllerSpiWriteAddress(0), _controllerSpiBar(0), _controllerSpiReadbackAddress(0), _controllerSpiSyncAddress(0),
     _powerIsUp(true), _driverSPIs(0), _causeSpiTimeouts(false), _nSpiTimeoutsLeft(0), _causeSpiErrors(false),
     _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
     _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY), _moduleName(tmc429ControllerModuleName) {}
@@ -38,30 +38,30 @@ namespace ChimeraTK::MotorDriver {
     setPCIeRegistersForTesting(); // some of them will be overwritten if a
     // defined behavior exists for them
 
-    _controlerSpiAddressSpace.resize(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0);
+    _controllerSpiAddressSpace.resize(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0);
 
-    setControlerSpiRegistersForOperation();
+    setControllerSpiRegistersForOperation();
 
-    auto registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_WRITE_ADDRESS_STRING);
-    AddressRange controlerSpiWriteAddressRange(registerInformation);
-    _controlerSpiWriteAddress = registerInformation.address;
-    _controlerSpiBar = registerInformation.bar;
+    auto registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLLER_SPI_WRITE_ADDRESS_STRING);
+    AddressRange controllerSpiWriteAddressRange(registerInformation);
+    _controllerSpiWriteAddress = registerInformation.address;
+    _controllerSpiBar = registerInformation.bar;
 
-    registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_READBACK_ADDRESS_STRING);
-    if(_controlerSpiBar != registerInformation.bar) {
+    registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLLER_SPI_READBACK_ADDRESS_STRING);
+    if(_controllerSpiBar != registerInformation.bar) {
       throw ChimeraTK::logic_error("SPI write and readback address must be in the same bar");
     }
-    _controlerSpiReadbackAddress = registerInformation.address;
+    _controllerSpiReadbackAddress = registerInformation.address;
     setReadOnly(registerInformation.bar, registerInformation.address, registerInformation.nElements);
 
-    registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLER_SPI_SYNC_ADDRESS_STRING);
-    if(_controlerSpiBar != registerInformation.bar) {
+    registerInformation = _registerMap.getBackendRegister(_moduleName / CONTROLLER_SPI_SYNC_ADDRESS_STRING);
+    if(_controllerSpiBar != registerInformation.bar) {
       throw ChimeraTK::logic_error("SPI write and sync address must be in the same bar");
     }
-    _controlerSpiSyncAddress = registerInformation.address;
+    _controllerSpiSyncAddress = registerInformation.address;
 
     setWriteCallbackFunction(
-        controlerSpiWriteAddressRange, boost::bind(&DFMC_MD22Dummy::handleControlerSpiWrite, this));
+        controllerSpiWriteAddressRange, boost::bind(&DFMC_MD22Dummy::handleControllerSpiWrite, this));
 
     _driverSPIs.resize(N_MOTORS_MAX);
     for(unsigned int id = 0; id < N_MOTORS_MAX; ++id) {
@@ -70,7 +70,7 @@ namespace ChimeraTK::MotorDriver {
       setReadOnly(AddressRange(
           _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, ACTUAL_VELOCITY_SUFFIX))));
       setReadOnly(AddressRange(
-          _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, ACTUAL_ACCELETATION_SUFFIX))));
+          _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, ACTUAL_ACCELERATION_SUFFIX))));
       setReadOnly(AddressRange(
           _registerMap.getBackendRegister(_moduleName / createMotorRegisterName(id, MICRO_STEP_COUNT_SUFFIX))));
 
@@ -141,31 +141,31 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  void DFMC_MD22Dummy::setControlerSpiRegistersForOperation() {
-    for_each(_controlerSpiAddressSpace.begin(), _controlerSpiAddressSpace.end(), boost::lambda::_1 = 0);
+  void DFMC_MD22Dummy::setControllerSpiRegistersForOperation() {
+    for_each(_controllerSpiAddressSpace.begin(), _controllerSpiAddressSpace.end(), boost::lambda::_1 = 0);
 
     // Information from the data sheet:
-    size_t controlerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_CHIP_VERSION);
-    _controlerSpiAddressSpace[controlerSpiAddress] = CONTROLER_CHIP_VERSION;
+    size_t controllerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_CHIP_VERSION);
+    _controllerSpiAddressSpace[controllerSpiAddress] = CONTROLLER_CHIP_VERSION;
 
     // the CLK2_DIV subword is 15, all other bits stay 0
-    controlerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
+    controllerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
     StepperMotorGlobalParameters globalParameters;
     globalParameters.setClk2_div(15);
-    _controlerSpiAddressSpace.at(controlerSpiAddress) = globalParameters.getDATA();
+    _controllerSpiAddressSpace.at(controllerSpiAddress) = globalParameters.getDATA();
 
-    synchroniseFpgaWithControlerSpiRegisters();
+    synchroniseFpgaWithControllerSpiRegisters();
   }
 
-  void DFMC_MD22Dummy::setControlerSpiRegistersForTesting() {
-    for(size_t i = 0; i < _controlerSpiAddressSpace.size(); ++i) {
-      _controlerSpiAddressSpace[i] = i * i + 13;
+  void DFMC_MD22Dummy::setControllerSpiRegistersForTesting() {
+    for(size_t i = 0; i < _controllerSpiAddressSpace.size(); ++i) {
+      _controllerSpiAddressSpace[i] = i * i + 13;
     }
 
-    synchroniseFpgaWithControlerSpiRegisters();
+    synchroniseFpgaWithControllerSpiRegisters();
   }
 
-  void DFMC_MD22Dummy::handleControlerSpiWrite() {
+  void DFMC_MD22Dummy::handleControllerSpiWrite() {
     // debug functionality: cause timeouts by ignoring spi writes
     if(checkSpiTimeoutsCounter()) {
       return;
@@ -173,40 +173,40 @@ namespace ChimeraTK::MotorDriver {
     int32_t value = SPI_SYNC_ERROR;
     // debug functionality: cause errors
     if(_causeSpiErrors) {
-      write(_controlerSpiBar, _controlerSpiSyncAddress, &value, 4);
+      write(_controllerSpiBar, _controllerSpiSyncAddress, &value, 4);
       return;
     }
 
-    int32_t controlerSpiSyncWord;
-    read(_controlerSpiBar, _controlerSpiSyncAddress, &controlerSpiSyncWord, 4);
+    int32_t controllerSpiSyncWord;
+    read(_controllerSpiBar, _controllerSpiSyncAddress, &controllerSpiSyncWord, 4);
 
-    if(controlerSpiSyncWord != SPI_SYNC_REQUESTED) {
-      write(_controlerSpiBar, _controlerSpiSyncAddress, &value, 4);
+    if(controllerSpiSyncWord != SPI_SYNC_REQUESTED) {
+      write(_controllerSpiBar, _controllerSpiSyncAddress, &value, 4);
       return;
     }
 
-    int32_t controlerSpiWriteWord;
-    read(_controlerSpiBar, _controlerSpiWriteAddress, &controlerSpiWriteWord, 4);
+    int32_t controllerSpiWriteWord;
+    read(_controllerSpiBar, _controllerSpiWriteAddress, &controllerSpiWriteWord, 4);
 
-    TMC429InputWord inputWord(controlerSpiWriteWord);
-    uint32_t controlerSpiAddress = inputWord.getADDRESS();
+    TMC429InputWord inputWord(controllerSpiWriteWord);
+    uint32_t controllerSpiAddress = inputWord.getADDRESS();
     if(inputWord.getRW() == RW_READ) {
-      writeControlerSpiContentToReadbackRegister(controlerSpiAddress);
+      writeControllerSpiContentToReadbackRegister(controllerSpiAddress);
       // it takes some time to perform this in firmware. Implement a short delay,
       // which proabaly will cause rescheduling, twice for write and read
       boost::this_thread::sleep(boost::posix_time::microseconds(2 * _microsecondsControllerSpiDelay));
     }
     else {
-      writeContentToControlerSpiRegister(inputWord.getDATA(), controlerSpiAddress);
+      writeContentToControllerSpiRegister(inputWord.getDATA(), controllerSpiAddress);
       // it takes some time to perform this in firmware. Implement a short delay,
       // which proabaly will cause rescheduling.
       boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsControllerSpiDelay));
     }
 
-    triggerActionsOnControlerSpiWrite(inputWord);
+    triggerActionsOnControllerSpiWrite(inputWord);
     value = SPI_SYNC_OK;
     // SPI action done, write sync ok to finish the handshake
-    write(_controlerSpiBar, _controlerSpiSyncAddress, &value, 4);
+    write(_controllerSpiBar, _controllerSpiSyncAddress, &value, 4);
   }
 
   void DFMC_MD22Dummy::handleDriverSpiWrite(unsigned int ID) {
@@ -277,7 +277,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   TMC429OutputWord DFMC_MD22Dummy::frameTMC429SPIResponse(TMC429InputWord& inputSpi) {
-    return TMC429OutputWord(_controlerSpiAddressSpace.at(inputSpi.getADDRESS()));
+    return TMC429OutputWord(_controllerSpiAddressSpace.at(inputSpi.getADDRESS()));
   }
 
   void DFMC_MD22Dummy::driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData) {
@@ -293,20 +293,20 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  void DFMC_MD22Dummy::writeContentToControlerSpiRegister(unsigned int content, unsigned int controlerSpiAddress) {
+  void DFMC_MD22Dummy::writeContentToControllerSpiRegister(unsigned int content, unsigned int controllerSpiAddress) {
     if(_powerIsUp) {
-      _controlerSpiAddressSpace.at(controlerSpiAddress) = content;
+      _controllerSpiAddressSpace.at(controllerSpiAddress) = content;
     }
   }
 
-  void DFMC_MD22Dummy::writeControlerSpiContentToReadbackRegister(unsigned int controlerSpiAddress) {
+  void DFMC_MD22Dummy::writeControllerSpiContentToReadbackRegister(unsigned int controllerSpiAddress) {
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
-    outputWord.setDATA(_controlerSpiAddressSpace.at(controlerSpiAddress));
-    writeRegisterWithoutCallback(_controlerSpiBar, _controlerSpiReadbackAddress, outputWord.getDataWord());
+    outputWord.setDATA(_controllerSpiAddressSpace.at(controllerSpiAddress));
+    writeRegisterWithoutCallback(_controllerSpiBar, _controllerSpiReadbackAddress, outputWord.getDataWord());
   }
 
-  void DFMC_MD22Dummy::triggerActionsOnControlerSpiWrite(TMC429InputWord const& inputWord) {
+  void DFMC_MD22Dummy::triggerActionsOnControllerSpiWrite(TMC429InputWord const& inputWord) {
     switch(inputWord.getSMDA()) {
       case SMDA_COMMON: // common registers are addressed by jdx
         performJdxActions(inputWord.getIDX_JDX());
@@ -315,7 +315,7 @@ namespace ChimeraTK::MotorDriver {
         performIdxActions(inputWord.getIDX_JDX());
     };
 
-    synchroniseFpgaWithControlerSpiRegisters();
+    synchroniseFpgaWithControllerSpiRegisters();
   }
 
   void DFMC_MD22Dummy::performJdxActions(unsigned int jdx) {
@@ -337,28 +337,28 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void DFMC_MD22Dummy::powerUp() {
-    unsigned int powerDownControlerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_POWER_DOWN);
-    writeContentToControlerSpiRegister(0, powerDownControlerSpiAddress);
+    unsigned int powerDownControllerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_POWER_DOWN);
+    writeContentToControllerSpiRegister(0, powerDownControllerSpiAddress);
     _powerIsUp = true;
   }
 
-  void DFMC_MD22Dummy::synchroniseFpgaWithControlerSpiRegisters() {
+  void DFMC_MD22Dummy::synchroniseFpgaWithControllerSpiRegisters() {
     for(unsigned int i = 0; i < N_MOTORS_MAX; ++i) {
-      writeControlerSpiRegisterToFpga(i, IDX_ACTUAL_POSITION, ACTUAL_POSITION_SUFFIX);
-      writeControlerSpiRegisterToFpga(i, IDX_ACTUAL_VELOCITY, ACTUAL_VELOCITY_SUFFIX);
-      writeControlerSpiRegisterToFpga(i, IDX_ACTUAL_ACCELERATION, ACTUAL_ACCELETATION_SUFFIX);
+      writeControllerSpiRegisterToFpga(i, IDX_ACTUAL_POSITION, ACTUAL_POSITION_SUFFIX);
+      writeControllerSpiRegisterToFpga(i, IDX_ACTUAL_VELOCITY, ACTUAL_VELOCITY_SUFFIX);
+      writeControllerSpiRegisterToFpga(i, IDX_ACTUAL_ACCELERATION, ACTUAL_ACCELERATION_SUFFIX);
       // writeAccelerationThresholdToFpgs( i );
-      writeControlerSpiRegisterToFpga(i, IDX_MICRO_STEP_COUNT, MICRO_STEP_COUNT_SUFFIX);
+      writeControllerSpiRegisterToFpga(i, IDX_MICRO_STEP_COUNT, MICRO_STEP_COUNT_SUFFIX);
     }
   }
 
-  void DFMC_MD22Dummy::writeControlerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix) {
-    unsigned int controlerSpiAddress = spiAddressFromSmdaIdxJdx(ID, IDX);
+  void DFMC_MD22Dummy::writeControllerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix) {
+    unsigned int controllerSpiAddress = spiAddressFromSmdaIdxJdx(ID, IDX);
     std::string registerName = createMotorRegisterName(ID, suffix);
 
     auto registerInformation = _registerMap.getBackendRegister(_moduleName / registerName);
     writeRegisterWithoutCallback(
-        registerInformation.bar, registerInformation.address, _controlerSpiAddressSpace[controlerSpiAddress]);
+        registerInformation.bar, registerInformation.address, _controllerSpiAddressSpace[controllerSpiAddress]);
   }
 
   unsigned int DFMC_MD22Dummy::readDriverSpiRegister(unsigned int motorID, unsigned int driverSpiAddress) {
@@ -370,7 +370,7 @@ namespace ChimeraTK::MotorDriver {
     // FIXME: store the current config to be able to restore it later
 
     setPCIeRegistersForTesting();
-    setControlerSpiRegistersForTesting();
+    setControllerSpiRegistersForTesting();
 
     for(unsigned int id = 0; id < N_MOTORS_MAX; ++id) {
       setDriverSpiRegistersForTesting(id);

@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE(testRampDivAMaxRanges) {
   ParametersCalculator::PhysicalParameters lowAMaxParameters = vt21Parameters;
   lowAMaxParameters.timeToVMax = 150; // extremely low acceleration
   lowAMaxParameters.maxRPM = 20;      // with 200 also pDiv is out of range
-  // AMax is below the recommended value of 20, there whould be
+  // AMax is below the recommended value of 20, there would be
   // an additional warning
   chipParameters = ParametersCalculator::calculateParameters(lowAMaxParameters);
   BOOST_CHECK(chipParameters.rampDiv == 13);

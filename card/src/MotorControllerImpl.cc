@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
-#include "impl/MotorControlerImpl.h"
+#include "impl/MotorControllerImpl.h"
 
 #include "DFMC_MD22Constants.h"
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
@@ -25,43 +25,43 @@ using namespace ChimeraTK::MotorDriver::tmc429;
 // the function coverage test (not the line coverage test). Otherwise we would
 // need a complete test which checks the macro.
 #define DEFINE_GET_SET_VALUE(NAME, IDX)                                                                                \
-  unsigned int MotorControlerImpl::get##NAME() {                                                                       \
+  unsigned int MotorControllerImpl::get##NAME() {                                                                      \
     lock_guard guard(_mutex);                                                                                          \
-    return _controlerSPI->read(_id, IDX).getDATA();                                                                    \
+    return _controllerSPI->read(_id, IDX).getDATA();                                                                   \
   }                                                                                                                    \
-  void MotorControlerImpl::set##NAME(unsigned int value) {                                                             \
+  void MotorControllerImpl::set##NAME(unsigned int value) {                                                            \
     lock_guard guard(_mutex);                                                                                          \
-    _controlerSPI->write(_id, IDX, value);                                                                             \
+    _controllerSPI->write(_id, IDX, value);                                                                            \
   }
 
 #define DEFINE_SIGNED_GET_SET_VALUE(NAME, IDX, CONVERTER)                                                              \
-  int MotorControlerImpl::get##NAME() {                                                                                \
+  int MotorControllerImpl::get##NAME() {                                                                               \
     lock_guard guard(_mutex);                                                                                          \
-    int readValue = static_cast<int>(_controlerSPI->read(_id, IDX).getDATA());                                         \
+    int readValue = static_cast<int>(_controllerSPI->read(_id, IDX).getDATA());                                        \
     return CONVERTER.customToThirtyTwo(readValue);                                                                     \
   }                                                                                                                    \
-  void MotorControlerImpl::set##NAME(int value) {                                                                      \
+  void MotorControllerImpl::set##NAME(int value) {                                                                     \
     lock_guard guard(_mutex);                                                                                          \
     unsigned int writeValue = static_cast<unsigned int>(CONVERTER.thirtyTwoToCustom(value));                           \
-    _controlerSPI->write(_id, IDX, writeValue);                                                                        \
+    _controllerSPI->write(_id, IDX, writeValue);                                                                       \
   }
 
-#define DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(NAME)                                                                  \
-  NAME MotorControlerImpl::get##NAME() {                                                                               \
+#define DEFINE_SET_GET_TYPED_CONTROLLER_REGISTER(NAME)                                                                 \
+  NAME MotorControllerImpl::get##NAME() {                                                                              \
     lock_guard guard(_mutex);                                                                                          \
     return readTypedRegister<NAME>();                                                                                  \
   }                                                                                                                    \
-  void MotorControlerImpl::set##NAME(NAME const& inputWord) {                                                          \
+  void MotorControllerImpl::set##NAME(NAME const& inputWord) {                                                         \
     lock_guard guard(_mutex);                                                                                          \
-    writeTypedControlerRegister(inputWord);                                                                            \
+    writeTypedControllerRegister(inputWord);                                                                           \
   }
 
 #define DEFINE_SET_GET_TYPED_DRIVER_DATA(NAME, LOCAL_DATA_INSTANCE)                                                    \
-  NAME const& MotorControlerImpl::get##NAME() const {                                                                  \
+  NAME const& MotorControllerImpl::get##NAME() const {                                                                 \
     lock_guard guard(_mutex);                                                                                          \
     return LOCAL_DATA_INSTANCE;                                                                                        \
   }                                                                                                                    \
-  void MotorControlerImpl::set##NAME(NAME const& driverData) {                                                         \
+  void MotorControllerImpl::set##NAME(NAME const& driverData) {                                                        \
     lock_guard guard(_mutex);                                                                                          \
     setTypedDriverData<NAME>(driverData, LOCAL_DATA_INSTANCE);                                                         \
   }
@@ -70,25 +70,25 @@ typedef std::lock_guard<std::mutex> lock_guard;
 typedef std::unique_lock<std::mutex> unique_lock;
 
 namespace ChimeraTK::MotorDriver {
-  MotorControlerImpl::MotorControlerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
-      std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controlerSPI,
-      MotorControlerConfig const& motorControlerConfig)
-  : _mutex(), _device(device), _id(ID), _controlerConfig(motorControlerConfig),
-    _conversionFactor(calculateConversionFactor(motorControlerConfig)),
-    _currentVmax(motorControlerConfig.maximumVelocity),
-    _usrSetCurrentScale(_controlerConfig.stallGuardControlData.getCurrentScale()), _driverControlData(), // set later in
-                                                                                                         // the
-                                                                                                         // constructor
-                                                                                                         // body
+  MotorControllerImpl::MotorControllerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
+      std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controllerSPI,
+      MotorControllerConfig const& motorControllerConfig)
+  : _mutex(), _device(device), _id(ID), _controllerConfig(motorControllerConfig),
+    _conversionFactor(calculateConversionFactor(motorControllerConfig)),
+    _currentVmax(motorControllerConfig.maximumVelocity),
+    _usrSetCurrentScale(_controllerConfig.stallGuardControlData.getCurrentScale()), _driverControlData(), // set later
+                                                                                                          // in the
+                                                                                                          // constructor
+                                                                                                          // body
     _chopperControlData(),    // set later in the constructor body
     _coolStepControlData(),   // set later in the constructor body
     _stallGuardControlData(), // set later in the constructor body
     _driverConfigData(),      // set later in the constructor body
-    _controlerStatus{device->getScalarRegisterAccessor<int32_t>(
-        moduleName + "/" + CONTROLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})},
+    _controllerStatus{device->getScalarRegisterAccessor<int32_t>(
+        moduleName + "/" + CONTROLLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})},
     _actualPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_POSITION_SUFFIX)},
     _actualVelocity{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_VELOCITY_SUFFIX)},
-    _actualAcceleration{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_ACCELETATION_SUFFIX)},
+    _actualAcceleration{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_ACCELERATION_SUFFIX)},
     _microStepCount{RAW_ACCESSOR_FROM_SUFFIX(moduleName, MICRO_STEP_COUNT_SUFFIX)},
     _stallGuardValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, STALL_GUARD_VALUE_SUFFIX)},
     _coolStepValue{RAW_ACCESSOR_FROM_SUFFIX(moduleName, COOL_STEP_VALUE_SUFFIX)},
@@ -100,33 +100,33 @@ namespace ChimeraTK::MotorDriver {
     _endSwitchPositive{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_POSITIVE_SUFFIX)},
     _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)}, _endSwitchPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
-        createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControlerConfig.driverSpiWaitingTime),
-    _controlerSPI(controlerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false),
+        createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControllerConfig.driverSpiWaitingTime),
+    _controllerSPI(controllerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false),
     _userMicroStepSize(0), _localTargetPosition(0) {
-    setAccelerationThresholdData(motorControlerConfig.accelerationThresholdData);
-    // setActualPosition( motorControlerConfig.actualPosition );
-    setChopperControlData(motorControlerConfig.chopperControlData);
-    setCoolStepControlData(motorControlerConfig.coolStepControlData);
-    setDecoderReadoutMode(motorControlerConfig.decoderReadoutMode);
-    setDividersAndMicroStepResolutionData(motorControlerConfig.dividersAndMicroStepResolutionData);
-    setDriverConfigData(motorControlerConfig.driverConfigData);
-    setDriverControlData(motorControlerConfig.driverControlData);
-    setInterruptData(motorControlerConfig.interruptData);
-    setMaximumAcceleration(motorControlerConfig.maximumAcceleration);
-    setMaximumVelocity(motorControlerConfig.maximumVelocity);
-    setMicroStepCount(motorControlerConfig.microStepCount);
-    setMinimumVelocity(motorControlerConfig.minimumVelocity);
-    setPositionTolerance(motorControlerConfig.positionTolerance);
-    setProportionalityFactorData(motorControlerConfig.proportionalityFactorData);
-    setReferenceConfigAndRampModeData(motorControlerConfig.referenceConfigAndRampModeData);
-    setStallGuardControlData(motorControlerConfig.stallGuardControlData);
-    setTargetVelocity(motorControlerConfig.targetVelocity);
+    setAccelerationThresholdData(motorControllerConfig.accelerationThresholdData);
+    // setActualPosition( motorControllerConfig.actualPosition );
+    setChopperControlData(motorControllerConfig.chopperControlData);
+    setCoolStepControlData(motorControllerConfig.coolStepControlData);
+    setDecoderReadoutMode(motorControllerConfig.decoderReadoutMode);
+    setDividersAndMicroStepResolutionData(motorControllerConfig.dividersAndMicroStepResolutionData);
+    setDriverConfigData(motorControllerConfig.driverConfigData);
+    setDriverControlData(motorControllerConfig.driverControlData);
+    setInterruptData(motorControllerConfig.interruptData);
+    setMaximumAcceleration(motorControllerConfig.maximumAcceleration);
+    setMaximumVelocity(motorControllerConfig.maximumVelocity);
+    setMicroStepCount(motorControllerConfig.microStepCount);
+    setMinimumVelocity(motorControllerConfig.minimumVelocity);
+    setPositionTolerance(motorControllerConfig.positionTolerance);
+    setProportionalityFactorData(motorControllerConfig.proportionalityFactorData);
+    setReferenceConfigAndRampModeData(motorControllerConfig.referenceConfigAndRampModeData);
+    setStallGuardControlData(motorControllerConfig.stallGuardControlData);
+    setTargetVelocity(motorControllerConfig.targetVelocity);
 
     _localTargetPosition = retrieveTargetPositonAndConvert();
-    _userMicroStepSize = pow(2, motorControlerConfig.driverControlData.getMicroStepResolution());
+    _userMicroStepSize = pow(2, motorControllerConfig.driverControlData.getMicroStepResolution());
 
     // enabling the motor is the last step after setting all registers
-    setEnabled(motorControlerConfig.enabled);
+    setEnabled(motorControllerConfig.enabled);
     try {
       // this must throw on mapfile not having this register
       _endSwitchPowerIndicator.replace(RAW_ACCESSOR_FROM_SUFFIX(moduleName, ENDSWITCH_ENABLE_SUFFIX));
@@ -140,126 +140,126 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  unsigned int MotorControlerImpl::getID() {
+  unsigned int MotorControllerImpl::getID() {
     lock_guard guard(_mutex);
     return _id;
   }
 
-  int MotorControlerImpl::getActualPosition() {
+  int MotorControllerImpl::getActualPosition() {
     lock_guard guard(_mutex);
     return readPositionRegisterAndConvert();
   }
 
-  int MotorControlerImpl::readPositionRegisterAndConvert() {
+  int MotorControllerImpl::readPositionRegisterAndConvert() {
     _actualPosition.read();
     return _converter24bits.customToThirtyTwo(_actualPosition);
   }
 
-  unsigned int MotorControlerImpl::readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue) {
+  unsigned int MotorControllerImpl::readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue) {
     readValue.read();
     return static_cast<unsigned int>(readValue);
   }
 
-  void MotorControlerImpl::setActualPosition(int position) {
+  void MotorControllerImpl::setActualPosition(int position) {
     lock_guard guard(_mutex);
-    _controlerSPI->write(
+    _controllerSPI->write(
         _id, IDX_ACTUAL_POSITION, static_cast<unsigned int>(_converter24bits.thirtyTwoToCustom(position)));
   }
 
-  int MotorControlerImpl::getActualVelocity() {
+  int MotorControllerImpl::getActualVelocity() {
     lock_guard guard(_mutex);
     _actualVelocity.read();
     return _converter12bits.customToThirtyTwo(_actualVelocity);
   }
 
-  void MotorControlerImpl::setActualVelocity(int velocity) {
+  void MotorControllerImpl::setActualVelocity(int velocity) {
     lock_guard guard(_mutex);
-    _controlerSPI->write(
+    _controllerSPI->write(
         _id, IDX_ACTUAL_VELOCITY, static_cast<unsigned int>(_converter12bits.thirtyTwoToCustom(velocity)));
   }
 
-  unsigned int MotorControlerImpl::getActualAcceleration() {
+  unsigned int MotorControllerImpl::getActualAcceleration() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_actualAcceleration);
   }
 
-  void MotorControlerImpl::setActualAcceleration(unsigned int acceleration) {
+  void MotorControllerImpl::setActualAcceleration(unsigned int acceleration) {
     lock_guard guard(_mutex);
-    _controlerSPI->write(_id, IDX_ACTUAL_ACCELERATION, acceleration);
+    _controllerSPI->write(_id, IDX_ACTUAL_ACCELERATION, acceleration);
   }
 
-  unsigned int MotorControlerImpl::getMicroStepCount() {
+  unsigned int MotorControllerImpl::getMicroStepCount() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_microStepCount);
   }
 
-  void MotorControlerImpl::setMicroStepCount(unsigned int microStepCount) {
+  void MotorControllerImpl::setMicroStepCount(unsigned int microStepCount) {
     lock_guard guard(_mutex);
-    _controlerSPI->write(_id, IDX_MICRO_STEP_COUNT, microStepCount);
+    _controllerSPI->write(_id, IDX_MICRO_STEP_COUNT, microStepCount);
   }
 
-  unsigned int MotorControlerImpl::getCoolStepValue() {
+  unsigned int MotorControllerImpl::getCoolStepValue() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_coolStepValue);
   }
 
-  unsigned int MotorControlerImpl::getStallGuardValue() {
+  unsigned int MotorControllerImpl::getStallGuardValue() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_stallGuardValue);
   }
 
-  DriverStatusData MotorControlerImpl::getStatus() {
+  DriverStatusData MotorControllerImpl::getStatus() {
     lock_guard guard(_mutex);
     return DriverStatusData(readRegisterAccessor(_status));
   }
 
-  void MotorControlerImpl::setDecoderReadoutMode(unsigned int readoutMode) {
+  void MotorControllerImpl::setDecoderReadoutMode(unsigned int readoutMode) {
     lock_guard guard(_mutex);
     _decoderReadoutMode = static_cast<int32_t>(readoutMode);
     _decoderReadoutMode.write();
   }
 
-  unsigned int MotorControlerImpl::getDecoderReadoutMode() {
+  unsigned int MotorControllerImpl::getDecoderReadoutMode() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_decoderReadoutMode);
   }
 
-  unsigned int MotorControlerImpl::getDecoderPosition() {
+  unsigned int MotorControllerImpl::getDecoderPosition() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_decoderPosition);
   }
 
-  void MotorControlerImpl::setEnabled(bool enable) {
+  void MotorControllerImpl::setEnabled(bool enable) {
     // The mutex is locked in setMotorCurrentEnabled
     setMotorCurrentEnabled(enable);
   }
 
-  bool MotorControlerImpl::isEnabled() {
+  bool MotorControllerImpl::isEnabled() {
     // Mutex is locked in isMotorCurrentEnabled
     return isMotorCurrentEnabled();
   }
 
-  void MotorControlerImpl::enableFullStepping(bool enable) {
+  void MotorControllerImpl::enableFullStepping(bool enable) {
     _moveOnlyFullStep = enable;
   }
 
-  bool MotorControlerImpl::isFullStepping() {
+  bool MotorControllerImpl::isFullStepping() {
     return _moveOnlyFullStep;
   }
 
   // DEFINE_SIGNED_GET_SET_VALUE( TargetPosition, IDX_TARGET_POSITION,
   // converter24bits )
-  int MotorControlerImpl::getTargetPosition() {
+  int MotorControllerImpl::getTargetPosition() {
     lock_guard guard(_mutex);
     return retrieveTargetPositonAndConvert();
   }
 
-  int MotorControlerImpl::retrieveTargetPositonAndConvert() {
-    int readValue = static_cast<int>(_controlerSPI->read(_id, IDX_TARGET_POSITION).getDATA());
+  int MotorControllerImpl::retrieveTargetPositonAndConvert() {
+    int readValue = static_cast<int>(_controllerSPI->read(_id, IDX_TARGET_POSITION).getDATA());
     return _converter24bits.customToThirtyTwo(readValue);
   }
 
-  void MotorControlerImpl::setTargetPosition(int value) {
+  void MotorControllerImpl::setTargetPosition(int value) {
     lock_guard guard(_mutex);
 
     InterruptData interupts;
@@ -270,7 +270,7 @@ namespace ChimeraTK::MotorDriver {
 
     // Enable all interrupts
     interupts.setInterruptFlags(255);
-    writeTypedControlerRegister(interupts);
+    writeTypedControllerRegister(interupts);
 
     if(_moveOnlyFullStep) {
       roundToNextFullStep(value);
@@ -279,10 +279,10 @@ namespace ChimeraTK::MotorDriver {
     _localTargetPosition = value;
 
     auto writeValue = static_cast<unsigned int>(_converter24bits.thirtyTwoToCustom(value));
-    _controlerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
+    _controllerSPI->write(_id, IDX_TARGET_POSITION, writeValue);
   }
 
-  void MotorControlerImpl::roundToNextFullStep(int& targetPosition) { // todo implementing
+  void MotorControllerImpl::roundToNextFullStep(int& targetPosition) { // todo implementing
     int delta = targetPosition - readPositionRegisterAndConvert();
     int deltaMicroStep = delta * _userMicroStepSize;
     unsigned int actualMicroStepCount = readRegisterAccessor(_microStepCount);
@@ -302,56 +302,56 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_GET_SET_VALUE(PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE)
   DEFINE_GET_SET_VALUE(PositionLatched, IDX_POSITION_LATCHED)
 
-  unsigned int MotorControlerImpl::getMaximumVelocity() {
+  unsigned int MotorControllerImpl::getMaximumVelocity() {
     lock_guard guard(_mutex);
-    return _controlerSPI->read(_id, IDX_MAXIMUM_VELOCITY).getDATA();
+    return _controllerSPI->read(_id, IDX_MAXIMUM_VELOCITY).getDATA();
   }
 
-  void MotorControlerImpl::setMaximumVelocity(unsigned int value) {
+  void MotorControllerImpl::setMaximumVelocity(unsigned int value) {
     lock_guard guard(_mutex);
     _currentVmax = value;
-    _controlerSPI->write(_id, IDX_MAXIMUM_VELOCITY, value);
+    _controllerSPI->write(_id, IDX_MAXIMUM_VELOCITY, value);
   }
 
   template<class T>
-  T MotorControlerImpl::readTypedRegister() {
+  T MotorControllerImpl::readTypedRegister() {
     T typedWord;
     typedWord.setSMDA(_id);
-    TMC429OutputWord readbackWord = _controlerSPI->read(_id, typedWord.getIDX_JDX());
+    TMC429OutputWord readbackWord = _controllerSPI->read(_id, typedWord.getIDX_JDX());
     typedWord.setDATA(readbackWord.getDATA());
     return typedWord;
   }
 
-  double MotorControlerImpl::getMaxSpeedCapability() {
-    // Does not really need a mutex; shared state is only from _controlerConfig,
+  double MotorControllerImpl::getMaxSpeedCapability() {
+    // Does not really need a mutex; shared state is only from _controllerConfig,
     // which is const - hence no risk of data changing during parallel access.
-    auto hardLimitForVmax = _controlerConfig.maximumVelocity;
+    auto hardLimitForVmax = _controllerConfig.maximumVelocity;
     return (convertVMaxToUstepsPerSec(hardLimitForVmax));
   }
 
-  double MotorControlerImpl::setUserSpeedLimit(double microStepsPerSecond) {
+  double MotorControllerImpl::setUserSpeedLimit(double microStepsPerSecond) {
     auto validatedVmax = validateVMaxForHardware(convertUstepsPerSecToVmax(microStepsPerSecond));
     // This is the critical path; already protected by mutex internally.
     setMaximumVelocity(validatedVmax);
     return convertVMaxToUstepsPerSec(validatedVmax);
   }
 
-  double MotorControlerImpl::getUserSpeedLimit() {
+  double MotorControllerImpl::getUserSpeedLimit() {
     lock_guard guard(_mutex);
     return convertVMaxToUstepsPerSec(_currentVmax);
   }
 
-  void MotorControlerImpl::writeTypedControlerRegister(TMC429InputWord inputWord) {
+  void MotorControllerImpl::writeTypedControllerRegister(TMC429InputWord inputWord) {
     // set/overwrite the id with this motors id
     inputWord.setSMDA(_id);
-    _controlerSPI->write(inputWord);
+    _controllerSPI->write(inputWord);
   }
 
-  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(AccelerationThresholdData)
-  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(ProportionalityFactorData)
-  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(ReferenceConfigAndRampModeData)
-  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(InterruptData)
-  DEFINE_SET_GET_TYPED_CONTROLER_REGISTER(DividersAndMicroStepResolutionData)
+  DEFINE_SET_GET_TYPED_CONTROLLER_REGISTER(AccelerationThresholdData)
+  DEFINE_SET_GET_TYPED_CONTROLLER_REGISTER(ProportionalityFactorData)
+  DEFINE_SET_GET_TYPED_CONTROLLER_REGISTER(ReferenceConfigAndRampModeData)
+  DEFINE_SET_GET_TYPED_CONTROLLER_REGISTER(InterruptData)
+  DEFINE_SET_GET_TYPED_CONTROLLER_REGISTER(DividersAndMicroStepResolutionData)
 
   DEFINE_SET_GET_TYPED_DRIVER_DATA(DriverControlData, _driverControlData)
   DEFINE_SET_GET_TYPED_DRIVER_DATA(ChopperControlData, _chopperControlData)
@@ -360,22 +360,22 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_SET_GET_TYPED_DRIVER_DATA(DriverConfigData, _driverConfigData)
 
   template<class T>
-  void MotorControlerImpl::setTypedDriverData(T const& driverData, T& localDataInstance) {
+  void MotorControllerImpl::setTypedDriverData(T const& driverData, T& localDataInstance) {
     _driverSPI.write(driverData.getDataWord());
     // Remember the written word for readback.
     localDataInstance = driverData;
   }
 
-  MotorReferenceSwitchData MotorControlerImpl::getReferenceSwitchData() {
+  MotorReferenceSwitchData MotorControllerImpl::getReferenceSwitchData() {
     lock_guard guard(_mutex);
     return retrieveReferenceSwitchStatus();
   }
 
-  MotorReferenceSwitchData MotorControlerImpl::retrieveReferenceSwitchStatus() {
+  MotorReferenceSwitchData MotorControllerImpl::retrieveReferenceSwitchStatus() {
     // the bit pattern for the active flags
     unsigned int bitMask = 0x3U << 2 * _id;
 
-    unsigned int commonReferenceSwitchWord = _controlerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
+    unsigned int commonReferenceSwitchWord = _controllerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA();
     unsigned int dataWord = (commonReferenceSwitchWord & bitMask) >> 2 * _id;
     // note: the following code uses the implicit bool conversion to/from 0/1 to
     // keep the code short.
@@ -388,95 +388,95 @@ namespace ChimeraTK::MotorDriver {
     return motorReferenceSwitchData;
   }
 
-  void MotorControlerImpl::setNegativeReferenceSwitchEnabled(bool enableStatus) {
+  void MotorControllerImpl::setNegativeReferenceSwitchEnabled(bool enableStatus) {
     lock_guard guard(_mutex);
     auto referenceConfigAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     referenceConfigAndRampModeData.setDISABLE_STOP_L(!enableStatus);
-    writeTypedControlerRegister(referenceConfigAndRampModeData);
+    writeTypedControllerRegister(referenceConfigAndRampModeData);
   }
 
-  void MotorControlerImpl::setPositiveReferenceSwitchEnabled(bool enableStatus) {
+  void MotorControllerImpl::setPositiveReferenceSwitchEnabled(bool enableStatus) {
     lock_guard guard(_mutex);
     auto referenceConfigAndRampModeData = readTypedRegister<ReferenceConfigAndRampModeData>();
     referenceConfigAndRampModeData.setDISABLE_STOP_R(!enableStatus);
     // setReferenceConfigAndRampModeData internally obtains mutex
-    writeTypedControlerRegister(referenceConfigAndRampModeData);
+    writeTypedControllerRegister(referenceConfigAndRampModeData);
   }
 
-  void MotorControlerImpl::setCalibrationTime(uint32_t calibrationTime) {
+  void MotorControllerImpl::setCalibrationTime(uint32_t calibrationTime) {
     lock_guard guard(_mutex);
     _calibrationTime = static_cast<int32_t>(calibrationTime);
     _calibrationTime.write();
   }
 
-  uint32_t MotorControlerImpl::getCalibrationTime() {
+  uint32_t MotorControllerImpl::getCalibrationTime() {
     lock_guard guard(_mutex);
     _calibrationTime.read();
     return static_cast<uint32_t>(_calibrationTime);
   }
 
-  void MotorControlerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
+  void MotorControllerImpl::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
     lock_guard guard(_mutex);
     _endSwitchPositive = calibratedPosition;
     _endSwitchPositive.write();
   }
 
-  int MotorControlerImpl::getPositiveReferenceSwitchCalibration() {
+  int MotorControllerImpl::getPositiveReferenceSwitchCalibration() {
     lock_guard guard(_mutex);
     _endSwitchPositive.read();
     return _endSwitchPositive;
   }
 
-  void MotorControlerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition) {
+  void MotorControllerImpl::setNegativeReferenceSwitchCalibration(int calibratedPosition) {
     lock_guard guard(_mutex);
     _endSwitchNegative = calibratedPosition;
     _endSwitchNegative.write();
   }
 
-  int MotorControlerImpl::getNegativeReferenceSwitchCalibration() {
+  int MotorControllerImpl::getNegativeReferenceSwitchCalibration() {
     lock_guard guard(_mutex);
     _endSwitchNegative.read();
     return _endSwitchNegative;
   }
 
-  bool MotorControlerImpl::targetPositionReached() {
+  bool MotorControllerImpl::targetPositionReached() {
     lock_guard guard(_mutex);
-    _controlerStatus.read();
-    TMC429StatusWord controlerStatusWord(_controlerStatus);
+    _controllerStatus.read();
+    TMC429StatusWord controllerStatusWord(_controllerStatus);
 
-    return controlerStatusWord.getTargetPositionReached(_id);
+    return controllerStatusWord.getTargetPositionReached(_id);
   }
 
-  unsigned int MotorControlerImpl::getReferenceSwitchBit() {
+  unsigned int MotorControllerImpl::getReferenceSwitchBit() {
     lock_guard guard(_mutex);
-    _controlerStatus.read();
-    TMC429StatusWord controlerStatusWord(_controlerStatus);
+    _controllerStatus.read();
+    TMC429StatusWord controllerStatusWord(_controllerStatus);
 
-    return controlerStatusWord.getReferenceSwitchBit(_id);
+    return controllerStatusWord.getReferenceSwitchBit(_id);
   }
 
-  double MotorControlerImpl::convertVMaxToUstepsPerSec(double vMax) {
+  double MotorControllerImpl::convertVMaxToUstepsPerSec(double vMax) {
     // speedInUstepsPerSec = _conversionFactor * Vmax
     return (_conversionFactor * vMax);
   }
 
-  double MotorControlerImpl::convertUstepsPerSecToVmax(double speedInUstepsPerSec) {
+  double MotorControllerImpl::convertUstepsPerSecToVmax(double speedInUstepsPerSec) {
     // Vmax = round(speedInUstepsPerSec / _conversionFactor)
     return speedInUstepsPerSec / _conversionFactor;
   }
 
-  double MotorControlerImpl::calculateConversionFactor(MotorControlerConfig const& motorControlerConfig) {
+  double MotorControllerImpl::calculateConversionFactor(MotorControllerConfig const& motorControllerConfig) {
     // conversionFactor = fclk[Hz] / (2^pulse_div * 2048 *32)
     double systemClockInMhz = MD_22_DEFAULT_CLOCK_FREQ_MHZ;
 
     auto systemClkInHz = systemClockInMhz * 1000000;
-    auto pulse_div = static_cast<double>(motorControlerConfig.dividersAndMicroStepResolutionData.getPulseDivider());
+    auto pulse_div = static_cast<double>(motorControllerConfig.dividersAndMicroStepResolutionData.getPulseDivider());
 
     auto conversionFactor = systemClkInHz / (exp2(pulse_div) * 2048 * 32);
     return conversionFactor;
   }
 
-  double MotorControlerImpl::setUserCurrentLimit(double currentLimit) {
+  double MotorControllerImpl::setUserCurrentLimit(double currentLimit) {
     auto currentScale = limitCurrentScale(convertAmpsToCurrentScale(currentLimit));
     // setCurrent scale internally acquires mutex and is protected against
     // parallel access.
@@ -484,22 +484,22 @@ namespace ChimeraTK::MotorDriver {
     return convertCurrentScaletoAmps(currentScale);
   }
 
-  double MotorControlerImpl::getUserCurrentLimit() {
+  double MotorControllerImpl::getUserCurrentLimit() {
     lock_guard guard(_mutex);
     return convertCurrentScaletoAmps(_usrSetCurrentScale);
   }
 
-  double MotorControlerImpl::getMaxCurrentLimit() {
+  double MotorControllerImpl::getMaxCurrentLimit() {
     // Does not really need to be protected with mutex; there is no resource
-    // that can be modified on another thread. _controlerConfig is a const
+    // that can be modified on another thread. _controllerConfig is a const
     // object.
-    auto configuredCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
+    auto configuredCurrentScale = _controllerConfig.stallGuardControlData.getCurrentScale();
     return convertCurrentScaletoAmps(configuredCurrentScale);
   }
 
-  unsigned int MotorControlerImpl::validateVMaxForHardware(double calculatedVmax) {
-    unsigned int maxLimitForVmax = _controlerConfig.maximumVelocity;
-    unsigned int minLimitForVmax = _controlerConfig.minimumVelocity;
+  unsigned int MotorControllerImpl::validateVMaxForHardware(double calculatedVmax) {
+    unsigned int maxLimitForVmax = _controllerConfig.maximumVelocity;
+    unsigned int minLimitForVmax = _controllerConfig.minimumVelocity;
     if(calculatedVmax > maxLimitForVmax) {
       return maxLimitForVmax;
     }
@@ -510,19 +510,19 @@ namespace ChimeraTK::MotorDriver {
                                                                   // the requested speed limit.
   }
 
-  double MotorControlerImpl::convertCurrentScaletoAmps(unsigned int currentScale) {
+  double MotorControllerImpl::convertCurrentScaletoAmps(unsigned int currentScale) {
     auto currentInAmps =
         (static_cast<double>(currentScale + 1) / iMaxTMC260C_CURRENT_SCALE_VALUES) * iMaxTMC260C_IN_AMPS;
     return currentInAmps;
   }
 
-  double MotorControlerImpl::convertAmpsToCurrentScale(double currentInAmps) {
+  double MotorControllerImpl::convertAmpsToCurrentScale(double currentInAmps) {
     auto currentScale = (currentInAmps / iMaxTMC260C_IN_AMPS * iMaxTMC260C_CURRENT_SCALE_VALUES) - 1;
     return currentScale;
   }
 
-  unsigned int MotorControlerImpl::limitCurrentScale(double calculatedCurrentScale) {
-    auto hardLimitForCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
+  unsigned int MotorControllerImpl::limitCurrentScale(double calculatedCurrentScale) {
+    auto hardLimitForCurrentScale = _controllerConfig.stallGuardControlData.getCurrentScale();
     if(calculatedCurrentScale < iMaxTMC260C_MIN_CURRENT_SCALE_VALUE) {
       return iMaxTMC260C_MIN_CURRENT_SCALE_VALUE;
     }
@@ -532,7 +532,7 @@ namespace ChimeraTK::MotorDriver {
     return (static_cast<unsigned int>(std::floor(calculatedCurrentScale))); // floor so that we dont exceed the set limt
   }
 
-  bool MotorControlerImpl::isMotorMoving() {
+  bool MotorControllerImpl::isMotorMoving() {
     lock_guard guard(_mutex);
     auto interruptData = readTypedRegister<InterruptData>();
 
@@ -565,18 +565,18 @@ namespace ChimeraTK::MotorDriver {
     return true;
   }
 
-  void MotorControlerImpl::setMotorCurrentEnabled(bool enable) {
+  void MotorControllerImpl::setMotorCurrentEnabled(bool enable) {
     lock_guard guard(_mutex);
     _motorCurrentEnabled = (enable ? 1 : 0);
     _motorCurrentEnabled.write();
   }
 
-  bool MotorControlerImpl::isMotorCurrentEnabled() {
+  bool MotorControllerImpl::isMotorCurrentEnabled() {
     lock_guard guard(_mutex);
     return readRegisterAccessor(_motorCurrentEnabled);
   }
 
-  void MotorControlerImpl::setEndSwitchPowerEnabled(bool enable) {
+  void MotorControllerImpl::setEndSwitchPowerEnabled(bool enable) {
     lock_guard guard(_mutex);
     if(!_endSwitchPowerIndicator.isInitialised()) {
       return; // Meaning we are on an old firmware that does not support this
@@ -586,7 +586,7 @@ namespace ChimeraTK::MotorDriver {
     _endSwitchPowerIndicator.write();
   }
 
-  bool MotorControlerImpl::isEndSwitchPowerEnabled() {
+  bool MotorControllerImpl::isEndSwitchPowerEnabled() {
     lock_guard guard(_mutex);
     if(!_endSwitchPowerIndicator.isInitialised()) {
       return false; // taking a convenient default to make logic easier in
@@ -596,8 +596,8 @@ namespace ChimeraTK::MotorDriver {
     return readRegisterAccessor(_endSwitchPowerIndicator);
   }
 
-  void MotorControlerImpl::setCurrentScale(unsigned int currentScale) {
-    auto stallGuardData = _controlerConfig.stallGuardControlData;
+  void MotorControllerImpl::setCurrentScale(unsigned int currentScale) {
+    auto stallGuardData = _controllerConfig.stallGuardControlData;
     stallGuardData.setCurrentScale(currentScale);
     // mutex is acquired in setStallGuardControlData
     setStallGuardControlData(stallGuardData);

@@ -5,7 +5,7 @@
 namespace ChimeraTK::MotorDriver {
 
   /* To check the position and the length of the bit pattern we use reconstruct
-   * the output mask. To do so we need the larged allowed bit sequence to use with
+   * the output mask. To do so we need the largest allowed bit sequence to use with
    * the setter function. To get this we initialise the word with all bits on and
    * call the getter function. Afterwords we reset all bits to 0 and use the
    * setter function with this larges possible input word.

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "MotorControler.h"
+#include "MotorController.h"
 #include "TMC429Words.h"
 
 #define MCX_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
@@ -27,7 +27,7 @@ namespace ChimeraTK::MotorDriver {
    *
    * @author Martin Killenberg <martin.killenberg@desy.de>
    */
-  class MotorControlerExpert : public MotorControler {
+  class MotorControllerExpert : public MotorController {
    public:
     virtual unsigned int getStallGuardValue() = 0; ///< Get the stall guard value  (which units? what
                                                    ///< does it mean? Expert?)

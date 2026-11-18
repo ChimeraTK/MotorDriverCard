@@ -442,7 +442,7 @@ namespace ChimeraTK::MotorDriver {
     /// Returns a reference to the StepperMotorFactory
     static StepperMotorFactory& instance();
 
-    /// Creates an StepperMotor instance according to the specifed type and
+    /// Creates an StepperMotor instance according to the specified type and
     /// configuration parameters
     std::shared_ptr<StepperMotor> create(const StepperMotorParameters& parameters);
 

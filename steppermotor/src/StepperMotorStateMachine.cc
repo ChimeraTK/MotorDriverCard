@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
-#include "MotorControler.h"
+#include "MotorController.h"
 
 #include <chrono>
 #include <iostream>
@@ -25,7 +25,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   BasicStepperMotor::StateMachine::StateMachine(BasicStepperMotor& stepperMotor)
-  : _stepperMotor(stepperMotor), _motorControler(stepperMotor._motorController) {
+  : _stepperMotor(stepperMotor), _motorController(stepperMotor._motorController) {
     _initState.setTransition(initialEvent, &_disabled, [] {});
     _idle.setTransition(moveEvent, &_moving, [this] { actionIdleToMove(); }, [this] { waitForStandstill(); });
     _idle.setTransition(disableEvent, &_disabled, [this] { actionDisable(); });
@@ -45,7 +45,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::waitForStandstill() {
-    if(!_motorControler->isMotorMoving()) {
+    if(!_motorController->isMotorMoving()) {
       _asyncActionActive.exchange(false);
 
       // Move may be stopped by
@@ -60,7 +60,7 @@ namespace ChimeraTK::MotorDriver {
       // Motor stopped by itself
       if(!_stepperMotor.verifyMoveAction()) {
         _stepperMotor._errorMode.exchange(Error::MOVE_INTERRUPTED);
-        _motorControler->setTargetPosition(_motorControler->getActualPosition());
+        _motorController->setTargetPosition(_motorController->getActualPosition());
         stateExitEvnt = errorEvent;
       }
       performTransition(stateExitEvnt);
@@ -71,33 +71,33 @@ namespace ChimeraTK::MotorDriver {
 
   void BasicStepperMotor::StateMachine::actionIdleToMove() {
     _asyncActionActive.exchange(true);
-    _motorControler->setTargetPosition(_stepperMotor._targetPositionInSteps);
+    _motorController->setTargetPosition(_stepperMotor._targetPositionInSteps);
   }
 
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionMovetoStop() {
-    int currentPos = _motorControler->getActualPosition();
+    int currentPos = _motorController->getActualPosition();
 
-    _motorControler->setTargetPosition(currentPos);
+    _motorController->setTargetPosition(currentPos);
   }
 
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionMoveToFullStep() {
-    bool isFullStepping = _motorControler->isFullStepping();
-    _motorControler->enableFullStepping(true);
+    bool isFullStepping = _motorController->isFullStepping();
+    _motorController->enableFullStepping(true);
     actionMovetoStop();
-    _motorControler->enableFullStepping(isFullStepping);
+    _motorController->enableFullStepping(isFullStepping);
   }
 
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionEmergencyStop() {
-    _motorControler->setMotorCurrentEnabled(false);
-    _motorControler->setEndSwitchPowerEnabled(false);
+    _motorController->setMotorCurrentEnabled(false);
+    _motorController->setEndSwitchPowerEnabled(false);
     actionMovetoStop();
-    _motorControler->setCalibrationTime(0);
+    _motorController->setCalibrationTime(0);
     _stepperMotor._calibrationMode.exchange(CalibrationMode::NONE);
     _stepperMotor._errorMode.exchange(Error::EMERGENCY_STOP);
   }
@@ -105,16 +105,16 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionEnable() {
-    _motorControler->setMotorCurrentEnabled(true);
-    _motorControler->setEndSwitchPowerEnabled(true);
+    _motorController->setMotorCurrentEnabled(true);
+    _motorController->setEndSwitchPowerEnabled(true);
   }
 
   /********************************************************************************************************************/
 
   void BasicStepperMotor::StateMachine::actionDisable() {
     actionMoveToFullStep();
-    _motorControler->setMotorCurrentEnabled(false);
-    _motorControler->setEndSwitchPowerEnabled(false);
+    _motorController->setMotorCurrentEnabled(false);
+    _motorController->setEndSwitchPowerEnabled(false);
   }
 
   /********************************************************************************************************************/
