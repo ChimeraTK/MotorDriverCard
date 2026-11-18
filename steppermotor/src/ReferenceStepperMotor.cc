@@ -29,7 +29,7 @@ namespace ChimeraTK::MotorDriver {
 
   bool ReferenceStepperMotor::motorActive() {
     std::string stateName = _stateMachine->getCurrentState()->getName();
-    return (stateName == "moving" || stateName == "calibrating" || stateName == "calculatingTolerance");
+    return (stateName == "moving" || stateName == "calibrating");
   }
 
   bool ReferenceStepperMotor::limitsOK(int newPositionInSteps) {
@@ -92,45 +92,8 @@ namespace ChimeraTK::MotorDriver {
     return ExitStatus::SUCCESS;
   }
 
-  ExitStatus ReferenceStepperMotor::determineTolerance() {
-    LockGuard guard(_mutex);
-    if(motorActive()) {
-      return ExitStatus::ERR_SYSTEM_IN_ACTION;
-    }
-    _stateMachine->setAndProcessUserEvent(ReferenceStateMachine::calcToleranceEvent);
-    return ExitStatus::SUCCESS;
-  }
-
   Error ReferenceStepperMotor::getError() {
     LockGuard guard(_mutex);
-    //    if (motorActive() &&
-    //        _motorControler->getReferenceSwitchData().getPositiveSwitchActive()
-    //        &&
-    //        _motorControler->getReferenceSwitchData().getNegativeSwitchActive()){
-    //      return Error::BOTH_END_SWITCHES_ON;
-    //    }
-    //    if (!motorActive()){
-    //      if (_toleranceCalcFailed.load() || _calibrationFailed.load()){
-    //        return Error::ACTION_ERROR;
-    //      }
-    //    }
-    //    if (_toleranceCalculated){
-    //      if
-    //      (_motorControler->getReferenceSwitchData().getPositiveSwitchActive()
-    //      &&
-    //          std::abs(_motorControler->getActualPosition() -
-    //          _calibPositiveEndSwitchInSteps.load()) > 3 *
-    //          _tolerancePositiveEndSwitch.load()){
-    //        return Error::CALIBRATION_ERROR;
-    //      }else
-    //      if(_motorControler->getReferenceSwitchData().getNegativeSwitchActive()
-    //      &&
-    //          std::abs(_motorControler->getActualPosition() -
-    //          _calibNegativeEndSwitchInSteps.load()) > 3 *
-    //          _toleranceNegativeEndSwitch.load()){
-    //        return Error::CALIBRATION_ERROR;
-    //      }
-    //    }
     return _errorMode.load();
   }
 
@@ -156,16 +119,6 @@ namespace ChimeraTK::MotorDriver {
   float ReferenceStepperMotor::getNegativeEndReference() {
     LockGuard guard(_mutex);
     return _stepperMotorUnitsConverter->stepsToUnits(_calibNegativeEndSwitchInSteps.load());
-  }
-
-  float ReferenceStepperMotor::getTolerancePositiveEndSwitch() {
-    LockGuard guard(_mutex);
-    return _tolerancePositiveEndSwitch.load();
-  }
-
-  float ReferenceStepperMotor::getToleranceNegativeEndSwitch() {
-    LockGuard guard(_mutex);
-    return _toleranceNegativeEndSwitch.load();
   }
 
   bool ReferenceStepperMotor::isPositiveReferenceActive() {
@@ -234,21 +187,6 @@ namespace ChimeraTK::MotorDriver {
       auto expected = Error::BOTH_END_SWITCHES_ON;
       auto replace = Error::NO_ERROR;
       _errorMode.compare_exchange_strong(expected, replace);
-    }
-
-    if(_toleranceCalculated) {
-      if(posActive) {
-        if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
-            3 * _tolerancePositiveEndSwitch.load()) {
-          _errorMode.exchange(Error::CALIBRATION_ERROR);
-        }
-      }
-      else if(negActive) {
-        if(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
-            3 * _toleranceNegativeEndSwitch.load()) {
-          _errorMode.exchange(Error::CALIBRATION_ERROR);
-        }
-      }
     }
 
     if(sign == Sign::POSITIVE) {

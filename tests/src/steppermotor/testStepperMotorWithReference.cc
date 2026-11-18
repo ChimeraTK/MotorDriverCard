@@ -55,13 +55,10 @@ class StepperMotorWithReferenceTestFixture {
   bool waitForState(std::string stateName, unsigned timeoutInSeconds);
 
   void performCalibrationForTest();
-  void performToleranceCalculationForTest();
 
   // Helper functions to check protected members in test
   bool getCalibrationFailed();
   bool getMoveInterrupted();
-  bool getToleranceCalcFailed();
-  bool getToleranceCalculated();
 
  protected:
   StepperMotorParameters _stepperMotorParameters;
@@ -156,14 +153,6 @@ bool StepperMotorWithReferenceTestFixture::getMoveInterrupted() {
   return (std::dynamic_pointer_cast<ReferenceStateMachine>(_stepperMotor->_stateMachine))->isMoveInterrupted();
 }
 
-bool StepperMotorWithReferenceTestFixture::getToleranceCalcFailed() {
-  return _stepperMotor->_toleranceCalcFailed.load();
-}
-
-bool StepperMotorWithReferenceTestFixture::getToleranceCalculated() {
-  return _stepperMotor->_toleranceCalculated.load();
-}
-
 /**
  * Perfroms calibration which requires moving the motor up to the positive
  * and back to the negative end switch
@@ -186,84 +175,6 @@ void StepperMotorWithReferenceTestFixture::performCalibrationForTest() {
   _motorControlerDummy->moveTowardsTarget(1);
   waitForNegativeEndSwitchActive();
   BOOST_CHECK(waitForState("idle"));
-}
-
-/**
- * Performs tolerance calculation which requires moving the dummy on and off the
- * end switches several times.
- *
- * Notes:
- *   - This becomes obsolete once there is a proper dummy which reacts on writes
- *     to the registers instead of requiring an explicit call to
- * moveTowwardsTarget()
- *   - For a test, this is lengthy because the sleep intervals in the tolerance
- * calculation sum up to 40*Tsleep
- */
-void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest() {
-  // Tolerance calulation determines std deviation of end switch position
-  // over 10 iterations
-  const int N_TOLERANCE_CALC_SAMPLES = 10;
-  const int MOVE_INFRONTOF_ES = 0, MOVE_ONTO_ES = 1;
-  int moveState = MOVE_INFRONTOF_ES;
-  int i = 0;
-  bool isInitialStep = true;
-
-  // Positive end switch detection step
-  while(i < N_TOLERANCE_CALC_SAMPLES) {
-    switch(moveState) {
-      case MOVE_INFRONTOF_ES:
-
-        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps() || isInitialStep) {
-          isInitialStep = false;
-          // Motor on end switch, move backwards
-          _motorControlerDummy->moveTowardsTarget(1);
-          moveState = MOVE_ONTO_ES;
-        }
-        break;
-
-      case MOVE_ONTO_ES:
-        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()) {
-          // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControlerDummy->setPositiveEndSwitch(10000 + i);
-          _motorControlerDummy->moveTowardsTarget(1);
-          moveState = MOVE_INFRONTOF_ES;
-          i++;
-        }
-        break;
-    }
-  }
-
-  // Negative end switch detection step
-  waitToSetTargetPos(_stepperMotor->getNegativeEndReferenceInSteps() + 1000);
-
-  i = 0;
-  isInitialStep = true;
-
-  while(i < N_TOLERANCE_CALC_SAMPLES) {
-    switch(moveState) {
-      case MOVE_INFRONTOF_ES:
-
-        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps() || isInitialStep) {
-          isInitialStep = false;
-          // Motor on end switch, move backwards
-          _motorControlerDummy->moveTowardsTarget(1);
-          moveState = MOVE_ONTO_ES;
-        }
-        break;
-
-      case MOVE_ONTO_ES:
-        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()) {
-          // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControlerDummy->setNegativeEndSwitch(POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER - i * 10);
-          _motorControlerDummy->moveTowardsTarget(1);
-          moveState = MOVE_INFRONTOF_ES;
-          i++;
-        }
-        break;
-    }
-  }
-
-  waitForState("idle");
 }
 
 BOOST_FIXTURE_TEST_SUITE(StepperMotorWithReferenceTest, StepperMotorWithReferenceTestFixture)
@@ -492,127 +403,5 @@ BOOST_AUTO_TEST_CASE(testTranslation) {
   BOOST_CHECK(
       _stepperMotor->translateAxisInSteps(std::numeric_limits<int>::min()) == ExitStatus::ERR_INVALID_PARAMETER);
 }
-
-// The tolerance implementation does not work with the dummy yet and is questionable by concept anyway
-#if 0
-BOOST_AUTO_TEST_CASE(testDetermineTolerance) {
-  _stepperMotor->setEnabled(true);
-
-  while(!_stepperMotor->isSystemIdle()) {
-  }
-
-  // Try determine tolerance on an uncalibrated motor, should fail
-  _motorControlerDummy->resetInternalStateToDefaults();
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
-  _stepperMotor->determineTolerance();
-  while(!_stepperMotor->isSystemIdle()) {
-  }
-  BOOST_CHECK_EQUAL(getToleranceCalculated(), false);
-  BOOST_CHECK_EQUAL(getToleranceCalcFailed(), true);
-
-  // Bring the motor into calibrated state
-  performCalibrationForTest();
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
-
-  // Determine tolerance
-  _stepperMotor->determineTolerance();
-  BOOST_CHECK(waitForState("calculatingTolerance"));
-  performToleranceCalculationForTest();
-
-  // The following should result as std deviation of the 10 samples
-  BOOST_CHECK_CLOSE(_stepperMotor->getTolerancePositiveEndSwitch(), 3.02765, 0.001);
-  BOOST_CHECK_CLOSE(_stepperMotor->getToleranceNegativeEndSwitch(), 30.2765, 0.001);
-
-  // Return to home position
-  _stepperMotor->setTargetPositionInSteps(0);
-  _stepperMotor->start();
-  waitToSetTargetPos(0);
-  _motorControlerDummy->moveTowardsTarget(1);
-  while(!_stepperMotor->isSystemIdle()) {
-  }
-  BOOST_CHECK_EQUAL(getMoveInterrupted(), false);
-  BOOST_CHECK(_stepperMotor->getError() == Error::NO_ERROR);
-  BOOST_CHECK_EQUAL(getToleranceCalculated(), true);
-  BOOST_CHECK_EQUAL(getToleranceCalcFailed(), false);
-}
-
-/**
- * Test the following:
- * 1. Motor gets stuck during tolerance calculation
- * 2. After determination of tolerance, an end switch\n
- *    out of tolerance is detected
- */
-BOOST_AUTO_TEST_CASE(testDetermineToleranceError) {
-  _stepperMotor->setEnabled(true);
-  performCalibrationForTest();
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
-
-  // Start tolerance calculation
-  _stepperMotor->determineTolerance();
-  BOOST_CHECK(waitForState("calculatingTolerance"));
-
-  // Interrupt on first iteration of tolerance calculation
-  waitToSetTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
-  _motorControlerDummy->moveTowardsTarget(0.1f);
-  _motorControlerDummy->simulateBlockedMotor(true);
-  while(!_stepperMotor->isSystemIdle()) {
-  }
-
-  // Should have an error now
-  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
-  BOOST_CHECK_EQUAL(getToleranceCalculated(), false);
-  BOOST_CHECK_EQUAL(getToleranceCalcFailed(), true);
-
-  // Fake out-of-tolerance end switches
-  _motorControlerDummy->resetInternalStateToDefaults();
-
-  performCalibrationForTest();
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
-
-  _stepperMotor->determineTolerance();
-  BOOST_CHECK(waitForState("calculatingTolerance"));
-  performToleranceCalculationForTest();
-
-  // Dummy axis> [-10000, 10000], stepperMotor axis: [0, 20000],
-  // stepperMotor should hit end switch at 19000 and flag an error
-  _motorControlerDummy->setPositiveEndSwitch(9000);
-  _stepperMotor->setTargetPositionInSteps(POS_POSITIVE_ENDSWITCH_STEPPERMOTOR);
-
-  _stepperMotor->start();
-  waitToSetTargetPos(POS_POSITIVE_ENDSWITCH_STEPPERMOTOR);
-  _motorControlerDummy->moveTowardsTarget(1);
-  while(!_stepperMotor->isSystemIdle()) {
-  }
-  BOOST_CHECK_EQUAL(_stepperMotor->isPositiveReferenceActive(), true);
-  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
-}
-
-BOOST_AUTO_TEST_CASE(testDetermineToleranceStop) {
-  _stepperMotor->setEnabled(true);
-
-  performCalibrationForTest();
-  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::FULL);
-
-  _stepperMotor->determineTolerance();
-
-  // Trigger stop during tolerance calc, the current iteration of the algorithm
-  // will still attempt to move in front of and beyond the end switch, so we
-  // need to initiate movement of the dummy motor twice
-  waitToSetTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() - 1000);
-  _stepperMotor->stop();
-  _motorControlerDummy->moveTowardsTarget(1);
-  waitToSetTargetPos(_stepperMotor->getPositiveEndReferenceInSteps() + 1000);
-  _motorControlerDummy->moveTowardsTarget(1);
-  BOOST_CHECK(waitForState("idle"));
-
-  // Stop should have led to an error, no tolerance calculation
-  BOOST_CHECK_EQUAL(getToleranceCalculated(), false);
-
-  // FIXME Remove these, test calib mode instead, when
-  // calibration and tolerance calc are merged
-  //  BOOST_CHECK_EQUAL(getToleranceCalcFailed(), true);
-  //  BOOST_CHECK_EQUAL(_stepperMotor->getError(), Error::ACTION_ERROR);
-}
-#endif
 
 BOOST_AUTO_TEST_SUITE_END()

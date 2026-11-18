@@ -70,17 +70,6 @@ namespace ChimeraTK::MotorDriver {
      */
     ExitStatus calibrate() override;
 
-    /**
-     *  @brief Determines the standard deviation of the end switch position.
-     *
-     *  The standard deviation is determined by running into each end switch
-     * multiple times.\n If this has been called on system setup, getError() will
-     * return Error::CALIBRATION_LOST\n error when an end switch is activated and
-     * the actual position is not within a 3 sigma band around the\n calibrated
-     * end switch position.\n
-     */
-    ExitStatus determineTolerance() override;
-
     Error getError() override;
 
     float getPositiveEndReference() override;
@@ -90,10 +79,6 @@ namespace ChimeraTK::MotorDriver {
     float getNegativeEndReference() override;
 
     int getNegativeEndReferenceInSteps() override;
-
-    float getTolerancePositiveEndSwitch() override;
-
-    float getToleranceNegativeEndSwitch() override;
 
     /**
      *  Determines if the end switch has been hit.
@@ -135,12 +120,9 @@ namespace ChimeraTK::MotorDriver {
     std::atomic<bool> _positiveEndSwitchEnabled{false};
     std::atomic<bool> _negativeEndSwitchEnabled{false};
     std::atomic<bool> _calibrationFailed{false};
-    std::atomic<bool> _toleranceCalcFailed{false};
-    std::atomic<bool> _toleranceCalculated{false};
     std::atomic<int> _calibNegativeEndSwitchInSteps{-std::numeric_limits<int>::max()};
     std::atomic<int> _calibPositiveEndSwitchInSteps{std::numeric_limits<int>::max()};
-    std::atomic<float> _tolerancePositiveEndSwitch{0};
-    std::atomic<float> _toleranceNegativeEndSwitch{0};
+
    protected:
     virtual bool positiveSwitchActive() const;
     virtual bool negativeSwitchActive() const;

@@ -383,8 +383,6 @@ namespace ChimeraTK::MotorDriver {
 
     ExitStatus calibrate() override;
 
-    ExitStatus determineTolerance() override;
-
     float getPositiveEndReference() override;
 
     int getPositiveEndReferenceInSteps() override;
@@ -392,10 +390,6 @@ namespace ChimeraTK::MotorDriver {
     float getNegativeEndReference() override;
 
     int getNegativeEndReferenceInSteps() override;
-
-    float getTolerancePositiveEndSwitch() override;
-
-    float getToleranceNegativeEndSwitch() override;
 
     bool isPositiveReferenceActive() override;
 
