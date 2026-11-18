@@ -134,11 +134,6 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  void RotaryStepperMotorStateMachine::calculateToleranceValues() {
-    _motor._tolerancePositiveEndSwitch = getToleranceEndSwitch(Sign::POSITIVE);
-    _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
-  }
-
   void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
     auto startTime = std::chrono::steady_clock::now();
     constexpr int HOMING_TIMEOUT_MS = 60000;

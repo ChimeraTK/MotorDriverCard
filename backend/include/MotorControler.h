@@ -113,8 +113,6 @@ namespace mtca4u {
     MC_DECLARE_SIGNED_SET_GET_VALUE(TargetVelocity, stepsPerFIXME); ///< Get target velocity in FIXME
     MC_DECLARE_SET_GET_VALUE(MaximumAcceleration,
         stepsPerSquareFIXME); ///< Get the maximim acceleration in FIXME
-    MC_DECLARE_SET_GET_VALUE(PositionTolerance,
-        steps); ///< Get the position tolerance in steps
     MC_DECLARE_SET_GET_VALUE(PositionLatched,
         steps); ///< Get the latched position in steps
 

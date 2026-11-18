@@ -14,7 +14,6 @@ namespace ChimeraTK::MotorDriver {
 
    protected:
     void performCalibration() override;
-    void calculateToleranceValues() override;
     int getPositionEndSwitch(Sign) override;
     void findEndSwitch(Sign sign) override;
     /// Offset in steps used when searching for the end switch from the current position.

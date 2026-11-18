@@ -46,7 +46,6 @@
                   <value>maximumVelocity</value>
                   <value>microStepCount</value>
                   <value>minimumVelocity</value>
-                  <value>positionTolerance</value>
                   <value>proportionalityFactorData</value>
                   <value>referenceConfigAndRampModeData</value>
                   <value>stallGuardControlData</value>

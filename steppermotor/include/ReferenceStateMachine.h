@@ -20,13 +20,11 @@ namespace ChimeraTK::MotorDriver {
     ~ReferenceStateMachine() override = default;
 
     static const Event calibEvent;
-    static const Event calcToleranceEvent;
 
     bool isMoveInterrupted() const { return _moveInterrupted; }
 
    protected:
     State _calibrating;
-    State _calculatingTolerance;
     ReferenceStepperMotor& _motor;
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
@@ -34,18 +32,14 @@ namespace ChimeraTK::MotorDriver {
     void actionStop();
     void actionStartCalib();
     void actionEndCallback();
-    void actionStartCalcTolercance();
     void onActionFinished();
     void calibrationThreadFunction();
-    void toleranceCalcThreadFunction();
     void moveToEndSwitch(Sign sign);
-    double getToleranceEndSwitch(Sign sign);
 
     /// Invalidate calibration. The caller holds _motor._mutex.
     void invalidateCalibration(bool reportCalibrationError = true);
 
     virtual void performCalibration() = 0;
-    virtual void calculateToleranceValues() = 0;
     virtual int getPositionEndSwitch(Sign) = 0;
     virtual int getOffset() const = 0;
     virtual void findEndSwitch(Sign sign) = 0;

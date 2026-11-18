@@ -59,12 +59,6 @@ namespace ChimeraTK::MotorDriver {
 
     _asyncActionActive.exchange(false);
   }
-  void LinearStepperMotorStateMachine::calculateToleranceValues() {
-    // Linear
-    _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
-    _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
-  }
-
   void LinearStepperMotorStateMachine::findEndSwitch(Sign sign) {
     while(!_motor.isEndSwitchActive(sign)) {
       if(_stopAction.load() || _moveInterrupted.load()) {

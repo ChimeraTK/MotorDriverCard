@@ -622,12 +622,6 @@ namespace ChimeraTK::MotorDriver {
 
   /********************************************************************************************************************/
 
-  ExitStatus BasicStepperMotor::determineTolerance() {
-    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
-  }
-
-  /********************************************************************************************************************/
-
   float BasicStepperMotor::getPositiveEndReference() {
     throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
@@ -647,18 +641,6 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   int BasicStepperMotor::getNegativeEndReferenceInSteps() {
-    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
-  }
-
-  /********************************************************************************************************************/
-
-  float BasicStepperMotor::getTolerancePositiveEndSwitch() {
-    throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
-  }
-
-  /********************************************************************************************************************/
-
-  float BasicStepperMotor::getToleranceNegativeEndSwitch() {
     throw ChimeraTK::logic_error("This routine is not available for the BasicStepperMotor");
   }
 
