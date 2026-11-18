@@ -94,9 +94,3 @@ produces `MotorDriverCardDefaultConfig.xml` with all default parameters.
 - `examples/` - example program
 - `tests/` - unit tests (Boost.Test), mapping files and hardware tests
 - `doc/` - Doxygen main page and additional documentation
-
-## License
-
-This project is licensed under the GNU Lesser General Public License v3.0 or
-later, see [LICENSE](LICENSE). Copyright Deutsches Elektronen-Synchrotron DESY,
-MSK, ChimeraTK Project.
