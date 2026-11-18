@@ -22,6 +22,7 @@ using namespace boost::unit_test_framework;
 #include "TMC429Constants.h"
 
 #include <ChimeraTK/Utilities.h>
+using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK::MotorDriver;
 
@@ -61,17 +62,17 @@ class StepperMotorWithReferenceTestFixture {
  protected:
   StepperMotorParameters _stepperMotorParameters;
   std::shared_ptr<LinearStepperMotor> _stepperMotor;
-  boost::shared_ptr<ChimeraTK::MotorDriverCard> _motorDriverCard;
-  boost::shared_ptr<ChimeraTK::MotorControlerDummy> _motorControlerDummy;
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControlerDummy> _motorControlerDummy;
 };
 
 StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
 : _stepperMotorParameters(), _stepperMotor(), _motorControlerDummy() {
-  ChimeraTK::MotorDriverCardFactory::instance().setDummyMode();
-  _motorDriverCard = ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
+  ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().setDummyMode();
+  _motorDriverCard = ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
   _motorControlerDummy =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
+      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
   // Define dummy end switches and reset the dummy
   _motorControlerDummy->setPositiveEndSwitch(POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);

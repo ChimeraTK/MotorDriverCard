@@ -1,12 +1,6 @@
-/**
- * File:   StepperMotorUtil.h
- * Author: ckampm
- *
- * Utility classes for the StepperMotor.
- */
-
-#ifndef CHIMERATK_STEPPER_MOTOR_UTIL_H
-#define CHIMERATK_STEPPER_MOTOR_UTIL_H
+// SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 
 #include <string>
 namespace ChimeraTK { namespace MotorDriver {
@@ -141,4 +135,3 @@ namespace ChimeraTK { namespace MotorDriver {
   } // namespace utility
 
 }} // namespace ChimeraTK::MotorDriver
-#endif // CHIMERATK_STEPPER_MOTOR_UTIL_H

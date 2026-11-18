@@ -5,6 +5,7 @@
 #include "MotorControlerConfig.h"
 #include "MotorDriverCardConfig.h"
 #include "ParametersPanel.h"
+using namespace ChimeraTK::MotorDriver;
 
 #define ADD_TMC429_PARAMETER(parameter, extraText)                                                                     \
   parametersPanel->addParameter(#parameter, defaultConfig.parameter.getDATA(), extraText)
@@ -14,7 +15,7 @@
   parametersPanel->addParameter(#parameter, defaultConfig.parameter, extraText)
 
 void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
-  ChimeraTK::MotorControlerConfig defaultConfig;
+  ChimeraTK::MotorDriver::MotorControlerConfig defaultConfig;
   ADD_TMC429_PARAMETER(accelerationThresholdData, "");
   // ADD_INT_PARAMETER(actualPosition,"");
   ADD_INT_PARAMETER(decoderReadoutMode, "");
@@ -40,7 +41,7 @@ void populateMotorExpertPanel(ParametersPanel* parametersPanel) {
 }
 
 void populateDriverCardExpertPanel(ParametersPanel* parametersPanel) {
-  ChimeraTK::MotorDriverCardConfig defaultConfig;
+  ChimeraTK::MotorDriver::MotorDriverCardConfig defaultConfig;
   ADD_INT_PARAMETER(controlerSpiWaitingTime, "");
   ADD_INT_PARAMETER(coverDatagram, "");
   ADD_TMC429_PARAMETER(coverPositionAndLength, "");

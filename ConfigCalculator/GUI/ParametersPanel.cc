@@ -5,6 +5,7 @@
 #include "ParameterWidget.h"
 
 #include <iostream>
+using namespace ChimeraTK::MotorDriver;
 
 ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parametersMap(), verticalLayout(NULL) {
   // We use an outer and an inner vertical layout.

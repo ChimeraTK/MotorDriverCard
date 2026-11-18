@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include <iostream>
+using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;
 
@@ -30,6 +31,6 @@ int main(int argc, char* argv[]) {
   std::string deviceAlias = ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
 
-  (void)ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
+  (void)ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
       deviceAlias, moduleName, motorConfigFileName);
 }

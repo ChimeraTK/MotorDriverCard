@@ -16,6 +16,7 @@
 #include <ctime>
 #include <iostream>
 #include <stdexcept>
+using namespace ChimeraTK::MotorDriver;
 
 bool volatile keepRunning = true;
 
@@ -79,8 +80,8 @@ int main(int argc, char* argv[]) {
   boardResetN = 1;
   boardResetN.write();
 
-  auto motorDriverCard = boost::dynamic_pointer_cast<ChimeraTK::MotorDriverCardExpert>(
-      ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3]));
+  auto motorDriverCard = boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorDriverCardExpert>(
+      ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3]));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the
   // motor

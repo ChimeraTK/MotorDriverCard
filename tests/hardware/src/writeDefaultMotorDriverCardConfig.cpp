@@ -3,6 +3,7 @@
 #include "MotorDriverCardConfigXML.h"
 
 #include <iostream>
+using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;
 

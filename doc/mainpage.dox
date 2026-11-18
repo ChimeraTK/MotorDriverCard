@@ -13,7 +13,7 @@ The main user interface is provided by the \c StepperMotor and \c LinearStepperM
 
 FIXME: Put documentation how to use the library
 
-NOTE: Currently, the interface classes are implemented in the ChimeraTK namespace.
+NOTE: The interface classes are implemented in the \c ChimeraTK::MotorDriver namespace.
 
 \li \ref stepper_motor - A basic interface for a generic stepper motor
 \li \ref linear_stepper_motor - An interface for a linear stepper motor with end switches
@@ -50,7 +50,7 @@ firmware and probably will never change.
 The default parameters are made to work reliably, but operation will probably not be as smooth or efficent
 as possible with the particular motor and use case. If you want to tweak the parameters according to the TMC429
  and TMC260 data sheets, you can manually edit the entries for the corresponding classes derived
-from ChimeraTK::TMC260Word and ChimeraTK::TMC429InputWord.
+from ChimeraTK::MotorDriver::TMC260Word and ChimeraTK::MotorDriver::TMC429InputWord.
 
 \include MotorDriverCardDefaultConfig.xml
 */

@@ -6,6 +6,7 @@
 #include "TMC429Words.h"
 
 #include <stdexcept>
+using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;
 

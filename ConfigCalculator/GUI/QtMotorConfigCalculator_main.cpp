@@ -3,6 +3,7 @@
 #include "QtMotorConfigCalculator.h"
 
 #include <QtGui>
+using namespace ChimeraTK::MotorDriver;
 
 int main(int argc, char** argv) {
   QApplication app(argc, argv);

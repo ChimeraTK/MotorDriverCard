@@ -3,6 +3,7 @@
 #include "getParameters.h"
 
 #include "ParametersPanel.h"
+using namespace ChimeraTK::MotorDriver;
 
 // simple data types and MultiVariableWord have different syntax
 // MultiVariableWord:
@@ -10,8 +11,8 @@
 // simple data types can use the assignment operator
 #define ASSIGN_FIELD(fieldName) config.fieldName = (*parametersPanel)[#fieldName]
 
-ChimeraTK::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel) {
-  ChimeraTK::MotorControlerConfig config;
+ChimeraTK::MotorDriver::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel) {
+  ChimeraTK::MotorDriver::MotorControlerConfig config;
   SET_FIELD(accelerationThresholdData);
   // ASSIGN_FIELD(actualPosition);
   SET_FIELD(chopperControlData);
@@ -37,8 +38,8 @@ ChimeraTK::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPa
   return config;
 }
 
-ChimeraTK::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel) {
-  ChimeraTK::MotorDriverCardConfig config;
+ChimeraTK::MotorDriver::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel) {
+  ChimeraTK::MotorDriver::MotorDriverCardConfig config;
   ASSIGN_FIELD(controlerSpiWaitingTime);
   ASSIGN_FIELD(coverDatagram);
   SET_FIELD(coverPositionAndLength);

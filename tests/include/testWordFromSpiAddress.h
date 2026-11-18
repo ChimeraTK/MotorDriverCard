@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-namespace ChimeraTK::tmc429 {
+namespace ChimeraTK::MotorDriver::tmc429 {
 
   inline unsigned int testWordFromSpiAddress(unsigned int smda, unsigned int idx_jdx) {
     unsigned int spiAddress = (smda << 4) | idx_jdx;
@@ -10,4 +10,4 @@ namespace ChimeraTK::tmc429 {
     return spiAddress * spiAddress + 13;
   }
 
-} // namespace ChimeraTK::tmc429
+} // namespace ChimeraTK::MotorDriver::tmc429

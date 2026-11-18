@@ -11,6 +11,7 @@
 #include <boost/thread.hpp>
 
 #include <iostream>
+using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;
 

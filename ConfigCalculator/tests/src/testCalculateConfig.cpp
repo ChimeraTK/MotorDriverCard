@@ -8,6 +8,7 @@ using namespace boost::unit_test_framework;
 #include "ConfigCalculator.h"
 
 #include <stdexcept>
+using namespace ChimeraTK::MotorDriver;
 
 BOOST_AUTO_TEST_SUITE(CalculateConfigTestSuite)
 
@@ -30,7 +31,7 @@ BOOST_AUTO_TEST_CASE(testCalculateConfig) {
       9,                                                 // currentScale
       std::list<std::string>());                         // an empty list
 
-  ChimeraTK::MotorControlerConfig controllerConfig =
+  ChimeraTK::MotorDriver::MotorControlerConfig controllerConfig =
       ConfigCalculator::calculateConfig(chipParameters, ConfigCalculator::IGNORE_BOTH);
 
   BOOST_CHECK(controllerConfig.driverControlData.getPayloadData() == 8);

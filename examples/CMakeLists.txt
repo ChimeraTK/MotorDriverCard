@@ -21,9 +21,9 @@ cmake_minimum_required(VERSION 3.16)
 
 # Search for the MotorDriverCard library, set the include path and the
 # required compiler flags.
-FIND_PACKAGE(mtca4u-MotorDriverCard 01.08 REQUIRED)
-include_directories(SYSTEM ${mtca4u-MotorDriverCard_INCLUDE_DIRS})
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${mtca4u-MotorDriverCard_CXX_FLAGS}")
+FIND_PACKAGE(ChimeraTK-MotorDriverCard 02.00 REQUIRED)
+include_directories(SYSTEM ${ChimeraTK-MotorDriverCard_INCLUDE_DIRS})
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ChimeraTK-MotorDriverCard_CXX_FLAGS}")
 
 # Get the name of all .cpp files in the directory
 FILE(GLOB SOURCE_FILES *.cpp)
@@ -34,8 +34,8 @@ foreach( SOURCE_FILE ${SOURCE_FILES} )
     get_filename_component(TARGET ${SOURCE_FILE} NAME_WE)
     add_executable(${TARGET} ${SOURCE_FILE})
     # Link the MotorDriverCard library to the target executable
-    target_link_libraries( ${TARGET} ${mtca4u-MotorDriverCard_LIBRARIES})
-     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS ${mtca4u-MotorDriverCard_LINK_FLAGS})
+    target_link_libraries( ${TARGET} ${ChimeraTK-MotorDriverCard_LIBRARIES})
+     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS ${ChimeraTK-MotorDriverCard_LINK_FLAGS})
 endforeach( SOURCE_FILE )
 
 # To run the examples we need the map files. Copy them to the build folder.

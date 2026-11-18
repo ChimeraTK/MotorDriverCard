@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <stdexcept>
 #include <string>
+using namespace ChimeraTK::MotorDriver;
 
 MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
 : QWidget(parent_),
@@ -49,7 +50,7 @@ MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
       _motorConfigWidgetForm.motorEnabledCheckBox, SIGNAL(toggled(bool)), this, SLOT(setMotorExpertTabEnabled(bool)));
 }
 
-ChimeraTK::MotorControlerConfig MotorConfigWidget::getConfig() {
+ChimeraTK::MotorDriver::MotorControlerConfig MotorConfigWidget::getConfig() {
   return ConfigCalculator::calculateConfig(_chipParameters, getEndSwitchConfig());
 }
 
@@ -110,8 +111,8 @@ void MotorConfigWidget::updateMotorExpertPanel() {
     return;
   }
 
-  ChimeraTK::MotorControlerConfig calculatedConfig = this->getConfig();
-  ChimeraTK::MotorControlerConfig expertConfig = getMotorParameters(_motorExpertPanel);
+  ChimeraTK::MotorDriver::MotorControlerConfig calculatedConfig = this->getConfig();
+  ChimeraTK::MotorDriver::MotorControlerConfig expertConfig = getMotorParameters(_motorExpertPanel);
 
   // only set the parameters which have actually been calculated (unfortunately
   // a duplication of the information in the config calculator) Don't always set

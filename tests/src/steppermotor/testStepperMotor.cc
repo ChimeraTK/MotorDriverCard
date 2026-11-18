@@ -17,13 +17,14 @@ using namespace boost::unit_test_framework;
 #include "testConfigConstants.h"
 
 #include <ChimeraTK/Utilities.h>
+using namespace ChimeraTK::MotorDriver;
 
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string moduleName;
-// static ChimeraTK::TMC429OutputWord
-// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
-// dfmc_md22); static ChimeraTK::StallGuardControlData
-// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
+// static ChimeraTK::MotorDriver::TMC429OutputWord
+// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
+// dfmc_md22); static ChimeraTK::MotorDriver::StallGuardControlData
+// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md2);
 
 using namespace ChimeraTK::MotorDriver;
@@ -36,24 +37,24 @@ class TestUnitConverter : public utility::MotorStepsConverter {
   int unitsToSteps(float units) override { return int(10.0F * units); }
 };
 
-// static ChimeraTK::TMC429OutputWord
-// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
+// static ChimeraTK::MotorDriver::TMC429OutputWord
+// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md22){
-//  ChimeraTK::TMC429InputWord readVmaxRegister;
+//  ChimeraTK::MotorDriver::TMC429InputWord readVmaxRegister;
 //  readVmaxRegister.setSMDA(0);
-//  readVmaxRegister.setIDX_JDX(ChimeraTK::tmc429::IDX_MAXIMUM_VELOCITY);
-//  readVmaxRegister.setRW(ChimeraTK::tmc429::RW_READ);
-//  return ChimeraTK::TMC429OutputWord(
+//  readVmaxRegister.setIDX_JDX(ChimeraTK::MotorDriver::tmc429::IDX_MAXIMUM_VELOCITY);
+//  readVmaxRegister.setRW(ChimeraTK::MotorDriver::tmc429::RW_READ);
+//  return ChimeraTK::MotorDriver::TMC429OutputWord(
 //      dfmc_md22->readTMC429Register(readVmaxRegister.getDataWord()));
 //}
 
-// static ChimeraTK::StallGuardControlData
-// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::DFMC_MD22Dummy>&
+// static ChimeraTK::MotorDriver::StallGuardControlData
+// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md2){
 //  auto motorId = 0U;
-//  return ChimeraTK::StallGuardControlData(dfmc_md2->readTMC260Register(
+//  return ChimeraTK::MotorDriver::StallGuardControlData(dfmc_md2->readTMC260Register(
 //      motorId,
-//      ChimeraTK::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
+//      ChimeraTK::MotorDriver::DFMC_MD22Dummy::TMC260Register::STALLGUARD2_CONTROL_REGISTER));
 //}
 
 class StepperMotorChimeraTKFixture {
@@ -66,8 +67,8 @@ class StepperMotorChimeraTKFixture {
 
  protected:
   std::unique_ptr<StepperMotor> _stepperMotor;
-  boost::shared_ptr<ChimeraTK::MotorDriverCard> _motorDriverCard;
-  boost::shared_ptr<ChimeraTK::MotorControlerDummy> _motorControlerDummy;
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControlerDummy> _motorControlerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
 
@@ -75,11 +76,11 @@ class StepperMotorChimeraTKFixture {
 StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() {
   _testUnitConverter = std::make_unique<TestUnitConverter>();
 
-  ChimeraTK::MotorDriverCardFactory::instance().setDummyMode();
-  _motorDriverCard = ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(
+  ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().setDummyMode();
+  _motorDriverCard = ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
   _motorControlerDummy =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
+      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControlerDummy>(_motorDriverCard->getMotorControler(0));
 
   // Omit the optional 5th argument for the units converter here so we get the
   // default 1:1 converter for the encoder readout
@@ -204,7 +205,7 @@ BOOST_AUTO_TEST_CASE(TestSoftLimits) {
   BOOST_CHECK(_stepperMotor->setMinPositionLimitInSteps(1000) == ExitStatus::ERR_INVALID_PARAMETER);
 
   // BOOST_CHECK_THROW(_stepperMotor->setMinPositionLimitInSteps(-1000),
-  // ChimeraTK::MotorDriverException);
+  // ChimeraTK::MotorDriver::MotorDriverException);
   BOOST_CHECK_NO_THROW((void)_stepperMotor->setMaxPositionLimitInSteps(1000));
   BOOST_CHECK_NO_THROW((void)_stepperMotor->setMinPositionLimitInSteps(-1000));
   BOOST_CHECK(_stepperMotor->setMaxPositionLimitInSteps(-1000) == ExitStatus::ERR_INVALID_PARAMETER);

@@ -5,6 +5,7 @@
 #include "MotorDriverCardConfigXML.h"
 
 #include <iostream>
+using namespace ChimeraTK::MotorDriver;
 
 int main(int argc, char* argv[]) {
   if((argc < 5) || (argc > 8)) {
@@ -70,17 +71,18 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  ChimeraTK::MotorControlerConfig motorConfig = ConfigCalculator::calculateConfig(
+  ChimeraTK::MotorDriver::MotorControlerConfig motorConfig = ConfigCalculator::calculateConfig(
       chipParameters, static_cast<ConfigCalculator::EndSwitchConfig>(endSwitchConfig));
 
-  ChimeraTK::MotorDriverCardConfig cardConfig;
+  ChimeraTK::MotorDriver::MotorDriverCardConfig cardConfig;
   // set all motor configs to the same, calculated config
-  for(std::vector<ChimeraTK::MotorControlerConfig>::iterator it = cardConfig.motorControlerConfigurations.begin();
+  for(std::vector<ChimeraTK::MotorDriver::MotorControlerConfig>::iterator it =
+          cardConfig.motorControlerConfigurations.begin();
       it != cardConfig.motorControlerConfigurations.end(); ++it) {
     *it = motorConfig;
   }
 
-  ChimeraTK::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);
+  ChimeraTK::MotorDriver::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);
 
   return chipParameters.warnings.size();
 }

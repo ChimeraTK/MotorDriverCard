@@ -17,7 +17,7 @@ static const std::string moduleName("");
 // Specify the configuration file
 static const std::string stepperMotorConfigFile("VT21-MotorDriverCardConfig.xml");
 
-using namespace ChimeraTK::motordriver;
+using namespace ChimeraTK::MotorDriver;
 
 int main() {
   // Define the parameter structure

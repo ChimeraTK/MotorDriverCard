@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-/** This calls privides a function to create a ChimeraTK::MotorControlerConfig
+/** This calls privides a function to create a ChimeraTK::MotorDriver::MotorControlerConfig
  *  from the ConfigCalculator::ChipParameters (parameters of the
  *  TMC429 and TMC260 chips).
  */
@@ -23,7 +23,7 @@ class ConfigCalculator {
   /** Calculate a MotorContolerConfig from the chip parameters
    *  and the end switch configuration.
    */
-  static ChimeraTK::MotorControlerConfig calculateConfig(
+  static ChimeraTK::MotorDriver::MotorControlerConfig calculateConfig(
       ParametersCalculator::ChipParameters const& chipParameters, EndSwitchConfig const& endSwitchConfig);
 
  private:

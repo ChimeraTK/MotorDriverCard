@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(mtca4u-MotorDriverCard)
+project(ChimeraTK-MotorDriverCard)
 
 include(GNUInstallDirs)
 
-set(${PROJECT_NAME}_MAJOR_VERSION 01)
-set(${PROJECT_NAME}_MINOR_VERSION 17)
+set(${PROJECT_NAME}_MAJOR_VERSION 02)
+set(${PROJECT_NAME}_MINOR_VERSION 00)
 set(${PROJECT_NAME}_PATCH_VERSION 00)
 
 include(cmake/set_version_numbers.cmake)
@@ -43,7 +43,7 @@ ENDIF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
 # First, add common sources
 set(COMMON_INCLUDE_DIRS "")
 set(library_includes "")
-set(subdirs util backend)
+set(subdirs util card)
 
 foreach(subdir ${subdirs})
   aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src library_sources)
@@ -52,10 +52,10 @@ foreach(subdir ${subdirs})
   list(APPEND COMMON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/)
 endforeach()
 
-install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mtca4u/MotorDriverCard)
+install(DIRECTORY ${COMMON_INCLUDE_DIRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ChimeraTK/MotorDriverCard)
 install(DIRECTORY util/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ChimeraTK/MotorDriverCard)
 
-# Add  targets for mtca4u and ChimeraTK interfaces
+# Add target for the ChimeraTK interface
 add_subdirectory(steppermotor)
 
 MACRO(COPY_MAPPING_FILES)
@@ -85,12 +85,12 @@ ENDMACRO(COPY_XML_FILES)
 # -> one executable per tested module
 # - To avoid conflicts, headers of the ChimeraTK interface
 # are placed in their own subfolder and have to be linked against
-# the specific objects. All other tests can be linked with the mtca4u objects.
+# the specific objects. All other tests can be linked with the ChimeraTK objects.
 if(TESTING_IS_ENABLED)
   include_directories(${CMAKE_SOURCE_DIR}/tests/include)
 
-  # backend tests
-  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src/backend testSources)
+  # card tests
+  aux_source_directory(${CMAKE_SOURCE_DIR}/tests/src/card testSources)
 
   foreach(testSourceFile ${testSources})
     # NAME_WE means the base name without path and (longest) extension

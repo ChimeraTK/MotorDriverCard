@@ -10,9 +10,9 @@ class ParametersPanel;
  *  It cannot be a member funcion because the panel knows nothing
  *  about being a motor panel. It just has named widgets.
  */
-ChimeraTK::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel);
+ChimeraTK::MotorDriver::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel);
 
 /** Get the motor driver card parameters. The object is returning with default
  * MotorCotrolerConfigs (FIXME: does this make sense?)
  */
-ChimeraTK::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel);
+ChimeraTK::MotorDriver::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel);

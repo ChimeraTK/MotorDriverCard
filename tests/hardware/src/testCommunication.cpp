@@ -11,6 +11,7 @@
 
 #include <ctime>
 #include <iostream>
+using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;
 
@@ -48,14 +49,14 @@ int main(int argc, char* argv[]) {
 
   std::string moduleName = argv[2];
   std::string motorConfig = argv[3];
-  boost::shared_ptr<ChimeraTK::MotorDriverCard> motorDriverCard =
-      ChimeraTK::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, moduleName,
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard =
+      ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, moduleName,
           motorConfig); // default motor config
 
-  boost::shared_ptr<ChimeraTK::MotorControlerExpert> motor0 =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorControlerExpert>(motorDriverCard->getMotorControler(0));
-  boost::shared_ptr<ChimeraTK::MotorControlerExpert> motor1 =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorControlerExpert>(motorDriverCard->getMotorControler(1));
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControlerExpert> motor0 =
+      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControlerExpert>(motorDriverCard->getMotorControler(0));
+  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControlerExpert> motor1 =
+      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControlerExpert>(motorDriverCard->getMotorControler(1));
 
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
   while(1) {
     // controler registers (only they can be read back)
     for(unsigned int motorID = 0; motorID <= 1; ++motorID) {
-      boost::shared_ptr<ChimeraTK::MotorControler> motor = motorDriverCard->getMotorControler(motorID);
+      boost::shared_ptr<ChimeraTK::MotorDriver::MotorControler> motor = motorDriverCard->getMotorControler(motorID);
 
       // test that writing values in a row work
       // mask then in case the initial values are at the 24 bit data word
@@ -109,9 +110,9 @@ int main(int argc, char* argv[]) {
     // there might be interference.
     motor0->setTargetPosition(0xAAAAAA);
     motor1->setTargetPosition(0x555555);
-    motor0->setChopperControlData(ChimeraTK::ChopperControlData(0x15555));
+    motor0->setChopperControlData(ChimeraTK::MotorDriver::ChopperControlData(0x15555));
     motor1->setPositionTolerance(0xAAA);
-    motor1->setChopperControlData(ChimeraTK::ChopperControlData(0x0AAAA));
+    motor1->setChopperControlData(ChimeraTK::MotorDriver::ChopperControlData(0x0AAAA));
     motor0->setPositionTolerance(0x555);
 
     // although 0xAAAAAA has been written, the return value is 0xFFAAAAAA.
@@ -124,8 +125,8 @@ int main(int argc, char* argv[]) {
 
     // shuffle the order when setting back to defaults
     motor0->setTargetPosition(initialTargetPosition[0]);
-    motor0->setChopperControlData(ChimeraTK::ChopperControlData(0x0));
-    motor1->setChopperControlData(ChimeraTK::ChopperControlData(0x0));
+    motor0->setChopperControlData(ChimeraTK::MotorDriver::ChopperControlData(0x0));
+    motor1->setChopperControlData(ChimeraTK::MotorDriver::ChopperControlData(0x0));
     motor1->setTargetPosition(initialTargetPosition[1]);
     motor1->setPositionTolerance(initialPositionTolerance[1]);
     motor0->setPositionTolerance(initialPositionTolerance[0]);
