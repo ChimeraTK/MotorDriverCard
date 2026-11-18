@@ -114,7 +114,6 @@ namespace mtca4u {
     setMaximumVelocity(motorControlerConfig.maximumVelocity);
     setMicroStepCount(motorControlerConfig.microStepCount);
     setMinimumVelocity(motorControlerConfig.minimumVelocity);
-    setPositionTolerance(motorControlerConfig.positionTolerance);
     setProportionalityFactorData(motorControlerConfig.proportionalityFactorData);
     setReferenceConfigAndRampModeData(motorControlerConfig.referenceConfigAndRampModeData);
     setStallGuardControlData(motorControlerConfig.stallGuardControlData);
@@ -297,7 +296,6 @@ namespace mtca4u {
   DEFINE_GET_SET_VALUE(MinimumVelocity, IDX_MINIMUM_VELOCITY)
   DEFINE_SIGNED_GET_SET_VALUE(TargetVelocity, IDX_TARGET_VELOCITY, _converter12bits)
   DEFINE_GET_SET_VALUE(MaximumAcceleration, IDX_MAXIMUM_ACCELERATION)
-  DEFINE_GET_SET_VALUE(PositionTolerance, IDX_DELTA_X_REFERENCE_TOLERANCE)
   DEFINE_GET_SET_VALUE(PositionLatched, IDX_POSITION_LATCHED)
 
   unsigned int MotorControlerImpl::getMaximumVelocity() {

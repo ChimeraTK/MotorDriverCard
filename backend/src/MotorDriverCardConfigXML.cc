@@ -182,7 +182,6 @@ namespace mtca4u {
     getFromXml("maximumVelocity", controlerConfig.maximumVelocity, rootNode, xpathHelper + "Register");
     getFromXml("microStepCount", controlerConfig.microStepCount, rootNode, xpathHelper + "Register");
     getFromXml("minimumVelocity", controlerConfig.minimumVelocity, rootNode, xpathHelper + "Register");
-    getFromXml("positionTolerance", controlerConfig.positionTolerance, rootNode, xpathHelper + "Register");
     getFromXml(
         "proportionalityFactorData", controlerConfig.proportionalityFactorData, rootNode, xpathHelper + "Register");
     getFromXml("referenceConfigAndRampModeData", controlerConfig.referenceConfigAndRampModeData, rootNode,
@@ -337,7 +336,6 @@ namespace mtca4u {
       CONTROLER_CONFIG_ADD_REGISTER(maximumVelocity);
       CONTROLER_CONFIG_ADD_REGISTER(microStepCount);
       CONTROLER_CONFIG_ADD_REGISTER(minimumVelocity);
-      CONTROLER_CONFIG_ADD_REGISTER(positionTolerance);
       CONTROLER_CONFIG_ADD_REGISTER(proportionalityFactorData);
       CONTROLER_CONFIG_ADD_REGISTER(referenceConfigAndRampModeData);
       CONTROLER_CONFIG_ADD_REGISTER(stallGuardControlData);

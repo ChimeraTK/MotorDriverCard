@@ -25,7 +25,6 @@ namespace mtca4u {
     uint32_t maximumVelocity;
     unsigned int microStepCount;
     uint32_t minimumVelocity;
-    unsigned int positionTolerance;
     ProportionalityFactorData proportionalityFactorData;
     ReferenceConfigAndRampModeData referenceConfigAndRampModeData;
     StallGuardControlData stallGuardControlData;

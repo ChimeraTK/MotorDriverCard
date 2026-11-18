@@ -64,7 +64,6 @@ int main(int argc, char* argv[]) {
   unsigned int initialMinVelocity[2] = {motor0->getMinimumVelocity(), motor1->getMinimumVelocity()};
   unsigned int initialMaxVelocity[2] = {motor0->getMaximumVelocity(), motor1->getMaximumVelocity()};
   unsigned int initialMaxAcceleration[2] = {motor0->getMaximumAcceleration(), motor1->getMaximumAcceleration()};
-  unsigned int initialPositionTolerance[2] = {motor0->getPositionTolerance(), motor1->getPositionTolerance()};
 
   while(1) {
     // controler registers (only they can be read back)
@@ -78,18 +77,15 @@ int main(int argc, char* argv[]) {
       motor->setMinimumVelocity(MASK24(initialMinVelocity[motorID] + 1));
       motor->setMaximumVelocity(MASK24(initialMaxVelocity[motorID] + 2));
       motor->setMaximumAcceleration(MASK24(initialMaxAcceleration[motorID] + 3));
-      motor->setPositionTolerance(MASK24(initialPositionTolerance[motorID] + 4));
 
       PRINT_AND_COUNT_ERRORS(motor->getTargetPosition() == MASK24(initialTargetPosition[motorID] + 1000), motorID);
       PRINT_AND_COUNT_ERRORS(motor->getMinimumVelocity() == MASK24(initialMinVelocity[motorID] + 1), motorID);
       PRINT_AND_COUNT_ERRORS(motor->getMaximumVelocity() == MASK24(initialMaxVelocity[motorID] + 2), motorID);
       PRINT_AND_COUNT_ERRORS(motor->getMaximumAcceleration() == MASK24(initialMaxAcceleration[motorID] + 3), motorID);
-      PRINT_AND_COUNT_ERRORS(motor->getPositionTolerance() == MASK24(initialPositionTolerance[motorID] + 4), motorID);
 
       // set back to the initial values (another test plus needed for the next
       // test round because we have to alternate the register content. This time
       // we write in reverse order, just for the fun of it
-      motor->setPositionTolerance(initialPositionTolerance[motorID]);
       motor->setMaximumAcceleration(initialMaxAcceleration[motorID]);
       motor->setMaximumVelocity(initialMaxVelocity[motorID]);
       motor->setMinimumVelocity(initialMinVelocity[motorID]);
@@ -99,7 +95,6 @@ int main(int argc, char* argv[]) {
       PRINT_AND_COUNT_ERRORS(motor->getMinimumVelocity() == initialMinVelocity[motorID], motorID);
       PRINT_AND_COUNT_ERRORS(motor->getMaximumVelocity() == initialMaxVelocity[motorID], motorID);
       PRINT_AND_COUNT_ERRORS(motor->getMaximumAcceleration() == initialMaxAcceleration[motorID], motorID);
-      PRINT_AND_COUNT_ERRORS(motor->getPositionTolerance() == initialPositionTolerance[motorID], motorID);
     }
 
     // patterns for both motors, including writing to controler and driver
@@ -108,30 +103,22 @@ int main(int argc, char* argv[]) {
     motor0->setTargetPosition(0xAAAAAA);
     motor1->setTargetPosition(0x555555);
     motor0->setChopperControlData(mtca4u::ChopperControlData(0x15555));
-    motor1->setPositionTolerance(0xAAA);
     motor1->setChopperControlData(mtca4u::ChopperControlData(0x0AAAA));
-    motor0->setPositionTolerance(0x555);
 
     // although 0xAAAAAA has been written, the return value is 0xFFAAAAAA.
     // This is because the value is interpreted as signed 24 bit, and the return
     // value is the corresponding signed 32 bit integer.
     PRINT_AND_COUNT_ERRORS(motor0->getTargetPosition() == static_cast<int32_t>(0xFFAAAAAA), 0);
     PRINT_AND_COUNT_ERRORS(motor1->getTargetPosition() == static_cast<int32_t>(0x555555), 1);
-    PRINT_AND_COUNT_ERRORS(motor0->getPositionTolerance() == 0x555, 0);
-    PRINT_AND_COUNT_ERRORS(motor1->getPositionTolerance() == 0xAAA, 1);
 
     // shuffle the order when setting back to defaults
     motor0->setTargetPosition(initialTargetPosition[0]);
     motor0->setChopperControlData(mtca4u::ChopperControlData(0x0));
     motor1->setChopperControlData(mtca4u::ChopperControlData(0x0));
     motor1->setTargetPosition(initialTargetPosition[1]);
-    motor1->setPositionTolerance(initialPositionTolerance[1]);
-    motor0->setPositionTolerance(initialPositionTolerance[0]);
 
     PRINT_AND_COUNT_ERRORS(motor0->getTargetPosition() == initialTargetPosition[0], 0);
     PRINT_AND_COUNT_ERRORS(motor1->getTargetPosition() == initialTargetPosition[1], 1);
-    PRINT_AND_COUNT_ERRORS(motor0->getPositionTolerance() == initialPositionTolerance[1], 1);
-    PRINT_AND_COUNT_ERRORS(motor1->getPositionTolerance() == initialPositionTolerance[0], 0);
 
     // footer: count up the run count and print a status every second.
     runCounter++;

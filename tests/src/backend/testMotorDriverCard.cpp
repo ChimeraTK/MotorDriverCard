@@ -96,7 +96,6 @@ namespace mtca4u {
       motorControlerConfig.maximumVelocity = asciiToInt("vm") + motorID;
       motorControlerConfig.microStepCount = asciiToInt("mu") + motorID;
       motorControlerConfig.minimumVelocity = asciiToInt("vn");
-      motorControlerConfig.positionTolerance = asciiToInt("dx") + motorID;
       motorControlerConfig.proportionalityFactorData.setDATA(asciiToInt("PROP") + motorID);
       motorControlerConfig.referenceConfigAndRampModeData.setDATA(asciiToInt("REF") + motorID);
       motorControlerConfig.stallGuardControlData.setPayloadData(asciiToInt("sg") + motorID);
@@ -189,7 +188,6 @@ namespace mtca4u {
       BOOST_CHECK(motorControlerConfig.maximumVelocity == motorControler->getMaximumVelocity());
       BOOST_CHECK(motorControlerConfig.microStepCount == motorControler->getMicroStepCount());
       BOOST_CHECK(motorControlerConfig.minimumVelocity == motorControler->getMinimumVelocity());
-      BOOST_CHECK(motorControlerConfig.positionTolerance == motorControler->getPositionTolerance());
       BOOST_CHECK(motorControlerConfig.proportionalityFactorData.getDATA() ==
           motorControler->getProportionalityFactorData().getDATA());
       BOOST_CHECK(motorControlerConfig.referenceConfigAndRampModeData.getDATA() ==

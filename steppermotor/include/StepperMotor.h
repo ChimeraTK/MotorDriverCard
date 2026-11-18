@@ -400,8 +400,6 @@ namespace ChimeraTK::MotorDriver {
 
     [[nodiscard]] virtual ExitStatus calibrate() = 0;
 
-    [[nodiscard]] virtual ExitStatus determineTolerance() = 0;
-
     [[nodiscard]] virtual float getPositiveEndReference() = 0;
 
     [[nodiscard]] virtual int getPositiveEndReferenceInSteps() = 0;
@@ -409,10 +407,6 @@ namespace ChimeraTK::MotorDriver {
     [[nodiscard]] virtual float getNegativeEndReference() = 0;
 
     [[nodiscard]] virtual int getNegativeEndReferenceInSteps() = 0;
-
-    [[nodiscard]] virtual float getTolerancePositiveEndSwitch() = 0;
-
-    [[nodiscard]] virtual float getToleranceNegativeEndSwitch() = 0;
 
     [[nodiscard]] virtual bool isPositiveReferenceActive() = 0;
 

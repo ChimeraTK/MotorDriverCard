@@ -11,7 +11,7 @@ namespace mtca4u {
     dividersAndMicroStepResolutionData(DIVIDIERS_AND_MICRO_STEP_RESOLUTION_DEFAULT),
     driverConfigData(DRIVER_CONFIG_DEFAULT), driverControlData(DRIVER_CONTROL_DEFAULT), enabled(false),
     interruptData(0), maximumAcceleration(MAXIMUM_ACCELERATION_DEFAULT), maximumVelocity(MAXIMUM_VELOCITY_DEFAULT),
-    microStepCount(0), minimumVelocity(MINIMUM_VELOCITY_DEFAULT), positionTolerance(0),
+    microStepCount(0), minimumVelocity(MINIMUM_VELOCITY_DEFAULT),
     proportionalityFactorData(PROPORTIONALITY_FACTORS_DEFAULT),
     referenceConfigAndRampModeData(REFERENCE_CONFIG_AND_RAMP_MODE_DEFAULT),
     stallGuardControlData(STALL_GUARD_CONTROL_DEFAULT), targetPosition(0), targetVelocity(0),
@@ -27,7 +27,6 @@ namespace mtca4u {
         (enabled == right.enabled) && (interruptData == right.interruptData) &&
         (maximumAcceleration == right.maximumAcceleration) && (maximumVelocity == right.maximumVelocity) &&
         (microStepCount == right.microStepCount) && (minimumVelocity == right.minimumVelocity) &&
-        (positionTolerance == right.positionTolerance) &&
         (proportionalityFactorData == right.proportionalityFactorData) &&
         (referenceConfigAndRampModeData == right.referenceConfigAndRampModeData) &&
         (stallGuardControlData == right.stallGuardControlData) && (targetPosition == right.targetPosition) &&
