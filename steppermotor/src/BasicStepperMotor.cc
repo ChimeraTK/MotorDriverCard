@@ -278,10 +278,14 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   void BasicStepperMotor::resetMotorControllerPositions(int actualPositionInSteps) {
+    // Disable the motor while changing the positions so the TMC429 cannot start
+    // a move in between. The positions are written BEFORE disabling: some
+    // controllers (e.g. the MotorControlerDummy) silently drop target position
+    // writes while the motor is disabled.
     bool enable = _motorController->isEnabled();
-    _motorController->setEnabled(false);
     _motorController->setActualPosition(actualPositionInSteps);
     _motorController->setTargetPosition(actualPositionInSteps);
+    _motorController->setEnabled(false);
     _motorController->setEnabled(enable);
   }
 
