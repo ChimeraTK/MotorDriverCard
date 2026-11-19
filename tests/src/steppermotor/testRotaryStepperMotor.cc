@@ -43,10 +43,6 @@ const int END_SWITCH_SEARCH_OFFSET = 5000;
 const unsigned WAIT_PERIOD_MS = 5U;
 const std::chrono::milliseconds WAIT_TIMEOUT(10000);
 
-// The calibration thread waits for each chunk to stand still before it issues the next one, so the tests which
-// complete the chunks one at a time have to space them out.
-const std::chrono::milliseconds CHUNK_PERIOD(150);
-
 // A full rotary calibration needs a release chunk and a homing chunk, this bound only guards against a runaway.
 const unsigned MAX_CALIBRATION_CHUNKS = 10U;
 
@@ -152,7 +148,6 @@ void RotaryStepperMotorFixture::driveToEndSwitch() {
 }
 
 void RotaryStepperMotorFixture::completeChunk() const {
-  std::this_thread::sleep_for(CHUNK_PERIOD);
   if(_motorControlerDummy->isMotorMoving()) {
     _motorControlerDummy->moveTowardsTarget(1.0F, false);
   }
@@ -185,12 +180,15 @@ void RotaryStepperMotorFixture::runToleranceCalculationToEnd() {
 }
 
 void RotaryStepperMotorFixture::runCalibrationToEnd() {
-  // A call with the full fraction completes the whole chunk, so the background thread only issues the next one
-  // afterwards.
+  // The background thread issues the next chunk only after it has seen the previous one stand still, so the wait is
+  // for that chunk, not for a fixed period.
   for(unsigned chunk = 0; chunk < MAX_CALIBRATION_CHUNKS; ++chunk) {
     if(_stepperMotor->isSystemIdle()) {
       return;
     }
+    BOOST_TEST_REQUIRE(waitFor([this] {
+      return _motorControlerDummy->isMotorMoving() || _stepperMotor->isSystemIdle();
+    }));
     completeChunk();
   }
   BOOST_TEST_REQUIRE(
