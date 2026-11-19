@@ -56,9 +56,7 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   ExitStatus BasicStepperMotor::checkNewPosition(int newPositionInSteps) {
-    // Reject moves while the state machine is in the "error" state: the move
-    // event would be dropped anyway (no transition defined), but previously
-    // this returned SUCCESS, hiding the error state from the client.
+    // Reject moves while the state machine is in the "error" state:
     if(_stateMachine && _stateMachine->getCurrentState()->getName() == "error") {
       return ExitStatus::ERR_SYSTEM_IN_ERROR_STATE;
     }

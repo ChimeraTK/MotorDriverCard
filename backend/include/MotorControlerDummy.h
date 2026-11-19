@@ -79,10 +79,6 @@ namespace mtca4u {
     void setPositionLatched(unsigned int steps) override;
     unsigned int getPositionLatched() override;
 
-    void setReferenceConfigAndRampModeData(
-        ReferenceConfigAndRampModeData const& referenceConfigAndRampModeData) override;
-    ReferenceConfigAndRampModeData getReferenceConfigAndRampModeData() override;
-
     bool targetPositionReached() override;
     unsigned int getReferenceSwitchBit() override;
 
@@ -189,7 +185,6 @@ namespace mtca4u {
     bool _bothEndSwitchesAlwaysOn{false};
     unsigned int _userMicroStepSize{4};
     bool _isFullStepping{false};
-    ReferenceConfigAndRampModeData _referenceConfigAndRampModeData{};
     void setMicroStepSize(unsigned int microStepSize) { _userMicroStepSize = microStepSize; }
     unsigned int getMicropStepSize() const { return _userMicroStepSize; }
     void roundToNextFullStep(int& targetPosition);

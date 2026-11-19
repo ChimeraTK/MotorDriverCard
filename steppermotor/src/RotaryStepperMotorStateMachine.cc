@@ -5,7 +5,8 @@
 
 #include "MotorControler.h"
 #include "RotaryStepperMotor.h"
-#include "TMC429Words.h"
+
+#include <ChimeraTK/cppext/finally.hpp>
 
 #include <exception>
 #include <iostream>
@@ -19,10 +20,7 @@ namespace ChimeraTK::MotorDriver {
     // and must not let an exception escape: that would terminate the process
     // and leave _asyncActionActive stuck, locking the machine in "calibrating".
     // The guard guarantees the flag is cleared on every exit path.
-    struct AsyncActionGuard {
-      std::atomic<bool>& flag;
-      ~AsyncActionGuard() { flag.exchange(false); }
-    } asyncActionGuard{_asyncActionActive};
+    auto asyncActionGuard = cppext::finally([&] { _asyncActionActive.store(false); });
     std::cerr << "rotary calibration: starting home search" << std::endl;
     _motor._calibrationFailed.exchange(false);
     _stopAction.exchange(false);
@@ -49,8 +47,6 @@ namespace ChimeraTK::MotorDriver {
       _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
       _motor._calibrationMode.exchange(CalibrationMode::NONE);
     };
-    auto savedConfig = mtca4u::ReferenceConfigAndRampModeData();
-    bool registerSwapped = false;
     try {
       // Establish a fixed origin for the home search: re-base the hardware
       // counter (actual and target) to 0. Homing then always starts from a
@@ -60,15 +56,12 @@ namespace ChimeraTK::MotorDriver {
         boost::lock_guard<boost::mutex&> lck(_motor._mutex);
         _motor.resetMotorControllerPositions(0);
       }
-      // During the home search enable the TMC429 hardware stop for the
-      // positive (home) reference switch and only disable the stop for the
-      // (usually unconnected) negative switch, so the motor reliably stops
-      // when it reaches the switch. The configured register value is
-      // restored on all exit paths.
-      savedConfig = _motor._motorController->getReferenceConfigAndRampModeData();
-      // 0x100 = DISABLE_STOP_L only: HW stop ON for the home switch (REF_R)
-      _motor._motorController->setReferenceConfigAndRampModeData(mtca4u::ReferenceConfigAndRampModeData(0x100));
-      registerSwapped = true;
+      // During the home search enable the TMC429 hardware stop for the home
+      // (positive) reference switch, and disable the stop for the (usually
+      // unconnected) negative switch, so the motor reliably stops when it
+      // reaches the home switch.
+      _motor._motorController->setPositiveReferenceSwitchEnabled(true);
+      _motor._motorController->setNegativeReferenceSwitchEnabled(false);
       findEndSwitch(Sign::POSITIVE); // "home direction search"
       int homePosition = _motor.getCurrentPositionInSteps();
 
@@ -114,19 +107,19 @@ namespace ChimeraTK::MotorDriver {
                 << e.what() << std::endl;
       failCalibration();
     }
-    if(registerSwapped) {
-      try {
-        _motor._motorController->setReferenceConfigAndRampModeData(savedConfig);
-      }
-      catch(const std::exception& e) {
-        // The motor would keep the homing configuration (hardware stop active
-        // on the home switch) instead of the configured value. Calibration
-        // must leave the motor in its configured operating state, so report
-        // this as a failure.
-        std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): could not restore the configured "
-                  << "reference register: " << e.what() << "; calibration marked as failed" << std::endl;
-        failCalibration();
-      }
+    // Restore the configured operating state after the home search: disable
+    // both hardware stops so the motor is free to move in both directions
+    // again (the configured value is 0x300 = both stops off). The switch
+    // setters are read-modify-write, so any ramp-mode/soft-stop bits are
+    // preserved. This cleanup is allowed to fail, like the other post-search
+    // I/O.
+    try {
+      _motor._motorController->setPositiveReferenceSwitchEnabled(false);
+      _motor._motorController->setNegativeReferenceSwitchEnabled(false);
+    }
+    catch(const std::exception& e) {
+      std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): could not restore the "
+                << "reference switch stops after homing: " << e.what() << std::endl;
     }
   }
 
