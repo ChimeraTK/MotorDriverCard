@@ -28,6 +28,7 @@ namespace ChimeraTK::MotorDriver {
     // Shared failure handling. Safe to run even if the communication link is
     // down: the cleanup I/O is allowed to fail.
     auto failCalibration = [this]() {
+      std::lock_guard<boost::mutex> lock(_motor._mutex);
       try {
         // Clear the calibration data in the firmware and re-base the hardware
         // counter, so that a subsequent calibration attempt starts from a
@@ -65,7 +66,9 @@ namespace ChimeraTK::MotorDriver {
       findEndSwitch(Sign::POSITIVE); // "home direction search"
       int homePosition = _motor.getCurrentPositionInSteps();
 
+      std::unique_lock<boost::mutex> lock(_motor._mutex);
       if(_moveInterrupted.load() || _stopAction.load()) {
+        lock.unlock();
         std::cerr << "rotary calibration: home search interrupted before completion" << std::endl;
         failCalibration();
       }
