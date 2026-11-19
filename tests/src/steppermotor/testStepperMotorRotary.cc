@@ -28,7 +28,7 @@ static const std::string moduleName("");
 
 // The rotary state machine searches the home switch in steps of
 // RotaryStepperMotorStateMachine::END_SWITCH_SEARCH_OFFSET (5000 steps), so the
-// dummy end switch must be reachable with a single move from the origin.
+// dummy end switch must be reachable with a ten moves from the origin.
 static const int POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER = 50000;
 
 class StepperMotorRotaryTestFixture {
