@@ -139,25 +139,33 @@ Rotary switch semantics:
   per-chunk blocked-move check aborts the release search; calibration error,
   `CalibrationMode::NONE`.
 - Stop during calibration of the homing search (positive switch inactive at the
-  start): motor stops, state idle.
+  start): the motor is stopped half way into the first chunk, stands still and
+  ends idle.
 - Stop during calibration while the release search runs (positive switch active
-  at the start): after the first negative chunk target the motor stands still
-  and ends idle. This covers the stop half of the release-search abort, while
-  the blocked-move case covers the interruption half.
-- The dummy advances the motor by one step per `moveTowardsTarget()` and steps
-  even a single step to the target at once, so a chunk leaves no usable window
-  to stop it. The tests do not step the dummy themselves to hold a chunk open.
-  The stop is issued only once the motor is moving and its target differs from
-  the chunk start, i.e. the standstill command takes the target of a moving
-  motor back. The tests check that before they stop. Leaving the motor alone
-  would be a race, so a stop between two chunks is not covered.
-- `stopDuringChunkAt()` runs with the dummy still at the chunk start, so a
-  position guard would be true on entry and protect nothing. It only waits for a
-  moving motor whose target differs from the chunk start before it stops.
-- Disable during calibration: motor stops, state disabled, motor current and
-  end-switch power off.
+  at the start): the motor is stopped half way into the first negative chunk,
+  which releases the switch, while the motor is still on its way to the chunk
+  target. It ends idle. This covers the stop half of the release-search abort,
+  while the blocked-move case covers the interruption half.
+- `moveTowardsTarget(1.0)` completes the whole remaining distance to the target
+  in one call and returns without moving when the target equals the actual
+  position, so a chunk is only open after a fractional move. The dummy also
+  reports a motor as moving as soon as a target differs from its actual
+  position, so `isMotorMoving()` in a test means a chunk target was issued, not
+  that a step happened.
+- A stop between two chunks needs no coverage: the state machine issues the next
+  chunk only after the previous one stands still.
+- After the stop the tests complete the pending chunk once more and assert the
+  position does not change: the standstill command left the target at the actual
+  position, so the dummy has nothing to move to.
+- Disable during calibration: motor stopped half way into the first chunk, state
+  disabled, motor current and end-switch power off.
 - Rotary motor with the negative switch bit set: negative reference inactive,
-  no both-switches error.
+  no both-switches error. The dummy has no setter for its both-end-switches
+  flag, it is only a `moveTowardsTarget()` parameter, so a fixture helper sets
+  it with a zero fraction and documents that this is not a move. The fixture
+  also sets both end switch positions, because the dummy driver card is shared
+  between the test cases and `resetInternalStateToDefaults()` does not restore
+  them.
 - Blocked rotary move: reported as interrupted, not as successful.
 - Rotary motor, tolerance calculation after a completed calibration: the
   calculation finishes with `Error::NO_ERROR` and the motor ends in the idle
@@ -166,7 +174,7 @@ Rotary switch semantics:
   inactive, so a conjunction would report an interrupted move.
 - Stop during the tolerance calculation after a completed calibration: wait for
   `calculatingTolerance` and for the first move of the calculation, which leaves
-  the motor moving, then stop. This test does not need the chunk window above,
+  the motor moving, then stop. This test does not need the half-chunk move,
   because it waits for the move of the calculation to be running before it
   stops.
 - After the stop the motor is not moving and its target equals its actual
