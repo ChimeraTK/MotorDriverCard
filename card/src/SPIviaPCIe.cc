@@ -7,8 +7,6 @@
 
 #include <ChimeraTK/Device.h>
 
-#include <boost/thread/locks.hpp>
-
 #include <cerrno>
 #include <ctime>
 

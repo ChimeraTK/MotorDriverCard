@@ -4,8 +4,6 @@
 
 #include "impl/MotorControllerImpl.h"
 
-#include <boost/shared_ptr.hpp>
-
 #include <sstream>
 #include <stdexcept>
 using namespace ChimeraTK::MotorDriver::tmc429;

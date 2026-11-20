@@ -8,8 +8,6 @@
 
 #include <ChimeraTK/Device.h>
 
-#include <boost/thread/locks.hpp>
-
 #include <utility>
 
 namespace ChimeraTK::MotorDriver {

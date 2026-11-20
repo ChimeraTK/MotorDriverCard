@@ -1,7 +1,6 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE StepperMotorChimeraTKTest
 
-#include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <memory>
@@ -16,7 +15,6 @@ using namespace boost::unit_test_framework;
 #include "StepperMotor.h"
 #include "testConfigConstants.h"
 
-#include <ChimeraTK/Utilities.h>
 using namespace ChimeraTK::MotorDriver;
 
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");

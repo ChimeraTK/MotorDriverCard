@@ -1,16 +1,14 @@
+#include <ChimeraTK/BackendFactory.h>
+
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE MotorDriverCardFactoryTest
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include "DFMC_MD22Constants.h"
 #include "MotorDriverCardDummy.h"
 #include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
 
-#include <ChimeraTK/Device.h>
-
-#include <boost/filesystem.hpp>
 using namespace ChimeraTK::MotorDriver;
 
 // using namespace ChimeraTK;

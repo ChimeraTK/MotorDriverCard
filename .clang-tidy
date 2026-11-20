@@ -342,7 +342,10 @@ Checks: >
 
 CheckOptions:
   misc-include-cleaner.MissingIncludes: 'false'
-  misc-include-cleaner.IgnoreHeaders: 'boost/test/unit_test.hpp;'
+  # Headers whose declarations the check cannot attribute to a use in this project:
+  # the Boost.Test single-header variant, Boost headers used only inside templates or
+  # lambdas, and the libxml++ headers, which have no IWYU export map.
+  misc-include-cleaner.IgnoreHeaders: 'boost/test/unit_test.hpp;boost/test/included/unit_test.hpp;boost/lambda/lambda.hpp;boost/make_shared.hpp;boost/thread/thread.hpp;libxml\+\+/libxml\+\+\.h;libxml/parser\.h;'
   readability-identifier-naming.ClassCase: 'CamelCase'
   readability-identifier-naming.FunctionCase: 'camelBack'
   readability-identifier-naming.MacroDefinitionCase: 'UPPER_CASE'

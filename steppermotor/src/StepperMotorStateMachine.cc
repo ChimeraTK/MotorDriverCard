@@ -4,11 +4,6 @@
 #include "BasicStepperMotor.h"
 #include "MotorController.h"
 
-#include <chrono>
-#include <iostream>
-#include <memory>
-#include <thread>
-
 namespace ChimeraTK::MotorDriver {
 
   const utility::StateMachine::Event BasicStepperMotor::StateMachine::initialEvent("initialEvent");

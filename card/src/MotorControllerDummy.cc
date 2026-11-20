@@ -4,8 +4,6 @@
 
 #include <ChimeraTK/Exception.h>
 
-#include <iostream>
-
 using LockGuard = std::lock_guard<std::mutex>;
 using UniqueLog = std::unique_lock<std::mutex>;
 

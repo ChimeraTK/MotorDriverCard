@@ -7,8 +7,6 @@
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/DMapFileParser.h>
 
-#include <unistd.h>
-
 #include <array>
 #include <ctime>
 #include <iostream>

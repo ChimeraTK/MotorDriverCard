@@ -7,8 +7,6 @@ using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include "TMC429Constants.h"
 using namespace ChimeraTK::MotorDriver::tmc429;
 
-#include "impl/MotorDriverCardImpl.h"
-
 #include <ChimeraTK/Device.h>
 
 #include <cmath>

@@ -8,7 +8,7 @@
 
 #include <ChimeraTK/BackendFactory.h>
 
-#include <boost/thread.hpp>
+#include <boost/thread/thread.hpp>
 
 #include <iostream>
 #include <utility>

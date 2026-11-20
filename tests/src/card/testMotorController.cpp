@@ -15,17 +15,14 @@ using namespace boost::unit_test_framework;
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include "ChimeraTK/BackendFactory.h"
 #include "MotorControllerConfigDefaults.h"
-#include "MotorDriverCardFactory.h"
 #include "testConfigConstants.h"
 #include "testWordFromSpiAddress.h"
 #include "TMC260DummyConstants.h"
 #include "TMC429DummyConstants.h"
 
 #include <ChimeraTK/Device.h>
-#include <ChimeraTK/MapFileParser.h>
 #include <ChimeraTK/Utilities.h>
 
-#include <memory>
 #include <utility>
 using namespace ChimeraTK::MotorDriver;
 #define DECLARE_GET_SET_TEST(NAME)                                                                                     \
@@ -336,6 +333,7 @@ namespace ChimeraTK::MotorDriver {
     BOOST_CHECK_MESSAGE(((*_motorController).*readFunction)() == expectedValue, message.str());
   }
 
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static) Boost.Test test cases are member functions
   void MotorControllerTest::testThreadSaftey() {
     // FIXME: these tests may not be complex enough
     // These tests are meant to be run with thread sanitizer/ Helgrind

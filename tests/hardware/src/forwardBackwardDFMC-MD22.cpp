@@ -1,15 +1,12 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorController.h"
-#include "MotorDriverCardConfigXML.h"
 #include "MotorDriverCardExpert.h"
 #include "MotorDriverCardFactory.h"
 
 #include <ChimeraTK/BackendFactory.h>
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/DMapFileParser.h>
-
-#include <unistd.h>
 
 #include <cerrno>
 #include <csignal>

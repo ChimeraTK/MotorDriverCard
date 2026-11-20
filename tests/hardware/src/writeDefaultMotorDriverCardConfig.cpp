@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #include "MotorDriverCardConfigXML.h"
 
-#include <iostream>
 using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;

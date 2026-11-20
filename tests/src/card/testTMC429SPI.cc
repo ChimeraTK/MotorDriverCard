@@ -1,7 +1,6 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE TMC429SPITest
 
-#include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
@@ -12,7 +11,6 @@ using namespace boost::unit_test_framework;
 #include "TMC429Words.h"
 
 #include <ChimeraTK/Device.h>
-#include <ChimeraTK/MapFileParser.h>
 
 using namespace ChimeraTK;
 using namespace ChimeraTK::MotorDriver::dfmc_md22;

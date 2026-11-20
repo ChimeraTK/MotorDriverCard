@@ -13,7 +13,6 @@ using namespace boost::unit_test_framework;
 #include "TMC429Words.h"
 
 #include <ChimeraTK/Device.h>
-#include <ChimeraTK/MapFileParser.h>
 using namespace ChimeraTK::MotorDriver;
 
 class SPIviaPCIeTestFixture {

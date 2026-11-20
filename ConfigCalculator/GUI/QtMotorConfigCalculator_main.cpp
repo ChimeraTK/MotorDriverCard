@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #include "QtMotorConfigCalculator.h"
 
-#include <QtGui>
 using namespace ChimeraTK::MotorDriver;
 
 int main(int argc, char** argv) {

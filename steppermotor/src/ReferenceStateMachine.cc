@@ -5,8 +5,6 @@
 
 #include "MotorController.h"
 
-#include <ChimeraTK/Exception.h>
-
 #include <array>
 #include <thread>
 

@@ -4,8 +4,6 @@
 
 #include "ParameterWidget.h"
 
-#include <iostream>
-
 ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_) {
   // NOLINTBEGIN(cppcoreguidelines-owning-memory) the Qt objects are owned by their parent widget
   // We use an outer and an inner vertical layout.

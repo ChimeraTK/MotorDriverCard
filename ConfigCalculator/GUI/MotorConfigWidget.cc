@@ -7,7 +7,6 @@
 #include <cmath>
 #include <list>
 #include <QMessageBox>
-#include <stdexcept>
 #include <string>
 using namespace ChimeraTK::MotorDriver;
 

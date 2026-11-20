@@ -11,8 +11,6 @@ using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include "TMC429Words.h"
 
 #include <boost/lambda/lambda.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/thread/thread.hpp>
 
 #include <algorithm>
 using namespace ChimeraTK::MotorDriver::tmc429;

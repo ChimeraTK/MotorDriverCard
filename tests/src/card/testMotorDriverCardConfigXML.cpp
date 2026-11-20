@@ -9,7 +9,6 @@ using namespace ChimeraTK;
 #include <boost/test/unit_test.hpp>
 using namespace boost::unit_test_framework;
 
-#include <boost/bind/bind.hpp>
 using namespace ChimeraTK::MotorDriver;
 
 static const std::string COMPLETE_XML_FILE_NAME("MotorDriverCardConfig_complete_test.xml");

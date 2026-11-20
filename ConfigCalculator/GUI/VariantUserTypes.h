@@ -4,5 +4,5 @@
 
 #include <QVariant>
 
-// We start counting our user types at  QVariant::UserType
-constexpr int HexDataType = QVariant::UserType;
+// We start counting our user types at QMetaType::User
+constexpr int HexDataType = QMetaType::User;

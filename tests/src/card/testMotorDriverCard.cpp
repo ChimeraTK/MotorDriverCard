@@ -9,9 +9,6 @@ using namespace boost::unit_test_framework;
 #include "MotorControllerExpert.h"
 
 #include <ChimeraTK/Device.h>
-#include <ChimeraTK/MapFileParser.h>
-
-#include <boost/shared_ptr.hpp>
 
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include "testWordFromPCIeAddress.h"

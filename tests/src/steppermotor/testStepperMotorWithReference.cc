@@ -3,15 +3,12 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE StepperMotorWithReferenceTest
 
-#include <boost/pointer_cast.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <memory>
 #include <thread>
 using namespace boost::unit_test_framework;
 
-#include "DFMC_MD22Dummy.h"
 #include "LinearStepperMotor.h"
 #include "MotorControllerDummy.h"
 #include "MotorDriverCard.h"
@@ -19,9 +16,7 @@ using namespace boost::unit_test_framework;
 #include "ReferenceStateMachine.h"
 #include "StepperMotor.h"
 #include "testConfigConstants.h"
-#include "TMC429Constants.h"
 
-#include <ChimeraTK/Utilities.h>
 using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK::MotorDriver;
