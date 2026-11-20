@@ -16,7 +16,9 @@ namespace ChimeraTK::MotorDriver {
    *  At the hardware level, the TMC429 chip can also be configured to ignore
    *  end switches via the referenceConfigAndRampModeData register.
    *  For a rotary motor, set this in the XML config:
+   *  \verbatim
    *  <Register name="referenceConfigAndRampModeData" value="0x300"/>
+   *  \endverbatim
    *  Value 0x300 sets both DISABLE_STOP_L and DISABLE_STOP_R bits,
    *  telling the TMC429 to ignore both left and right end switches.
    */

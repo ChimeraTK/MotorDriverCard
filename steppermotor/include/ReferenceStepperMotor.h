@@ -8,7 +8,7 @@ namespace ChimeraTK::MotorDriver {
   class ReferenceStateMachine;
   namespace utility {
     class StateMachine;
-  }
+  } // namespace utility
 
   /// Helper class for endswitch polarity
   enum class Sign { NEGATIVE = -1, POSITIVE = 1 };
@@ -26,6 +26,7 @@ namespace ChimeraTK::MotorDriver {
     /**
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
+     * @param  stateMachine State machine used to implement the asynchronous operations
      */
     ReferenceStepperMotor(const StepperMotorParameters&, std::shared_ptr<utility::StateMachine>);
 

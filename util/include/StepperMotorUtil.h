@@ -3,7 +3,7 @@
 #pragma once
 
 #include <string>
-namespace ChimeraTK { namespace MotorDriver {
+namespace ChimeraTK::MotorDriver {
 
   /**
    *  Enum type describing how the system is calibrated:
@@ -134,4 +134,4 @@ namespace ChimeraTK { namespace MotorDriver {
 
   } // namespace utility
 
-}} // namespace ChimeraTK::MotorDriver
+} // namespace ChimeraTK::MotorDriver
