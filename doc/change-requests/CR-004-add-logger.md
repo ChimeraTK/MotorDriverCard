@@ -13,18 +13,16 @@ Status: PLANNED
 The library reports its lifecycle and its own error sites through a logger that the caller controls.
 
 - Use one logger for the whole process.
-  - The caller may install their own at any time; until then a built-in default is used.
+  - The caller may install one before the first card is created; until then a built-in default is used.
 - Accept any object an lvalue of which provides `debug()`, `info()`, `warn()` and `error()`.
   - Each method takes a `std::string` topic.
   - A topic is a short string naming the message source, so output can be filtered by prefix.
   - Each method returns `std::ostream&`.
 - Accept the object without inheritance: no pure virtual interface, no base class to derive from.
-- Add no logger parameter and no logger member to `MotorDriverCard`, `MotorControler` or `StepperMotor`, and no logger
-  member to any implementation class.
 - Provide a built-in default logger, so an unconfigured library still reports.
   - `debug` and `info` go to `stdout`, `warn` and `error` to `stderr`.
-- Allow replacing the logger at any time, from any thread.
-  - A message in progress finishes on the logger that was installed when it started.
+- Allow installing or replacing the logger only before the first card is created.
+  - A later call is rejected with `ChimeraTK::logic_error` and leaves the installed logger in place.
 - Allow calls from any thread.
   - The library adds no locking around the caller's logger; it may call it while holding its own mutexes.
   - A logger method may log through the installed logger, and must not call back into the library.
@@ -68,14 +66,19 @@ Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
   - `static void setGlobal(Logger logger)`
     - Replaces the process-wide handle.
     - The caller keeps ownership: the library stores a pointer to the logger object, not a copy.
-    - The logger object must stay alive until a later `setGlobal()` or the end of the process.
+    - The logger object must stay alive until the next `setGlobal()` or the end of the process.
+    - Throws `ChimeraTK::logic_error` once the global logger is frozen, without storing the argument.
   - `static Logger global()`
     - Returns a copy of the process-wide handle; every library log statement starts here.
     - Returns the built-in `DefaultLogger` handle until the first `setGlobal()`.
-  - Storage: one `std::atomic<Logger>` in `Logger.cc`, initialised with the default handle.
-    - `global()` loads it, `setGlobal()` stores it; a reader works on its copy, which is what makes a message finish
-      on the logger it started with.
-  - Thread safety: the handle is immutable after construction and the global slot is atomic.
+  - `void detail::freezeGlobalLogger()`
+    - Declared in `Logger.h`, defined in `Logger.cc`; called by the library only.
+    - Sets the frozen flag that `setGlobal()` checks; repeated calls are harmless.
+  - Storage: one `std::atomic<Logger>` in `Logger.cc`, initialised with the default handle, plus one
+    `std::atomic<bool>` frozen flag.
+    - `global()` loads the handle; `setGlobal()` stores it while the flag is clear.
+  - Thread safety: the handle is immutable after construction and the global slot is atomic, so concurrent log calls
+    are safe; installing is supported only before the freeze.
   - Reentrancy: a logger method may log through the installed logger.
   - The handle never calls the logger during construction or destruction.
   - The library applies no level threshold; the installed logger decides what to write.
@@ -138,6 +141,8 @@ Location: `backend/include/impl/MotorDriverCardImpl.h` (modified), `backend/src/
 - `applyConfiguration()` and `checkFirmwareVersion()` are also called by `reconfigure()`, so a recovery reports the
   same two messages.
 - New private `std::string _logTopic`, built in the constructor as `MotorDriverCard/` plus the module name.
+- Calls `Logger::detail::freezeGlobalLogger()` first in the constructor.
+  - Every card is created here or in `MotorDriverCardDummy`, so this is the freeze point of the logger.
 
 ### MotorControlerImpl (modified)
 
@@ -169,6 +174,7 @@ Location: `backend/include/MotorDriverCardDummy.h` (modified), `backend/src/Moto
   - `debug` in the constructor.
   - `error` with the error text, then throw `ChimeraTK::logic_error`, on an invalid `motorControlerID` and in
     `getPowerMonitor()`.
+- Calls `Logger::detail::freezeGlobalLogger()` first in the constructor.
 - `MotorControlerDummy` stays without messages; its not-implemented throws are unchanged.
 
 ### BasicStepperMotor (modified)
@@ -219,8 +225,8 @@ Location: `CMakeLists.txt` (modified)
 
 ## Test plan
 
-- Every test fixture that installs a logger does so in its constructor, before it creates the objects under test, and
-  restores the previous `global()` handle in its destructor.
+- Every test executable installs one recording logger through a `BOOST_GLOBAL_FIXTURE` before any fixture creates an
+  object, because the logger cannot change after the first card. Cases clear the recorder at their start.
 - `tests/src/util/testLogger.cpp` (new)
   - `RecordsLevelTopicAndText`: a recording logger installed with `setGlobal()` receives the topic and the streamed
     text on each of the four levels; a message written through a copy of the handle arrives at the same logger.
@@ -232,7 +238,8 @@ Location: `CMakeLists.txt` (modified)
     - Covers the C++23 setting of the test targets; the library has no runtime check.
   - `DefaultLoggerIsUsedUntilReplaced`: a handle taken from `global()` before any `setGlobal()` writes a line; after
     installing another logger and installing the taken handle again, the default writes again.
-    - Covers the built-in default and the restore direction; `RecordsLevelTopicAndText` covers replacement only.
+    - Covers the built-in default and repeated installation before a freeze; `RecordsLevelTopicAndText` covers
+      replacement only.
   - `DefaultLoggerSplitsStreamsAndLevels`: a `DefaultLogger` over two string streams, installed with `setGlobal()`,
     puts `debug` and `info` lines on `out` and `warn` and `error` lines on `err`, each as
     `[<level>] <topic>: <text>`.
@@ -253,6 +260,9 @@ Location: `CMakeLists.txt` (modified)
     - Covers the factory messages on a first creation; the logger itself is covered by `testLogger.cpp`.
   - `CachedCardHitIsLogged`: a second creation under that key yields the cache-hit `debug`.
     - Covers the cache-hit message, which a first creation cannot produce.
+  - `LoggerCannotBeChangedAfterCardCreation`: after a card exists, `setGlobal()` throws `ChimeraTK::logic_error` and
+    the installed recorder keeps receiving messages.
+    - Covers the freeze point and the rejected installation; no other case installs after a card exists.
 - `tests/src/backend/testMotorDriverCardDummy.cpp` (modified)
   - `CreationIsLogged`: constructing the dummy card yields the `MotorDriverCard/dummy` `debug`.
     - Covers the dummy creation message.
