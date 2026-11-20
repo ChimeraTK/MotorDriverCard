@@ -117,7 +117,7 @@ void StepperMotorWithReferenceTestFixture::waitToSetTargetPos(int targetPos) {
 }
 
 void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive() {
-  while(1) {
+  while(true) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if(!_stepperMotor->_motorController->getReferenceSwitchData().getPositiveSwitchActive()) {
@@ -131,7 +131,7 @@ void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive() {
 }
 
 void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive() {
-  while(1) {
+  while(true) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     _stepperMotor->_mutex.lock();
     if(!_stepperMotor->_motorController->getReferenceSwitchData().getNegativeSwitchActive()) {
@@ -206,26 +206,22 @@ void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest() 
 
   // Positive end switch detection step
   while(i < N_TOLERANCE_CALC_SAMPLES) {
-    switch(moveState) {
-      case MOVE_INFRONTOF_ES:
-
-        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps() || isInitialStep) {
-          isInitialStep = false;
-          // Motor on end switch, move backwards
-          _motorControllerDummy->moveTowardsTarget(1);
-          moveState = MOVE_ONTO_ES;
-        }
-        break;
-
-      case MOVE_ONTO_ES:
-        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()) {
-          // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControllerDummy->setPositiveEndSwitch(10000 + i);
-          _motorControllerDummy->moveTowardsTarget(1);
-          moveState = MOVE_INFRONTOF_ES;
-          i++;
-        }
-        break;
+    if(moveState == MOVE_INFRONTOF_ES) {
+      if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps() || isInitialStep) {
+        isInitialStep = false;
+        // Motor on end switch, move backwards
+        _motorControllerDummy->moveTowardsTarget(1);
+        moveState = MOVE_ONTO_ES;
+      }
+    }
+    else {
+      if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps()) {
+        // Motor shortly before end switch, modify it and attempt to move beyond
+        _motorControllerDummy->setPositiveEndSwitch(10000 + i);
+        _motorControllerDummy->moveTowardsTarget(1);
+        moveState = MOVE_INFRONTOF_ES;
+        i++;
+      }
     }
   }
 
@@ -236,26 +232,22 @@ void StepperMotorWithReferenceTestFixture::performToleranceCalculationForTest() 
   isInitialStep = true;
 
   while(i < N_TOLERANCE_CALC_SAMPLES) {
-    switch(moveState) {
-      case MOVE_INFRONTOF_ES:
-
-        if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps() || isInitialStep) {
-          isInitialStep = false;
-          // Motor on end switch, move backwards
-          _motorControllerDummy->moveTowardsTarget(1);
-          moveState = MOVE_ONTO_ES;
-        }
-        break;
-
-      case MOVE_ONTO_ES:
-        if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()) {
-          // Motor shortly before end switch, modify it and attempt to move beyond
-          _motorControllerDummy->setNegativeEndSwitch(POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER - i * 10);
-          _motorControllerDummy->moveTowardsTarget(1);
-          moveState = MOVE_INFRONTOF_ES;
-          i++;
-        }
-        break;
+    if(moveState == MOVE_INFRONTOF_ES) {
+      if(_stepperMotor->getTargetPositionInSteps() > _stepperMotor->getCurrentPositionInSteps() || isInitialStep) {
+        isInitialStep = false;
+        // Motor on end switch, move backwards
+        _motorControllerDummy->moveTowardsTarget(1);
+        moveState = MOVE_ONTO_ES;
+      }
+    }
+    else {
+      if(_stepperMotor->getTargetPositionInSteps() < _stepperMotor->getCurrentPositionInSteps()) {
+        // Motor shortly before end switch, modify it and attempt to move beyond
+        _motorControllerDummy->setNegativeEndSwitch(POS_NEGATIVE_ENDSWITCH_MOTORCONTROLLER - i * 10);
+        _motorControllerDummy->moveTowardsTarget(1);
+        moveState = MOVE_INFRONTOF_ES;
+        i++;
+      }
     }
   }
 

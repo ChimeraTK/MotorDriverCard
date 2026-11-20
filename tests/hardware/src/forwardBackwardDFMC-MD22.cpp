@@ -9,10 +9,10 @@
 #include <ChimeraTK/Device.h>
 #include <ChimeraTK/DMapFileParser.h>
 
-#include <signal.h>
 #include <unistd.h>
 
 #include <cerrno>
+#include <csignal>
 #include <ctime>
 #include <iostream>
 #include <stdexcept>
@@ -143,7 +143,7 @@ static int run(int argc, char** argv) {
 
     std::cout << "Starting the forward-backward loop ..." << std::endl;
 
-    while(1) {
+    while(true) {
       motor0->setTargetPosition(nStepsMax);
       std::cout << std::endl << "Moving forward..." << std::endl;
 

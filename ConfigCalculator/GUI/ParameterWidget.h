@@ -24,8 +24,8 @@ class ParameterWidget : public QWidget {
   void setValue(uint32_t value);
 
  protected:
-  QHBoxLayout* horizontalLayout;
-  QLabel* label;
-  HexSpinBox* parameterSpinBox;
-  QLabel* defaultValueLabel;
+  QHBoxLayout* horizontalLayout{nullptr};
+  QLabel* label{nullptr};
+  HexSpinBox* parameterSpinBox{nullptr};
+  QLabel* defaultValueLabel{nullptr};
 };

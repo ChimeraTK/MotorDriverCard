@@ -9,6 +9,7 @@
 
 #include <unistd.h>
 
+#include <array>
 #include <ctime>
 #include <iostream>
 using namespace ChimeraTK::MotorDriver;
@@ -62,16 +63,17 @@ int main(int argc, char* argv[]) {
 
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;
-  time_t startingTime = time(NULL);
+  time_t startingTime = time(nullptr);
   time_t lastPrintTime = startingTime;
 
-  int initialTargetPosition[2] = {motor0->getTargetPosition(), motor1->getTargetPosition()};
-  unsigned int initialMinVelocity[2] = {motor0->getMinimumVelocity(), motor1->getMinimumVelocity()};
-  unsigned int initialMaxVelocity[2] = {motor0->getMaximumVelocity(), motor1->getMaximumVelocity()};
-  unsigned int initialMaxAcceleration[2] = {motor0->getMaximumAcceleration(), motor1->getMaximumAcceleration()};
-  unsigned int initialPositionTolerance[2] = {motor0->getPositionTolerance(), motor1->getPositionTolerance()};
+  std::array<int, 2> initialTargetPosition{motor0->getTargetPosition(), motor1->getTargetPosition()};
+  std::array<unsigned int, 2> initialMinVelocity{motor0->getMinimumVelocity(), motor1->getMinimumVelocity()};
+  std::array<unsigned int, 2> initialMaxVelocity{motor0->getMaximumVelocity(), motor1->getMaximumVelocity()};
+  std::array<unsigned int, 2> initialMaxAcceleration{
+      motor0->getMaximumAcceleration(), motor1->getMaximumAcceleration()};
+  std::array<unsigned int, 2> initialPositionTolerance{motor0->getPositionTolerance(), motor1->getPositionTolerance()};
 
-  while(1) {
+  while(true) {
     // controller registers (only they can be read back)
     for(unsigned int motorID = 0; motorID <= 1; ++motorID) {
       boost::shared_ptr<ChimeraTK::MotorDriver::MotorController> motor = motorDriverCard->getMotorController(motorID);
@@ -149,7 +151,7 @@ int main(int argc, char* argv[]) {
     // footer: count up the run count and print a status every second.
     runCounter++;
 
-    time_t currentTime = time(NULL);
+    time_t currentTime = time(nullptr);
     if(currentTime > lastPrintTime) {
       std::cout << "\r" << currentTime - startingTime << " second" << (currentTime - startingTime != 1 ? "s" : "")
                 << " elapsed, " << runCounter << " test cycles completed, " << errorCounter

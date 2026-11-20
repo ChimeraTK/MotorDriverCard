@@ -65,9 +65,8 @@ int main(int argc, char* argv[]) {
 
   if(chipParameters.warnings.size()) {
     std::cout << "\n Warnings during conversion:" << std::endl;
-    for(std::list<std::string>::const_iterator it = chipParameters.warnings.begin();
-        it != chipParameters.warnings.end(); ++it) {
-      std::cout << *it << std::endl;
+    for(const auto& warning : chipParameters.warnings) {
+      std::cout << warning << std::endl;
     }
   }
 
@@ -76,10 +75,8 @@ int main(int argc, char* argv[]) {
 
   ChimeraTK::MotorDriver::MotorDriverCardConfig cardConfig;
   // set all motor configs to the same, calculated config
-  for(std::vector<ChimeraTK::MotorDriver::MotorControllerConfig>::iterator it =
-          cardConfig.motorControllerConfigurations.begin();
-      it != cardConfig.motorControllerConfigurations.end(); ++it) {
-    *it = motorConfig;
+  for(auto& motorControllerConfiguration : cardConfig.motorControllerConfigurations) {
+    motorControllerConfiguration = motorConfig;
   }
 
   ChimeraTK::MotorDriver::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);

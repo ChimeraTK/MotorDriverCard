@@ -12,8 +12,8 @@ using namespace boost::unit_test_framework;
 // just for debugging the test
 void printWarnings(std::list<std::string> const& warnings) {
   std::cout << "Warnings: " << std::endl;
-  for(std::list<std::string>::const_iterator it = warnings.begin(); it != warnings.end(); ++it) {
-    std::cout << *it << std::endl;
+  for(const auto& warning : warnings) {
+    std::cout << warning << std::endl;
   }
 }
 

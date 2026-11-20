@@ -14,13 +14,13 @@ namespace ChimeraTK::MotorDriver {
    *  the MotorDrivers is contains.
    */
   struct MotorDriverCardConfig {
-    unsigned int coverDatagram;
+    unsigned int coverDatagram{0};
     CoverPositionAndLength coverPositionAndLength;
-    unsigned int datagramHighWord;
-    unsigned int datagramLowWord;
+    unsigned int datagramHighWord{0};
+    unsigned int datagramLowWord{0};
     InterfaceConfiguration interfaceConfiguration;
     PositionCompareInterruptData positionCompareInterruptData;
-    unsigned int positionCompareWord;
+    unsigned int positionCompareWord{0};
     StepperMotorGlobalParameters stepperMotorGlobalParameters;
 
     unsigned int controllerSpiWaitingTime;

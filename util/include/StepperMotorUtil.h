@@ -69,7 +69,7 @@ namespace ChimeraTK::MotorDriver {
      public:
       virtual T stepsToUnits(int steps) = 0;
       virtual int unitsToSteps(T units) = 0;
-      virtual ~UnitsConverter() {}
+      virtual ~UnitsConverter() = default;
     };
 
     /**
@@ -80,10 +80,10 @@ namespace ChimeraTK::MotorDriver {
     template<typename T>
     class UnitsConverterTrivia : public UnitsConverter<T> {
      public:
-      UnitsConverterTrivia() {}
+      UnitsConverterTrivia() = default;
 
-      virtual T stepsToUnits(int steps) { return static_cast<T>(steps); }
-      virtual int unitsToSteps(T units) { return static_cast<int>(units); }
+      T stepsToUnits(int steps) override { return static_cast<T>(steps); }
+      int unitsToSteps(T units) override { return static_cast<int>(units); }
     };
 
     /**
@@ -97,8 +97,8 @@ namespace ChimeraTK::MotorDriver {
 
      public:
       ScalingUnitsConverter(const T userUnitToStepsRatio) : _userUnitToStepsRatio(userUnitToStepsRatio) {}
-      virtual T stepsToUnits(int steps) { return _userUnitToStepsRatio * steps; }
-      virtual int unitsToSteps(T units) { return units / _userUnitToStepsRatio; }
+      T stepsToUnits(int steps) override { return _userUnitToStepsRatio * steps; }
+      int unitsToSteps(T units) override { return units / _userUnitToStepsRatio; }
     };
 
     /**

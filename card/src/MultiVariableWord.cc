@@ -10,7 +10,7 @@ namespace ChimeraTK::MotorDriver {
 
   MultiVariableWord::MultiVariableWord(unsigned int dataWord) : _dataWord(dataWord) {}
 
-  MultiVariableWord::~MultiVariableWord() {}
+  MultiVariableWord::~MultiVariableWord() = default;
 
   unsigned int MultiVariableWord::getDataWord() const {
     return _dataWord;

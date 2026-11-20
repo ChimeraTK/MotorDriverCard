@@ -7,8 +7,7 @@
 namespace ChimeraTK::MotorDriver {
 
   MotorDriverCardConfig::MotorDriverCardConfig()
-  : coverDatagram(0), coverPositionAndLength(0), datagramHighWord(0), datagramLowWord(0),
-    interfaceConfiguration(INTERFACE_CONFIGURATION_DEFAULT), positionCompareInterruptData(0), positionCompareWord(0),
+  : coverPositionAndLength(0), interfaceConfiguration(INTERFACE_CONFIGURATION_DEFAULT), positionCompareInterruptData(0),
     stepperMotorGlobalParameters(STEPPER_MOTOR_GLOBAL_PARAMETERS_DEFAULT),
     controllerSpiWaitingTime(CONTROLLER_SPI_WAITING_TIME_DEFAULT),
     motorControllerConfigurations(dfmc_md22::N_MOTORS_MAX) // initialises the motor controller configs

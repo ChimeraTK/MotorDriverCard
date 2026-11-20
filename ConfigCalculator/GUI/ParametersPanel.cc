@@ -6,13 +6,13 @@
 
 #include <iostream>
 
-ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parametersMap(), verticalLayout(NULL) {
+ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parametersMap() {
   // We use an outer and an inner vertical layout.
   // The outer layout just contains the header, inner layout and a spacer.
-  QVBoxLayout* outerVerticalLayout = new QVBoxLayout(this);
+  auto* outerVerticalLayout = new QVBoxLayout(this);
 
   // add a header line
-  QHBoxLayout* header = new QHBoxLayout();
+  auto* header = new QHBoxLayout();
   // make the header three items, like the ParametersWidget
   header->addWidget(new QWidget(this)); // empty
   header->addWidget(new QLabel("Value"));
@@ -22,7 +22,7 @@ ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parameter
   verticalLayout = new QVBoxLayout();
   outerVerticalLayout->addLayout(verticalLayout);
   outerVerticalLayout->addStretch(-1); // -1 = add at the end
-  QLabel* asteriskLabel = new QLabel("Fields marked with (*) are modified by the basic config calculation.", this);
+  auto* asteriskLabel = new QLabel("Fields marked with (*) are modified by the basic config calculation.", this);
   outerVerticalLayout->addWidget(asteriskLabel);
 }
 
@@ -34,7 +34,7 @@ void ParametersPanel::addParameter(
 }
 
 uint32_t ParametersPanel::operator[](std::string const& parameterName) {
-  std::map<std::string, ParameterWidget*>::const_iterator paramIter = parametersMap.find(parameterName);
+  auto paramIter = parametersMap.find(parameterName);
   if(paramIter == parametersMap.end()) {
     return 0xDEADBEEF;
   }
@@ -42,7 +42,7 @@ uint32_t ParametersPanel::operator[](std::string const& parameterName) {
 }
 
 void ParametersPanel::setParameter(std::string const& parameterName, uint32_t value) {
-  std::map<std::string, ParameterWidget*>::const_iterator paramIter = parametersMap.find(parameterName);
+  auto paramIter = parametersMap.find(parameterName);
   if(paramIter == parametersMap.end()) {
     return;
   }

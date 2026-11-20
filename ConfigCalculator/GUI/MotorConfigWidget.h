@@ -20,7 +20,7 @@ class MotorConfigWidget : public QWidget {
   /** The constructor has no special parameters, except for
    *  the parent of the widget.
    */
-  MotorConfigWidget(QWidget* parent_ = NULL);
+  MotorConfigWidget(QWidget* parent_ = nullptr);
   MotorConfigWidget(MotorConfigWidget const&) = delete;
   MotorConfigWidget& operator=(MotorConfigWidget const&) = delete;
 
@@ -56,7 +56,7 @@ class MotorConfigWidget : public QWidget {
   Ui::MotorConfigWidgetForm _motorConfigWidgetForm;
 
   // Only needed to update and enable/disable the expert settings
-  ParametersPanel* _motorExpertPanel;
-  QTabWidget* _expertTabWidget;
-  int _tabIndex;
+  ParametersPanel* _motorExpertPanel{nullptr};
+  QTabWidget* _expertTabWidget{nullptr};
+  int _tabIndex{0};
 };

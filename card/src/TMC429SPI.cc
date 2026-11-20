@@ -22,7 +22,7 @@ namespace ChimeraTK::MotorDriver {
     readRequest.setIDX_JDX(idx_jdx);
     readRequest.setRW(tmc429::RW_READ);
 
-    return TMC429OutputWord(_spiViaPCIe.read(readRequest.getDataWord()));
+    return {_spiViaPCIe.read(readRequest.getDataWord())};
   }
 
   void TMC429SPI::write(unsigned int smda, unsigned int idx_jdx, unsigned int data) {

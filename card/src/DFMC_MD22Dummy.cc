@@ -13,18 +13,18 @@ using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include <boost/lambda/lambda.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
+
+#include <algorithm>
 using namespace ChimeraTK::MotorDriver::tmc429;
 
 namespace ChimeraTK::MotorDriver {
 
   DFMC_MD22Dummy::DFMC_MD22Dummy(std::string const& mapFileName, std::string const& tmc429ControllerModuleName)
-  : DummyBackend(mapFileName), _controllerSpiAddressSpace(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0),
-    _controllerSpiWriteAddress(0), _controllerSpiBar(0), _controllerSpiReadbackAddress(0), _controllerSpiSyncAddress(0),
-    _powerIsUp(true), _driverSPIs(0), _causeSpiTimeouts(false), _nSpiTimeoutsLeft(0), _causeSpiErrors(false),
+  : DummyBackend(mapFileName), _controllerSpiAddressSpace(tmc429::SIZE_OF_SPI_ADDRESS_SPACE, 0), _driverSPIs(0),
     _microsecondsControllerSpiDelay(tmc429::DEFAULT_DUMMY_SPI_DELAY),
     _microsecondsDriverSpiDelay(tmc260::DEFAULT_DUMMY_SPI_DELAY), _moduleName(tmc429ControllerModuleName) {}
 
-  DFMC_MD22Dummy::DriverSPI::DriverSPI() : addressSpace(0), bar(0), pcieWriteAddress(0), pcieSyncAddress(0) {}
+  DFMC_MD22Dummy::DriverSPI::DriverSPI() : addressSpace(0) {}
 
   void DFMC_MD22Dummy::open() {
     // Do not re-run the opend sequence if the backend has already been opened.
@@ -60,8 +60,7 @@ namespace ChimeraTK::MotorDriver {
     }
     _controllerSpiSyncAddress = registerInformation.address;
 
-    setWriteCallbackFunction(
-        controllerSpiWriteAddressRange, boost::bind(&DFMC_MD22Dummy::handleControllerSpiWrite, this));
+    setWriteCallbackFunction(controllerSpiWriteAddressRange, [this] { handleControllerSpiWrite(); });
 
     _driverSPIs.resize(N_MOTORS_MAX);
     for(unsigned int id = 0; id < N_MOTORS_MAX; ++id) {
@@ -88,17 +87,15 @@ namespace ChimeraTK::MotorDriver {
       _driverSPIs[id].bar = static_cast<unsigned int>(driverSpiWriteAddressRange.bar);
       _driverSPIs[id].pcieWriteAddress = driverSpiWriteAddressRange.offset;
       _driverSPIs[id].pcieSyncAddress = driverSpiSyncAddressRange.offset;
-      setWriteCallbackFunction(
-          driverSpiWriteAddressRange, boost::bind(&DFMC_MD22Dummy::handleDriverSpiWrite, this, id));
+      setWriteCallbackFunction(driverSpiWriteAddressRange, [this, id] { handleDriverSpiWrite(id); });
     }
   }
 
   void DFMC_MD22Dummy::setPCIeRegistersForTesting() {
-    for(std::map<uint64_t, std::vector<int32_t>>::iterator barIter = _barContents.begin();
-        barIter != _barContents.end(); ++barIter) {
-      for(size_t i = 0; i < barIter->second.size(); ++i) {
+    for(auto& barContent : _barContents) {
+      for(size_t i = 0; i < barContent.second.size(); ++i) {
         uint64_t address = sizeof(uint32_t) * i;
-        barIter->second[i] = static_cast<int32_t>(3 * address * address + 17);
+        barContent.second[i] = static_cast<int32_t>(3 * address * address + 17);
       }
     }
 
@@ -143,7 +140,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void DFMC_MD22Dummy::setControllerSpiRegistersForOperation() {
-    for_each(_controllerSpiAddressSpace.begin(), _controllerSpiAddressSpace.end(), boost::lambda::_1 = 0);
+    std::ranges::for_each(_controllerSpiAddressSpace, boost::lambda::_1 = 0);
 
     // Information from the data sheet:
     size_t controllerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_CHIP_VERSION);
@@ -278,19 +275,18 @@ namespace ChimeraTK::MotorDriver {
   }
 
   TMC429OutputWord DFMC_MD22Dummy::frameTMC429SPIResponse(TMC429InputWord& inputSpi) {
-    return TMC429OutputWord(_controllerSpiAddressSpace.at(inputSpi.getADDRESS()));
+    return {_controllerSpiAddressSpace.at(inputSpi.getADDRESS())};
   }
 
   void DFMC_MD22Dummy::driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData) {
-    switch(spiAddress) {
-      case tmc260::ADDRESS_STALL_GUARD_CONFIG:
-        // according to the data sheet the cool step value (read response) is
-        // between 1/4 or 1/2 (depending on the SEMIN bit in the coolStep control
-        // register) and 1/1 of the current scaling value. Just setting it to 1/1
-        // (which seems to be happenening during my tests) should be fine
-        StallGuardControlData stallGuardControlData(payloadData);
-        setConstantPCIeRegister(
-            createMotorRegisterName(ID, COOL_STEP_VALUE_SUFFIX), stallGuardControlData.getCurrentScale());
+    if(spiAddress == tmc260::ADDRESS_STALL_GUARD_CONFIG) {
+      // according to the data sheet the cool step value (read response) is
+      // between 1/4 or 1/2 (depending on the SEMIN bit in the coolStep control
+      // register) and 1/1 of the current scaling value. Just setting it to 1/1
+      // (which seems to be happenening during my tests) should be fine
+      StallGuardControlData stallGuardControlData(payloadData);
+      setConstantPCIeRegister(
+          createMotorRegisterName(ID, COOL_STEP_VALUE_SUFFIX), stallGuardControlData.getCurrentScale());
     }
   }
 
@@ -320,12 +316,9 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void DFMC_MD22Dummy::performJdxActions(unsigned int jdx) {
-    switch(jdx) {
-      case(JDX_POWER_DOWN):
-        _powerIsUp = false;
-        // stop internal cock thread when implemented
-        break;
-      default:; // do nothing
+    if(jdx == JDX_POWER_DOWN) {
+      _powerIsUp = false;
+      // stop internal cock thread when implemented
     }
   }
 

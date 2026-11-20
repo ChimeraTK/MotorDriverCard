@@ -273,9 +273,9 @@ namespace ChimeraTK::MotorDriver {
 
     std::atomic<bool> _moveOnlyFullStep;
     // unsigned int _microStepsPerFullStep;
-    unsigned int _userMicroStepSize;
+    unsigned int _userMicroStepSize{0};
 
-    int _localTargetPosition;
+    int _localTargetPosition{0};
     // bool _positiveSwitch, _negativeSwitch;
     int retrieveTargetPositonAndConvert();
     int readPositionRegisterAndConvert();

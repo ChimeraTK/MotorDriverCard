@@ -95,7 +95,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   CoverPositionAndLength MotorDriverCardImpl::getCoverPositionAndLength() {
-    return CoverPositionAndLength(_controllerSPI->read(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA());
+    return {_controllerSPI->read(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA()};
   }
 
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram) {
@@ -112,8 +112,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   StepperMotorGlobalParameters MotorDriverCardImpl::getStepperMotorGlobalParameters() {
-    return StepperMotorGlobalParameters(
-        _controllerSPI->read(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA());
+    return {_controllerSPI->read(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA()};
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(InterfaceConfiguration const& interfaceConfiguration) {
@@ -121,7 +120,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   InterfaceConfiguration MotorDriverCardImpl::getInterfaceConfiguration() {
-    return InterfaceConfiguration(_controllerSPI->read(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA());
+    return {_controllerSPI->read(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA()};
   }
 
   void MotorDriverCardImpl::setPositionCompareWord(unsigned int positionCompareWord) {
@@ -138,7 +137,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptData() {
-    return PositionCompareInterruptData(_controllerSPI->read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());
+    return {_controllerSPI->read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA()};
   }
 
   void MotorDriverCardImpl::powerDown() {
@@ -146,11 +145,12 @@ namespace ChimeraTK::MotorDriver {
   }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData() {
-    return ReferenceSwitchData(_controllerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA());
+    return {_controllerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA()};
   }
 
   TMC429StatusWord MotorDriverCardImpl::getStatusWord() {
     _controllerStatusRegister.read();
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) braced initialisation would narrow from int to unsigned int
     return TMC429StatusWord(_controllerStatusRegister);
   }
 

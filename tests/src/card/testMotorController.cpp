@@ -26,6 +26,7 @@ using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include <ChimeraTK/Utilities.h>
 
 #include <memory>
+#include <utility>
 using namespace ChimeraTK::MotorDriver;
 #define DECLARE_GET_SET_TEST(NAME)                                                                                     \
   void testGet##NAME();                                                                                                \
@@ -123,12 +124,11 @@ namespace ChimeraTK::MotorDriver {
 
     // for testing direct read from pcie registers (with default values from the
     // dummy)
-    void testReadPCIeRegister(
-        unsigned int (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix);
+    void testReadPCIeRegister(unsigned int (MotorControllerImpl::*readFunction)(), std::string const& registerSuffix);
 
     // for reading registers which do not return an int but a MultiVariableWord
     template<class T>
-    void testReadTypedPCIeRegister(T (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix);
+    void testReadTypedPCIeRegister(T (MotorControllerImpl::*readFunction)(), std::string const& registerSuffix);
 
     void testSetIsEnabled();
 
@@ -319,7 +319,8 @@ namespace ChimeraTK::MotorDriver {
 
   MotorControllerTest::MotorControllerTest(
       boost::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
-  : _motorController(boost::dynamic_pointer_cast<MotorControllerImpl>(motorController)), _dummyDevice(dummyDevice) {}
+  : _motorController(boost::dynamic_pointer_cast<MotorControllerImpl>(motorController)),
+    _dummyDevice(std::move(dummyDevice)) {}
 
   DEFINE_SIGNED_GET_SET_TEST(ActualPosition, ChimeraTK::MotorDriver::tmc429::IDX_ACTUAL_POSITION, 24)
   DEFINE_SIGNED_GET_SET_TEST(ActualVelocity, ChimeraTK::MotorDriver::tmc429::IDX_ACTUAL_VELOCITY, 12)
@@ -327,7 +328,7 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_GET_SET_TEST(MicroStepCount, ChimeraTK::MotorDriver::tmc429::IDX_MICRO_STEP_COUNT, 0xAAAAAA)
 
   void MotorControllerTest::testReadPCIeRegister(
-      unsigned int (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix) {
+      unsigned int (MotorControllerImpl::*readFunction)(), std::string const& registerSuffix) {
     unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
     std::stringstream message;
     message << "read () " << ((*_motorController).*readFunction)() << ", expected " << expectedValue << std::endl;
@@ -338,7 +339,7 @@ namespace ChimeraTK::MotorDriver {
     // FIXME: these tests may not be complex enough
     // These tests are meant to be run with thread sanitizer/ Helgrind
     auto controller = createMotorController("CONTROLLER_TESTS_OLD_MAPFILE");
-    auto apiList = std::bind(&MotorControllerTest::listOfMotorControllerPubilcMethods, this, controller);
+    auto apiList = [this, controller] { listOfMotorControllerPubilcMethods(controller); };
     std::thread t1(apiList);
     std::thread t2(apiList);
     std::thread t3(apiList);
@@ -383,7 +384,7 @@ namespace ChimeraTK::MotorDriver {
 
   template<class T>
   void MotorControllerTest::testReadTypedPCIeRegister(
-      T (MotorControllerImpl::*readFunction)(void), std::string const& registerSuffix) {
+      T (MotorControllerImpl::*readFunction)(), std::string const& registerSuffix) {
     unsigned int expectedValue = testWordFromPCIeSuffix(registerSuffix);
     std::stringstream message;
     message << "read () " << ((*_motorController).*readFunction)().getDataWord() << ", expected " << expectedValue

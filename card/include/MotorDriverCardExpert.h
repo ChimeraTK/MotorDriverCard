@@ -40,7 +40,7 @@ namespace ChimeraTK::MotorDriver {
 
     virtual unsigned int getControllerChipVersion() = 0;
 
-    virtual ~MotorDriverCardExpert() {}
+    ~MotorDriverCardExpert() override = default;
   };
 
 } // namespace ChimeraTK::MotorDriver

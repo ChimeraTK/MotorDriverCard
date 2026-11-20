@@ -24,7 +24,7 @@ MotorConfigWidget::MotorConfigWidget(QWidget* parent_)
       4,             // driverMicroStepValue_
       3,             // currentScale_
       std::list<std::string>()),
-  _motorConfigWidgetForm(), _motorExpertPanel(NULL), _expertTabWidget(NULL), _tabIndex(0) {
+  _motorConfigWidgetForm() {
   _motorConfigWidgetForm.setupUi(this);
 
   // recalculate all parameters whenever an input changes
@@ -70,7 +70,7 @@ void MotorConfigWidget::recalculateChipParameters() {
   catch(std::exception& e) {
     QString errorMessage("Error, could not calculate parameters!\n\n");
     errorMessage += QString("An exception was thrown:\n") + e.what();
-    QMessageBox::critical(NULL, "Parameter Calculation Error", errorMessage);
+    QMessageBox::critical(nullptr, "Parameter Calculation Error", errorMessage);
   }
 
   updateChipParameters();
@@ -98,9 +98,8 @@ void MotorConfigWidget::updateChipParameters() {
   _motorConfigWidgetForm.currentScaleDisplay->setText(QString::number(_chipParameters.currentScale));
 
   QString warningText;
-  for(std::list<std::string>::const_iterator warningIter = _chipParameters.warnings.begin();
-      warningIter != _chipParameters.warnings.end(); ++warningIter) {
-    warningText += QString(warningIter->c_str()) + "\n";
+  for(const auto& warning : _chipParameters.warnings) {
+    warningText += QString(warning.c_str()) + "\n";
   }
 
   _motorConfigWidgetForm.warningsBrowser->setText(warningText);

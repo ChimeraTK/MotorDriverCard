@@ -47,7 +47,7 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   unsigned int driverMicroStepValue = calculateDriverMicroStepValue(physicalParameters.microsteps);
 
   // safe because the validity of microsteps has been checked before
-  unsigned int controllerMicroStepValue = static_cast<unsigned int>(log2(physicalParameters.microsteps));
+  auto controllerMicroStepValue = static_cast<unsigned int>(log2(physicalParameters.microsteps));
 
   double targetMicrostepFrequency = physicalParameters.nStepsPerTurn // full steps per turn
       * physicalParameters.maxRPM / secondsPerMinute                 // motor rotation in Hz
@@ -63,8 +63,8 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   // range check on pulseDiv (0..13)
   if(pulseDiv < minimumAllowedPulseDiv) {
     pulseDiv = minimumAllowedPulseDiv;
-    warnings.push_back("pulseDiv was too small. Check you settings, you might "
-                       "have to decrease maxRPM.");
+    warnings.emplace_back("pulseDiv was too small. Check you settings, you might "
+                          "have to decrease maxRPM.");
   }
 
   // now that we know that pulseDiv is not negative
@@ -75,8 +75,8 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   // after rounding the value has to be <= 13
   if(pulseDiv > maximumAllowedPulseDiv) {
     pulseDiv = maximumAllowedPulseDiv;
-    warnings.push_back("pulseDiv was too large. Check you settings, you might "
-                       "have to increase maxRPM.");
+    warnings.emplace_back("pulseDiv was too large. Check you settings, you might "
+                          "have to increase maxRPM.");
   }
 
   // This for instance would give the target frequency if
@@ -109,8 +109,8 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   // range check on rampDiv (0..13)
   if(rampDiv < minimumAllowedRampDiv) {
     rampDiv = minimumAllowedRampDiv;
-    warnings.push_back("rampDiv was too small. Check you settings, you might "
-                       "have to increase timeToVMax.");
+    warnings.emplace_back("rampDiv was too small. Check you settings, you might "
+                          "have to increase timeToVMax.");
   }
 
   // now that we know that rampDiv is not negative
@@ -121,8 +121,8 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   // after rounding the value has to be <= 13
   if(rampDiv > maximumAllowedRampDiv) {
     rampDiv = maximumAllowedRampDiv;
-    warnings.push_back("rampDiv was too large. Check you settings, you might "
-                       "have to decrease timeToVMax.");
+    warnings.emplace_back("rampDiv was too large. Check you settings, you might "
+                          "have to decrease timeToVMax.");
   }
 
   double maxMicrostepAccelerationWithThisRampDiv = dividedSystemClockInHz * dividedSystemClockInHz *
@@ -139,7 +139,7 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   }
 
   if(aMax < minimumRecommendedAMax) {
-    warnings.push_back("aMax is very low. Check your input parameters.");
+    warnings.emplace_back("aMax is very low. Check your input parameters.");
   }
 
   // after rounding down 0 and negative values are not allowed
@@ -205,6 +205,7 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
     warnings.push_back(warning.str());
   }
 
+  // NOLINTNEXTLINE(modernize-return-braced-init-list) braced initialisation would narrow the double arguments
   return ChipParameters(pulseDiv, rampDiv, aMax, vMax, pDiv, pMul, controllerMicroStepValue, driverMicroStepValue,
       currentScale, warnings);
 }
@@ -263,7 +264,7 @@ std::list<std::string> ParametersCalculator::inputcheck(PhysicalParameters physi
   }
 
   if(physicalParameters.iMax > iMaxTMC260) {
-    warnings.push_back("iMax is too large. Current is limited to 1.8 A");
+    warnings.emplace_back("iMax is too large. Current is limited to 1.8 A");
   }
 
   return warnings;

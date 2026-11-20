@@ -25,7 +25,7 @@ namespace ChimeraTK::MotorDriver {
     /// Get a reference to the power monitor.
     virtual PowerMonitor& getPowerMonitor() = 0;
 
-    virtual ~MotorDriverCard() {}
+    virtual ~MotorDriverCard() = default;
   };
 
 } // namespace ChimeraTK::MotorDriver

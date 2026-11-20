@@ -66,8 +66,8 @@ using namespace ChimeraTK::MotorDriver::tmc429;
     setTypedDriverData<NAME>(driverData, LOCAL_DATA_INSTANCE);                                                         \
   }
 
-typedef std::lock_guard<std::mutex> lock_guard;
-typedef std::unique_lock<std::mutex> unique_lock;
+using lock_guard = std::lock_guard<std::mutex>;
+using unique_lock = std::unique_lock<std::mutex>;
 
 namespace ChimeraTK::MotorDriver {
   MotorControllerImpl::MotorControllerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
@@ -101,8 +101,7 @@ namespace ChimeraTK::MotorDriver {
     _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)}, _endSwitchPowerIndicator{},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControllerConfig.driverSpiWaitingTime),
-    _controllerSPI(controllerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false),
-    _userMicroStepSize(0), _localTargetPosition(0) {
+    _controllerSPI(controllerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false) {
     setAccelerationThresholdData(motorControllerConfig.accelerationThresholdData);
     // setActualPosition( motorControllerConfig.actualPosition );
     setChopperControlData(motorControllerConfig.chopperControlData);
@@ -210,7 +209,7 @@ namespace ChimeraTK::MotorDriver {
 
   DriverStatusData MotorControllerImpl::getStatus() {
     lock_guard guard(_mutex);
-    return DriverStatusData(readRegisterAccessor(_status));
+    return {readRegisterAccessor(_status)};
   }
 
   void MotorControllerImpl::setDecoderReadoutMode(unsigned int readoutMode) {

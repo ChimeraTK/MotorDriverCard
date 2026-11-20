@@ -133,7 +133,7 @@ namespace ChimeraTK::MotorDriver {
       return;
     }
     else if constexpr(std::is_same_v<T, bool>) {
-      std::transform(stringValue.begin(), stringValue.end(), stringValue.begin(), ::tolower);
+      std::ranges::transform(stringValue, stringValue.begin(), ::tolower);
       std::istringstream is(stringValue);
       is >> std::boolalpha >> value;
     }

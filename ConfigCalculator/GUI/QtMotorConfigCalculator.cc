@@ -10,12 +10,10 @@
 #include <QFileDialog>
 using namespace ChimeraTK::MotorDriver;
 
-QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
-: QWidget(parent_), verticalLayout(NULL), motorTabWidget(NULL), writeButton(NULL), expertTabWidget(NULL),
-  motorConfigWidgets(), motorExpertWidgets(), cardExpertWidget(NULL) {
+QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_) : QWidget(parent_) {
   verticalLayout = new QVBoxLayout(this);
 
-  QTabWidget* mainTabWidget = new QTabWidget(this);
+  auto* mainTabWidget = new QTabWidget(this);
   motorTabWidget = new QTabWidget(this);
 
   // first add the standard motor config widgets for all motors
@@ -60,14 +58,14 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
   // add the motor expert widgets
   for(size_t motorID = 0; motorID < ChimeraTK::MotorDriver::dfmc_md22::N_MOTORS_MAX; ++motorID) {
     // Define the expert widget
-    ParametersPanel* thisMotorExpertWidget = new ParametersPanel(this);
+    auto* thisMotorExpertWidget = new ParametersPanel(this);
     motorExpertWidgets.push_back(thisMotorExpertWidget);
     populateMotorExpertPanel(thisMotorExpertWidget);
     QString tabLabel("Motor ");
     tabLabel += QString::number(motorID);
 
     // Define a scroll area to hold the expert widget
-    QScrollArea* thisScrollArea = new QScrollArea;
+    auto* thisScrollArea = new QScrollArea;
     thisScrollArea->setWidget(thisMotorExpertWidget);
 
     // Add scroll area with expert widget to the tab
@@ -90,7 +88,7 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_)
 }
 
 void QtMotorConfigCalculator::write() {
-  QString fileName = QFileDialog::getSaveFileName(NULL, "Save config file", QString(), tr("XML files (*.xml)"));
+  QString fileName = QFileDialog::getSaveFileName(nullptr, "Save config file", QString(), tr("XML files (*.xml)"));
 
   if(fileName.isEmpty()) {
     return;

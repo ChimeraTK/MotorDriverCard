@@ -7,6 +7,7 @@
 
 #include <ChimeraTK/Exception.h>
 
+#include <array>
 #include <thread>
 
 constexpr unsigned wakeupPeriodInMilliseconds = 500U;
@@ -21,12 +22,11 @@ namespace ChimeraTK::MotorDriver {
     _calculatingTolerance("calculatingTolerance"), _motor(stepperMotorWithReference), _stopAction(false),
     _moveInterrupted(false) {
     _idle.setTransition(calibEvent, &_calibrating, [this]() { actionStartCalib(); }, [this]() { actionEndCallback(); });
-    _idle.setTransition(ReferenceStateMachine::calcToleranceEvent, &_calculatingTolerance,
-        std::bind(&ReferenceStateMachine::actionStartCalcTolercance, this),
-        std::bind(&ReferenceStateMachine::actionEndCallback, this));
+    _idle.setTransition(
+        ReferenceStateMachine::calcToleranceEvent, &_calculatingTolerance, [this] { actionStartCalcTolercance(); },
+        [this] { actionEndCallback(); });
 
-    _calibrating.setTransition(
-        BasicStepperMotor::StateMachine::stopEvent, &_idle, std::bind(&ReferenceStateMachine::actionStop, this));
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this] { actionStop(); });
     _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
       _stopAction.exchange(true);
       _moveInterrupted.exchange(true);
@@ -142,7 +142,7 @@ namespace ChimeraTK::MotorDriver {
     double meanMeasurement = 0;
     double stdMeasurement = 0;
     const int N_TOLERANCE_CALC_SAMPLES = 10;
-    double measurements[N_TOLERANCE_CALC_SAMPLES];
+    std::array<double, N_TOLERANCE_CALC_SAMPLES> measurements{};
 
     int endSwitchPosition = getPositionEndSwitch(sign);
 
@@ -187,9 +187,9 @@ namespace ChimeraTK::MotorDriver {
 
     // Compute variance
     if(!(_stopAction.load() || _moveInterrupted.load())) {
-      for(unsigned int i = 0; i < N_TOLERANCE_CALC_SAMPLES; i++) {
-        stdMeasurement += ((measurements[i] - meanMeasurement) / (N_TOLERANCE_CALC_SAMPLES - 1)) *
-            (measurements[i] - meanMeasurement);
+      for(double measurement : measurements) {
+        stdMeasurement +=
+            ((measurement - meanMeasurement) / (N_TOLERANCE_CALC_SAMPLES - 1)) * (measurement - meanMeasurement);
       }
     }
 

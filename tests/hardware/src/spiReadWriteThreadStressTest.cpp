@@ -11,6 +11,7 @@
 #include <boost/thread.hpp>
 
 #include <iostream>
+#include <utility>
 using namespace ChimeraTK::MotorDriver;
 
 using namespace ChimeraTK;
@@ -63,7 +64,7 @@ class SpiReadWriteThreadStressTest {
   /// The function is a member of this class, returns void and
   ///  has references to shared pointers as arguments.
   /// The first argument is the loop index.
-  typedef void (SpiReadWriteThreadStressTest::*CoreFunctionPointer)(
+  using CoreFunctionPointer = void (SpiReadWriteThreadStressTest::*)(
       unsigned int, boost::shared_ptr<MotorDriverCard>&, boost::shared_ptr<MotorControllerExpert>&);
 
   /// The base loop is always the same in order to avoid code duplication.
@@ -102,7 +103,7 @@ class SpiReadWriteThreadStressTest {
   std::string _moduleName;
   std::string _motorConfigFileName;
 
-  unsigned int _nCycles;
+  unsigned int _nCycles{0};
 
   // The following block of variables is accessed from multiple threads and
   // protected by a mutex. Don't access them without locking the mutex! The
@@ -111,9 +112,9 @@ class SpiReadWriteThreadStressTest {
   // FIXME: The current boost version does not know atomic yet. Change to atomic
   // once Ubuntu 12.4 is abandoned and get rid of the error-prone mutex
   boost::mutex _errorCountingMutex;
-  volatile unsigned int _errorsInThisTest;
-  volatile unsigned int _errorsInThisCycle;
-  volatile unsigned int _errorsTotal;
+  volatile unsigned int _errorsInThisTest{0};
+  volatile unsigned int _errorsInThisCycle{0};
+  volatile unsigned int _errorsTotal{0};
   std::string _currentTestName;
 
   /// The function name is given to the increaseErrorCount function for logging
@@ -124,14 +125,13 @@ class SpiReadWriteThreadStressTest {
   // or set (atomic) it is not protected by a mutex.
   // FIXME: The current boost version does not know atomic yet. Change to atomic
   // once Ubuntu 12.4 is abandoned.
-  volatile bool _quitCurrentTest;
+  volatile bool _quitCurrentTest{false};
 };
 
 SpiReadWriteThreadStressTest::SpiReadWriteThreadStressTest(
     std::string deviceAlias, std::string moduleName, std::string motorConfigFileName)
-: _deviceAlias(deviceAlias), _moduleName(moduleName), _motorConfigFileName(motorConfigFileName), _nCycles(0),
-  _errorCountingMutex(), _errorsInThisTest(0), _errorsInThisCycle(0), _errorsTotal(0), _currentTestName(),
-  _quitCurrentTest(false) {}
+: _deviceAlias(std::move(deviceAlias)), _moduleName(std::move(moduleName)),
+  _motorConfigFileName(std::move(motorConfigFileName)), _errorCountingMutex(), _currentTestName() {}
 
 void SpiReadWriteThreadStressTest::preTests() {
   // the that the version without multi-threading works
@@ -185,8 +185,7 @@ void SpiReadWriteThreadStressTest::testControllerSpiTwoThreads() {
   _errorsInThisTest = 0;
 
   // run one instance of in a separate thread...
-  boost::thread motor0Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 1000,
-      &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck));
+  boost::thread motor0Thread([this] { baseLoop(0, 1000, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck); });
 
   // run the second instance in this thread
   baseLoop(1, 0, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck);
@@ -205,17 +204,13 @@ void SpiReadWriteThreadStressTest::testControllerSpiFiveThreads() {
   _errorsInThisTest = 0;
 
   // run one instance of in a separate thread...
-  boost::thread motor0Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 1000,
-      &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck));
+  boost::thread motor0Thread([this] { baseLoop(0, 1000, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck); });
 
-  boost::thread motor1Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 1, 0,
-      &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck));
+  boost::thread motor1Thread([this] { baseLoop(1, 0, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck); });
 
-  boost::thread writeThread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 0,
-      &SpiReadWriteThreadStressTest::writeInterruptRegister));
+  boost::thread writeThread([this] { baseLoop(0, 0, &SpiReadWriteThreadStressTest::writeInterruptRegister); });
 
-  boost::thread readTargetThread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 1, 0,
-      &SpiReadWriteThreadStressTest::readTargetPosition));
+  boost::thread readTargetThread([this] { baseLoop(1, 0, &SpiReadWriteThreadStressTest::readTargetPosition); });
 
   // run the final instance in this thread
   baseLoop(0, 0, &SpiReadWriteThreadStressTest::readReferenceSwitchData);
@@ -238,8 +233,8 @@ void SpiReadWriteThreadStressTest::testDriverSpi(unsigned int motorID) {
   _errorsInThisTest = 0;
 
   // run one instance of in a separate thread...
-  boost::thread stallGuardThread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), motorID, 100,
-      &SpiReadWriteThreadStressTest::writeCheckStallGuard));
+  boost::thread stallGuardThread(
+      [this, motorID] { baseLoop(motorID, 100, &SpiReadWriteThreadStressTest::writeCheckStallGuard); });
 
   // run the second instance in this thread
   baseLoop(motorID, 0, &SpiReadWriteThreadStressTest::writeDriverControl);
@@ -258,29 +253,22 @@ void SpiReadWriteThreadStressTest::testAllThreads() {
   _errorsInThisTest = 0;
 
   // run one instance of in a separate thread...
-  boost::thread motor0Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 1000,
-      &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck));
+  boost::thread motor0Thread([this] { baseLoop(0, 1000, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck); });
 
-  boost::thread motor1Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 1, 0,
-      &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck));
+  boost::thread motor1Thread([this] { baseLoop(1, 0, &SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck); });
 
-  boost::thread writeThread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 0,
-      &SpiReadWriteThreadStressTest::writeInterruptRegister));
+  boost::thread writeThread([this] { baseLoop(0, 0, &SpiReadWriteThreadStressTest::writeInterruptRegister); });
 
-  boost::thread readTargetThread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 1, 0,
-      &SpiReadWriteThreadStressTest::readTargetPosition));
+  boost::thread readTargetThread([this] { baseLoop(1, 0, &SpiReadWriteThreadStressTest::readTargetPosition); });
 
-  boost::thread readReferenceSwitchThread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 1, 0,
-      &SpiReadWriteThreadStressTest::readReferenceSwitchData));
+  boost::thread readReferenceSwitchThread(
+      [this] { baseLoop(1, 0, &SpiReadWriteThreadStressTest::readReferenceSwitchData); });
 
-  boost::thread stallGuard0Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 0,
-      &SpiReadWriteThreadStressTest::writeCheckStallGuard));
+  boost::thread stallGuard0Thread([this] { baseLoop(0, 0, &SpiReadWriteThreadStressTest::writeCheckStallGuard); });
 
-  boost::thread stallGuard1Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 1, 0,
-      &SpiReadWriteThreadStressTest::writeCheckStallGuard));
+  boost::thread stallGuard1Thread([this] { baseLoop(1, 0, &SpiReadWriteThreadStressTest::writeCheckStallGuard); });
 
-  boost::thread driverControl0Thread(boost::bind(&SpiReadWriteThreadStressTest::baseLoop, boost::ref(*this), 0, 0,
-      &SpiReadWriteThreadStressTest::writeDriverControl));
+  boost::thread driverControl0Thread([this] { baseLoop(0, 0, &SpiReadWriteThreadStressTest::writeDriverControl); });
 
   // run the second instance in this thread
   baseLoop(1, 0, &SpiReadWriteThreadStressTest::writeDriverControl);

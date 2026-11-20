@@ -59,7 +59,7 @@ namespace ChimeraTK::MotorDriver {
      *
      */
     DFMC_MD22Dummy(std::string const& mapFileName, std::string const& tmc429ControllerModuleName);
-    void open();
+    void open() override;
 
     /** Writes the test pattern to all registers.
      *  controllerSpiAddress*controllerSpiAddress+13 for the controller SPI address
@@ -152,11 +152,11 @@ namespace ChimeraTK::MotorDriver {
 
     // members
     std::vector<unsigned int> _controllerSpiAddressSpace;
-    uint64_t _controllerSpiWriteAddress;
-    uint64_t _controllerSpiBar;
-    uint64_t _controllerSpiReadbackAddress;
-    uint64_t _controllerSpiSyncAddress;
-    bool _powerIsUp;
+    uint64_t _controllerSpiWriteAddress{0};
+    uint64_t _controllerSpiBar{0};
+    uint64_t _controllerSpiReadbackAddress{0};
+    uint64_t _controllerSpiSyncAddress{0};
+    bool _powerIsUp{true};
 
     // internal and helper functions
     void writeContentToControllerSpiRegister(unsigned int content, unsigned int controllerSpiAddress);
@@ -191,18 +191,18 @@ namespace ChimeraTK::MotorDriver {
     struct DriverSPI {
       /// each driver has it's own address space vector<uint>
       std::vector<unsigned int> addressSpace;
-      uint64_t bar;
-      uint64_t pcieWriteAddress;
-      uint64_t pcieSyncAddress;
+      uint64_t bar{0};
+      uint64_t pcieWriteAddress{0};
+      uint64_t pcieSyncAddress{0};
       DriverSPI();
     };
 
     std::vector<DriverSPI> _driverSPIs;
 
-    bool _causeSpiTimeouts;
-    unsigned int _nSpiTimeoutsLeft; // when this counter reaches 0 it sets
-                                    // _causeSpiTimeouts back to false
-    bool _causeSpiErrors;
+    bool _causeSpiTimeouts{false};
+    unsigned int _nSpiTimeoutsLeft{0}; // when this counter reaches 0 it sets
+                                       // _causeSpiTimeouts back to false
+    bool _causeSpiErrors{false};
 
     unsigned int _microsecondsControllerSpiDelay;
     unsigned int _microsecondsDriverSpiDelay;

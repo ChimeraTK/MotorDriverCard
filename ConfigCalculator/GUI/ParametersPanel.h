@@ -29,5 +29,5 @@ class ParametersPanel : public QWidget {
 
  protected:
   std::map<std::string, ParameterWidget*> parametersMap;
-  QVBoxLayout* verticalLayout;
+  QVBoxLayout* verticalLayout{nullptr};
 };

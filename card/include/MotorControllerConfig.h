@@ -16,22 +16,23 @@ namespace ChimeraTK::MotorDriver {
     //   int actualPosition;
     ChopperControlData chopperControlData;
     CoolStepControlData coolStepControlData;
+    // NOLINTNEXTLINE(modernize-use-default-member-init) the enum lives in MotorController.h, which is not included here
     uint32_t decoderReadoutMode;
     DividersAndMicroStepResolutionData dividersAndMicroStepResolutionData;
     DriverConfigData driverConfigData;
     DriverControlData driverControlData;
-    bool enabled;
+    bool enabled{false};
     InterruptData interruptData;
     uint32_t maximumAcceleration;
     uint32_t maximumVelocity;
-    unsigned int microStepCount;
+    unsigned int microStepCount{0};
     uint32_t minimumVelocity;
-    unsigned int positionTolerance;
+    unsigned int positionTolerance{0};
     ProportionalityFactorData proportionalityFactorData;
     ReferenceConfigAndRampModeData referenceConfigAndRampModeData;
     StallGuardControlData stallGuardControlData;
-    int targetPosition; // want it? need it in the config?
-    int targetVelocity; // want it? need it in the config?
+    int targetPosition{0}; // want it? need it in the config?
+    int targetVelocity{0}; // want it? need it in the config?
 
     unsigned int driverSpiWaitingTime; //< in microseconds
 
