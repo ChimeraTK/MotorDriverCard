@@ -73,7 +73,8 @@ BOOST_AUTO_TEST_CASE(testeEndSwitchConfig) {
   BOOST_CHECK_NO_THROW(ConfigCalculator::calculateConfig(chipParameters, ConfigCalculator::IGNORE_BOTH));
   BOOST_CHECK_NO_THROW(ConfigCalculator::calculateConfig(chipParameters, ConfigCalculator::USE_BOTH));
 
-  BOOST_CHECK_THROW(
+  // The out-of-range enum value is the invalid input under test.
+  BOOST_CHECK_THROW( // NOLINT(clang-analyzer-optin.core.EnumCastOutOfRange)
       ConfigCalculator::calculateConfig(chipParameters, static_cast<ConfigCalculator::EndSwitchConfig>(5)),
       std::invalid_argument);
 }

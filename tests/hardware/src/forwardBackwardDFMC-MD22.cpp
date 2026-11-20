@@ -23,7 +23,7 @@ bool volatile keepRunning = true;
 void sleepMicroSeconds(unsigned int microSeconds) {
   timespec sleepTime;
   sleepTime.tv_sec = microSeconds / 1000000;
-  sleepTime.tv_nsec = (microSeconds % 1000000) * 1000;
+  sleepTime.tv_nsec = static_cast<decltype(sleepTime.tv_nsec)>(microSeconds % 1000000U) * 1000;
 
   timespec remainingTime;
   remainingTime.tv_sec = 0;
@@ -50,7 +50,7 @@ void intHandler(int /*dummy*/ = 0) {
 
 using namespace ChimeraTK;
 
-int main(int argc, char* argv[]) {
+static int run(int argc, char** argv) {
   if(argc != 5) {
     std::cout << "Move to the 'left' (low values) end switch. Afterward move "
                  "infinetly between 0.2*nStepsMax and nStepsMax."
@@ -196,4 +196,15 @@ int main(int argc, char* argv[]) {
     motor0->setEnabled(false);
   }
   //  motor0->setTargetPosition(0);
+  return 0;
+}
+
+int main(int argc, char* argv[]) {
+  try {
+    return run(argc, argv);
+  }
+  catch(std::exception& e) {
+    std::cout << "Error: " << e.what() << std::endl;
+    return -2;
+  }
 }

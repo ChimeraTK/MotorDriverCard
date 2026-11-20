@@ -42,7 +42,6 @@ namespace ChimeraTK::MotorDriver {
         else {
           // Define positive axis with negative end switch as zero
           calibPositiveEndSwitchInSteps = calibPositiveEndSwitchInSteps - calibNegativeEndSwitchInSteps;
-          calibNegativeEndSwitchInSteps = 0;
 
           _motor._motorController->setCalibrationTime(time(nullptr));
           _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);

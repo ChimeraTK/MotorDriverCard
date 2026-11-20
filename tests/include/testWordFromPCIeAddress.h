@@ -5,7 +5,7 @@
 namespace ChimeraTK {
 
   /// The project only lives on one bar, so the address in the bar is enough
-  unsigned int testWordFromPCIeAddress(unsigned int address) {
+  inline unsigned int testWordFromPCIeAddress(unsigned int address) {
     // the test word as defined in the Dummy (independent implementation)
     return 3 * address * address + 17;
   }

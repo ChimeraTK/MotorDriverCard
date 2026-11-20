@@ -407,7 +407,7 @@ namespace ChimeraTK::MotorDriver {
 #endif
 
     if(parameters.find("map") == parameters.end()) {
-      throw new ChimeraTK::logic_error("DFMC_MD22Dummy: No mapfile has been specified");
+      throw ChimeraTK::logic_error("DFMC_MD22Dummy: No mapfile has been specified");
     }
 
     return returnInstance<DFMC_MD22Dummy>(address, parameters["map"], parameters["module"]);

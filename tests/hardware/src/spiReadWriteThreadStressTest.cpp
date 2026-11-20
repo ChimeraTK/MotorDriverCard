@@ -402,7 +402,7 @@ void SpiReadWriteThreadStressTest::increaseErrorCount(std::string functionName) 
   _errorCountingMutex.unlock();
 }
 
-int main(int argc, char* argv[]) {
+static int run(int argc, char** argv) {
   if(argc <= 3) {
     std::cout << "Usage: " << argv[0] << " deviceAlias moduleName"
               << " motorConfigFileName [dmapFile]" << std::endl;
@@ -418,4 +418,14 @@ int main(int argc, char* argv[]) {
   stressTest.run();
 
   return 0;
+}
+
+int main(int argc, char* argv[]) {
+  try {
+    return run(argc, argv);
+  }
+  catch(std::exception& e) {
+    std::cout << "Error: " << e.what() << std::endl;
+    return -2;
+  }
 }

@@ -27,6 +27,8 @@ namespace ChimeraTK::MotorDriver {
     explicit RotaryStepperMotor(const StepperMotorParameters&);
     ~RotaryStepperMotor() override = default;
 
+    // A rotary stage has no end switches, so the end-switch range check of ReferenceStepperMotor is skipped on purpose.
+    // NOLINTNEXTLINE(bugprone-parent-virtual-call)
     bool limitsOK(int newPositionInSteps) override { return BasicStepperMotor::limitsOK(newPositionInSteps); }
 
    protected:

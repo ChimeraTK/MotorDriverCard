@@ -19,8 +19,8 @@ namespace ChimeraTK::MotorDriver {
   class DriverControlData : public TMC260Word {
    public:
     DriverControlData(unsigned int dataWord = 0) {
-      setAddress(tmc260::ADDRESS_DRIVER_CONTROL);
-      setPayloadData(dataWord);
+      setSubWord(tmc260::ADDRESS_DRIVER_CONTROL, inputMask(18, 19), 18);
+      setSubWord(dataWord, inputMask(0, 17), 0);
     }
     ADD_VARIABLE(Address, 18, 19);
     ADD_VARIABLE(PayloadData, 0, 17);
@@ -32,8 +32,8 @@ namespace ChimeraTK::MotorDriver {
   class ChopperControlData : public TMC260Word {
    public:
     ChopperControlData(unsigned int dataWord = 0) {
-      setAddress(tmc260::ADDRESS_CHOPPER_CONFIG);
-      setPayloadData(dataWord);
+      setSubWord(tmc260::ADDRESS_CHOPPER_CONFIG, inputMask(17, 19), 17);
+      setSubWord(dataWord, inputMask(0, 16), 0);
     }
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
@@ -49,8 +49,8 @@ namespace ChimeraTK::MotorDriver {
   class CoolStepControlData : public TMC260Word {
    public:
     CoolStepControlData(unsigned int dataWord = 0) {
-      setAddress(tmc260::ADDRESS_COOL_STEP_CONFIG);
-      setPayloadData(dataWord);
+      setSubWord(tmc260::ADDRESS_COOL_STEP_CONFIG, inputMask(17, 19), 17);
+      setSubWord(dataWord, inputMask(0, 16), 0);
     }
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
@@ -59,8 +59,8 @@ namespace ChimeraTK::MotorDriver {
   class StallGuardControlData : public TMC260Word {
    public:
     StallGuardControlData(unsigned int dataWord = 0) {
-      setAddress(tmc260::ADDRESS_STALL_GUARD_CONFIG);
-      setPayloadData(dataWord);
+      setSubWord(tmc260::ADDRESS_STALL_GUARD_CONFIG, inputMask(17, 19), 17);
+      setSubWord(dataWord, inputMask(0, 16), 0);
     }
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
@@ -72,8 +72,8 @@ namespace ChimeraTK::MotorDriver {
   class DriverConfigData : public TMC260Word {
    public:
     DriverConfigData(unsigned int dataWord = 0) {
-      setAddress(tmc260::ADDRESS_DRIVER_CONFIG);
-      setPayloadData(dataWord);
+      setSubWord(tmc260::ADDRESS_DRIVER_CONFIG, inputMask(17, 19), 17);
+      setSubWord(dataWord, inputMask(0, 16), 0);
     }
     ADD_VARIABLE(Address, 17, 19);
     ADD_VARIABLE(PayloadData, 0, 16);
