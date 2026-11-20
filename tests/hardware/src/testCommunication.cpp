@@ -21,11 +21,11 @@ using namespace ChimeraTK;
 #define PRINT_AND_COUNT_ERRORS(TEST_CONDITION, MOTOR_ID)                                                               \
   if(!(TEST_CONDITION)) {                                                                                              \
     ++errorCounter;                                                                                                    \
-    std::cout << "\n An error occured evaluating " << #TEST_CONDITION << " with motorID = " << MOTOR_ID                \
+    std::cout << "\n An error occured evaluating " << #TEST_CONDITION << " with motorID = " << (MOTOR_ID)              \
               << " in test cycle " << runCounter << "!" << std::endl;                                                  \
   }
 
-#define MASK24(INPUT) ((INPUT) & 0xFFFFFF)
+#define MASK24(INPUT) (static_cast<unsigned int>(INPUT) & 0xFFFFFFU)
 
 int main(int argc, char* argv[]) {
   if(argc != 4) {
@@ -85,11 +85,19 @@ int main(int argc, char* argv[]) {
       motor->setMaximumAcceleration(MASK24(initialMaxAcceleration[motorID] + 3));
       motor->setPositionTolerance(MASK24(initialPositionTolerance[motorID] + 4));
 
-      PRINT_AND_COUNT_ERRORS(motor->getTargetPosition() == MASK24(initialTargetPosition[motorID] + 1000), motorID);
-      PRINT_AND_COUNT_ERRORS(motor->getMinimumVelocity() == MASK24(initialMinVelocity[motorID] + 1), motorID);
-      PRINT_AND_COUNT_ERRORS(motor->getMaximumVelocity() == MASK24(initialMaxVelocity[motorID] + 2), motorID);
-      PRINT_AND_COUNT_ERRORS(motor->getMaximumAcceleration() == MASK24(initialMaxAcceleration[motorID] + 3), motorID);
-      PRINT_AND_COUNT_ERRORS(motor->getPositionTolerance() == MASK24(initialPositionTolerance[motorID] + 4), motorID);
+      PRINT_AND_COUNT_ERRORS(
+          static_cast<unsigned int>(motor->getTargetPosition()) == MASK24(initialTargetPosition[motorID] + 1000),
+          motorID);
+      PRINT_AND_COUNT_ERRORS(
+          static_cast<unsigned int>(motor->getMinimumVelocity()) == MASK24(initialMinVelocity[motorID] + 1), motorID);
+      PRINT_AND_COUNT_ERRORS(
+          static_cast<unsigned int>(motor->getMaximumVelocity()) == MASK24(initialMaxVelocity[motorID] + 2), motorID);
+      PRINT_AND_COUNT_ERRORS(
+          static_cast<unsigned int>(motor->getMaximumAcceleration()) == MASK24(initialMaxAcceleration[motorID] + 3),
+          motorID);
+      PRINT_AND_COUNT_ERRORS(
+          static_cast<unsigned int>(motor->getPositionTolerance()) == MASK24(initialPositionTolerance[motorID] + 4),
+          motorID);
 
       // set back to the initial values (another test plus needed for the next
       // test round because we have to alternate the register content. This time

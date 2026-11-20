@@ -104,7 +104,7 @@ namespace ChimeraTK::MotorDriver {
 
   unsigned int MotorControllerDummy::getMicroStepCount() {
     LockGuard guard(_motorControllerDummyMutex);
-    return ((_currentPosition * _userMicroStepSize) - 1) & 0x3FF;
+    return static_cast<unsigned int>((_currentPosition * _userMicroStepSize) - 1) & 0x3FFU;
   }
 
   DriverStatusData MotorControllerDummy::getStatus() {
@@ -222,8 +222,8 @@ namespace ChimeraTK::MotorDriver {
   void MotorControllerDummy::roundToNextFullStep(int& targetPosition) {
     int delta = targetPosition - _currentPosition;
     int deltaMicroStep = delta * _userMicroStepSize;
-    unsigned int actualMicroStepCount = ((_currentPosition * _userMicroStepSize) - 1) & 0x3FF;
-    unsigned int newActualMicroStepCount = (actualMicroStepCount + deltaMicroStep) & 0x3FF;
+    unsigned int actualMicroStepCount = static_cast<unsigned int>((_currentPosition * _userMicroStepSize) - 1) & 0x3FFU;
+    unsigned int newActualMicroStepCount = static_cast<unsigned int>(actualMicroStepCount + deltaMicroStep) & 0x3FFU;
     unsigned int distanceToPreviousFullStep = (newActualMicroStepCount + 1) % 256;
     if(distanceToPreviousFullStep < 128) {
       targetPosition = targetPosition - distanceToPreviousFullStep / _userMicroStepSize;

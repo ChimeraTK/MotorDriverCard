@@ -61,7 +61,8 @@ using namespace ChimeraTK::MotorDriver;
   }                                                                                                                    \
   void MotorControllerTest::testSet##NAME() {                                                                          \
     _motorController->set##NAME(PATTERN);                                                                              \
-    BOOST_CHECK(_motorController->get##NAME() == (PATTERN & ChimeraTK::MotorDriver::tmc429::SPI_DATA_MASK));           \
+    BOOST_CHECK(_motorController->get##NAME() ==                                                                       \
+        (static_cast<unsigned int>(PATTERN) & ChimeraTK::MotorDriver::tmc429::SPI_DATA_MASK));                         \
   }
 
 #define DEFINE_SIGNED_GET_SET_TEST(NAME, IDX, NBITS)                                                                   \
@@ -72,11 +73,11 @@ using namespace ChimeraTK::MotorDriver;
     BOOST_CHECK(_motorController->get##NAME() == converter.customToThirtyTwo(expectedValue));                          \
   }                                                                                                                    \
   void MotorControllerTest::testSet##NAME() {                                                                          \
-    unsigned int positiveMask = (1U << ((NBITS) - 1)) - 1;                                                             \
-    unsigned int negativeBit = (1U << ((NBITS) - 1));                                                                  \
+    unsigned int positiveMask = (1U << (static_cast<unsigned int>(NBITS) - 1U)) - 1U;                                  \
+    unsigned int negativeBit = (1U << (static_cast<unsigned int>(NBITS) - 1U));                                        \
     _motorController->set##NAME(0xAAAAAAAA & positiveMask); /* something positive */                                   \
     BOOST_CHECK(_motorController->get##NAME() == static_cast<int>(0xAAAAAAAA & positiveMask));                         \
-    _motorController->set##NAME((0x55555555 & positiveMask) | negativeBit); /* out of range positive with the          \
+    _motorController->set##NAME((0x55555555U & positiveMask) | negativeBit); /* out of range positive with the         \
                                                                               custom negative bit active*/             \
     BOOST_CHECK(                                                                                                       \
         _motorController->get##NAME() == -static_cast<int>((0xAAAAAAAA + 1) & positiveMask)); /* is interpreted        \
@@ -489,13 +490,13 @@ namespace ChimeraTK::MotorDriver {
 
     switch(_motorController->getID()) {
       case 0:
-        referenceWord = motorDriverCard->getReferenceSwitchData().getDATA() & 0x3;
+        referenceWord = motorDriverCard->getReferenceSwitchData().getDATA() & 0x3U;
         break;
       case 1:
-        referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0xC) >> 2);
+        referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0xCU) >> 2U);
         break;
       case 2:
-        referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0x30) >> 4);
+        referenceWord = ((motorDriverCard->getReferenceSwitchData().getDATA() & 0x30U) >> 4U);
         break;
       default:
         BOOST_FAIL("Invalid MotorID. Either there is something wrong in the code "

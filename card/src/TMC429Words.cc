@@ -10,14 +10,14 @@ namespace ChimeraTK::MotorDriver {
     if(motorID > 2) {
       throw ChimeraTK::logic_error("MotorID is too large");
     }
-    return static_cast<bool>((getDataWord() >> motorID * 2) & 0x1);
+    return static_cast<bool>((getDataWord() >> (motorID * 2U)) & 0x1U);
   }
 
   unsigned int TMC429StatusWord::getReferenceSwitchBit(unsigned int motorID) {
     if(motorID > 2) {
       throw ChimeraTK::logic_error("MotorID is too large");
     }
-    return static_cast<bool>((getDataWord() >> (motorID * 2 + 1)) & 0x1);
+    return static_cast<bool>((getDataWord() >> (motorID * 2U + 1U)) & 0x1U);
   }
 
 } // namespace ChimeraTK::MotorDriver

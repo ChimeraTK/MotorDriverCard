@@ -15,7 +15,7 @@ namespace ChimeraTK::MotorDriver {
    * The motor has been calibrated by calling calibrate(). The end switch position
    * has been determined.\n
    */
-  enum class CalibrationMode { NONE = 0, SIMPLE = 1 << 0, FULL = 1 << 1 };
+  enum class CalibrationMode { NONE = 0, SIMPLE = 1U << 0U, FULL = 1U << 1U };
 
   /**
    * Enum type to select the StepperMotor variant when
@@ -45,11 +45,11 @@ namespace ChimeraTK::MotorDriver {
    */
   enum class Error {
     NO_ERROR = 0,
-    ACTION_ERROR = 1U << 0,
-    CALIBRATION_ERROR = 1U << 1,
-    BOTH_END_SWITCHES_ON = 1U << 2,
-    MOVE_INTERRUPTED = 1U << 3,
-    EMERGENCY_STOP = 1U << 4
+    ACTION_ERROR = 1U << 0U,
+    CALIBRATION_ERROR = 1U << 1U,
+    BOTH_END_SWITCHES_ON = 1U << 2U,
+    MOVE_INTERRUPTED = 1U << 3U,
+    EMERGENCY_STOP = 1U << 4U
   };
 
   std::string toString(Error& error);

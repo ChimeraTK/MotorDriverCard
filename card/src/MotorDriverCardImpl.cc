@@ -160,7 +160,7 @@ namespace ChimeraTK::MotorDriver {
     firmwareVersion.read();
 
     // only allow firmware versions with the same major number
-    uint32_t maxFirmwareVersion = (MINIMAL_FIRMWARE_VERSION & 0xFF000000) | 0x00FFFFFF;
+    uint32_t maxFirmwareVersion = (static_cast<uint32_t>(MINIMAL_FIRMWARE_VERSION) & 0xFF000000U) | 0x00FFFFFFU;
 
     // check the version
     if((static_cast<uint32_t>(firmwareVersion) < static_cast<uint32_t>(MINIMAL_FIRMWARE_VERSION)) ||

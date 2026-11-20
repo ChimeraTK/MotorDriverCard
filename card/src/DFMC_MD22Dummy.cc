@@ -124,7 +124,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void DFMC_MD22Dummy::resetFirmwareVersion() {
-    setConstantPCIeRegister(PROJECT_VERSION_ADDRESS_STRING, MINIMAL_FIRMWARE_VERSION | 0xFFFF);
+    setConstantPCIeRegister(PROJECT_VERSION_ADDRESS_STRING,
+        static_cast<int32_t>(static_cast<uint32_t>(MINIMAL_FIRMWARE_VERSION) | 0xFFFFU));
   }
 
   void DFMC_MD22Dummy::setConstantPCIeRegister(std::string registerName, int32_t content) {
@@ -270,7 +271,7 @@ namespace ChimeraTK::MotorDriver {
 
   uint32_t DFMC_MD22Dummy::getDatalengthFromMask(uint32_t mask) {
     int dataLength = 0;
-    while((mask >>= 1) != 0) {
+    while((mask >>= 1U) != 0) {
       dataLength++;
     }
     return dataLength;

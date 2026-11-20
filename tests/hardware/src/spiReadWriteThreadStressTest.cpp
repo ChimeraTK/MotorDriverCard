@@ -325,7 +325,8 @@ void SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck(unsigned int loop
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
   motorController->setTargetPosition(loopIndex & tmc429::SPI_DATA_MASK);
-  if((motorController->getTargetPosition() & tmc429::SPI_DATA_MASK) != (loopIndex & tmc429::SPI_DATA_MASK)) {
+  if((static_cast<unsigned int>(motorController->getTargetPosition()) & tmc429::SPI_DATA_MASK) !=
+      (loopIndex & tmc429::SPI_DATA_MASK)) {
     increaseErrorCount("controllerSpiWriteReadCheck");
   }
 }
@@ -335,7 +336,7 @@ void SpiReadWriteThreadStressTest::writeInterruptRegister(unsigned int loopIndex
     boost::shared_ptr<MotorControllerExpert>& motorController) {
   // this is not meaningful data, just something to torture the communication
   // channel
-  motorController->setInterruptData(loopIndex & 0xFFFF);
+  motorController->setInterruptData(loopIndex & 0xFFFFU);
   // no error checking, fire and forget
 }
 

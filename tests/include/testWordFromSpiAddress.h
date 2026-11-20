@@ -5,7 +5,7 @@
 namespace ChimeraTK::MotorDriver::tmc429 {
 
   inline unsigned int testWordFromSpiAddress(unsigned int smda, unsigned int idx_jdx) {
-    unsigned int spiAddress = (smda << 4) | idx_jdx;
+    unsigned int spiAddress = (smda << 4U) | idx_jdx;
     // the test word as defined in the Dummy (independent implementation)
     return spiAddress * spiAddress + 13;
   }

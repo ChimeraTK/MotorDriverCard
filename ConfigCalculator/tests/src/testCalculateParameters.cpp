@@ -22,8 +22,8 @@ void printWarnings(std::list<std::string> const& warnings) {
   {                                                                                                                    \
     ParametersCalculator::ChipParameters chipParameters =                                                              \
         ParametersCalculator::calculateParameters(physicalParameters);                                                 \
-    BOOST_CHECK(chipParameters.driverMicroStepValue == driverValue);                                                   \
-    BOOST_CHECK(chipParameters.controllerMicroStepValue == controllerValue);                                           \
+    BOOST_CHECK(chipParameters.driverMicroStepValue == (driverValue));                                                 \
+    BOOST_CHECK(chipParameters.controllerMicroStepValue == (controllerValue));                                         \
   }
 
 // ough, a global variable. But it saves tons of tying

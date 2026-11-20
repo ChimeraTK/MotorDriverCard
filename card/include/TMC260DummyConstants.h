@@ -24,7 +24,7 @@ namespace ChimeraTK::MotorDriver::tmc260 {
       return 0;
     }
     else {
-      return ((word & OUTPUT_MASK(17, 19)) >> 17);
+      return ((word & OUTPUT_MASK(17, 19)) >> 17U);
     }
   }
 

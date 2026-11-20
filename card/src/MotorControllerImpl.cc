@@ -16,7 +16,7 @@ using namespace ChimeraTK::MotorDriver::tmc429;
 // just save some typing...
 #define RAW_ACCESSOR_FROM_SUFFIX(MODULE_NAME, SUFFIX)                                                                  \
   device->getScalarRegisterAccessor<int32_t>(                                                                          \
-      MODULE_NAME + "/" + createMotorRegisterName(_id, SUFFIX), 0, {ChimeraTK::AccessMode::raw})
+      (MODULE_NAME) + "/" + createMotorRegisterName(_id, SUFFIX), 0, {ChimeraTK::AccessMode::raw})
 
 // Macros which cover more than one line are not good for the code coverage
 // test, as only the macro call is checked. In this case it is probably ok
@@ -38,11 +38,11 @@ using namespace ChimeraTK::MotorDriver::tmc429;
   int MotorControllerImpl::get##NAME() {                                                                               \
     lock_guard guard(_mutex);                                                                                          \
     int readValue = static_cast<int>(_controllerSPI->read(_id, IDX).getDATA());                                        \
-    return CONVERTER.customToThirtyTwo(readValue);                                                                     \
+    return (CONVERTER).customToThirtyTwo(readValue);                                                                   \
   }                                                                                                                    \
   void MotorControllerImpl::set##NAME(int value) {                                                                     \
     lock_guard guard(_mutex);                                                                                          \
-    unsigned int writeValue = static_cast<unsigned int>(CONVERTER.thirtyTwoToCustom(value));                           \
+    unsigned int writeValue = static_cast<unsigned int>((CONVERTER).thirtyTwoToCustom(value));                         \
     _controllerSPI->write(_id, IDX, writeValue);                                                                       \
   }
 
@@ -286,7 +286,7 @@ namespace ChimeraTK::MotorDriver {
     int delta = targetPosition - readPositionRegisterAndConvert();
     int deltaMicroStep = delta * _userMicroStepSize;
     unsigned int actualMicroStepCount = readRegisterAccessor(_microStepCount);
-    unsigned int newActualMicroStepCount = (actualMicroStepCount + deltaMicroStep) & 0x3FF;
+    unsigned int newActualMicroStepCount = static_cast<unsigned int>(actualMicroStepCount + deltaMicroStep) & 0x3FFU;
     unsigned int distanceToPreviousFullStep = (newActualMicroStepCount + 1) % 256;
     if(distanceToPreviousFullStep < 128) {
       targetPosition = targetPosition - distanceToPreviousFullStep / _userMicroStepSize;

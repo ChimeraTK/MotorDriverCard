@@ -15,7 +15,9 @@
 // The bit shift is performed on a 64 bit unsigned int (UL) to avoid
 // buffer overflow for FIRST_BIT=0 and LAST_BIT=31.
 // The result is cast back to 32 bit.
-#define INPUT_MASK(FIRST_BIT, LAST_BIT) static_cast<unsigned int>((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1)
+#define INPUT_MASK(FIRST_BIT, LAST_BIT)                                                                                \
+  static_cast<unsigned int>(                                                                                           \
+      (1UL << (static_cast<unsigned long>(LAST_BIT) - static_cast<unsigned long>(FIRST_BIT) + 1UL)) - 1UL)
 
 /** Generate an output mask from the position of the first and the last bit
  *  of the mask. The output mask is the mask applied to the combined word.
@@ -27,7 +29,7 @@
  * [0:31] for both first and last bit.
  */
 #define OUTPUT_MASK(FIRST_BIT, LAST_BIT)                                                                               \
-  static_cast<unsigned int>(((1UL << (LAST_BIT - FIRST_BIT + 1)) - 1) << FIRST_BIT)
+  static_cast<unsigned int>(INPUT_MASK(FIRST_BIT, LAST_BIT) << static_cast<unsigned int>(FIRST_BIT))
 
 /** \def ADD_VARIABLE(VAR_NAME,FIRST_BIT,LAST_BIT)
  *  The ADD_VARIABLE macro allows to add a getter and a setter function for a

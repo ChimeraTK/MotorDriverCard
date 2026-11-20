@@ -6,15 +6,15 @@
 #include "TMC429Words.h"
 
 #define MCX_DECLARE_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                             \
-  virtual void set##NAME(unsigned int VARIABLE_IN_UNITS) = 0;                                                          \
+  virtual void set##NAME(unsigned int VARIABLE_IN_UNITS /* NOLINT(bugprone-macro-parentheses) */) = 0;                 \
   virtual unsigned int get##NAME() = 0
 
 #define MCX_DECLARE_SIGNED_SET_GET_VALUE(NAME, VARIABLE_IN_UNITS)                                                      \
-  virtual void set##NAME(int VARIABLE_IN_UNITS) = 0;                                                                   \
+  virtual void set##NAME(int VARIABLE_IN_UNITS /* NOLINT(bugprone-macro-parentheses) */) = 0;                          \
   virtual int get##NAME() = 0
 
 #define MCX_DECLARE_SET_GET_TYPED_REGISTER(NAME, VARIABLE_NAME)                                                        \
-  virtual void set##NAME(NAME const& VARIABLE_NAME) = 0;                                                               \
+  virtual void set##NAME(NAME const& VARIABLE_NAME /* NOLINT(bugprone-macro-parentheses) */) = 0;                      \
   virtual NAME get##NAME() = 0
 
 namespace ChimeraTK::MotorDriver {
