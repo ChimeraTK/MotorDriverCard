@@ -8,7 +8,6 @@ using namespace boost::unit_test_framework;
 #include "ParametersCalculator.h"
 
 #include <stdexcept>
-using namespace ChimeraTK::MotorDriver;
 
 // just for debugging the test
 void printWarnings(std::list<std::string> const& warnings) {

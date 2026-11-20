@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-using namespace ChimeraTK::MotorDriver;
 
 const double ParametersCalculator::secondsPerMinute = 60.;
 const double ParametersCalculator::nVMaxValues = 2048;
