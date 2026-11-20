@@ -20,9 +20,7 @@ find_package(PkgConfig)
 set(LIBXML++_VERSION "2.6")
 pkg_check_modules(LibXML++ REQUIRED IMPORTED_TARGET libxml++-${LIBXML++_VERSION})
 
-# For some reason the system library has to be mentioned explicitly to the linker.
-# This is strange because the thead library has it as a dependency.
-FIND_PACKAGE(Boost REQUIRED COMPONENTS thread system unit_test_framework filesystem)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS unit_test_framework)
 option(BUILD_TESTS "Build test programs" ON)
 
 IF(Boost_UNIT_TEST_FRAMEWORK_FOUND)
@@ -97,8 +95,8 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} Boost::thread Boost::system
-      PkgConfig::LibXML++ Boost::unit_test_framework)
+    target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} PkgConfig::LibXML++
+      Boost::unit_test_framework)
 
     add_test(${executableName} ${executableName})
   endforeach(testSourceFile)
@@ -110,7 +108,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
 
     add_executable(${executableName} ${testSourceFile})
-    target_link_libraries(${executableName} ${PROJECT_NAME} Boost::thread Boost::system Boost::unit_test_framework)
+    target_link_libraries(${executableName} ${PROJECT_NAME} Boost::unit_test_framework)
 
     target_include_directories(${executableName} PUBLIC steppermotor/include)
 
@@ -139,7 +137,7 @@ add_custom_command(
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} schema.h)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
-target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system ChimeraTK::ChimeraTK-cppext
+target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess ChimeraTK::ChimeraTK-cppext
   PRIVATE PkgConfig::LibXML++ CTK_OBJECTS_TARGET)
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${COMMON_INCLUDE_DIRS}>"
   $<INSTALL_INTERFACE:include>
@@ -151,7 +149,7 @@ aux_source_directory(${CMAKE_SOURCE_DIR}/tests/hardware/src hardwareTestSources)
 foreach(hardwareTestSourceFile ${hardwareTestSources})
   get_filename_component(executableName ${hardwareTestSourceFile} NAME_WE)
   add_executable(${executableName} ${hardwareTestSourceFile})
-  target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} Boost::thread Boost::system PkgConfig::LibXML++)
+  target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} PkgConfig::LibXML++)
 endforeach(hardwareTestSourceFile)
 
 FILE(COPY tests/hardware/scripts/runForwardBackward DESTINATION ${PROJECT_BINARY_DIR})

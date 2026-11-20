@@ -36,8 +36,7 @@ if(TESTING_IS_ENABLED)
     get_filename_component(executableName ${testSourceFile} NAME_WE)
     add_executable(${executableName} ${testSourceFile})
     target_include_directories(${executableName} PUBLIC ${COMMON_INCLUDE_DIRS})
-    target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} ChimeraTK::ChimeraTK-DeviceAccess
-        Boost::thread Boost::system Boost::filesystem)
+    target_link_libraries(${executableName} PRIVATE ${PROJECT_NAME} ChimeraTK::ChimeraTK-DeviceAccess)
     add_test(${executableName} ${executableName})
   endforeach( testSourceFile )
   
