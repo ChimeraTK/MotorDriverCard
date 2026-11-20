@@ -164,6 +164,10 @@ namespace mtca4u {
 
   void MotorControlerDummy::setPositiveReferenceSwitchCalibration(int calibratedPosition) {
     LockGuard guard(_motorControllerDummyMutex);
+    if(_referenceSwitchFailure == ReferenceSwitchFailure::WRITE_POSITIVE_CALIBRATION) {
+      _referenceSwitchFailure = ReferenceSwitchFailure::NONE;
+      throw ChimeraTK::runtime_error("Simulated positive reference calibration write failure");
+    }
     _positiveEndSwitchPosition = calibratedPosition;
   }
 
@@ -184,6 +188,10 @@ namespace mtca4u {
 
   MotorReferenceSwitchData MotorControlerDummy::getReferenceSwitchData() {
     LockGuard guard(_motorControllerDummyMutex);
+    if(_positiveEndSwitchEnabled && _referenceSwitchFailure == ReferenceSwitchFailure::READ_WHILE_ENABLED) {
+      _referenceSwitchFailure = ReferenceSwitchFailure::NONE;
+      throw ChimeraTK::runtime_error("Simulated reference switch read failure");
+    }
     MotorReferenceSwitchData motorReferenceSwitchData;
     motorReferenceSwitchData.setPositiveSwitchEnabled(_positiveEndSwitchEnabled);
     motorReferenceSwitchData.setNegativeSwitchEnabled(_negativeEndSwitchEnabled);
@@ -196,6 +204,10 @@ namespace mtca4u {
 
   void MotorControlerDummy::setPositiveReferenceSwitchEnabled(bool enableStatus) {
     LockGuard guard(_motorControllerDummyMutex);
+    if(!enableStatus && _referenceSwitchFailure == ReferenceSwitchFailure::DISABLE_POSITIVE) {
+      _referenceSwitchFailure = ReferenceSwitchFailure::NONE;
+      throw ChimeraTK::runtime_error("Simulated positive stop disable failure");
+    }
     _positiveEndSwitchEnabled = enableStatus;
   }
 
@@ -233,6 +245,10 @@ namespace mtca4u {
 
   int MotorControlerDummy::getTargetPosition() {
     LockGuard guard(_motorControllerDummyMutex);
+    if(_positiveEndSwitchEnabled && _homingTargetReadsToFail != 0) {
+      --_homingTargetReadsToFail;
+      throw ChimeraTK::runtime_error("Simulated homing target read failure");
+    }
     return _targetPosition;
   }
 
@@ -334,6 +350,8 @@ namespace mtca4u {
     _positiveEndSwitchEnabled = true;
     _negativeEndSwitchEnabled = true;
     _bothEndSwitchesAlwaysOn = false;
+    _referenceSwitchFailure = ReferenceSwitchFailure::NONE;
+    _homingTargetReadsToFail = 0;
     _blockMotor = false;
   }
 
@@ -425,6 +443,12 @@ namespace mtca4u {
     // finally 'move' the motor
     _hardwarePosition = absoluteTargetInThisMove;
     _currentPosition = targetInThisMove;
+  }
+
+  void MotorControlerDummy::failNextReferenceSwitchOperation(ReferenceSwitchFailure failure) {
+    LockGuard guard(_motorControllerDummyMutex);
+    _referenceSwitchFailure = failure;
+    _homingTargetReadsToFail = failure == ReferenceSwitchFailure::READ_HOMING_TARGET_TWICE ? 2 : 0;
   }
 
   void MotorControlerDummy::simulateBlockedMotor(bool state) {

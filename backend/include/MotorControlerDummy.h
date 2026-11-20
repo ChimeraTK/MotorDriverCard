@@ -123,6 +123,15 @@ namespace mtca4u {
      */
     void simulateBlockedMotor(bool state);
 
+    enum class ReferenceSwitchFailure {
+      NONE,
+      READ_WHILE_ENABLED,
+      DISABLE_POSITIVE,
+      WRITE_POSITIVE_CALIBRATION,
+      READ_HOMING_TARGET_TWICE
+    };
+    void failNextReferenceSwitchOperation(ReferenceSwitchFailure failure);
+
     /**
      * Does the following:
      * - Current, target and absolute positions reset to zero.
@@ -183,6 +192,8 @@ namespace mtca4u {
 
     bool _blockMotor{false};
     bool _bothEndSwitchesAlwaysOn{false};
+    ReferenceSwitchFailure _referenceSwitchFailure{ReferenceSwitchFailure::NONE};
+    unsigned _homingTargetReadsToFail{0};
     unsigned int _userMicroStepSize{4};
     bool _isFullStepping{false};
     void setMicroStepSize(unsigned int microStepSize) { _userMicroStepSize = microStepSize; }

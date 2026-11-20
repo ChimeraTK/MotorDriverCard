@@ -28,16 +28,24 @@ namespace ChimeraTK::MotorDriver {
     _moveInterrupted.exchange(false);
     // Shared failure handling. Safe to run even if the communication link is
     // down: the cleanup I/O is allowed to fail.
-    auto failCalibration = [this]() {
+    bool searchTargetCleared = false;
+    auto clearSearchTarget = [&] {
+      searchTargetCleared = false;
+      _motor.resetMotorControllerPositions(0);
+      searchTargetCleared = _motor._motorController->getTargetPosition() == 0;
+    };
+    auto failCalibration = [&] {
       std::lock_guard<boost::mutex> lock(_motor._mutex);
+      try {
+        clearSearchTarget();
+      }
+      catch(const std::exception& e) {
+        std::cerr << "Could not reset rotary homing target: " << e.what() << std::endl;
+      }
       invalidateCalibration();
       try {
-        // Clear the calibration data in the firmware and re-base the hardware
-        // counter, so that a subsequent calibration attempt starts from a
-        // known origin instead of drifting further with every retry.
         _motor._motorController->setPositiveReferenceSwitchCalibration(0);
         _motor._motorController->setNegativeReferenceSwitchCalibration(0);
-        _motor.resetMotorControllerPositions(0);
       }
       catch(const std::exception& e) {
         std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): additionally failed to reset the "
@@ -55,37 +63,53 @@ namespace ChimeraTK::MotorDriver {
         boost::lock_guard<boost::mutex&> lck(_motor._mutex);
         _motor.resetMotorControllerPositions(0);
       }
-      // During the home search enable the TMC429 hardware stop for the home
-      // (positive) reference switch, and disable the stop for the (usually
-      // unconnected) negative switch, so the motor reliably stops when it
-      // reaches the home switch.
-      _motor._motorController->setPositiveReferenceSwitchEnabled(true);
-      _motor._motorController->setNegativeReferenceSwitchEnabled(false);
-      findEndSwitch(Sign::POSITIVE); // "home direction search"
-      int homePosition = _motor.getCurrentPositionInSteps();
+      bool stopDisabled = false;
+      int homePosition = 0;
+      {
+        auto restoreStop = cppext::finally([&] {
+          if(!searchTargetCleared) {
+            std::cerr << "Leaving rotary home stop enabled because the search target could not be cleared" << std::endl;
+            return;
+          }
+          try {
+            _motor._motorController->setPositiveReferenceSwitchEnabled(false);
+            stopDisabled = true;
+          }
+          catch(const std::exception& e) {
+            std::cerr << "Could not disable rotary home stop: " << e.what() << std::endl;
+          }
+        });
+        try {
+          _motor._motorController->setPositiveReferenceSwitchEnabled(true);
+          findEndSwitch(Sign::POSITIVE);
+          homePosition = _motor.getCurrentPositionInSteps();
+          std::unique_lock<boost::mutex> lock(_motor._mutex);
+          if(_moveInterrupted.load() || _stopAction.load()) {
+            lock.unlock();
+            failCalibration();
+            return;
+          }
+          // Clear the search target before releasing the hardware stop.
+          clearSearchTarget();
+        }
+        catch(const std::exception& e) {
+          std::cerr << "Rotary home search failed: " << e.what() << std::endl;
+          failCalibration();
+          return;
+        }
+      }
 
       std::unique_lock<boost::mutex> lock(_motor._mutex);
-      if(_moveInterrupted.load() || _stopAction.load()) {
+      if(!stopDisabled || _moveInterrupted.load() || _stopAction.load()) {
         lock.unlock();
-        std::cerr << "rotary calibration: home search interrupted before completion" << std::endl;
         failCalibration();
       }
       else {
-        // The counter has been re-based to 0 at the start of the search, so the
-        // home switch is the origin of the coordinate system. Store the
-        // calibration relative to it (i.e. 0) instead of the raw hardware
-        // counter value, so the persisted calibration stays valid across a
-        // restart.
+        // The counter was re-based at the home switch. Persist that origin
+        // so the saved calibration is independent of the search offset.
         std::cerr << "rotary calibration: home switch found at position " << homePosition << " steps" << std::endl;
         constexpr int calibPositiveEndSwitchInSteps = 0;
         constexpr int calibNegativeEndSwitchInSteps = 0;
-
-        // Re-base the counter to the home switch as origin BEFORE declaring the
-        // calibration valid: the search left the counter at the search offset,
-        // so the raw counter is not the origin. Doing this first means the
-        // firmware never holds a valid CAL_TIME together with a counter that is
-        // about to change.
-        _motor.resetMotorControllerPositions(0);
 
         _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
         _motor._motorController->setNegativeReferenceSwitchCalibration(calibNegativeEndSwitchInSteps);
@@ -107,20 +131,6 @@ namespace ChimeraTK::MotorDriver {
       std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): unexpected exception during homing: "
                 << e.what() << std::endl;
       failCalibration();
-    }
-    // Restore the configured operating state after the home search: disable
-    // both hardware stops so the motor is free to move in both directions
-    // again (the configured value is 0x300 = both stops off). The switch
-    // setters are read-modify-write, so any ramp-mode/soft-stop bits are
-    // preserved. This cleanup is allowed to fail, like the other post-search
-    // I/O.
-    try {
-      _motor._motorController->setPositiveReferenceSwitchEnabled(false);
-      _motor._motorController->setNegativeReferenceSwitchEnabled(false);
-    }
-    catch(const std::exception& e) {
-      std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): could not restore the "
-                << "reference switch stops after homing: " << e.what() << std::endl;
     }
   }
 
