@@ -19,19 +19,19 @@ class QtMotorConfigCalculator : public QWidget {
   /** The constructor expects no parameters except for the
    *  parent widget.
    */
-  QtMotorConfigCalculator(QWidget* parent_ = nullptr);
+  explicit QtMotorConfigCalculator(QWidget* parent_ = nullptr);
   QtMotorConfigCalculator(QtMotorConfigCalculator const&) = delete;
   QtMotorConfigCalculator& operator=(QtMotorConfigCalculator const&) = delete;
 
  private:
-  QVBoxLayout* verticalLayout{nullptr};
-  QTabWidget* motorTabWidget{nullptr};
-  QPushButton* writeButton{nullptr};
+  QVBoxLayout* _verticalLayout{nullptr};
+  QTabWidget* _motorTabWidget{nullptr};
+  QPushButton* _writeButton{nullptr};
 
-  QTabWidget* expertTabWidget{nullptr};
-  std::vector<MotorConfigWidget*> motorConfigWidgets;
-  std::vector<ParametersPanel*> motorExpertWidgets;
-  ParametersPanel* cardExpertWidget{nullptr};
+  QTabWidget* _expertTabWidget{nullptr};
+  std::vector<MotorConfigWidget*> _motorConfigWidgets;
+  std::vector<ParametersPanel*> _motorExpertWidgets;
+  ParametersPanel* _cardExpertWidget{nullptr};
 
   // NOLINTNEXTLINE(readability-redundant-access-specifiers) Qt slots are declared with the slots keyword for moc
  private slots:

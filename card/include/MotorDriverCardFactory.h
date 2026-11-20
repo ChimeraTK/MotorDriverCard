@@ -46,7 +46,7 @@ namespace ChimeraTK::MotorDriver {
     /** Access the single instance of the factory.
      */
     static MotorDriverCardFactory& instance();
-    bool getDummyMode() const;
+    [[nodiscard]] bool getDummyMode() const;
     void setDummyMode(bool dummyMode = true);
     /** Create a motor driver card from the device alias, the module name in the
      * map file (there might be more than one MD22 on the carrier), and the file

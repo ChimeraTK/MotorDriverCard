@@ -96,7 +96,7 @@ namespace ChimeraTK::MotorDriver {
       T _userUnitToStepsRatio;
 
      public:
-      ScalingUnitsConverter(const T userUnitToStepsRatio) : _userUnitToStepsRatio(userUnitToStepsRatio) {}
+      explicit ScalingUnitsConverter(const T userUnitToStepsRatio) : _userUnitToStepsRatio(userUnitToStepsRatio) {}
       T stepsToUnits(int steps) override { return _userUnitToStepsRatio * steps; }
       int unitsToSteps(T units) override { return units / _userUnitToStepsRatio; }
     };

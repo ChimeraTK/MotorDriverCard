@@ -94,24 +94,24 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void ReferenceStateMachine::toleranceCalcThreadFunction() {
-    _motor._toleranceCalcFailed.exchange(false);
-    _motor._toleranceCalculated.exchange(false);
+    _motor.toleranceCalcFailed.exchange(false);
+    _motor.toleranceCalculated.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
     // This makes only sense once the motor is fully calibrated
     if(_motor._calibrationMode != CalibrationMode::FULL) {
-      _motor._toleranceCalculated.exchange(false);
-      _motor._toleranceCalcFailed.exchange(true);
+      _motor.toleranceCalculated.exchange(false);
+      _motor.toleranceCalcFailed.exchange(true);
     }
     else {
       calculateToleranceValues();
       if(_stopAction.load()) {
-        _motor._toleranceCalculated.exchange(false);
+        _motor.toleranceCalculated.exchange(false);
       }
       else if(_moveInterrupted.load()) {
-        _motor._toleranceCalculated.exchange(false);
-        _motor._toleranceCalcFailed.exchange(true);
+        _motor.toleranceCalculated.exchange(false);
+        _motor.toleranceCalcFailed.exchange(true);
 
         // TODO include
         //        _asyncActionActive.exchange(false);
@@ -120,7 +120,7 @@ namespace ChimeraTK::MotorDriver {
         //        return;
       }
       else {
-        _motor._toleranceCalculated.exchange(true);
+        _motor.toleranceCalculated.exchange(true);
       }
     }
     _asyncActionActive.exchange(false);
@@ -128,9 +128,9 @@ namespace ChimeraTK::MotorDriver {
 
   int ReferenceStateMachine::getPositionEndSwitch(Sign sign) {
     if(sign == Sign::POSITIVE) {
-      return _motor._calibPositiveEndSwitchInSteps.load();
+      return _motor.calibPositiveEndSwitchInSteps.load();
     }
-    return _motor._calibNegativeEndSwitchInSteps.load();
+    return _motor.calibNegativeEndSwitchInSteps.load();
   }
 
   double ReferenceStateMachine::getToleranceEndSwitch(Sign sign) {

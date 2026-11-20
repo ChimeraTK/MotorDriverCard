@@ -25,7 +25,7 @@ namespace ChimeraTK::MotorDriver {
 
     /******************************************************************************************************************/
 
-    StateMachine::State::TransitionData::TransitionData(const State::TransitionData& targetAndAction) = default;
+    StateMachine::State::TransitionData::TransitionData(const State::TransitionData& data) = default;
 
     /******************************************************************************************************************/
 

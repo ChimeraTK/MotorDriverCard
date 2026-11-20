@@ -325,7 +325,7 @@ void SpiReadWriteThreadStressTest::writeInterruptRegister(unsigned int loopIndex
     boost::shared_ptr<MotorControllerExpert>& motorController) {
   // this is not meaningful data, just something to torture the communication
   // channel
-  motorController->setInterruptData(loopIndex & 0xFFFFU);
+  motorController->setInterruptData(InterruptData(loopIndex & 0xFFFFU));
   // no error checking, fire and forget
 }
 
@@ -348,7 +348,7 @@ void SpiReadWriteThreadStressTest::readReferenceSwitchData(unsigned int /*loopIn
 void SpiReadWriteThreadStressTest::writeCheckStallGuard(unsigned int loopIndex,
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
-  motorController->setStallGuardControlData(0x1F);
+  motorController->setStallGuardControlData(StallGuardControlData(0x1F));
   // according to the data sheet the cool step value is always between 1/4 and
   // 1/1 of the current scaling value (which we just set as the last 5 bits of
   // the StallGuardControlData word) The value is interpreted as dataContent +
@@ -359,7 +359,7 @@ void SpiReadWriteThreadStressTest::writeCheckStallGuard(unsigned int loopIndex,
   if(loopIndex % 2) {
     boost::this_thread::sleep(boost::posix_time::milliseconds(1));
   }
-  motorController->setStallGuardControlData(0x3);
+  motorController->setStallGuardControlData(StallGuardControlData(0x3));
   if(motorController->getCoolStepValue() > 0x3) {
     increaseErrorCount("writeCheckStallGuard");
   }
@@ -372,8 +372,8 @@ void SpiReadWriteThreadStressTest::writeCheckStallGuard(unsigned int loopIndex,
 void SpiReadWriteThreadStressTest::writeDriverControl(unsigned int /* loopIndex, not used */,
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
-  motorController->setDriverControlData(0xF);
-  motorController->setDriverControlData(0x0);
+  motorController->setDriverControlData(DriverControlData(0xF));
+  motorController->setDriverControlData(DriverControlData(0x0));
 }
 
 void SpiReadWriteThreadStressTest::printStatus() {

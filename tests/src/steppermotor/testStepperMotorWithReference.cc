@@ -139,7 +139,7 @@ void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive() {
 }
 
 bool StepperMotorWithReferenceTestFixture::getCalibrationFailed() {
-  return _stepperMotor->_calibrationFailed.load();
+  return _stepperMotor->calibrationFailed.load();
 }
 
 bool StepperMotorWithReferenceTestFixture::getMoveInterrupted() {
@@ -147,11 +147,11 @@ bool StepperMotorWithReferenceTestFixture::getMoveInterrupted() {
 }
 
 bool StepperMotorWithReferenceTestFixture::getToleranceCalcFailed() {
-  return _stepperMotor->_toleranceCalcFailed.load();
+  return _stepperMotor->toleranceCalcFailed.load();
 }
 
 bool StepperMotorWithReferenceTestFixture::getToleranceCalculated() {
-  return _stepperMotor->_toleranceCalculated.load();
+  return _stepperMotor->toleranceCalculated.load();
 }
 
 /**

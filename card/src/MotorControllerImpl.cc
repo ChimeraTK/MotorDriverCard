@@ -201,7 +201,8 @@ namespace ChimeraTK::MotorDriver {
 
   DriverStatusData MotorControllerImpl::getStatus() {
     lock_guard guard(_mutex);
-    return {readRegisterAccessor(_status)};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return DriverStatusData(readRegisterAccessor(_status));
   }
 
   void MotorControllerImpl::setDecoderReadoutMode(unsigned int readoutMode) {

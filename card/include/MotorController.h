@@ -64,16 +64,16 @@ namespace ChimeraTK::MotorDriver {
     virtual double getUserCurrentLimit() = 0;
     virtual double getMaxCurrentLimit() = 0;
 
-    virtual void setActualAcceleration(unsigned int stepsPerSquareFIXME) = 0;
+    virtual void setActualAcceleration(unsigned int acceleration) = 0;
     virtual void setMicroStepCount(unsigned int microStepCount) = 0;
 
-    virtual void setEnabled(bool enable = true) = 0; ///< @deprecated Use setMotorCurrentEnabled instead.
+    virtual void setEnabled(bool enable) = 0; ///< @deprecated Use setMotorCurrentEnabled instead.
 
     [[deprecated(
         "Method will be removed in the future. Use motor driver XML file to set encoder readout mode.  ")]] virtual void
         setDecoderReadoutMode(unsigned int decoderReadoutMode) = 0;
 
-    virtual void enableFullStepping(bool enable = true) = 0;
+    virtual void enableFullStepping(bool enable) = 0;
     virtual bool isFullStepping() = 0;
 
     virtual void setCalibrationTime(uint32_t calibrationTime) = 0;
@@ -88,10 +88,10 @@ namespace ChimeraTK::MotorDriver {
 
     virtual bool isMotorMoving() = 0; ///< check if the motor is moving.
 
-    virtual void setMotorCurrentEnabled(bool enable = true) = 0;
+    virtual void setMotorCurrentEnabled(bool enable) = 0;
     virtual bool isMotorCurrentEnabled() = 0;
 
-    virtual void setEndSwitchPowerEnabled(bool enable = true) = 0;
+    virtual void setEndSwitchPowerEnabled(bool enable) = 0;
     virtual bool isEndSwitchPowerEnabled() = 0;
 
     virtual MotorReferenceSwitchData getReferenceSwitchData() = 0; ///< Get information about both reference
@@ -104,7 +104,7 @@ namespace ChimeraTK::MotorDriver {
 
     // via SPI to the TMC429 motor controller
     /// Set the actual position counter for a recalibration of the actual position
-    virtual void setActualPosition(int steps) = 0;
+    virtual void setActualPosition(int position) = 0;
     MC_DECLARE_SIGNED_SET_GET_VALUE(TargetPosition,
         steps); ///< Get the target position in steps
     MC_DECLARE_SET_GET_VALUE(MinimumVelocity,

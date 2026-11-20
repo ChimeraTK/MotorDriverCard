@@ -18,8 +18,8 @@ ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_) {
   header->addWidget(new QLabel("Default Value"));
   outerVerticalLayout->addLayout(header);
 
-  verticalLayout = new QVBoxLayout();
-  outerVerticalLayout->addLayout(verticalLayout);
+  _verticalLayout = new QVBoxLayout();
+  outerVerticalLayout->addLayout(_verticalLayout);
   outerVerticalLayout->addStretch(-1); // -1 = add at the end
   auto* asteriskLabel = new QLabel("Fields marked with (*) are modified by the basic config calculation.", this);
   outerVerticalLayout->addWidget(asteriskLabel);
@@ -29,22 +29,22 @@ ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_) {
 void ParametersPanel::addParameter(
     std::string const& parameterName, uint32_t defaultValue, const std::string& additionalText) {
   // NOLINTNEXTLINE(cppcoreguidelines-owning-memory) the widget is owned by its parent widget
-  parametersMap[parameterName] = new ParameterWidget(this, parameterName + " " + additionalText, defaultValue);
+  _parametersMap[parameterName] = new ParameterWidget(this, parameterName + " " + additionalText, defaultValue);
 
-  verticalLayout->addWidget(parametersMap[parameterName]);
+  _verticalLayout->addWidget(_parametersMap[parameterName]);
 }
 
 uint32_t ParametersPanel::operator[](std::string const& parameterName) {
-  auto paramIter = parametersMap.find(parameterName);
-  if(paramIter == parametersMap.end()) {
+  auto paramIter = _parametersMap.find(parameterName);
+  if(paramIter == _parametersMap.end()) {
     return 0xDEADBEEF;
   }
   return paramIter->second->getValue();
 }
 
 void ParametersPanel::setParameter(std::string const& parameterName, uint32_t value) {
-  auto paramIter = parametersMap.find(parameterName);
-  if(paramIter == parametersMap.end()) {
+  auto paramIter = _parametersMap.find(parameterName);
+  if(paramIter == _parametersMap.end()) {
     return;
   }
   paramIter->second->setValue(value);

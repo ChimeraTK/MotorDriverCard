@@ -12,7 +12,7 @@ namespace ChimeraTK::MotorDriver {
   : ReferenceStateMachine(motor) {}
 
   void RotaryStepperMotorStateMachine::performCalibration() {
-    _motor._calibrationFailed.exchange(false);
+    _motor.calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
     try {
@@ -21,7 +21,7 @@ namespace ChimeraTK::MotorDriver {
 
       if(_moveInterrupted.load() || _stopAction.load()) {
         _motor._motorController->setCalibrationTime(0);
-        _motor._calibrationFailed.exchange(true);
+        _motor.calibrationFailed.exchange(true);
         _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
         _motor._calibrationMode.exchange(CalibrationMode::NONE);
       }
@@ -31,8 +31,8 @@ namespace ChimeraTK::MotorDriver {
         _motor._motorController->setCalibrationTime(time(nullptr));
         _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
         _motor._motorController->setNegativeReferenceSwitchCalibration(calibNegativeEndSwitchInSteps);
-        _motor._calibPositiveEndSwitchInSteps.exchange(homePosition);
-        _motor._calibNegativeEndSwitchInSteps.exchange(homePosition);
+        _motor.calibPositiveEndSwitchInSteps.exchange(homePosition);
+        _motor.calibNegativeEndSwitchInSteps.exchange(homePosition);
 
         _motor._calibrationMode.exchange(CalibrationMode::FULL);
       }
@@ -40,7 +40,7 @@ namespace ChimeraTK::MotorDriver {
     catch(ChimeraTK::runtime_error&) {
       _motor._motorController->setCalibrationTime(0);
 
-      _motor._calibrationFailed.exchange(true);
+      _motor.calibrationFailed.exchange(true);
       _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
       _motor._calibrationMode.exchange(CalibrationMode::NONE);
     }
@@ -49,8 +49,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void RotaryStepperMotorStateMachine::calculateToleranceValues() {
-    _motor._tolerancePositiveEndSwitch = static_cast<float>(getToleranceEndSwitch(Sign::POSITIVE));
-    _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
+    _motor.tolerancePositiveEndSwitch = static_cast<float>(getToleranceEndSwitch(Sign::POSITIVE));
+    _motor.toleranceNegativeEndSwitch = _motor.tolerancePositiveEndSwitch.load();
   }
 
   void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
@@ -76,9 +76,9 @@ namespace ChimeraTK::MotorDriver {
 
   int RotaryStepperMotorStateMachine::getPositionEndSwitch(Sign sign) {
     if(sign == Sign::POSITIVE) {
-      return _motor._calibPositiveEndSwitchInSteps.load();
+      return _motor.calibPositiveEndSwitchInSteps.load();
     }
-    return _motor._calibNegativeEndSwitchInSteps.load();
+    return _motor.calibNegativeEndSwitchInSteps.load();
   }
 
 } // namespace ChimeraTK::MotorDriver

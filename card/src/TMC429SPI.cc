@@ -22,7 +22,8 @@ namespace ChimeraTK::MotorDriver {
     readRequest.setIDX_JDX(idx_jdx);
     readRequest.setRW(tmc429::RW_READ);
 
-    return {_spiViaPCIe.read(static_cast<int32_t>(readRequest.getDataWord()))};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return TMC429OutputWord(_spiViaPCIe.read(static_cast<int32_t>(readRequest.getDataWord())));
   }
 
   void TMC429SPI::write(unsigned int smda, unsigned int idx_jdx, unsigned int data) {

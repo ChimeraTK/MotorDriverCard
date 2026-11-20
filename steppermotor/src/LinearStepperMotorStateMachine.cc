@@ -10,7 +10,7 @@ namespace ChimeraTK::MotorDriver {
   LinearStepperMotorStateMachine::LinearStepperMotorStateMachine(LinearStepperMotor& motor)
   : ReferenceStateMachine(motor) {}
   void LinearStepperMotorStateMachine::performCalibration() {
-    _motor._calibrationFailed.exchange(false);
+    _motor.calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
 
@@ -20,10 +20,10 @@ namespace ChimeraTK::MotorDriver {
       int calibNegativeEndSwitchInSteps = 0;
 
       // At least one end switch disabled -> calibration not possible
-      if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
+      if(!(_motor.positiveEndSwitchEnabled.load() && _motor.negativeEndSwitchEnabled.load())) {
         _motor._motorController->setCalibrationTime(0);
 
-        _motor._calibrationFailed.exchange(true);
+        _motor.calibrationFailed.exchange(true);
         _motor._calibrationMode.exchange(CalibrationMode::NONE);
       }
       else {
@@ -35,7 +35,7 @@ namespace ChimeraTK::MotorDriver {
         if(_moveInterrupted.load() || _stopAction.load()) {
           _motor._motorController->setCalibrationTime(0);
 
-          _motor._calibrationFailed.exchange(true);
+          _motor.calibrationFailed.exchange(true);
           _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
           _motor._calibrationMode.exchange(CalibrationMode::NONE);
         }
@@ -46,8 +46,8 @@ namespace ChimeraTK::MotorDriver {
           _motor._motorController->setCalibrationTime(time(nullptr));
           _motor._motorController->setPositiveReferenceSwitchCalibration(calibPositiveEndSwitchInSteps);
           _motor._motorController->setNegativeReferenceSwitchCalibration(0);
-          _motor._calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
-          _motor._calibNegativeEndSwitchInSteps.exchange(0);
+          _motor.calibPositiveEndSwitchInSteps.exchange(calibPositiveEndSwitchInSteps);
+          _motor.calibNegativeEndSwitchInSteps.exchange(0);
 
           _motor._calibrationMode.exchange(CalibrationMode::FULL);
           _motor.resetMotorControllerPositions(0);
@@ -57,7 +57,7 @@ namespace ChimeraTK::MotorDriver {
     catch(ChimeraTK::runtime_error&) {
       _motor._motorController->setCalibrationTime(0);
 
-      _motor._calibrationFailed.exchange(true);
+      _motor.calibrationFailed.exchange(true);
       _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
       _motor._calibrationMode.exchange(CalibrationMode::NONE);
     }
@@ -66,8 +66,8 @@ namespace ChimeraTK::MotorDriver {
   }
   void LinearStepperMotorStateMachine::calculateToleranceValues() {
     // Linear
-    _motor._tolerancePositiveEndSwitch.exchange(static_cast<float>(getToleranceEndSwitch(Sign::POSITIVE)));
-    _motor._toleranceNegativeEndSwitch.exchange(static_cast<float>(getToleranceEndSwitch(Sign::NEGATIVE)));
+    _motor.tolerancePositiveEndSwitch.exchange(static_cast<float>(getToleranceEndSwitch(Sign::POSITIVE)));
+    _motor.toleranceNegativeEndSwitch.exchange(static_cast<float>(getToleranceEndSwitch(Sign::NEGATIVE)));
   }
 
   void LinearStepperMotorStateMachine::findEndSwitch(Sign sign) {
@@ -87,9 +87,9 @@ namespace ChimeraTK::MotorDriver {
 
   int LinearStepperMotorStateMachine::getPositionEndSwitch(Sign sign) {
     if(sign == Sign::POSITIVE) {
-      return _motor._calibPositiveEndSwitchInSteps.load();
+      return _motor.calibPositiveEndSwitchInSteps.load();
     }
-    return _motor._calibNegativeEndSwitchInSteps.load();
+    return _motor.calibNegativeEndSwitchInSteps.load();
   }
 
 } // namespace ChimeraTK::MotorDriver

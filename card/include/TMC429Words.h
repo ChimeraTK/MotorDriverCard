@@ -36,7 +36,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class TMC429InputWord : public MultiVariableWord {
    public:
-    TMC429InputWord(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
+    explicit TMC429InputWord(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
     ~TMC429InputWord() override = default;
     ADD_VARIABLE(RRS, 31, 31);
     ADD_VARIABLE(SMDA, 29, 30);
@@ -52,7 +52,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class TMC429OutputWord : public MultiVariableWord {
    public:
-    TMC429OutputWord(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
+    explicit TMC429OutputWord(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
     ~TMC429OutputWord() override = default;
     ADD_VARIABLE(STATUS_BITS, 24, 31);
 
@@ -84,7 +84,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(Left3, 5, 5);
 
     /// Constructor to define the correct address.
-    ReferenceSwitchData(unsigned int data = 0) {
+    explicit ReferenceSwitchData(unsigned int data = 0) {
       setSMDA(tmc429::SMDA_COMMON);
       setIDX_JDX(tmc429::JDX_REFERENCE_SWITCH);
       setDATA(data);
@@ -98,7 +98,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(CoverPosition, 8, 13);
     ADD_VARIABLE(CoverWaiting, 23, 23);
 
-    CoverPositionAndLength(unsigned int data = 0) {
+    explicit CoverPositionAndLength(unsigned int data = 0) {
       setSMDA(tmc429::SMDA_COMMON);
       setIDX_JDX(tmc429::JDX_COVER_POSITION_AND_LENGTH);
       setDATA(data);
@@ -126,7 +126,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(RefMux, 20, 20);
     ADD_VARIABLE(Mot1r, 21, 21);
 
-    StepperMotorGlobalParameters(unsigned int data = 0) {
+    explicit StepperMotorGlobalParameters(unsigned int data = 0) {
       setSMDA(tmc429::SMDA_COMMON);
       setIDX_JDX(tmc429::JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS);
       setDATA(data);
@@ -147,7 +147,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(Pos_comp_sel_1, 7, 7);
     ADD_VARIABLE(En_refr, 8, 8);
     /// Constructor to define the correct address.
-    InterfaceConfiguration(unsigned int data = 0) {
+    explicit InterfaceConfiguration(unsigned int data = 0) {
       setSMDA(tmc429::SMDA_COMMON);
       setIDX_JDX(tmc429::JDX_INTERFACE_CONFIGURATION);
       setDATA(data);
@@ -158,7 +158,7 @@ namespace ChimeraTK::MotorDriver {
    public:
     ADD_VARIABLE(InterruptFlag, 0, 0);
     ADD_VARIABLE(InterruptMask, 8, 8);
-    PositionCompareInterruptData(unsigned int data = 0) {
+    explicit PositionCompareInterruptData(unsigned int data = 0) {
       setSMDA(tmc429::SMDA_COMMON);
       setIDX_JDX(tmc429::JDX_POSITION_COMPARE_INTERRUPT);
       setDATA(data);
@@ -176,7 +176,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(AccelerationThreshold, 0, 10);
 
     /// Constructor which initialises the IDX correctly
-    AccelerationThresholdData(unsigned int data = 0) {
+    explicit AccelerationThresholdData(unsigned int data = 0) {
       setIDX_JDX(tmc429::IDX_ACCELERATION_THRESHOLD);
       setDATA(data);
     }
@@ -192,7 +192,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(MultiplicationParameter, 8, 14);
 
     /// Constructor to initialise the IDX correctly
-    ProportionalityFactorData(unsigned int data = 0) {
+    explicit ProportionalityFactorData(unsigned int data = 0) {
       setIDX_JDX(tmc429::IDX_PROPORTIONALITY_FACTORS);
       setDATA(data);
     }
@@ -209,7 +209,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(LatchedPosition, 16, 16);
 
     /// Constructor to initialise the IDX correctly
-    ReferenceConfigAndRampModeData(unsigned int data = 0) {
+    explicit ReferenceConfigAndRampModeData(unsigned int data = 0) {
       setIDX_JDX(tmc429::IDX_REFERENCE_CONFIG_AND_RAMP_MODE);
       setDATA(data);
     }
@@ -238,7 +238,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(MASK_STOP_RIGHT_HIGH, 15, 15);
 
     /// Constructor to initialise the IDX correctly
-    InterruptData(unsigned int data = 0) {
+    explicit InterruptData(unsigned int data = 0) {
       setIDX_JDX(tmc429::IDX_INTERRUPT_MASK_AND_FLAGS);
       setDATA(data);
     }
@@ -251,7 +251,7 @@ namespace ChimeraTK::MotorDriver {
     ADD_VARIABLE(PulseDivider, 12, 15);
 
     /// Constructor to initialise the IDX correctly
-    DividersAndMicroStepResolutionData(unsigned int data = 0U) {
+    explicit DividersAndMicroStepResolutionData(unsigned int data = 0U) {
       setIDX_JDX(tmc429::IDX_DIVIDERS_AND_MICRO_STEP_RESOLUTION);
       setDATA(data);
     }
@@ -263,7 +263,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class TMC429StatusWord : public MultiVariableWord {
    public:
-    TMC429StatusWord(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
+    explicit TMC429StatusWord(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
     /** Data sheet syntax INT. */
     ADD_VARIABLE(Interrupt, 7, 7);
 

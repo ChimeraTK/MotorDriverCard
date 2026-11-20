@@ -482,7 +482,7 @@ namespace ChimeraTK::MotorDriver {
     void setActualPositionActions(int actualPositionInSteps);
 
     /// Resets target and actual positions of the MotorController
-    void resetMotorControllerPositions(int newPositionInStep);
+    void resetMotorControllerPositions(int actualPositionInSteps);
 
     /// Translate positions limits, if in numerical range
     void translateLimits(int translationInSteps);

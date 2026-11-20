@@ -273,7 +273,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   TMC429OutputWord DFMC_MD22Dummy::frameTMC429SPIResponse(TMC429InputWord& inputSpi) {
-    return {_controllerSpiAddressSpace.at(inputSpi.getADDRESS())};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return TMC429OutputWord(_controllerSpiAddressSpace.at(inputSpi.getADDRESS()));
   }
 
   void DFMC_MD22Dummy::driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData) {

@@ -54,7 +54,7 @@ class ThreeVariablesContiguousEdgesWord : public MultiVariableWord {
   ADD_VARIABLE(Third, 19, 31);
 };
 
-// not needed as we are testing with patterns as initial values for the data
+// not needed as we are testing with _patterns as initial values for the data
 // word
 ///** Class with single and multi bit variables, contiguous, bytes 0 and 31.
 // */
@@ -110,7 +110,7 @@ class MultiVariableWordTest {
 
  private:
   T _testWord;
-  std::list<unsigned int> patterns;
+  std::list<unsigned int> _patterns;
 
   void testSetSubWordWithPattern(unsigned int initalDataWord, unsigned int first, unsigned int second,
       unsigned int third, unsigned int expectedDataWord);
@@ -187,7 +187,7 @@ void MultiVariableWordTest<T>::testGetSetDataWord() {
   // as a first step.
   BOOST_CHECK(_testWord.getDataWord() == 0);
 
-  // test different changing bit patterns
+  // test different changing bit _patterns
   // bit pattern 1111...
   _testWord.setDataWord(0xFFFFFFFF);
   BOOST_CHECK(_testWord.getDataWord() == 0xFFFFFFFF);
@@ -245,7 +245,7 @@ void MultiVariableWordTest<SingleBitNotConnectedWord>::testSetSubWord() {
   testSetSubWordWithPattern(0xAAAAAAAA, 0x1, 0x1, 0x0, 0x2AAAAAAB);
 }
 
-// we start from the initial patterns and extraxt the sub words
+// we start from the initial _patterns and extraxt the sub words
 template<>
 void MultiVariableWordTest<ThreeVariablesNotConnectedWord>::testGetSubWord() {
   testGetSubWordWithPattern(0, 0, 0, 0);

@@ -246,7 +246,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   BOOST_AUTO_TEST_CASE(TestSetCoverPositionAndLength) {
-    gTest.motorDriverCard->setCoverPositionAndLength(0xFFFFFF);
+    gTest.motorDriverCard->setCoverPositionAndLength(CoverPositionAndLength(0xFFFFFF));
     BOOST_CHECK(gTest.motorDriverCard->getCoverPositionAndLength() == CoverPositionAndLength(0xFFFFFF));
   }
 
@@ -267,7 +267,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   BOOST_AUTO_TEST_CASE(TestSetStepperMotorGlobalParameters) {
-    gTest.motorDriverCard->setStepperMotorGlobalParameters(0x555555);
+    gTest.motorDriverCard->setStepperMotorGlobalParameters(StepperMotorGlobalParameters(0x555555));
     BOOST_CHECK(gTest.motorDriverCard->getStepperMotorGlobalParameters() == StepperMotorGlobalParameters(0x555555));
   }
 
@@ -277,7 +277,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   BOOST_AUTO_TEST_CASE(TestSetInterfaceConfiguration) {
-    gTest.motorDriverCard->setInterfaceConfiguration(0x555555);
+    gTest.motorDriverCard->setInterfaceConfiguration(InterfaceConfiguration(0x555555));
     BOOST_CHECK(gTest.motorDriverCard->getInterfaceConfiguration() == InterfaceConfiguration(0x555555));
   }
 
@@ -298,7 +298,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   BOOST_AUTO_TEST_CASE(TestSetPositionCompareInterruptData) {
-    gTest.motorDriverCard->setPositionCompareInterruptData(0xAAAAAA);
+    gTest.motorDriverCard->setPositionCompareInterruptData(PositionCompareInterruptData(0xAAAAAA));
     BOOST_CHECK(gTest.motorDriverCard->getPositionCompareInterruptData() == PositionCompareInterruptData(0xAAAAAA));
   }
 

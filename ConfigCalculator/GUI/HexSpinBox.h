@@ -22,13 +22,13 @@ class HexData {
    * Holds the entered value (for which we need the hex representation)
    */
   double value;
-  HexData(double v = 0) : value(v) {};
+  explicit HexData(double v = 0) : value(v) {};
   /** Overloaded constructor for std::string to avoid template specialisation as
    *  there is no implicit conversion from std::string to double.
    *  Generally this conversion does not make sense, so we initialise class with
    * 0.
    */
-  HexData(const std::string&) : value(0) {}
+  explicit HexData(const std::string&) : value(0) {}
 };
 
 /*
@@ -48,7 +48,7 @@ class HexSpinBox : public QSpinBox {
   /**
    * The class can register itself with a parent widget through the constructor.
    */
-  HexSpinBox(QWidget* parent_ = nullptr);
+  explicit HexSpinBox(QWidget* parent_ = nullptr);
 
  private:
   // Disable copy constructor and assignment operator
@@ -61,13 +61,13 @@ class HexSpinBox : public QSpinBox {
    * spinbox. The current code displays the value which is internally stored as
    * an integer datatype as the corresponding hexadecimal string.
    */
-  QString textFromValue(int value_) const override;
+  [[nodiscard]] QString textFromValue(int value_) const override;
 
   /**
    * Defines how the user input text (in the spinbox) is converted into the
    * corresponding integer value
    */
-  int valueFromText(const QString& text_) const override;
+  [[nodiscard]] int valueFromText(const QString& text_) const override;
 
   /**
    * Code is used to restrict user input (in the spinbox) to valid hexadecimal

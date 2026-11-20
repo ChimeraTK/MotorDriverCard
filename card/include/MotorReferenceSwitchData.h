@@ -30,7 +30,7 @@ namespace ChimeraTK::MotorDriver {
    public:
     /// The default constructor initialises everything to 0 (all switches inactive
     /// and disabled);
-    MotorReferenceSwitchData(unsigned int dataWord = 0);
+    explicit MotorReferenceSwitchData(unsigned int dataWord = 0);
 
     /** The switch which is reached when moving in positive direction.
      *  \li 0 = inactive
@@ -66,7 +66,7 @@ namespace ChimeraTK::MotorDriver {
      * switches is active. Example: if (motor->getReferenceSwitchData()) { cout <<
      * "one or both end switches are active" << endl; }
      */
-    operator bool() const;
+    explicit operator bool() const;
   };
 
 } // namespace ChimeraTK::MotorDriver

@@ -133,15 +133,15 @@ namespace ChimeraTK::MotorDriver {
     /// True if end switch is activated, checks for error
     bool isEndSwitchActive(Sign sign);
 
-    std::atomic<bool> _positiveEndSwitchEnabled{false};
-    std::atomic<bool> _negativeEndSwitchEnabled{false};
-    std::atomic<bool> _calibrationFailed{false};
-    std::atomic<bool> _toleranceCalcFailed{false};
-    std::atomic<bool> _toleranceCalculated{false};
-    std::atomic<int> _calibNegativeEndSwitchInSteps{-std::numeric_limits<int>::max()};
-    std::atomic<int> _calibPositiveEndSwitchInSteps{std::numeric_limits<int>::max()};
-    std::atomic<float> _tolerancePositiveEndSwitch{0};
-    std::atomic<float> _toleranceNegativeEndSwitch{0};
+    std::atomic<bool> positiveEndSwitchEnabled{false};
+    std::atomic<bool> negativeEndSwitchEnabled{false};
+    std::atomic<bool> calibrationFailed{false};
+    std::atomic<bool> toleranceCalcFailed{false};
+    std::atomic<bool> toleranceCalculated{false};
+    std::atomic<int> calibNegativeEndSwitchInSteps{-std::numeric_limits<int>::max()};
+    std::atomic<int> calibPositiveEndSwitchInSteps{std::numeric_limits<int>::max()};
+    std::atomic<float> tolerancePositiveEndSwitch{0};
+    std::atomic<float> toleranceNegativeEndSwitch{0};
 
    protected:
     virtual bool positiveSwitchActive() const;

@@ -135,7 +135,7 @@ BOOST_FIXTURE_TEST_CASE(TestGetStatus, MotorControllerDummyTest) {
   // the actual position is 5000. Move away from it
   _motorControllerDummy.setTargetPosition(6000);
   // motor is moving, now all bits should be 0
-  BOOST_CHECK(_motorControllerDummy.getStatus() == 0);
+  BOOST_CHECK(_motorControllerDummy.getStatus() == DriverStatusData(0));
 }
 
 BOOST_FIXTURE_TEST_CASE(TestGetSetDecoderReadoutMode, MotorControllerDummyTest) {

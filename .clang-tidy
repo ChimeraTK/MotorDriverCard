@@ -346,6 +346,8 @@ CheckOptions:
   # the Boost.Test single-header variant, Boost headers used only inside templates or
   # lambdas, and the libxml++ headers, which have no IWYU export map.
   misc-include-cleaner.IgnoreHeaders: 'boost/test/unit_test.hpp;boost/test/included/unit_test.hpp;boost/lambda/lambda.hpp;boost/make_shared.hpp;boost/thread/thread.hpp;libxml\+\+/libxml\+\+\.h;libxml/parser\.h;'
+  # The DFMC_MD22* classes are named after the hardware, like the dfmc_md22 constants namespace.
+  readability-identifier-naming.ClassIgnoredRegexp: 'DFMC_MD22.*'
   readability-identifier-naming.ClassCase: 'CamelCase'
   readability-identifier-naming.FunctionCase: 'camelBack'
   readability-identifier-naming.MacroDefinitionCase: 'UPPER_CASE'

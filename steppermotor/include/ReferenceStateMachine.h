@@ -21,7 +21,7 @@ namespace ChimeraTK::MotorDriver {
     static const Event calibEvent;
     static const Event calcToleranceEvent;
 
-    bool isMoveInterrupted() const { return _moveInterrupted; }
+    [[nodiscard]] bool isMoveInterrupted() const { return _moveInterrupted; }
 
    protected:
     State _calibrating;
@@ -43,7 +43,7 @@ namespace ChimeraTK::MotorDriver {
     virtual void performCalibration() = 0;
     virtual void calculateToleranceValues() = 0;
     virtual int getPositionEndSwitch(Sign) = 0;
-    virtual int getOffset() const = 0;
+    [[nodiscard]] virtual int getOffset() const = 0;
     virtual void findEndSwitch(Sign sign) = 0;
     // private:
     // std::jthread _worker;

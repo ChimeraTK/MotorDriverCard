@@ -19,6 +19,6 @@ namespace ChimeraTK::MotorDriver {
     void findEndSwitch(Sign sign) override;
     /// Offset in steps used when searching for the end switch from the current position.
     static constexpr int END_SWITCH_SEARCH_OFFSET = 50000;
-    int getOffset() const override { return END_SWITCH_SEARCH_OFFSET; }
+    [[nodiscard]] int getOffset() const override { return END_SWITCH_SEARCH_OFFSET; }
   };
 } // namespace ChimeraTK::MotorDriver

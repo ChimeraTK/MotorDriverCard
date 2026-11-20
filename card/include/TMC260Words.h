@@ -10,15 +10,15 @@ namespace ChimeraTK::MotorDriver {
   class TMC260Word : public MultiVariableWord {
    public:
     virtual void setAddress(unsigned int) = 0;
-    virtual unsigned int getAddress() const = 0;
+    [[nodiscard]] virtual unsigned int getAddress() const = 0;
     virtual void setPayloadData(unsigned int) = 0;
-    virtual unsigned int getPayloadData() const = 0;
+    [[nodiscard]] virtual unsigned int getPayloadData() const = 0;
   };
 
   // FIXME implement all the types correctly.
   class DriverControlData : public TMC260Word {
    public:
-    DriverControlData(unsigned int dataWord = 0) {
+    explicit DriverControlData(unsigned int dataWord = 0) {
       setSubWord(tmc260::ADDRESS_DRIVER_CONTROL, inputMask(18, 19), 18);
       setSubWord(dataWord, inputMask(0, 17), 0);
     }
@@ -31,7 +31,7 @@ namespace ChimeraTK::MotorDriver {
 
   class ChopperControlData : public TMC260Word {
    public:
-    ChopperControlData(unsigned int dataWord = 0) {
+    explicit ChopperControlData(unsigned int dataWord = 0) {
       setSubWord(tmc260::ADDRESS_CHOPPER_CONFIG, inputMask(17, 19), 17);
       setSubWord(dataWord, inputMask(0, 16), 0);
     }
@@ -48,7 +48,7 @@ namespace ChimeraTK::MotorDriver {
 
   class CoolStepControlData : public TMC260Word {
    public:
-    CoolStepControlData(unsigned int dataWord = 0) {
+    explicit CoolStepControlData(unsigned int dataWord = 0) {
       setSubWord(tmc260::ADDRESS_COOL_STEP_CONFIG, inputMask(17, 19), 17);
       setSubWord(dataWord, inputMask(0, 16), 0);
     }
@@ -58,7 +58,7 @@ namespace ChimeraTK::MotorDriver {
 
   class StallGuardControlData : public TMC260Word {
    public:
-    StallGuardControlData(unsigned int dataWord = 0) {
+    explicit StallGuardControlData(unsigned int dataWord = 0) {
       setSubWord(tmc260::ADDRESS_STALL_GUARD_CONFIG, inputMask(17, 19), 17);
       setSubWord(dataWord, inputMask(0, 16), 0);
     }
@@ -71,7 +71,7 @@ namespace ChimeraTK::MotorDriver {
 
   class DriverConfigData : public TMC260Word {
    public:
-    DriverConfigData(unsigned int dataWord = 0) {
+    explicit DriverConfigData(unsigned int dataWord = 0) {
       setSubWord(tmc260::ADDRESS_DRIVER_CONFIG, inputMask(17, 19), 17);
       setSubWord(dataWord, inputMask(0, 16), 0);
     }
@@ -87,7 +87,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class DriverStatusData : public MultiVariableWord {
    public:
-    DriverStatusData(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
+    explicit DriverStatusData(unsigned int dataWord = 0) : MultiVariableWord(dataWord) {}
     ADD_VARIABLE(StallGuardStatus, 0, 0);
     ADD_VARIABLE(OvertemperatureShutdown, 1, 1);
     ADD_VARIABLE(OvertemperatureWarning, 2, 2);

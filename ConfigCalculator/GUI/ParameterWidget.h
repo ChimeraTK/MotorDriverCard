@@ -11,7 +11,7 @@
 #include <QWidget>
 #include <string>
 
-/** A widget which contains a label, input field and default field,
+/** A widget which contains a _label, input field and default field,
  *  plus convenience getter (and setter?).
  */
 class ParameterWidget : public QWidget {
@@ -24,8 +24,8 @@ class ParameterWidget : public QWidget {
   void setValue(uint32_t value);
 
  protected:
-  QHBoxLayout* horizontalLayout{nullptr};
-  QLabel* label{nullptr};
-  HexSpinBox* parameterSpinBox{nullptr};
-  QLabel* defaultValueLabel{nullptr};
+  QHBoxLayout* _horizontalLayout{nullptr};
+  QLabel* _label{nullptr};
+  HexSpinBox* _parameterSpinBox{nullptr};
+  QLabel* _defaultValueLabel{nullptr};
 };

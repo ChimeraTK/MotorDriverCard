@@ -46,10 +46,10 @@ namespace ChimeraTK::MotorDriver {
     unsigned int getDecoderReadoutMode() override;
     unsigned int getDecoderPosition() override;
 
-    void setActualVelocity(int stepsPerFIXME);
-    void setActualAcceleration(unsigned int stepsPerSquareFIXME) override;
+    void setActualVelocity(int velocity);
+    void setActualAcceleration(unsigned int acceleration) override;
     void setMicroStepCount(unsigned int microStepCount) override;
-    void setEnabled(bool enable = true) override;
+    void setEnabled(bool enable) override;
     void setDecoderReadoutMode(unsigned int decoderReadoutMode) override;
 
     /*
@@ -89,7 +89,7 @@ namespace ChimeraTK::MotorDriver {
 
     double getMaxCurrentLimit() override;
 
-    void enableFullStepping(bool enable = true) override;
+    void enableFullStepping(bool enable) override;
     bool isFullStepping() override;
 
     void setCalibrationTime(uint32_t calibrationTime) override;
@@ -121,10 +121,10 @@ namespace ChimeraTK::MotorDriver {
 
     bool isEnabled() override;
 
-    void setMotorCurrentEnabled(bool enable = true) override;
+    void setMotorCurrentEnabled(bool enable) override;
     bool isMotorCurrentEnabled() override;
 
-    void setEndSwitchPowerEnabled(bool enable = true) override;
+    void setEndSwitchPowerEnabled(bool enable) override;
     bool isEndSwitchPowerEnabled() override;
 
     /**
@@ -153,51 +153,49 @@ namespace ChimeraTK::MotorDriver {
     void setPositiveReferenceSwitchEnabled(bool enableStatus) override;
     void setNegativeReferenceSwitchEnabled(bool enableStatus) override;
 
-    void setActualPosition(int steps) override;
+    void setActualPosition(int position) override;
 
-    void setTargetPosition(int steps) override;
+    void setTargetPosition(int value) override;
     int getTargetPosition() override;
 
-    void setMinimumVelocity(unsigned int stepsPerFIXME) override;
+    void setMinimumVelocity(unsigned int value) override;
     unsigned int getMinimumVelocity() override;
 
-    void setMaximumVelocity(unsigned int stepsPerFIXME) override;
+    void setMaximumVelocity(unsigned int value) override;
     unsigned int getMaximumVelocity() override;
 
-    void setTargetVelocity(int stepsPerFIXME) override;
+    void setTargetVelocity(int value) override;
     int getTargetVelocity() override;
 
-    void setMaximumAcceleration(unsigned int stepsPerSquareFIXME) override;
+    void setMaximumAcceleration(unsigned int value) override;
     unsigned int getMaximumAcceleration() override;
 
-    void setPositionTolerance(unsigned int steps) override;
+    void setPositionTolerance(unsigned int value) override;
     unsigned int getPositionTolerance() override;
 
-    void setPositionLatched(unsigned int steps) override;
+    void setPositionLatched(unsigned int value) override;
     unsigned int getPositionLatched() override;
 
-    void setAccelerationThresholdData(AccelerationThresholdData const& accelerationThresholdData) override;
+    void setAccelerationThresholdData(AccelerationThresholdData const& inputWord) override;
     AccelerationThresholdData getAccelerationThresholdData() override;
 
-    void setProportionalityFactorData(ProportionalityFactorData const& proportionalityFactorData) override;
+    void setProportionalityFactorData(ProportionalityFactorData const& inputWord) override;
     ProportionalityFactorData getProportionalityFactorData() override;
 
-    void setReferenceConfigAndRampModeData(
-        ReferenceConfigAndRampModeData const& referenceConfigAndRampModeData) override;
+    void setReferenceConfigAndRampModeData(ReferenceConfigAndRampModeData const& inputWord) override;
     ReferenceConfigAndRampModeData getReferenceConfigAndRampModeData() override;
 
-    void setInterruptData(InterruptData const& interruptData) override;
+    void setInterruptData(InterruptData const& inputWord) override;
     InterruptData getInterruptData() override;
 
-    void setDividersAndMicroStepResolutionData(
-        DividersAndMicroStepResolutionData const& dividersAndMicroStepResolutionData) override;
+    void setDividersAndMicroStepResolutionData(DividersAndMicroStepResolutionData const& inputWord) override;
     DividersAndMicroStepResolutionData getDividersAndMicroStepResolutionData() override;
 
-    void setDriverControlData(DriverControlData const& driverControlData) override;
-    void setChopperControlData(ChopperControlData const& chopperControlData) override;
-    void setCoolStepControlData(CoolStepControlData const& coolStepControlData) override;
-    void setStallGuardControlData(StallGuardControlData const& stallGuardControlData) override;
-    void setDriverConfigData(DriverConfigData const& driverConfigData) override;
+    void setDriverControlData(DriverControlData const& driverData) override;
+    void setChopperControlData(ChopperControlData const& driverData) override;
+    void setCoolStepControlData(CoolStepControlData const& driverData) override;
+    void setStallGuardControlData(StallGuardControlData const& driverData) override;
+    void setDriverConfigData(DriverConfigData const& driverData) override;
 
     DriverControlData const& getDriverControlData() const override;
     ChopperControlData const& getChopperControlData() const override;

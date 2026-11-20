@@ -106,14 +106,14 @@ namespace ChimeraTK::MotorDriver {
    public:
     /** The constructor allows to set the data word on construction.
      */
-    MultiVariableWord(unsigned int dataWord = 0);
+    explicit MultiVariableWord(unsigned int dataWord = 0);
 
     /** The destructor of a base class should be virtual
      */
     virtual ~MultiVariableWord();
 
     /** Get the encoded 32 bit data word. */
-    unsigned int getDataWord() const;
+    [[nodiscard]] unsigned int getDataWord() const;
 
     /** Set the whole 32 bit data word. */
     void setDataWord(unsigned int dataWord);
@@ -131,7 +131,7 @@ namespace ChimeraTK::MotorDriver {
      *  macro-generated code which avoids inconsistencies, this additional
      * information is used to avoid unnecessary computations.
      */
-    unsigned int getSubWord(unsigned int outputMask, unsigned char offset) const;
+    [[nodiscard]] unsigned int getSubWord(unsigned int outputMask, unsigned char offset) const;
 
     /** Set the sub word at the width and position defined by input mask and
      * offset. The input mask is the mask at the end of the data word with the

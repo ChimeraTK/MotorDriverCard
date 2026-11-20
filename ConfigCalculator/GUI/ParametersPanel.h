@@ -15,7 +15,7 @@ class ParametersPanel : public QWidget {
   //  Q_OBJECT
 
  public:
-  ParametersPanel(QWidget* parent_);
+  explicit ParametersPanel(QWidget* parent_);
   ParametersPanel(ParametersPanel const&) = delete;
   ParametersPanel& operator=(ParametersPanel const&) = delete;
 
@@ -28,6 +28,6 @@ class ParametersPanel : public QWidget {
   void setParameter(std::string const& parameterName, uint32_t value);
 
  protected:
-  std::map<std::string, ParameterWidget*> parametersMap;
-  QVBoxLayout* verticalLayout{nullptr};
+  std::map<std::string, ParameterWidget*> _parametersMap;
+  QVBoxLayout* _verticalLayout{nullptr};
 };

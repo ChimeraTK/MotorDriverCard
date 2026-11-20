@@ -92,7 +92,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   CoverPositionAndLength MotorDriverCardImpl::getCoverPositionAndLength() {
-    return {_controllerSPI->read(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA()};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return CoverPositionAndLength(_controllerSPI->read(SMDA_COMMON, JDX_COVER_POSITION_AND_LENGTH).getDATA());
   }
 
   void MotorDriverCardImpl::setCoverDatagram(unsigned int coverDatagram) {
@@ -109,7 +110,9 @@ namespace ChimeraTK::MotorDriver {
   }
 
   StepperMotorGlobalParameters MotorDriverCardImpl::getStepperMotorGlobalParameters() {
-    return {_controllerSPI->read(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA()};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return StepperMotorGlobalParameters(
+        _controllerSPI->read(SMDA_COMMON, JDX_STEPPER_MOTOR_GLOBAL_PARAMETERS).getDATA());
   }
 
   void MotorDriverCardImpl::setInterfaceConfiguration(InterfaceConfiguration const& interfaceConfiguration) {
@@ -117,7 +120,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   InterfaceConfiguration MotorDriverCardImpl::getInterfaceConfiguration() {
-    return {_controllerSPI->read(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA()};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return InterfaceConfiguration(_controllerSPI->read(SMDA_COMMON, JDX_INTERFACE_CONFIGURATION).getDATA());
   }
 
   void MotorDriverCardImpl::setPositionCompareWord(unsigned int positionCompareWord) {
@@ -134,7 +138,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   PositionCompareInterruptData MotorDriverCardImpl::getPositionCompareInterruptData() {
-    return {_controllerSPI->read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA()};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return PositionCompareInterruptData(_controllerSPI->read(SMDA_COMMON, JDX_POSITION_COMPARE_INTERRUPT).getDATA());
   }
 
   void MotorDriverCardImpl::powerDown() {
@@ -142,7 +147,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   ReferenceSwitchData MotorDriverCardImpl::getReferenceSwitchData() {
-    return {_controllerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA()};
+    // NOLINTNEXTLINE(modernize-return-braced-init-list) the constructor is explicit
+    return ReferenceSwitchData(_controllerSPI->read(SMDA_COMMON, JDX_REFERENCE_SWITCH).getDATA());
   }
 
   TMC429StatusWord MotorDriverCardImpl::getStatusWord() {

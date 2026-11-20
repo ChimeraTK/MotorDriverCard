@@ -406,7 +406,7 @@ namespace ChimeraTK::MotorDriver {
     BOOST_CHECK(_motorController->isEnabled());
     _motorController->setEnabled(false);
     BOOST_CHECK(_motorController->isEnabled() == false);
-    _motorController->setEnabled();
+    _motorController->setEnabled(true);
     BOOST_CHECK(_motorController->isEnabled());
   }
 
@@ -451,7 +451,7 @@ namespace ChimeraTK::MotorDriver {
   template<class T>
   void MotorControllerTest::testGetDriverSpiData(T const& (MotorControllerImpl::*getterFunction)() const,
       unsigned int driverSpiAddress, unsigned int configDefault) {
-    T expectedWord = tmc260::testWordFromSpiAddress(driverSpiAddress, _motorController->getID());
+    T expectedWord(tmc260::testWordFromSpiAddress(driverSpiAddress, _motorController->getID()));
 
     BOOST_CHECK(_dummyDevice->readDriverSpiRegister(_motorController->getID(), driverSpiAddress) ==
         expectedWord.getPayloadData());
@@ -566,7 +566,7 @@ namespace ChimeraTK::MotorDriver {
     controllerImpl->setActualVelocity(controllerImpl->getActualVelocity());
     controllerImpl->setActualAcceleration(controllerImpl->getActualAcceleration());
     controllerImpl->setMicroStepCount(controllerImpl->getMicroStepCount());
-    controllerImpl->setEnabled();
+    controllerImpl->setEnabled(true);
     controllerImpl->setDecoderReadoutMode(controllerImpl->getDecoderReadoutMode());
     controllerImpl->setUserSpeedLimit(controllerImpl->getUserSpeedLimit());
     controllerImpl->setActualPosition(controllerImpl->getActualPosition());

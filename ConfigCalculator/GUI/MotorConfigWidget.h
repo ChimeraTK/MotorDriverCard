@@ -20,7 +20,7 @@ class MotorConfigWidget : public QWidget {
   /** The constructor has no special parameters, except for
    *  the parent of the widget.
    */
-  MotorConfigWidget(QWidget* parent_ = nullptr);
+  explicit MotorConfigWidget(QWidget* parent_ = nullptr);
   MotorConfigWidget(MotorConfigWidget const&) = delete;
   MotorConfigWidget& operator=(MotorConfigWidget const&) = delete;
 
