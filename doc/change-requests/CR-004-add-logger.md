@@ -31,8 +31,9 @@ The library reports its lifecycle and its own error sites through a logger that 
 - Emit diagnostics at lifecycle points and at error sites.
   - Each class subsection under Specifications lists the messages it emits; no other class emits any.
   - No per-register logging.
-- Keep the interface, layout and ABI of the existing classes unchanged.
-  - Concerning `Logger.h`: a caller that includes it compiles as C++23.
+- Existing classes may change freely, including signature, layout and ABI.
+  - No logger parameter and no logger member is added to `MotorDriverCard`, `MotorControler` or `StepperMotor`.
+  - A caller that includes `Logger.h` compiles as C++23.
 - Compile the library and the public `Logger.h` as C++23.
 
 ## Specifications
@@ -78,12 +79,14 @@ Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
   - Reentrancy: a logger method may log through the installed logger.
   - The handle never calls the logger during construction or destruction.
   - The library applies no level threshold; the installed logger decides what to write.
-- Topic convention: the component path, built only from data the class holds.
+- Topic convention: the component path.
   - `MotorDriverCardFactory`
   - `MotorDriverCard/<moduleName>`, and `MotorDriverCard/dummy` for the dummy card
-  - `MotorControler/<id>`
+  - `MotorControler/<moduleName>/<id>`
   - `SPI/<moduleName>/<writeRegisterName>`
-  - `StepperMotor`
+  - `StepperMotor/<deviceName>/<moduleName>/<driverId>`
+  - Each instrumented class builds its topic once in the constructor and keeps it in a `std::string _logTopic` member,
+    so no call site repeats the format.
 
 ### DefaultLogger (new)
 
@@ -134,15 +137,17 @@ Location: `backend/include/impl/MotorDriverCardImpl.h` (modified), `backend/src/
     `getMotorControler()`.
 - `applyConfiguration()` and `checkFirmwareVersion()` are also called by `reconfigure()`, so a recovery reports the
   same two messages.
+- New private `std::string _logTopic`, built in the constructor as `MotorDriverCard/` plus the module name.
 
 ### MotorControlerImpl (modified)
 
 Location: `backend/include/impl/MotorControlerImpl.h` (modified), `backend/src/MotorControlerImpl.cc` (modified)
 
-- Messages, topic `MotorControler/<id>`:
+- Messages, topic `MotorControler/<moduleName>/<id>`:
   - `debug` at the end of the constructor.
   - `debug` in `createRegisterAccessors()` when the end switch power indicator accessor is not initialised (old
     firmware).
+- New private `std::string _logTopic`, built in the constructor from the module name CR-003 stores and the id.
 - `setEndSwitchPowerEnabled()` and `isEndSwitchPowerEnabled()` stay silent; the accessor-creation message is the one
   place reporting the condition.
 
@@ -154,6 +159,7 @@ Location: `backend/include/impl/SPIviaPCIe.h` (modified), `backend/src/SPIviaPCI
   - `error` with the existing error details, then throw `ChimeraTK::runtime_error`, for the error handshake result.
   - No message for a successful or a repeated handshake.
 - `TMC429SPI` and the other SPI helpers keep their signatures and stay silent.
+- New private `std::string _logTopic`, built in the constructor from the module name and the write register name.
 
 ### MotorDriverCardDummy (modified)
 
@@ -169,11 +175,13 @@ Location: `backend/include/MotorDriverCardDummy.h` (modified), `backend/src/Moto
 
 Location: `steppermotor/include/BasicStepperMotor.h` (modified), `steppermotor/src/BasicStepperMotor.cc` (modified)
 
-- Messages, topic `StepperMotor`:
+- Messages, topic `StepperMotor/<deviceName>/<moduleName>/<driverId>`:
   - `info` after the motor is initialised.
   - `error` with the error text, then throw `ChimeraTK::logic_error`, in each of the routines not available for this
     motor.
-- No signature changes, no new members: `StepperMotorParameters` is untouched.
+- New private `std::string _logTopic`, built in the constructor from `StepperMotorParameters`.
+  - The protected parameterless constructor leaves it empty; that instance never logs.
+- `StepperMotorParameters` itself is untouched.
 
 ### CMake configuration (modified)
 
@@ -199,8 +207,8 @@ Location: `CMakeLists.txt` (modified)
 - Passing the logger per card or per motor: the card factory is a singleton and caches cards for the process
   lifetime, so a per-card logger is either ignored on a cache hit or outlived by its card.
 - Pure virtual `LoggerInterface`: requires the caller to derive from a library class, which the requirements forbid.
-- Templating every library class on the logger type: makes the whole implementation header-only and breaks the
-  shared library ABI.
+- Templating every library class on the logger type: moves the whole implementation into headers, so the library no
+  longer has a binary to link against and every class layout depends on the caller's logger type.
 - Owning the installed logger through a `std::shared_ptr`: the caller cannot easily supply an object it already owns
   by reference, and lifetime ownership is not part of the requirement.
 - `std::atomic<std::shared_ptr<Logger const>>` for the global slot: allocates and adds a control block, while the
@@ -270,8 +278,9 @@ Location: `CMakeLists.txt` (modified)
     `error` arrives before the `ChimeraTK::runtime_error`.
     - Covers the SPI error site; the existing cases only use valid datagrams.
 - `tests/src/steppermotor/testStepperMotor.cc` (modified)
-  - `MotorCreationIsLogged`: a motor built while a recording logger is installed yields the `StepperMotor` `info`.
-    - Covers the motor creation message and the global lookup below the card factory.
-  - `UnavailableRoutineIsLogged`: calling a routine that this motor does not support yields the `StepperMotor` `error`
-    before the `ChimeraTK::logic_error`.
+  - `MotorCreationIsLogged`: a motor built while a recording logger is installed yields the
+    `StepperMotor/<deviceName>/<moduleName>/<driverId>` `info`.
+    - Covers the motor creation message, the stored topic and the global lookup below the card factory.
+  - `UnavailableRoutineIsLogged`: calling a routine that this motor does not support yields the `StepperMotor/...`
+    `error` before the `ChimeraTK::logic_error`.
     - Covers the error sites of the unsupported routines.
