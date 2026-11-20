@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: READY TO IMPLEMENT (from DONE)
+- Status: IN PROGRESS (from DONE)
 
 ## Requirements
 
@@ -186,3 +186,24 @@ Build without Qt:
 - The fixture helpers only step the dummy and return whether the step was
   possible. Every assertion sits in the test case, which wraps the helpers in
   `BOOST_TEST_REQUIRE`.
+
+## Deferred issue
+
+- DI-1 [SPEC-EDIT] The specified class comment for RotaryStepperMotor contains
+  the XML example `<Register name="referenceConfigAndRampModeData"
+  value="0x300"/>`, which Doxygen parses as an unsupported HTML tag and reports
+  as a warning. The build scans the Doxygen log, so the no-warnings policy
+  cannot be met with the comment as specified. Fence the example as a code block
+  (or indent it) so Doxygen treats it verbatim. Replace - Update the
+  `RotaryStepperMotor` class comment accordingly. In that comment, mention that
+  the rotary stage has no negative reference switch, that
+  `hasNegativeReferenceSwitch()` is overridden to false, and that the TMC429 can
+  also be configured to ignore end switches via
+  `referenceConfigAndRampModeData = 0x300`. by - Update the
+  `RotaryStepperMotor` class comment accordingly. In that comment, mention that
+  the rotary stage has no negative reference switch, that
+  `hasNegativeReferenceSwitch()` is overridden to false, and that the TMC429 can
+  also be configured to ignore end switches via
+  `referenceConfigAndRampModeData = 0x300`. Present the XML configuration
+  example as a Doxygen code block so the tag does not produce a Doxygen
+  warning.
