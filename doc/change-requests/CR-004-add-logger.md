@@ -1,234 +1,277 @@
-# CR-004: Accept an external logger in the library
+# CR-004: Add a global logger to the library
 
-Synopsis: The library accepts a caller-supplied logger with the levels `debug()`, `info()`, `warn()` and `error()`,
+Synopsis: The library logs through one process-wide logger with the levels `debug()`, `info()`, `warn()` and `error()`,
 each taking a topic and returning a writable `std::ostream&`.
-The caller's logger type is accepted through a template and a concept; inside the library one concrete handle class
-holds it.
+The caller installs any suitable object with one call; until then a built-in default writes to `stdout` and `stderr`.
+
+Depends on: CR-003
 
 Status: PLANNED
 
 ## Requirements
 
-The library reports its lifecycle and its own error sites through a logger that the caller owns.
+The library reports its lifecycle and its own error sites through a logger that the caller controls.
 
-- Accept any object with `debug()`, `info()`, `warn()` and `error()`.
+- Use one logger for the whole process.
+  - The caller may install their own at any time; until then a built-in default is used.
+- Accept any object an lvalue of which provides `debug()`, `info()`, `warn()` and `error()`.
   - Each method takes a `std::string` topic.
-  - A topic is a short string naming the message source; its layout is given under Topic convention.
+  - A topic is a short string naming the message source, so output can be filtered by prefix.
   - Each method returns `std::ostream&`.
 - Accept the object without inheritance: no pure virtual interface, no base class to derive from.
-- Pass an lvalue logger; the handle is non-owning.
-- Require the logger to outlive every object it was handed to.
-  - A dummy-mode card lives in the factory cache for the whole process, so its logger must be process-lived.
-- Accept the logger at the two entry points only:
-  - `MotorDriverCardFactory::createMotorDriverCard()`;
-  - `StepperMotorParameters`.
-  - The library forwards it from there to the classes it constructs; those constructors are not user entry points.
-- Keep the existing calls compiling: the logger argument and member are optional, and default to an unbound handle.
+- Add no logger parameter and no logger member to `MotorDriverCard`, `MotorControler` or `StepperMotor`, and no logger
+  member to any implementation class.
+- Provide a built-in default logger, so an unconfigured library still reports.
+  - `debug` and `info` go to `stdout`, `warn` and `error` to `stderr`.
+- Allow replacing the logger at any time, from any thread.
+  - A message in progress finishes on the logger that was installed when it started.
 - Allow calls from any thread.
-  - The library adds no locking and no shared mutable state around the logger.
-  - Library calls into the logger may happen while the library holds its own mutexes.
-  - Reentrancy means that a logger method may log through the same handle; it must not call back into the card.
-- Emit diagnostics at lifecycle points and at the error sites of the classes listed in Specifications.
+  - The library adds no locking around the caller's logger; it may call it while holding its own mutexes.
+  - A logger method may log through the installed logger, and must not call back into the library.
+- Emit diagnostics at lifecycle points and at error sites.
+  - Each class subsection under Specifications lists the messages it emits; no other class emits any.
   - No per-register logging.
-- Compile the library and its public headers as C++23.
-- Accept the ABI change of `StepperMotorParameters`, which grows by one member.
+- Keep the interface, layout and ABI of the existing classes unchanged.
+  - Concerning `Logger.h`: a caller that includes it compiles as C++23.
+- Compile the library and the public `Logger.h` as C++23.
 
 ## Specifications
 
 ### Logger (new)
 
-Location: `util/include/Logger.h` (new)
+Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
 
 - Namespace `ChimeraTK::MotorDriver`.
-  - Canonical include path `ChimeraTK/MotorDriverCard/Logger.h`; the existing install rule also exposes it under
-    `mtca4u/MotorDriverCard/`.
   - `util` becomes the shared base layer used by both `mtca4u` and `ChimeraTK::MotorDriver` code.
+  - Library sources include `"Logger.h"`; installed callers include `ChimeraTK/MotorDriverCard/Logger.h`.
+  - The existing install rule also exposes the header under `mtca4u/MotorDriverCard/`.
 - `template<typename L> concept LoggerLike`
   - Satisfied when an lvalue of `L` provides `debug`, `info`, `warn` and `error`.
   - Each takes `std::string` and returns exactly `std::ostream&`.
   - The concept is the only contract; the logger type stays unknown to the library.
 - `class Logger`
-  - Concrete, non-virtual, non-owning handle.
+  - Concrete, non-virtual, non-owning handle; trivially copyable.
   - Manual type erasure: one `void*` for the logger object and four function pointers of type
     `std::ostream& (*)(void*, std::string)`.
-  - `Logger() = default`
-    - Unbound handle.
-    - Calling `debug()`, `info()`, `warn()` or `error()` on it returns a stream that discards everything: a
-      function-local `thread_local` `std::ostream` over a `std::streambuf` whose `overflow()` drops the character.
-    - The stream and its buffer are heap-allocated once per thread and intentionally never destroyed.
   - `template<LoggerLike L> Logger(L& logger)`
-    - Stores the logger address and instantiates the four forwarders.
+    - Stores the logger address and instantiates the four forwarders; the logger object itself is never copied.
     - Not `explicit`, so a logger object converts where a `Logger` is expected.
-    - Constrained to reject `L = Logger`, so copies bind to the copy constructor.
+    - Constrained to reject `L = Logger`: otherwise this constructor would beat the copy constructor for a non-const
+      `Logger` lvalue and store a pointer to a handle.
+    - No default constructor: a handle is always bound, so no call site needs a null check.
   - Copy and move defaulted.
-    - Copies refer to the same external logger.
+    - Copies of the handle refer to the same external logger.
   - `std::ostream& debug(std::string topic) const`
     - Same for `info`, `warn` and `error`.
     - Forwards object, topic and the returned stream reference; no other work.
-  - Thread safety: the handle is immutable after construction and the calls share no state.
-  - Reentrancy: a logger method may log through the same handle.
+  - `static void setGlobal(Logger logger)`
+    - Replaces the process-wide handle.
+    - The caller keeps ownership: the library stores a pointer to the logger object, not a copy.
+    - The logger object must stay alive until a later `setGlobal()` or the end of the process.
+  - `static Logger global()`
+    - Returns a copy of the process-wide handle; every library log statement starts here.
+    - Returns the built-in `DefaultLogger` handle until the first `setGlobal()`.
+  - Storage: one `std::atomic<Logger>` in `Logger.cc`, initialised with the default handle.
+    - `global()` loads it, `setGlobal()` stores it; a reader works on its copy, which is what makes a message finish
+      on the logger it started with.
+  - Thread safety: the handle is immutable after construction and the global slot is atomic.
+  - Reentrancy: a logger method may log through the installed logger.
   - The handle never calls the logger during construction or destruction.
+  - The library applies no level threshold; the installed logger decides what to write.
 - Topic convention: the component path, built only from data the class holds.
   - `MotorDriverCardFactory`
   - `MotorDriverCard/<moduleName>`, and `MotorDriverCard/dummy` for the dummy card
   - `MotorControler/<id>`
   - `SPI/<moduleName>/<writeRegisterName>`
-  - `StepperMotor/<deviceName>/<moduleName>/<driverId>`
+  - `StepperMotor`
 
-### StepperMotorParameters (modified)
+### DefaultLogger (new)
 
-Location: `steppermotor/include/StepperMotor.h` (modified)
+Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
 
-- `Logger logger{}`
-  - Last member; defaults to the unbound handle, so existing aggregate initialisations stay valid.
+- `class DefaultLogger`
+  - Satisfies `LoggerLike`; the logger the library uses before the first `setGlobal()`.
+  - `explicit DefaultLogger(std::ostream& out = std::cout, std::ostream& err = std::cerr)`
+    - Stores both streams; they must outlive the logger.
+  - `std::ostream& debug(std::string topic)`
+    - Same for `info`, `warn` and `error`.
+    - Returns a `thread_local` stream over a line buffer.
+  - Line buffer
+    - Holds the instance and the target stream of the message in progress, so concurrent calls and several
+      `DefaultLogger` instances on one thread never mix.
+    - Starting a message on another instance or another stream first flushes the pending text.
+    - Writes a completed line under a mutex of the instance that the message belongs to.
+    - A newline in the text ends the line and starts the next one.
+    - Pending text is flushed when the next message starts on the same thread and by a `thread_local` holder at thread
+      exit, so no message is lost while the thread lives.
+    - Line format `[<level>] <topic>: <text>`, with the levels named `debug`, `info`, `warning` and `error`.
+  - `debug` and `info` lines go to `out`, `warn` and `error` lines to `err`.
+  - Its own methods never log, so its non-recursive mutex cannot be re-entered.
+- A function-local static `DefaultLogger` in `Logger.cc` backs `Logger::global()` until the first `setGlobal()`.
+  - Created on first use, destroyed at process exit, so a handle never points at a dead object before then.
+  - Logging from a static destructor after that point is unsupported.
 
 ### MotorDriverCardFactory (modified)
 
 Location: `backend/include/MotorDriverCardFactory.h` (modified), `backend/src/MotorDriverCardFactory.cc` (modified)
 
-- `createMotorDriverCard(std::string alias, std::string mapModuleName, std::string motorConfigFileName, Logger logger = {})`
-  - New trailing parameter.
-  - Binds the logger into the created `MotorDriverCardImpl` or `MotorDriverCardDummy`.
-  - The card is cached per `(alias, mapModuleName)`; the logger of the first creation stays bound to it.
-    - Later requests for the same card ignore their logger argument.
-    - The cache-hit message goes to the bound logger, not to the ignored argument.
-    - Documented in the function comment together with the lifetime rule.
-  - Messages, topic `MotorDriverCardFactory`:
-    - `debug` on a cache hit and in dummy mode.
-    - `info` with alias, map module name and config file name before creating a card.
-    - `info` after opening the device.
+- Messages, topic `MotorDriverCardFactory`:
+  - `debug` on a cache hit and in dummy mode.
+  - `info` with alias, map module name and config file name in the alias-based overload, and with the module name in
+    the injected-device overload.
+  - `info` after the alias-based overload has opened the device.
+- Applies to both factory overloads of CR-003.
 
 ### MotorDriverCardImpl (modified)
 
 Location: `backend/include/impl/MotorDriverCardImpl.h` (modified), `backend/src/MotorDriverCardImpl.cc` (modified)
 
-- Constructor gains `Logger logger = {}`.
-  - Stores it and passes it to `TMC429SPI` and `MotorControlerImpl`.
 - Messages, topic `MotorDriverCard/<moduleName>`:
   - `debug` with the accepted firmware version in `checkFirmwareVersion()`.
-  - `error` with the error text, then throw `ChimeraTK::runtime_error`, on a wrong firmware version.
-  - `info` after the common registers and the motors are initialised.
-  - `error` with the error text, then throw `ChimeraTK::logic_error`, on an invalid `motorControlerID`.
+  - `info` at the end of `applyConfiguration()`.
   - `info` in `powerDown()`.
+  - `error` with the error text, then throw `ChimeraTK::logic_error`, on an invalid `motorControlerID` in
+    `getMotorControler()`.
+- `applyConfiguration()` and `checkFirmwareVersion()` are also called by `reconfigure()`, so a recovery reports the
+  same two messages.
 
 ### MotorControlerImpl (modified)
 
 Location: `backend/include/impl/MotorControlerImpl.h` (modified), `backend/src/MotorControlerImpl.cc` (modified)
 
-- Constructor gains `Logger logger = {}`.
-  - Stores it and passes it to the `_driverSPI` channel it constructs.
-  - `_controlerSPI` is constructed by the card and already carries the logger.
 - Messages, topic `MotorControler/<id>`:
-  - `debug` after the configuration registers are written.
-  - `warn` when the end switch power indicator accessor is not initialised (old firmware).
-  - The silent early returns of `setEndSwitchPowerEnabled()` and `isEndSwitchPowerEnabled()` stay silent; the
-    constructor message is the one place reporting the condition.
-
-### TMC429SPI (modified)
-
-Location: `backend/include/impl/TMC429SPI.h` (modified), `backend/src/TMC429SPI.cc` (modified)
-
-- Constructor gains `Logger logger = {}`.
-  - Forwards it to the `SPIviaPCIe` member; no messages of its own.
+  - `debug` at the end of the constructor.
+  - `debug` in `createRegisterAccessors()` when the end switch power indicator accessor is not initialised (old
+    firmware).
+- `setEndSwitchPowerEnabled()` and `isEndSwitchPowerEnabled()` stay silent; the accessor-creation message is the one
+  place reporting the condition.
 
 ### SPIviaPCIe (modified)
 
 Location: `backend/include/impl/SPIviaPCIe.h` (modified), `backend/src/SPIviaPCIe.cc` (modified)
 
-- Both constructors gain `Logger logger = {}` after `spiWaitingTime`.
-  - The write-only overload forwards it to the delegating constructor.
 - Messages, topic `SPI/<moduleName>/<writeRegisterName>`:
-  - `error` with the existing error details, then throw `ChimeraTK::runtime_error`, for the timeout and the error
-    handshake result.
+  - `error` with the existing error details, then throw `ChimeraTK::runtime_error`, for the error handshake result.
   - No message for a successful or a repeated handshake.
+- `TMC429SPI` and the other SPI helpers keep their signatures and stay silent.
 
 ### MotorDriverCardDummy (modified)
 
 Location: `backend/include/MotorDriverCardDummy.h` (modified), `backend/src/MotorDriverCardDummy.cc` (modified)
 
-- Constructor gains `Logger logger = {}`.
 - Messages, topic `MotorDriverCard/dummy`:
-  - `debug` on creation.
+  - `debug` in the constructor.
   - `error` with the error text, then throw `ChimeraTK::logic_error`, on an invalid `motorControlerID` and in
     `getPowerMonitor()`.
-- `MotorControlerDummy` stays without a logger; its not-implemented throws are unchanged.
+- `MotorControlerDummy` stays without messages; its not-implemented throws are unchanged.
 
 ### BasicStepperMotor (modified)
 
 Location: `steppermotor/include/BasicStepperMotor.h` (modified), `steppermotor/src/BasicStepperMotor.cc` (modified)
 
-- Constructor passes `parameters.logger` to `createMotorDriverCard()` and stores it.
-  - The derived motors and `StepperMotor::StepperMotorFactory::create()` pass the struct through unchanged.
-- Messages, topic `StepperMotor/<deviceName>/<moduleName>/<driverId>`:
+- Messages, topic `StepperMotor`:
   - `info` after the motor is initialised.
   - `error` with the error text, then throw `ChimeraTK::logic_error`, in each of the routines not available for this
     motor.
+- No signature changes, no new members: `StepperMotorParameters` is untouched.
 
 ### CMake configuration (modified)
 
 Location: `CMakeLists.txt` (modified)
 
 - `cmake_minimum_required(VERSION 3.20)`
-  - Required for `cxx_std_23` and `CMAKE_CXX_STANDARD 23`.
-- `set(CMAKE_CXX_STANDARD 23)` and `set(CMAKE_CXX_STANDARD_REQUIRED ON)` before the targets.
-  - Also compiles `ConfigCalculator`, the examples and the test targets as C++23.
-- `target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)`
-  - Propagates the standard to consuming projects, which include the public `Logger.h`.
-- One test loop for all `tests/src/*` subdirectories.
-  - Iterate `backend steppermotor util`, link the union of the current link libraries and add
-    `steppermotor/include` to every test target.
-  - Replaces the two near-identical loops; adds `tests/src/util`.
+  - Required for `cxx_std_23`; applies to the top level, the sub-projects keep their own minimum.
+- `target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)`
+  - `Logger.cc` needs C++23.
+- `target_compile_features(CTK_OBJECTS PRIVATE cxx_std_23)` in `steppermotor/CMakeLists.txt` (modified)
+  - Its objects are linked into the library.
+- `target_compile_features(${executableName} PRIVATE cxx_std_23)` in the test loops
+  - The tests include `Logger.h`.
+- Not `PUBLIC`: no installed library header includes `Logger.h`, so consumers of the library are unaffected; a caller
+  that includes `Logger.h` sets C++23 for its own targets.
+- A third test loop for `tests/src/util`, copied from the backend loop with its own link list
+  (`${PROJECT_NAME} Boost::thread Boost::unit_test_framework`).
+  - The existing two loops stay as they are.
+- No source-list change: `util/src` is already globbed by the existing `aux_source_directory`.
 
 ### Alternatives considered
 
+- Passing the logger per card or per motor: the card factory is a singleton and caches cards for the process
+  lifetime, so a per-card logger is either ignored on a cache hit or outlived by its card.
 - Pure virtual `LoggerInterface`: requires the caller to derive from a library class, which the requirements forbid.
-- Templating every library class on the logger type: makes the whole implementation header-only, breaks the shared
-  library ABI and the singleton factory cache, which must return one card per device whatever logger type created it.
-- Owning the logger through a `std::shared_ptr`: the caller cannot easily supply an object it already owns by
-  reference, and lifetime ownership is not part of the requirement.
-- `std::function` per level instead of function pointers: allocates and adds an indirection per call for no gain,
-  because the handle is captured for the caller's lifetime anyway.
-- Library-owned logger with an `std::ostream` sink: the caller could not route messages into its own logging system.
+- Templating every library class on the logger type: makes the whole implementation header-only and breaks the
+  shared library ABI.
+- Owning the installed logger through a `std::shared_ptr`: the caller cannot easily supply an object it already owns
+  by reference, and lifetime ownership is not part of the requirement.
+- `std::atomic<std::shared_ptr<Logger const>>` for the global slot: allocates and adds a control block, while the
+  external logger object still stays non-owning.
+- `std::function` per level instead of function pointers: allocates and adds an indirection per call for no gain.
+- An unbound handle that discards: an unconfigured library would stay silent, contrary to the default-logger
+  requirement.
 
 ## Test plan
 
+- Every test fixture that installs a logger does so in its constructor, before it creates the objects under test, and
+  restores the previous `global()` handle in its destructor.
 - `tests/src/util/testLogger.cpp` (new)
-  - `RecordsLevelTopicAndText`: a recording logger receives the topic and the streamed text on each of the four
-    levels; a message written through a copy of the handle arrives at the same logger.
-    - Covers the four forwarders, the topic argument and the defaulted copy operations.
-  - `UnboundLoggerDiscards`: level calls on a default-constructed handle return a usable stream and write nothing.
-    - Covers the discarding stream.
+  - `RecordsLevelTopicAndText`: a recording logger installed with `setGlobal()` receives the topic and the streamed
+    text on each of the four levels; a message written through a copy of the handle arrives at the same logger.
+    - Covers the four forwarders, the topic argument, `setGlobal()`/`global()` and the defaulted copy operations.
   - `ConceptAcceptsAndRejects`: `static_assert` that a recording logger satisfies `LoggerLike`, that a type missing
     one method does not, and that a method returning `std::ostream` by value does not.
-    - Covers the concept constraint, which no runtime case can show.
+    - Covers the concept constraint and the exact return type, which no runtime case can show.
   - `CPlusPlusVersion`: `static_assert(__cplusplus >= 202302L)`.
-    - Covers the C++23 requirement; a compiler would otherwise accept the document while building as C++20.
-  - `ConcurrentCallsArriveIntact`: eight threads write 100 messages each through one handle into a serialising
-    logger; every message arrives complete with its own topic.
-    - Covers the thread-safety requirement of `Logger`; sequential cases cannot show interleaving.
-  - `ReentrantCall`: with a depth guard, the logger writes a second line through the same handle while handling the
-    first; exactly two lines arrive and the inner stream is writable.
+    - Covers the C++23 setting of the test targets; the library has no runtime check.
+  - `DefaultLoggerIsUsedUntilReplaced`: a handle taken from `global()` before any `setGlobal()` writes a line; after
+    installing another logger and installing the taken handle again, the default writes again.
+    - Covers the built-in default and the restore direction; `RecordsLevelTopicAndText` covers replacement only.
+  - `DefaultLoggerSplitsStreamsAndLevels`: a `DefaultLogger` over two string streams, installed with `setGlobal()`,
+    puts `debug` and `info` lines on `out` and `warn` and `error` lines on `err`, each as
+    `[<level>] <topic>: <text>`.
+    - Covers the stream routing and the line format; no other case inspects a formatted line.
+  - `DefaultLoggerKeepsPartialLines`: a message without a newline appears once the next message on the same thread
+    starts; a message containing a newline yields two lines; the last message of a joined thread still appears.
+    - Covers the buffer flush points, including the thread-exit flush, which the other cases never reach.
+  - `ConcurrentCallsArriveIntact`: eight threads write 100 messages each through `global()` into a `DefaultLogger`
+    over a string stream; all 800 lines arrive intact, each with its own topic and level.
+    - Covers the thread-safety requirement of the logger and of the global slot; sequential cases cannot show
+      interleaving.
+  - `ReentrantCall`: with a depth guard, a recording logger installed via `setGlobal()` writes a second line through
+    `global()` while handling the first; exactly two lines arrive and the outer stream stays writable afterwards.
     - Covers the reentrancy requirement; no other case nests calls.
 - `tests/src/backend/testMotorDriverCardFactory.cpp` (modified)
-  - `LoggerReceivesCreationMessages`: dummy mode, card created under a key no other case uses, yields at least one
-    message with topic `MotorDriverCardFactory`.
-    - Covers the factory parameter and its forward to the card.
-  - `CachedCardKeepsFirstLogger`: a second creation under the same key with another logger returns the same card,
-    and the second logger stays silent.
-    - Covers the cache semantics and the receiver of the cache-hit message.
-  - `DummyCardErrorsAreLogged`: `getMotorControler()` with an invalid id on a dummy card yields the
-    `MotorDriverCard/dummy` error before the exception.
-    - Covers the error site of `MotorDriverCardDummy`; the other cases never leave the success path.
+  - `LoggerReceivesCreationMessages`: dummy mode and a key no other case uses yield the `MotorDriverCardFactory`
+    messages, including the dummy-mode `debug`.
+    - Covers the factory messages on a first creation; the logger itself is covered by `testLogger.cpp`.
+  - `CachedCardHitIsLogged`: a second creation under that key yields the cache-hit `debug`.
+    - Covers the cache-hit message, which a first creation cannot produce.
+- `tests/src/backend/testMotorDriverCardDummy.cpp` (modified)
+  - `CreationIsLogged`: constructing the dummy card yields the `MotorDriverCard/dummy` `debug`.
+    - Covers the dummy creation message.
+  - `ErrorsAreLogged`: `getMotorControler()` with an invalid id and `getPowerMonitor()` yield the `error` before their
+    exceptions.
+    - Covers both dummy error sites; the existing cases only check the exceptions.
+- `tests/src/backend/testMotorDriverCard.cpp` (modified)
+  - `CreationIsLogged`: constructing a card from the dummy device yields the firmware `debug` and the
+    `applyConfiguration()` `info`.
+    - Covers both card lifecycle messages; the error paths are covered below and in the dummy tests.
+  - `InvalidMotorControlerIdIsLogged`: `getMotorControler()` with an invalid id yields the `error` before the
+    exception.
+    - Covers the card error site, which no other case reaches.
+  - `PowerDownIsLogged`: `powerDown()` yields the `info`.
+    - Covers the power-down message.
 - `tests/src/backend/testMotorControler.cpp` (modified)
-  - `OldFirmwareLogsWarning`: constructing the controler with the fixture map, which has no `VOLTAGE_EN` register,
-    yields the `MotorControler/<id>` warning.
-    - Covers the warn site; the fixture map makes the condition deterministic.
+  - `ConstructionIsLogged`: constructing the controler yields its `debug`.
+    - Covers the constructor message.
+  - `OldFirmwareIsLogged`: the fixture map, which lacks `WORD_M1_VOLTAGE_EN`, yields the accessor-creation `debug`.
+    - Covers the condition that the silent getters never report; the fixture map makes it deterministic.
 - `tests/src/backend/testSPIviaPCIe.cpp` (modified)
-  - `HandshakeErrorIsLogged`: an invalid SPI datagram makes the dummy answer with the error handshake; the
-    `SPI/...` error arrives before the `ChimeraTK::runtime_error`.
-    - Covers the error site of `SPIviaPCIe`; the existing cases only use valid datagrams.
+  - `HandshakeErrorIsLogged`: an invalid SPI datagram makes the dummy answer with the error handshake; the `SPI/...`
+    `error` arrives before the `ChimeraTK::runtime_error`.
+    - Covers the SPI error site; the existing cases only use valid datagrams.
 - `tests/src/steppermotor/testStepperMotor.cc` (modified)
-  - `LoggerFromParametersReceivesCreationMessage`: a motor built with a recording logger in
-    `StepperMotorParameters` yields the `StepperMotor/...` creation message.
-    - Covers the new member and its use by `BasicStepperMotor`; the card is created by the fixture beforehand, so
-      only the motor's own message is asserted.
+  - `MotorCreationIsLogged`: a motor built while a recording logger is installed yields the `StepperMotor` `info`.
+    - Covers the motor creation message and the global lookup below the card factory.
+  - `UnavailableRoutineIsLogged`: calling a routine that this motor does not support yields the `StepperMotor` `error`
+    before the `ChimeraTK::logic_error`.
+    - Covers the error sites of the unsupported routines.
