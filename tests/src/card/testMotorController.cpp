@@ -243,6 +243,8 @@ namespace ChimeraTK::MotorDriver {
       // We need the motor driver card as private variable because it has to
       // survive the constructor. Otherwise the MotorControllers passed to
       // the tests will be invalid.
+      // The constructor is private, so boost::make_shared cannot be used here.
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       _motorDriverCard.reset(new MotorDriverCardImpl(device, MODULE_NAME_0, motorDriverCardConfig));
 
       dummyDevice->setRegistersForTesting();

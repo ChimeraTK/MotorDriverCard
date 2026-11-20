@@ -32,10 +32,10 @@ namespace ChimeraTK::MotorDriver {
     // any new can throw, it might be that the other object is allocated, but the
     // corresponding smart pointer is not initialised yet, which would lead to a
     // memory leak.
-    _powerMonitor.reset(new PowerMonitor);
-    _controllerSPI.reset(
-        new TMC429SPI(device, moduleName, CONTROLLER_SPI_WRITE_ADDRESS_STRING, CONTROLLER_SPI_SYNC_ADDRESS_STRING,
-            CONTROLLER_SPI_READBACK_ADDRESS_STRING, cardConfiguration.controllerSpiWaitingTime));
+    _powerMonitor = boost::make_shared<PowerMonitor>();
+    _controllerSPI = boost::make_shared<TMC429SPI>(device, moduleName, CONTROLLER_SPI_WRITE_ADDRESS_STRING,
+        CONTROLLER_SPI_SYNC_ADDRESS_STRING, CONTROLLER_SPI_READBACK_ADDRESS_STRING,
+        cardConfiguration.controllerSpiWaitingTime);
 
     // initialise common registers
     setCoverDatagram(cardConfiguration.coverDatagram);
@@ -50,8 +50,8 @@ namespace ChimeraTK::MotorDriver {
     // initialise motors
     _motorControllers.resize(N_MOTORS_MAX);
     for(unsigned int i = 0; i < _motorControllers.size(); ++i) {
-      _motorControllers[i].reset(new MotorControllerImpl(
-          i, device, moduleName, _controllerSPI, cardConfiguration.motorControllerConfigurations[i]));
+      _motorControllers[i] = boost::make_shared<MotorControllerImpl>(
+          i, device, moduleName, _controllerSPI, cardConfiguration.motorControllerConfigurations[i]);
     }
   }
 

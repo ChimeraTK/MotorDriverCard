@@ -11,6 +11,7 @@
 using namespace ChimeraTK::MotorDriver;
 
 QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_) : QWidget(parent_) {
+  // NOLINTBEGIN(cppcoreguidelines-owning-memory) the Qt objects are owned by their parent widget
   verticalLayout = new QVBoxLayout(this);
 
   auto* mainTabWidget = new QTabWidget(this);
@@ -85,6 +86,7 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_) : QWidget(par
   connect(writeButton, SIGNAL(clicked()), this, SLOT(write()));
 
   this->resize(620, 480);
+  // NOLINTEND(cppcoreguidelines-owning-memory)
 }
 
 void QtMotorConfigCalculator::write() {

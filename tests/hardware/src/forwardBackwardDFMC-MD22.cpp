@@ -21,11 +21,11 @@ using namespace ChimeraTK::MotorDriver;
 bool volatile keepRunning = true;
 
 void sleepMicroSeconds(unsigned int microSeconds) {
-  timespec sleepTime;
+  timespec sleepTime{};
   sleepTime.tv_sec = microSeconds / 1000000;
   sleepTime.tv_nsec = static_cast<decltype(sleepTime.tv_nsec)>(microSeconds % 1000000U) * 1000;
 
-  timespec remainingTime;
+  timespec remainingTime{};
   remainingTime.tv_sec = 0;
   remainingTime.tv_nsec = 0;
   if(nanosleep(&sleepTime, &remainingTime)) {

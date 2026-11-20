@@ -4,6 +4,7 @@
 
 ParameterWidget::ParameterWidget(QWidget* parent_, std::string const& parameterName, uint32_t defaultValue)
 : QWidget(parent_) {
+  // NOLINTBEGIN(cppcoreguidelines-owning-memory) the Qt objects are owned by their parent widget
   horizontalLayout = new QHBoxLayout(this);
 
   label = new QLabel(parameterName.c_str(), this);
@@ -18,6 +19,7 @@ ParameterWidget::ParameterWidget(QWidget* parent_, std::string const& parameterN
   defaultValueLabel->setFrameShape(QFrame::StyledPanel);
   defaultValueLabel->setFrameShadow(QFrame::Sunken);
   horizontalLayout->addWidget(defaultValueLabel);
+  // NOLINTEND(cppcoreguidelines-owning-memory)
 }
 
 uint32_t ParameterWidget::getValue() {

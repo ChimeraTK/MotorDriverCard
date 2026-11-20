@@ -27,6 +27,8 @@ namespace ChimeraTK::MotorDriver {
     if(_dummyMode) {
       auto card = _dummyMotorDriverCards[id];
       if(!card) {
+        // The constructor is private, so boost::make_shared cannot be used here.
+        // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
         _dummyMotorDriverCards[id].reset(new MotorDriverCardDummy());
       }
 
@@ -48,6 +50,8 @@ namespace ChimeraTK::MotorDriver {
       device->open(alias);
       MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
+      // The constructor is private, so boost::make_shared cannot be used here.
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       motorDriverCard.reset(new MotorDriverCardImpl(device, mapModuleName, cardConfig));
     }
     _motorDriverCards[id] = motorDriverCard;
