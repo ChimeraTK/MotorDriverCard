@@ -128,41 +128,41 @@ void MultiVariableWordTest<T>::testInputMask() {
   // we test some start values somewhere 'in the middle' plus 0 and 31 (edge
   // values, special cases) plus 1 and 30 (to avoid off by one errors), in all
   // combinations
-  BOOST_CHECK(INPUT_MASK(4, 14) == 0x7FF);
-  BOOST_CHECK(INPUT_MASK(4, 15) == 0xFFF);
-  BOOST_CHECK(INPUT_MASK(4, 16) == 0x1FFF);
-  BOOST_CHECK(INPUT_MASK(5, 16) == 0xFFF);
+  BOOST_CHECK(inputMask(4, 14) == 0x7FF);
+  BOOST_CHECK(inputMask(4, 15) == 0xFFF);
+  BOOST_CHECK(inputMask(4, 16) == 0x1FFF);
+  BOOST_CHECK(inputMask(5, 16) == 0xFFF);
 
-  BOOST_CHECK(INPUT_MASK(0, 23) == 0xFFFFFF);
-  BOOST_CHECK(INPUT_MASK(1, 23) == 0x7FFFFF);
+  BOOST_CHECK(inputMask(0, 23) == 0xFFFFFF);
+  BOOST_CHECK(inputMask(1, 23) == 0x7FFFFF);
 
-  BOOST_CHECK(INPUT_MASK(17, 30) == 0x3FFF);
-  BOOST_CHECK(INPUT_MASK(17, 31) == 0x7FFF);
+  BOOST_CHECK(inputMask(17, 30) == 0x3FFF);
+  BOOST_CHECK(inputMask(17, 31) == 0x7FFF);
 
-  BOOST_CHECK(INPUT_MASK(0, 31) == 0xFFFFFFFF);
-  BOOST_CHECK(INPUT_MASK(1, 31) == 0x7FFFFFFF);
-  BOOST_CHECK(INPUT_MASK(0, 30) == 0x7FFFFFFF);
-  BOOST_CHECK(INPUT_MASK(1, 30) == 0x3FFFFFFF);
+  BOOST_CHECK(inputMask(0, 31) == 0xFFFFFFFF);
+  BOOST_CHECK(inputMask(1, 31) == 0x7FFFFFFF);
+  BOOST_CHECK(inputMask(0, 30) == 0x7FFFFFFF);
+  BOOST_CHECK(inputMask(1, 30) == 0x3FFFFFFF);
 }
 
 template<class T>
 void MultiVariableWordTest<T>::testOutputMask() {
   // Test the same cases as input mask
-  BOOST_CHECK(OUTPUT_MASK(4, 14) == 0x7FF0);
-  BOOST_CHECK(OUTPUT_MASK(4, 15) == 0xFFF0);
-  BOOST_CHECK(OUTPUT_MASK(4, 16) == 0x1FFF0);
-  BOOST_CHECK(OUTPUT_MASK(5, 16) == 0x1FFE0);
+  BOOST_CHECK(outputMask(4, 14) == 0x7FF0);
+  BOOST_CHECK(outputMask(4, 15) == 0xFFF0);
+  BOOST_CHECK(outputMask(4, 16) == 0x1FFF0);
+  BOOST_CHECK(outputMask(5, 16) == 0x1FFE0);
 
-  BOOST_CHECK(OUTPUT_MASK(0, 23) == 0xFFFFFF);
-  BOOST_CHECK(OUTPUT_MASK(1, 23) == 0xFFFFFE);
+  BOOST_CHECK(outputMask(0, 23) == 0xFFFFFF);
+  BOOST_CHECK(outputMask(1, 23) == 0xFFFFFE);
 
-  BOOST_CHECK(OUTPUT_MASK(17, 30) == 0x7FFE0000);
-  BOOST_CHECK(OUTPUT_MASK(17, 31) == 0xFFFE0000);
+  BOOST_CHECK(outputMask(17, 30) == 0x7FFE0000);
+  BOOST_CHECK(outputMask(17, 31) == 0xFFFE0000);
 
-  BOOST_CHECK(OUTPUT_MASK(0, 31) == 0xFFFFFFFF);
-  BOOST_CHECK(OUTPUT_MASK(1, 31) == 0xFFFFFFFE);
-  BOOST_CHECK(OUTPUT_MASK(0, 30) == 0x7FFFFFFF);
-  BOOST_CHECK(OUTPUT_MASK(1, 30) == 0x7FFFFFFE);
+  BOOST_CHECK(outputMask(0, 31) == 0xFFFFFFFF);
+  BOOST_CHECK(outputMask(1, 31) == 0xFFFFFFFE);
+  BOOST_CHECK(outputMask(0, 30) == 0x7FFFFFFF);
+  BOOST_CHECK(outputMask(1, 30) == 0x7FFFFFFE);
 }
 
 template<class T>

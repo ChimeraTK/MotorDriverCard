@@ -2,34 +2,41 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-/** Generate an input mask from the position of the first and the last bit
- *  of the mask. The input mask is the mask applied to an input word which is
- *  going to be written. As these are always the last bits of the input,
- *  the mask is only dependent on the width of the sub word.<br> Example:
- *  bits 12 to 15 describe a 4 bit wide sub word with an input mask of \c
- * 0x0000000F. This macro is mainly for internal usage in the ADD_VARIABLE()
- * macro.
- *  @attention There is no range check for the bits. The valid bit range is
- * [0:31] for both first and last bit.
- */
-// The bit shift is performed on a 64 bit unsigned int (UL) to avoid
-// buffer overflow for FIRST_BIT=0 and LAST_BIT=31.
-// The result is cast back to 32 bit.
-#define INPUT_MASK(FIRST_BIT, LAST_BIT)                                                                                \
-  static_cast<unsigned int>(                                                                                           \
-      (1UL << (static_cast<unsigned long>(LAST_BIT) - static_cast<unsigned long>(FIRST_BIT) + 1UL)) - 1UL)
+namespace ChimeraTK::MotorDriver {
 
-/** Generate an output mask from the position of the first and the last bit
- *  of the mask. The output mask is the mask applied to the combined word.
- *  <br> Example:
- *  bits 12 to 15 describe a 4 bit wide sub word with an output mask of \c
- * 0x0000F000. This macro is mainly for internal usage in the ADD_VARIABLE()
- * macro.
- *  @attention There is no range check for the bits. The valid bit range is
- * [0:31] for both first and last bit.
- */
-#define OUTPUT_MASK(FIRST_BIT, LAST_BIT)                                                                               \
-  static_cast<unsigned int>(INPUT_MASK(FIRST_BIT, LAST_BIT) << static_cast<unsigned int>(FIRST_BIT))
+  /** Generate an input mask from the position of the first and the last bit
+   *  of the mask. The input mask is the mask applied to an input word which is
+   *  going to be written. As these are always the last bits of the input,
+   *  the mask is only dependent on the width of the sub word.<br> Example:
+   *  bits 12 to 15 describe a 4 bit wide sub word with an input mask of \c
+   * 0x0000000F. This function is mainly used by the ADD_VARIABLE() macro.
+   *  @param firstBit Position of the least significant bit of the sub word
+   *  @param lastBit Position of the most significant bit of the sub word
+   *  @attention There is no range check for the bits. The valid bit range is
+   * [0:31] for both first and last bit.
+   */
+  // The bit shift is performed on a 64 bit unsigned int (UL) to avoid
+  // buffer overflow for firstBit=0 and lastBit=31.
+  // The result is cast back to 32 bit.
+  constexpr unsigned int inputMask(unsigned int firstBit, unsigned int lastBit) {
+    return static_cast<unsigned int>((1UL << (lastBit - firstBit + 1U)) - 1U);
+  }
+
+  /** Generate an output mask from the position of the first and the last bit
+   *  of the mask. The output mask is the mask applied to the combined word.
+   *  <br> Example:
+   *  bits 12 to 15 describe a 4 bit wide sub word with an output mask of \c
+   * 0x0000F000. This function is mainly used by the ADD_VARIABLE() macro.
+   *  @param firstBit Position of the least significant bit of the sub word
+   *  @param lastBit Position of the most significant bit of the sub word
+   *  @attention There is no range check for the bits. The valid bit range is
+   * [0:31] for both first and last bit.
+   */
+  constexpr unsigned int outputMask(unsigned int firstBit, unsigned int lastBit) {
+    return inputMask(firstBit, lastBit) << firstBit;
+  }
+
+} // namespace ChimeraTK::MotorDriver
 
 /** \def ADD_VARIABLE(VAR_NAME,FIRST_BIT,LAST_BIT)
  *  The ADD_VARIABLE macro allows to add a getter and a setter function for a
@@ -50,10 +57,10 @@ unsigned int getVoltage();
  */
 #define ADD_VARIABLE(VAR_NAME, FIRST_BIT, LAST_BIT)                                                                    \
   unsigned int get##VAR_NAME() const {                                                                                 \
-    return getSubWord(OUTPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                                    \
+    return getSubWord(outputMask(FIRST_BIT, LAST_BIT), FIRST_BIT);                                                     \
   }                                                                                                                    \
   void set##VAR_NAME(unsigned int word) {                                                                              \
-    return setSubWord(word, INPUT_MASK(FIRST_BIT, LAST_BIT), FIRST_BIT);                                               \
+    return setSubWord(word, inputMask(FIRST_BIT, LAST_BIT), FIRST_BIT);                                                \
   }
 
 namespace ChimeraTK::MotorDriver {

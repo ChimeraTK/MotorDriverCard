@@ -20,20 +20,20 @@ namespace ChimeraTK::MotorDriver::tmc260 {
     // Sorry for this mess, but I don't see any other chance to implement
     // "if bits 18 and 19 are zero then these bits are the address, else
     //  bits 17 to 19 are the address" than hard-coding it.
-    if((word & OUTPUT_MASK(18, 19)) == 0) {
+    if((word & outputMask(18, 19)) == 0) {
       return 0;
     }
     else {
-      return ((word & OUTPUT_MASK(17, 19)) >> 17U);
+      return ((word & outputMask(17, 19)) >> 17U);
     }
   }
 
   inline unsigned int dataMaskFromSpiAddress(unsigned int spiAddress) {
     if(spiAddress == 0) {
-      return OUTPUT_MASK(0, 17);
+      return outputMask(0, 17);
     }
     else {
-      return OUTPUT_MASK(0, 16);
+      return outputMask(0, 16);
     }
   }
 
