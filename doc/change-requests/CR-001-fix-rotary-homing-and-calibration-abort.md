@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: IN PROGRESS (from DONE)
+- Status: PLANNED (from DONE)
 
 ## Requirements
 
@@ -21,10 +21,8 @@ Calibration abort:
 
 - Stopping during calibration must stop motion.
 - The motor must end in the idle state.
-- Disabling during calibration must stop motion. This covers the calibration
-  only; disabling during the tolerance calculation is out of scope.
-- The motor must end in the disabled state with motor current and end-switch
-  power off.
+- Disabling during calibration must stop motion.
+- The motor must end in the disabled state.
 
 Rotary switch semantics:
 
@@ -32,6 +30,11 @@ Rotary switch semantics:
 - The both-end-switches-active error must never be raised for a rotary motor.
 - Move verification must not treat the negative switch bit as a reason to
   accept a move.
+
+Build without Qt:
+
+- The library and its tests must configure and build on a host without Qt.
+- A host with Qt keeps building the `ConfigCalculator` GUI as before.
 
 ## Specifications
 
@@ -79,15 +82,8 @@ Rotary switch semantics:
   cannot overwrite the early abort with a completed homing.
 - The background thread only clears `_asyncActionActive`. The requested state is
   applied by the current state's internal end callback on the next state query.
-- `_calculatingTolerance` shares `actionStop()`, so stopping a tolerance
-  calculation also commands standstill. Disabling during tolerance calculation
-  is out of scope; that state keeps ignoring the disable event.
 - Calibration end handling stays as is and reports the abort as a calibration
   error.
-- The wait loops which poll `isMotorMoving()` keep two separate periods. The
-  end-switch search keeps the existing 500 ms period; the tolerance calculation
-  uses a separate 5 ms period, because it polls once per move and its runtime is
-  otherwise dominated by that wait.
 
 `ReferenceStepperMotor::isEndSwitchActive(Sign)`:
 
@@ -101,10 +97,21 @@ Rotary switch semantics:
 
 `RotaryStepperMotor::verifyMoveAction()`:
 
+- Verifies that a completed move ran to its end, not that the motor is
+  calibrated.
+- Called after every move, from
+  `BasicStepperMotor::StateMachine::waitForStandstill()`.
 - Keep the base disjunction: accept the move when
   `isEndSwitchActive(Sign::POSITIVE)` is true or the target position equals the
   actual position.
+- The switch bit accepts a move which stopped at the switch and therefore left
+  the target above the actual position.
+- The search targets are full steps, so a completed move has equal target and
+  actual positions; no tolerance window is compared.
 - Drop only the negative switch bit, so it cannot mask a blocked move.
+- A calibration guard and a hardware tolerance stay out of scope.
+- Declaration comment in `steppermotor/include/RotaryStepperMotor.h`: name the
+  reached target, not "the position matches".
 
 `ConfigCalculator/CMakeLists.txt`:
 
@@ -158,7 +165,7 @@ Rotary switch semantics:
   position does not change: the standstill command left the target at the actual
   position, so the dummy has nothing to move to.
 - Disable during calibration: motor stopped half way into the first chunk, state
-  disabled, motor current and end-switch power off.
+  disabled.
 - Rotary motor with the negative switch bit set: negative reference inactive,
   no both-switches error. The dummy has no setter for its both-end-switches
   flag, it is only a `moveTowardsTarget()` parameter, so a fixture helper sets
@@ -167,20 +174,15 @@ Rotary switch semantics:
   between the test cases and `resetInternalStateToDefaults()` does not restore
   them.
 - Blocked rotary move: reported as interrupted, not as successful.
-- Rotary motor, tolerance calculation after a completed calibration: the
-  calculation finishes with `Error::NO_ERROR` and the motor ends in the idle
-  state. This covers the disjunction in `verifyMoveAction()`, because the
-  calculation verifies moves away from the switch where the positive switch is
-  inactive, so a conjunction would report an interrupted move.
-- Stop during the tolerance calculation after a completed calibration: wait for
-  `calculatingTolerance` and for the first move of the calculation, which leaves
-  the motor moving, then stop. This test does not need the half-chunk move,
-  because it waits for the move of the calculation to be running before it
-  stops.
-- After the stop the motor is not moving and its target equals its actual
-  position: the standstill command of the shared `actionStop()` took effect.
+- Rotary motor, plain move away from the switch: the move completes, the motor
+  ends idle and the error stays `Error::NO_ERROR`. Covers the disjunction in
+  `verifyMoveAction()` where the positive switch is inactive, so a conjunction
+  would report an interrupted move.
 - The stopped calibration leaves its iteration on `_stopAction` before issuing
   the second move and settles in the idle state, so the test asserts standstill,
   target equal to actual position and, finally, the idle state.
 - The rotary cases use a rotary fixture which creates a `RotaryStepperMotor` on
   the dummy motor controller.
+- The fixture helpers only step the dummy and return whether the step was
+  possible. Every assertion sits in the test case, which wraps the helpers in
+  `BOOST_TEST_REQUIRE`.
