@@ -268,4 +268,28 @@ BOOST_AUTO_TEST_CASE(testFailedCalibrationResetsCount) {
   BOOST_CHECK_NE(_motorControlerDummy->getCalibrationTime(), 0U);
 }
 
+/**
+ * After an emergency stop the motor is in the SM "error" state and every
+ * move request must be rejected with ERR_SYSTEM_IN_ERROR_STATE until the
+ * error is reset.
+ */
+BOOST_AUTO_TEST_CASE(testEmergencyStopBlocksMoves) {
+  performCalibrationForTest();
+  BOOST_CHECK(_stepperMotor->setTargetPositionInSteps(-300) == ExitStatus::SUCCESS);
+  BOOST_CHECK_NO_THROW(_stepperMotor->start());
+  BOOST_CHECK(waitForState("moving", 2));
+  _motorControlerDummy->moveTowardsTarget(0.8);
+  _stepperMotor->emergencyStop();
+
+  BOOST_CHECK(waitForState("error"));
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
+
+  // While in the error state, moves must be rejected with ERR_SYSTEM_IN_ERROR_STATE
+  BOOST_CHECK(_stepperMotor->setTargetPositionInSteps(10) == ExitStatus::ERR_SYSTEM_IN_ERROR_STATE);
+  BOOST_CHECK(_stepperMotor->moveRelativeInSteps(10) == ExitStatus::ERR_SYSTEM_IN_ERROR_STATE);
+
+  _stepperMotor->resetError();
+  BOOST_CHECK(waitForState("disabled"));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

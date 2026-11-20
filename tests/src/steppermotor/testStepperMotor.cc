@@ -429,6 +429,10 @@ BOOST_AUTO_TEST_CASE(TestEmergencyStop) {
   BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
   BOOST_CHECK_EQUAL(_stepperMotor->isCalibrated(), false);
 
+  // While in the error state, moves must be rejected with ERR_SYSTEM_IN_ERROR_STATE
+  BOOST_CHECK(_stepperMotor->setTargetPositionInSteps(10) == ExitStatus::ERR_SYSTEM_IN_ERROR_STATE);
+  BOOST_CHECK(_stepperMotor->moveRelativeInSteps(10) == ExitStatus::ERR_SYSTEM_IN_ERROR_STATE);
+
   // Reset should bring the motor to disabled state
   _stepperMotor->resetError();
   BOOST_CHECK(waitForState("disabled"));
