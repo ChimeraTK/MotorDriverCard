@@ -41,6 +41,9 @@ namespace ChimeraTK::MotorDriver {
     void moveToEndSwitch(Sign sign);
     double getToleranceEndSwitch(Sign sign);
 
+    /// Invalidate calibration. The caller holds _motor._mutex.
+    void invalidateCalibration(bool reportCalibrationError = true);
+
     virtual void performCalibration() = 0;
     virtual void calculateToleranceValues() = 0;
     virtual int getPositionEndSwitch(Sign) = 0;

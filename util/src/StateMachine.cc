@@ -6,6 +6,7 @@
 #include "StepperMotorUtil.h"
 
 #include <cassert>
+#include <iostream>
 
 namespace ChimeraTK::MotorDriver {
   namespace utility {
@@ -87,6 +88,17 @@ namespace ChimeraTK::MotorDriver {
         }
         (it->second).entryCallbackAction();
       }
+      else {
+        // No transition for this event in the current state: the event is
+        // dropped. Log a warning so such cases (e.g. a move command while
+        // the motor is in the "error" state) are visible, including the
+        // consequence for the command and how to recover.
+        const std::string stateName = _currentState->getName();
+        const std::string hint =
+            stateName == "error" ? "; the motor is in the error state, reset the error first to recover" : "";
+        std::cerr << "StateMachine: ignoring event '" << event.getName() << "' in state '" << stateName
+                  << "' (no transition defined, the command has no effect" << hint << ")" << std::endl;
+      }
     }
 
     /******************************************************************************************************************/
@@ -117,6 +129,8 @@ namespace ChimeraTK::MotorDriver {
         return "System in action";
       case ExitStatus::ERR_SYSTEM_NOT_CALIBRATED:
         return "System not calibrated";
+      case ExitStatus::ERR_SYSTEM_IN_ERROR_STATE:
+        return "System in error state";
       case ExitStatus::SUCCESS:
         return "Success";
       default:
