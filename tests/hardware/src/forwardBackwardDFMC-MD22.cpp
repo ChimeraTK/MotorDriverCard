@@ -144,7 +144,7 @@ static int run(int argc, char** argv) {
     std::cout << "Starting the forward-backward loop ..." << std::endl;
 
     while(true) {
-      motor0->setTargetPosition(nStepsMax);
+      motor0->setTargetPosition(static_cast<int>(nStepsMax));
       std::cout << std::endl << "Moving forward..." << std::endl;
 
       try {
@@ -170,7 +170,7 @@ static int run(int argc, char** argv) {
       std::cout << std::endl;
       std::cout << "Moving back..." << std::endl;
 
-      motor0->setTargetPosition(static_cast<unsigned int>(0.2 * nStepsMax));
+      motor0->setTargetPosition(static_cast<int>(0.2 * nStepsMax));
       try {
         while(motor0->getActualPosition() != motor0->getTargetPosition()) {
           sleepMicroSeconds(sleepTime);

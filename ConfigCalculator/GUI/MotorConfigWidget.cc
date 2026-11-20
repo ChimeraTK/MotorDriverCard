@@ -59,7 +59,7 @@ bool MotorConfigWidget::motorIsEnabled() {
 }
 
 void MotorConfigWidget::recalculateChipParameters() {
-  unsigned int microsteps = pow(2, _motorConfigWidgetForm.microsteps->currentIndex());
+  auto microsteps = static_cast<unsigned int>(pow(2, _motorConfigWidgetForm.microsteps->currentIndex()));
 
   ParametersCalculator::PhysicalParameters physicalParameters(_motorConfigWidgetForm.systemClock->value(), microsteps,
       _motorConfigWidgetForm.nStepsPerTurn->value(), _motorConfigWidgetForm.maxRPM->value(),

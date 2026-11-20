@@ -23,18 +23,14 @@ namespace ChimeraTK::MotorDriver::tmc260 {
     if((word & outputMask(18, 19)) == 0) {
       return 0;
     }
-    else {
-      return ((word & outputMask(17, 19)) >> 17U);
-    }
+    return ((word & outputMask(17, 19)) >> 17U);
   }
 
   inline unsigned int dataMaskFromSpiAddress(unsigned int spiAddress) {
     if(spiAddress == 0) {
       return outputMask(0, 17);
     }
-    else {
-      return outputMask(0, 16);
-    }
+    return outputMask(0, 16);
   }
 
 } // namespace ChimeraTK::MotorDriver::tmc260

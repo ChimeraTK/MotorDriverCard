@@ -27,7 +27,7 @@ using namespace ChimeraTK::MotorDriver;
 using namespace ChimeraTK::MotorDriver;
 
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
-static const std::string moduleName("");
+static const std::string moduleName;
 
 // Position of end switches
 // Calibration routine defines zero at negative endswitch
@@ -48,7 +48,7 @@ class StepperMotorWithReferenceTestFixture {
   void waitToSetTargetPos(int);
   void waitForPositiveEndSwitchActive();
   void waitForNegativeEndSwitchActive();
-  bool waitForState(std::string stateName, unsigned timeoutInSeconds);
+  bool waitForState(const std::string& stateName, unsigned timeoutInSeconds);
 
   void performCalibrationForTest();
   void performToleranceCalculationForTest();
@@ -66,8 +66,7 @@ class StepperMotorWithReferenceTestFixture {
   boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerDummy> _motorControllerDummy;
 };
 
-StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
-: _stepperMotorParameters(), _stepperMotor(), _motorControllerDummy() {
+StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture() : _stepperMotorParameters() {
   ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().setDummyMode();
   _motorDriverCard = ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
@@ -86,7 +85,8 @@ StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture()
   _stepperMotor = std::make_shared<LinearStepperMotor>(_stepperMotorParameters);
 }
 
-bool StepperMotorWithReferenceTestFixture::waitForState(std::string reqStateName, unsigned timeoutInSeconds = 10) {
+bool StepperMotorWithReferenceTestFixture::waitForState(
+    const std::string& reqStateName, unsigned timeoutInSeconds = 10) {
   unsigned sleepPeriodInMilliSec = 100;
   unsigned timeoutInSteps = timeoutInSeconds * 1000 / sleepPeriodInMilliSec;
   unsigned cnt = 0;
@@ -99,9 +99,8 @@ bool StepperMotorWithReferenceTestFixture::waitForState(std::string reqStateName
       isCorrectState = true;
       break;
     }
-    else {
-      cnt++;
-    }
+    cnt++;
+
   } while(cnt <= timeoutInSteps);
 
   return isCorrectState;
@@ -364,7 +363,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateError) {
   _motorControllerDummy->moveTowardsTarget(1);
   waitForPositiveEndSwitchActive();
   waitToSetTargetPos(POS_BEYOND_NEGATIVE_ENDSWITCH);
-  _motorControllerDummy->moveTowardsTarget(0.01f);
+  _motorControllerDummy->moveTowardsTarget(0.01F);
   _motorControllerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()) {
   }
@@ -380,7 +379,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateError) {
   BOOST_CHECK_NO_THROW(_stepperMotor->calibrate());
   BOOST_CHECK(waitForState("calibrating"));
   waitToSetTargetPos(POS_BEYOND_POSITVE_ENDSWITCH);
-  _motorControllerDummy->moveTowardsTarget(0.01f);
+  _motorControllerDummy->moveTowardsTarget(0.01F);
   _motorControllerDummy->simulateBlockedMotor(true);
   while(!_stepperMotor->isSystemIdle()) {
   }
@@ -435,7 +434,7 @@ BOOST_AUTO_TEST_CASE(testCalibrateStop) {
 
 BOOST_AUTO_TEST_CASE(testTranslation) {
   // Make sure we are in simple calibration mode
-  _stepperMotor->setActualPosition(0.f);
+  _stepperMotor->setActualPosition(0.F);
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::SIMPLE);
 
   while(!_stepperMotor->isSystemIdle()) {

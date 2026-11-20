@@ -75,7 +75,7 @@ namespace ChimeraTK::MotorDriver {
      *  full power down behaviour. This dummy is mainly for checking the software
      *  and not for full simulation of the hardware (is it?).
      */
-    bool isPowerUp();
+    bool isPowerUp() const;
 
     /** As power up is done via a pin on the TMC429 chip we need a function
      *  to emulate this in the dummy which is not in the normal device.
@@ -142,6 +142,7 @@ namespace ChimeraTK::MotorDriver {
      */
     uint32_t readTMC260Register(uint32_t motorID, TMC260Register configuredRegister);
 
+    // NOLINTNEXTLINE(performance-unnecessary-value-param) the signature is prescribed by the backend registration
     static boost::shared_ptr<ChimeraTK::DeviceBackend> createInstance(
         std::string address, std::map<std::string, std::string> parameters);
 
@@ -170,7 +171,7 @@ namespace ChimeraTK::MotorDriver {
      * idle. The dummy simulates this behaviour.
      */
     void synchroniseFpgaWithControllerSpiRegisters();
-    void writeControllerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix);
+    void writeControllerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, const std::string& suffix);
 
     void setPCIeRegistersForTesting();
     void setStandardRegisters();
@@ -178,14 +179,14 @@ namespace ChimeraTK::MotorDriver {
      * for single word address ranges. In larger address ranges only the first
      * word is set and made const.
      */
-    void setConstantPCIeRegister(std::string registerName, int32_t content);
+    void setConstantPCIeRegister(const std::string& registerName, int32_t content);
     void setDriverSpiRegistersForTesting(unsigned int motorID);
 
     void setControllerSpiRegistersForOperation();
     void setControllerSpiRegistersForTesting();
 
     void driverSpiActions(unsigned int ID, unsigned int spiAddress, unsigned int payloadData);
-    uint32_t getDatalengthFromMask(uint32_t mask);
+    static uint32_t getDatalengthFromMask(uint32_t mask);
 
     /// Helper struct to simulate the spi for one driver
     struct DriverSPI {
@@ -209,7 +210,7 @@ namespace ChimeraTK::MotorDriver {
 
     ChimeraTK::RegisterPath _moduleName;
 
-    bool checkStatusOfRWBit(const TMC429InputWord& inputSPMessage, uint32_t bitStatus);
+    static bool checkStatusOfRWBit(const TMC429InputWord& inputSPMessage, uint32_t bitStatus);
     TMC429OutputWord frameTMC429SPIResponse(TMC429InputWord& inputSpi);
 
     // If the timeout counter is not 0 it is decremented. Then it goes from 1 to 0

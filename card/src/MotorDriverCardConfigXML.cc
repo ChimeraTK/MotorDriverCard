@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <charconv>
 #include <iostream>
+#include <utility>
 
 namespace detail {
   class NodeFiller {
@@ -31,7 +32,7 @@ namespace detail {
     xmlpp::Node* _node;
     bool _writeAlways;
 
-    std::string toHexString(unsigned int value);
+    static std::string toHexString(unsigned int value);
   };
 } // namespace detail
 
@@ -40,7 +41,7 @@ detail::NodeFiller::NodeFiller(xmlpp::Node* node, bool sparse) : _node(node), _w
 void detail::NodeFiller::addParameter(
     std::string const& parameterName, unsigned int value, unsigned int defaultValue, std::string const& tagName) {
   if(_writeAlways || (value != defaultValue)) {
-    auto parameterNode = _node->add_child(tagName);
+    auto* parameterNode = _node->add_child(tagName);
     parameterNode->set_attribute("name", parameterName);
 
     std::string valueString;
@@ -219,7 +220,7 @@ namespace ChimeraTK::MotorDriver {
 
 namespace ChimeraTK::MotorDriver {
 
-  MotorDriverCardConfig MotorDriverCardConfigXML::read(std::string fileName) {
+  MotorDriverCardConfig MotorDriverCardConfigXML::read(const std::string& fileName) {
     xmlpp::DomParser parser;
     xmlpp::RelaxNGValidator validator;
 
@@ -266,8 +267,8 @@ namespace ChimeraTK::MotorDriver {
     std::string xPath{"//MotorControlerConfig"};
     auto nodes = rootNode->find(xPath);
 
-    for(auto node : nodes) {
-      auto element = dynamic_cast<const xmlpp::Element*>(node);
+    for(auto* node : nodes) {
+      const auto* element = dynamic_cast<const xmlpp::Element*>(node);
       auto idString = element->get_attribute_value("motorID");
       if(idString.empty()) {
         throw ChimeraTK::logic_error("Controller config is missing its ID");
@@ -285,18 +286,20 @@ namespace ChimeraTK::MotorDriver {
     return cardConfig;
   }
 
-  void MotorDriverCardConfigXML::write(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig) {
+  void MotorDriverCardConfigXML::write(
+      const std::string& fileName, MotorDriverCardConfig const& motorDriverCardConfig) {
     write(fileName, motorDriverCardConfig, false);
   }
 
-  void MotorDriverCardConfigXML::writeSparse(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig) {
+  void MotorDriverCardConfigXML::writeSparse(
+      const std::string& fileName, MotorDriverCardConfig const& motorDriverCardConfig) {
     write(fileName, motorDriverCardConfig, true);
   }
 
   void MotorDriverCardConfigXML::write(
-      std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig, bool sparse) {
+      const std::string& fileName, MotorDriverCardConfig const& motorDriverCardConfig, bool sparse) {
     xmlpp::Document doc;
-    auto rootNode = doc.create_root_node("MotorDriverCardConfig");
+    auto* rootNode = doc.create_root_node("MotorDriverCardConfig");
 
     MotorDriverCardConfig defaultCardConfig;
 
@@ -322,7 +325,7 @@ namespace ChimeraTK::MotorDriver {
         continue;
       }
 
-      auto controllerConfigNode = rootNode->add_child("MotorControlerConfig");
+      auto* controllerConfigNode = rootNode->add_child("MotorControlerConfig");
       controllerConfigNode->set_attribute("motorID", std::to_string(i));
 
       detail::NodeFiller controllerConfigFiller(controllerConfigNode, sparse);

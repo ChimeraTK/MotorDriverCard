@@ -281,19 +281,19 @@ namespace ChimeraTK::MotorDriver {
     int readPositionRegisterAndConvert();
     MotorReferenceSwitchData retrieveReferenceSwitchStatus();
 
-    double convertVMaxToUstepsPerSec(double vMax);
-    double convertUstepsPerSecToVmax(double speedInUstepsPerSec);
+    double convertVMaxToUstepsPerSec(double vMax) const;
+    double convertUstepsPerSecToVmax(double speedInUstepsPerSec) const;
     static double calculateConversionFactor(MotorControllerConfig const& motorControllerConfig);
-    unsigned int validateVMaxForHardware(double calculatedVmax);
+    unsigned int validateVMaxForHardware(double calculatedVmax) const;
 
-    double convertCurrentScaletoAmps(unsigned int currentScale);
-    double convertAmpsToCurrentScale(double currentInAmps);
+    static double convertCurrentScaletoAmps(unsigned int currentScale);
+    static double convertAmpsToCurrentScale(double currentInAmps);
     unsigned int limitCurrentScale(double calculatedCurrentScale);
     void setCurrentScale(unsigned int currentScale);
 
     void roundToNextFullStep(int& targetPosition);
 
-    inline unsigned int readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue);
+    static unsigned int readRegisterAccessor(ChimeraTK::ScalarRegisterAccessor<int32_t>& readValue);
   };
 
 } // namespace ChimeraTK::MotorDriver

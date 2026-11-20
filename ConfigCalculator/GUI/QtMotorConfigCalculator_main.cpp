@@ -14,5 +14,5 @@ int main(int argc, char** argv) {
 
   qtMotorConfigCalculator.show();
 
-  return app.exec();
+  return QApplication::exec();
 }

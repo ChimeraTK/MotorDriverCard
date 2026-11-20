@@ -119,7 +119,7 @@ class SpiReadWriteThreadStressTest {
 
   /// The function name is given to the increaseErrorCount function for logging
   /// purposes.
-  void increaseErrorCount(std::string functionName);
+  void increaseErrorCount(const std::string& functionName);
 
   // A flag to syncronise multiple threads. As it is a bool which is only read
   // or set (atomic) it is not protected by a mutex.
@@ -131,7 +131,7 @@ class SpiReadWriteThreadStressTest {
 SpiReadWriteThreadStressTest::SpiReadWriteThreadStressTest(
     std::string deviceAlias, std::string moduleName, std::string motorConfigFileName)
 : _deviceAlias(std::move(deviceAlias)), _moduleName(std::move(moduleName)),
-  _motorConfigFileName(std::move(motorConfigFileName)), _errorCountingMutex(), _currentTestName() {}
+  _motorConfigFileName(std::move(motorConfigFileName)) {}
 
 void SpiReadWriteThreadStressTest::preTests() {
   // the that the version without multi-threading works
@@ -312,13 +312,14 @@ void SpiReadWriteThreadStressTest::baseLoop(
 void SpiReadWriteThreadStressTest::controllerSpiWriteReadCheck(unsigned int loopIndex,
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
-  motorController->setTargetPosition(loopIndex & tmc429::SPI_DATA_MASK);
+  motorController->setTargetPosition(static_cast<int>(loopIndex & tmc429::SPI_DATA_MASK));
   if((static_cast<unsigned int>(motorController->getTargetPosition()) & tmc429::SPI_DATA_MASK) !=
       (loopIndex & tmc429::SPI_DATA_MASK)) {
     increaseErrorCount("controllerSpiWriteReadCheck");
   }
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static) passed as pointer to member
 void SpiReadWriteThreadStressTest::writeInterruptRegister(unsigned int loopIndex,
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
@@ -328,6 +329,7 @@ void SpiReadWriteThreadStressTest::writeInterruptRegister(unsigned int loopIndex
   // no error checking, fire and forget
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static) passed as pointer to member
 void SpiReadWriteThreadStressTest::readTargetPosition(unsigned int /*loopIndex*/,
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
@@ -335,6 +337,7 @@ void SpiReadWriteThreadStressTest::readTargetPosition(unsigned int /*loopIndex*/
   // do nothing with it, just read
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static) passed as pointer to member
 void SpiReadWriteThreadStressTest::readReferenceSwitchData(unsigned int /*loopIndex*/,
     boost::shared_ptr<MotorDriverCard>& motorDriverCard,
     boost::shared_ptr<MotorControllerExpert>& /* motorController, not used */) {
@@ -365,6 +368,7 @@ void SpiReadWriteThreadStressTest::writeCheckStallGuard(unsigned int loopIndex,
   }
 }
 
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static) passed as pointer to member
 void SpiReadWriteThreadStressTest::writeDriverControl(unsigned int /* loopIndex, not used */,
     boost::shared_ptr<MotorDriverCard>& /* motorDriverCard, not used */,
     boost::shared_ptr<MotorControllerExpert>& motorController) {
@@ -379,7 +383,7 @@ void SpiReadWriteThreadStressTest::printStatus() {
             << " errors, total errors until now: " << _errorsTotal << std::endl;
 }
 
-void SpiReadWriteThreadStressTest::increaseErrorCount(std::string functionName) {
+void SpiReadWriteThreadStressTest::increaseErrorCount(const std::string& functionName) {
   _errorCountingMutex.lock();
   _errorsInThisTest += 1; // ++ operator is deprecated for volatile variables
   _errorsInThisCycle += 1;

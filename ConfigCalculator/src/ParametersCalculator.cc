@@ -91,7 +91,7 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
     warning << "vMax was too high. The maximum possible RPM now is "
             << maximumAllowedVMax / vMax * physicalParameters.maxRPM << ". Adjust your input parameters.";
     warnings.push_back(warning.str());
-    vMax = maximumAllowedVMax;
+    vMax = static_cast<int>(maximumAllowedVMax);
   }
 
   // this is only possible for insanely low speed, but we cannot
@@ -196,7 +196,7 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
   // There is nothing we can do about it, one has to allow some current in
   // the motor, it cannot be 0.
   if(currentScale < minimumAllowedCurrentScale) {
-    currentScale = minimumAllowedCurrentScale;
+    currentScale = static_cast<int>(minimumAllowedCurrentScale);
 
     std::stringstream warning;
     warning << "Current scale at minimum."
@@ -205,9 +205,9 @@ ParametersCalculator::ChipParameters ParametersCalculator::calculateParameters(
     warnings.push_back(warning.str());
   }
 
-  // NOLINTNEXTLINE(modernize-return-braced-init-list) braced initialisation would narrow the double arguments
-  return ChipParameters(pulseDiv, rampDiv, aMax, vMax, pDiv, pMul, controllerMicroStepValue, driverMicroStepValue,
-      currentScale, warnings);
+  return {static_cast<unsigned int>(pulseDiv), static_cast<unsigned int>(rampDiv), static_cast<unsigned int>(aMax),
+      static_cast<unsigned int>(vMax), static_cast<unsigned int>(pDiv), static_cast<unsigned int>(pMul),
+      controllerMicroStepValue, driverMicroStepValue, static_cast<unsigned int>(currentScale), warnings};
 }
 
 unsigned int ParametersCalculator::calculateDriverMicroStepValue(double microsteps) {

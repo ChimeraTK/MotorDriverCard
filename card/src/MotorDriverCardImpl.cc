@@ -19,9 +19,8 @@ namespace ChimeraTK::MotorDriver {
   MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr<ChimeraTK::Device> const& device,
       std::string const& moduleName,
       MotorDriverCardConfig const& cardConfiguration)
-  : _motorControllers(),              // done later in the constructor body
-    _device(device), _powerMonitor(), // done later in the constructor body
-    _controllerSPI(),                 // done later in the constructor body
+  :                  // done later in the constructor body
+    _device(device), // done later in the constructor body
     _controllerStatusRegister(device->getScalarRegisterAccessor<int32_t>(
         moduleName + "/" + CONTROLLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})),
     _moduleName(moduleName) {

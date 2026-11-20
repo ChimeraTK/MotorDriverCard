@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
   std::string motorConfigFileName = argv[3];
 
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
+  std::string deviceAlias = ChimeraTK::DMapFileParser::parse(dmapFileName)->begin()->deviceName;
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
 
   (void)ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(

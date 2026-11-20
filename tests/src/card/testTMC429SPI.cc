@@ -32,8 +32,7 @@ class TMC429SPITestFixture {
   boost::shared_ptr<TMC429SPI> _tmc429Spi;
 };
 
-TMC429SPITestFixture::TMC429SPITestFixture()
-: _dummyDevice{}, _mappedDevice{boost::make_shared<ChimeraTK::Device>()}, _tmc429Spi{} {
+TMC429SPITestFixture::TMC429SPITestFixture() : _mappedDevice{boost::make_shared<ChimeraTK::Device>()} {
   ChimeraTK::setDMapFilePath("./dummies.dmap");
   _dummyDevice =
       boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));

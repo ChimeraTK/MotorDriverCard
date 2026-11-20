@@ -10,6 +10,8 @@
 
 #include <boost/thread/locks.hpp>
 
+#include <utility>
+
 namespace ChimeraTK::MotorDriver {
 
   // the copy constructor is intentionally not implemented
@@ -20,7 +22,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   boost::shared_ptr<MotorDriverCard> MotorDriverCardFactory::createMotorDriverCard(
-      std::string alias, std::string mapModuleName, std::string motorConfigFileName) {
+      const std::string& alias, const std::string& mapModuleName, const std::string& motorConfigFileName) {
     boost::lock_guard<boost::mutex> guard(_factoryMutex);
 
     auto id = std::make_pair(alias, mapModuleName);
@@ -41,7 +43,9 @@ namespace ChimeraTK::MotorDriver {
     auto iterator = _motorDriverCards.find(id);
     if(iterator != _motorDriverCards.end()) {
       auto card = iterator->second.lock();
-      if(card) return card;
+      if(card) {
+        return card;
+      }
     }
 
     boost::shared_ptr<MotorDriverCard> motorDriverCard;
@@ -59,7 +63,7 @@ namespace ChimeraTK::MotorDriver {
     return motorDriverCard;
   }
 
-  bool MotorDriverCardFactory::getDummyMode() {
+  bool MotorDriverCardFactory::getDummyMode() const {
     return _dummyMode;
   }
 
@@ -68,7 +72,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void MotorDriverCardFactory::setDeviceAccessDMapFilePath(std::string dmapFileName) {
-    ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
+    ChimeraTK::BackendFactory::getInstance().setDMapFilePath(std::move(dmapFileName));
   }
 
   std::string MotorDriverCardFactory::getDeviceAccessDMapFilePath() {

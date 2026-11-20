@@ -28,7 +28,7 @@ class HexData {
    *  Generally this conversion does not make sense, so we initialise class with
    * 0.
    */
-  HexData(std::string) : value(0) {}
+  HexData(const std::string&) : value(0) {}
 };
 
 /*

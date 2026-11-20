@@ -31,21 +31,21 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_) : QWidget(par
     }
   }
 
-  auto horizontalLayout = new QHBoxLayout(this);
-  auto endSwitchConfiguration = new QLabel(this);
+  auto* horizontalLayout = new QHBoxLayout(this);
+  auto* endSwitchConfiguration = new QLabel(this);
   endSwitchConfiguration->setText("All end switches are active when");
   horizontalLayout->addWidget(endSwitchConfiguration);
-  auto endSwitchConfigurationCombo = new QComboBox(this);
+  auto* endSwitchConfigurationCombo = new QComboBox(this);
   endSwitchConfigurationCombo->insertItem(0, "High (default)");
   endSwitchConfigurationCombo->insertItem(1, "Low");
   horizontalLayout->addWidget(endSwitchConfigurationCombo);
-  auto motorTabVerticalLayout = new QVBoxLayout(this);
+  auto* motorTabVerticalLayout = new QVBoxLayout(this);
   motorTabVerticalLayout->addLayout(horizontalLayout);
   motorTabVerticalLayout->addWidget(motorTabWidget);
 
   connect(endSwitchConfigurationCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(updateCardExpertPanel(int)));
 
-  auto basicConfigurationWidget = new QWidget(this);
+  auto* basicConfigurationWidget = new QWidget(this);
   basicConfigurationWidget->setLayout(motorTabVerticalLayout);
 
   // next: create the expert tab
@@ -73,7 +73,8 @@ QtMotorConfigCalculator::QtMotorConfigCalculator(QWidget* parent_) : QWidget(par
     expertTabWidget->addTab(thisScrollArea, tabLabel);
 
     // make the expert widgets known to the motor config widgets
-    motorConfigWidgets[motorID]->setMotorExpertPanel(thisMotorExpertWidget, expertTabWidget, motorID + 1);
+    motorConfigWidgets[motorID]->setMotorExpertPanel(
+        thisMotorExpertWidget, expertTabWidget, static_cast<int>(motorID) + 1);
   }
 
   mainTabWidget->addTab(basicConfigurationWidget, "Basic Configuration");

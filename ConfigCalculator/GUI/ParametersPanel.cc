@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parametersMap() {
+ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_) {
   // NOLINTBEGIN(cppcoreguidelines-owning-memory) the Qt objects are owned by their parent widget
   // We use an outer and an inner vertical layout.
   // The outer layout just contains the header, inner layout and a spacer.
@@ -29,7 +29,7 @@ ParametersPanel::ParametersPanel(QWidget* parent_) : QWidget(parent_), parameter
 }
 
 void ParametersPanel::addParameter(
-    std::string const& parameterName, uint32_t defaultValue, std::string additionalText) {
+    std::string const& parameterName, uint32_t defaultValue, const std::string& additionalText) {
   // NOLINTNEXTLINE(cppcoreguidelines-owning-memory) the widget is owned by its parent widget
   parametersMap[parameterName] = new ParameterWidget(this, parameterName + " " + additionalText, defaultValue);
 

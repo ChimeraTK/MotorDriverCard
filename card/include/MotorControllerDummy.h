@@ -33,7 +33,7 @@ namespace ChimeraTK::MotorDriver {
     /// The negative end switch position is decoder 0.
     unsigned int getDecoderPosition() override;
 
-    void setActualVelocity(int stepsPerFIXME);
+    static void setActualVelocity(int stepsPerFIXME);
     void setActualAcceleration(unsigned int stepsPerSquareFIXME) override;
     void setMicroStepCount(unsigned int microStepCount) override;
     void setEnabled(bool enable) override;
@@ -179,8 +179,8 @@ namespace ChimeraTK::MotorDriver {
      */
     bool isStepping();
 
-    bool isPositiveEndSwitchActive();
-    bool isNegativeEndSwitchActive();
+    bool isPositiveEndSwitchActive() const;
+    bool isNegativeEndSwitchActive() const;
 
     bool _blockMotor{false};
     bool _bothEndSwitchesAlwaysOn{false};
@@ -188,7 +188,7 @@ namespace ChimeraTK::MotorDriver {
     bool _isFullStepping{false};
     void setMicroStepSize(unsigned int microStepSize) { _userMicroStepSize = microStepSize; }
     unsigned int getMicropStepSize() const { return _userMicroStepSize; }
-    void roundToNextFullStep(int& targetPosition);
+    void roundToNextFullStep(int& targetPosition) const;
   };
 
 } // namespace ChimeraTK::MotorDriver

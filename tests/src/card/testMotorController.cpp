@@ -186,7 +186,7 @@ namespace ChimeraTK::MotorDriver {
     void testGetDriverConfigData();
     void testSetDriverConfigData();
 
-    void testGetReferenceSwitchData(boost::shared_ptr<MotorDriverCardImpl> motorDriverCard);
+    void testGetReferenceSwitchData(const boost::shared_ptr<MotorDriverCardImpl>& motorDriverCard);
     void testSetReferenceSwitchEnabled();
 
     void testTargetPositionReached();
@@ -214,8 +214,8 @@ namespace ChimeraTK::MotorDriver {
         unsigned int testPattern);
 
     unsigned int testWordFromPCIeSuffix(std::string const& registerSuffix);
-    void listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorController> controller);
-    boost::shared_ptr<MotorController> createMotorController(const std::string deviceName);
+    static void listOfMotorControllerPubilcMethods(const boost::shared_ptr<MotorController>& controller);
+    static boost::shared_ptr<MotorController> createMotorController(const std::string& deviceName);
 
   }; /*class MotorControllerTest*/
 
@@ -226,8 +226,7 @@ namespace ChimeraTK::MotorDriver {
     boost::shared_ptr<MotorControllerTest> _motorControllerTest;
 
    public:
-    explicit MotorControllerTestFixture()
-    : test_suite(" MotorController test suite" + std::to_string(motorId)), _motorDriverCard() {
+    explicit MotorControllerTestFixture() : test_suite(" MotorController test suite" + std::to_string(motorId)) {
       ChimeraTK::setDMapFilePath("./dummies.dmap");
 
       std::list<std::string> parameters;
@@ -341,7 +340,7 @@ namespace ChimeraTK::MotorDriver {
     // FIXME: these tests may not be complex enough
     // These tests are meant to be run with thread sanitizer/ Helgrind
     auto controller = createMotorController("CONTROLLER_TESTS_OLD_MAPFILE");
-    auto apiList = [this, controller] { listOfMotorControllerPubilcMethods(controller); };
+    auto apiList = [controller] { listOfMotorControllerPubilcMethods(controller); };
     std::thread t1(apiList);
     std::thread t2(apiList);
     std::thread t3(apiList);
@@ -358,6 +357,7 @@ namespace ChimeraTK::MotorDriver {
     t7.join();
   }
 
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static) Boost.Test test cases are member functions
   void MotorControllerTest::testSetEndSwitchPowerEnabled() {
     // Test with the old firmware mapfile which is lacking this register:
     // (MD22.0.WORD_M1_VOLTAGE_EN)
@@ -485,7 +485,7 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_GET_SET_DRIVER_SPI_DATA(
       DriverConfigData, ChimeraTK::MotorDriver::tmc260::ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT, 0x1AAAA)
 
-  void MotorControllerTest::testGetReferenceSwitchData(boost::shared_ptr<MotorDriverCardImpl> motorDriverCard) {
+  void MotorControllerTest::testGetReferenceSwitchData(const boost::shared_ptr<MotorDriverCardImpl>& motorDriverCard) {
     // This approach is intentinally clumsy and manual in order not to use the
     // same algorithm as in the implementation, but still be felxible if the
     // register content changes.
@@ -554,7 +554,7 @@ namespace ChimeraTK::MotorDriver {
         _motorController->getReferenceSwitchBit());
   }
 
-  void MotorControllerTest::listOfMotorControllerPubilcMethods(boost::shared_ptr<MotorController> controller) {
+  void MotorControllerTest::listOfMotorControllerPubilcMethods(const boost::shared_ptr<MotorController>& controller) {
     auto controllerImpl = boost::dynamic_pointer_cast<MotorControllerImpl>(controller);
     controllerImpl->getID();
     controllerImpl->getStatus();
@@ -613,7 +613,7 @@ namespace ChimeraTK::MotorDriver {
     controllerImpl->setDriverConfigData(controllerImpl->getDriverConfigData());
   }
 
-  boost::shared_ptr<MotorController> MotorControllerTest::createMotorController(const std::string deviceName) {
+  boost::shared_ptr<MotorController> MotorControllerTest::createMotorController(const std::string& deviceName) {
     boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device());
     device->open(deviceName);
     boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));

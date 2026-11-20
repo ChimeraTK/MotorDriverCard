@@ -49,7 +49,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void RotaryStepperMotorStateMachine::calculateToleranceValues() {
-    _motor._tolerancePositiveEndSwitch = getToleranceEndSwitch(Sign::POSITIVE);
+    _motor._tolerancePositiveEndSwitch = static_cast<float>(getToleranceEndSwitch(Sign::POSITIVE));
     _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
   }
 

@@ -73,17 +73,10 @@ namespace ChimeraTK::MotorDriver {
   MotorControllerImpl::MotorControllerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
       std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controllerSPI,
       MotorControllerConfig const& motorControllerConfig)
-  : _mutex(), _device(device), _id(ID), _controllerConfig(motorControllerConfig),
+  : _device(device), _id(ID), _controllerConfig(motorControllerConfig),
     _conversionFactor(calculateConversionFactor(motorControllerConfig)),
     _currentVmax(motorControllerConfig.maximumVelocity),
-    _usrSetCurrentScale(_controllerConfig.stallGuardControlData.getCurrentScale()), _driverControlData(), // set later
-                                                                                                          // in the
-                                                                                                          // constructor
-                                                                                                          // body
-    _chopperControlData(),    // set later in the constructor body
-    _coolStepControlData(),   // set later in the constructor body
-    _stallGuardControlData(), // set later in the constructor body
-    _driverConfigData(),      // set later in the constructor body
+    _usrSetCurrentScale(_controllerConfig.stallGuardControlData.getCurrentScale()),
     _controllerStatus{device->getScalarRegisterAccessor<int32_t>(
         moduleName + "/" + CONTROLLER_STATUS_BITS_ADDRESS_STRING, 0, {ChimeraTK::AccessMode::raw})},
     _actualPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, ACTUAL_POSITION_SUFFIX)},
@@ -98,7 +91,7 @@ namespace ChimeraTK::MotorDriver {
     _decoderPosition{RAW_ACCESSOR_FROM_SUFFIX(moduleName, DECODER_POSITION_SUFFIX)},
     _calibrationTime{RAW_ACCESSOR_FROM_SUFFIX(moduleName, CALIBRATION_TIME_SUFFIX)},
     _endSwitchPositive{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_POSITIVE_SUFFIX)},
-    _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)}, _endSwitchPowerIndicator{},
+    _endSwitchNegative{RAW_ACCESSOR_FROM_SUFFIX(moduleName, END_SWITCH_NEGATIVE_SUFFIX)},
     _driverSPI(device, moduleName, createMotorRegisterName(ID, SPI_WRITE_SUFFIX),
         createMotorRegisterName(ID, SPI_SYNC_SUFFIX), motorControllerConfig.driverSpiWaitingTime),
     _controllerSPI(controllerSPI), _converter24bits(24), _converter12bits(12), _moveOnlyFullStep(false) {
@@ -122,7 +115,8 @@ namespace ChimeraTK::MotorDriver {
     setTargetVelocity(motorControllerConfig.targetVelocity);
 
     _localTargetPosition = retrieveTargetPositonAndConvert();
-    _userMicroStepSize = pow(2, motorControllerConfig.driverControlData.getMicroStepResolution());
+    _userMicroStepSize =
+        static_cast<unsigned int>(pow(2, motorControllerConfig.driverControlData.getMicroStepResolution()));
 
     // enabling the motor is the last step after setting all registers
     setEnabled(motorControllerConfig.enabled);
@@ -283,15 +277,15 @@ namespace ChimeraTK::MotorDriver {
 
   void MotorControllerImpl::roundToNextFullStep(int& targetPosition) { // todo implementing
     int delta = targetPosition - readPositionRegisterAndConvert();
-    int deltaMicroStep = delta * _userMicroStepSize;
+    int deltaMicroStep = static_cast<int>(delta * _userMicroStepSize);
     unsigned int actualMicroStepCount = readRegisterAccessor(_microStepCount);
     unsigned int newActualMicroStepCount = static_cast<unsigned int>(actualMicroStepCount + deltaMicroStep) & 0x3FFU;
     unsigned int distanceToPreviousFullStep = (newActualMicroStepCount + 1) % 256;
     if(distanceToPreviousFullStep < 128) {
-      targetPosition = targetPosition - distanceToPreviousFullStep / _userMicroStepSize;
+      targetPosition = targetPosition - static_cast<int>(distanceToPreviousFullStep / _userMicroStepSize);
     }
     else {
-      targetPosition = targetPosition + (256 - distanceToPreviousFullStep) / _userMicroStepSize;
+      targetPosition = targetPosition + static_cast<int>((256 - distanceToPreviousFullStep) / _userMicroStepSize);
     }
   }
 
@@ -454,12 +448,12 @@ namespace ChimeraTK::MotorDriver {
     return controllerStatusWord.getReferenceSwitchBit(_id);
   }
 
-  double MotorControllerImpl::convertVMaxToUstepsPerSec(double vMax) {
+  double MotorControllerImpl::convertVMaxToUstepsPerSec(double vMax) const {
     // speedInUstepsPerSec = _conversionFactor * Vmax
     return (_conversionFactor * vMax);
   }
 
-  double MotorControllerImpl::convertUstepsPerSecToVmax(double speedInUstepsPerSec) {
+  double MotorControllerImpl::convertUstepsPerSecToVmax(double speedInUstepsPerSec) const {
     // Vmax = round(speedInUstepsPerSec / _conversionFactor)
     return speedInUstepsPerSec / _conversionFactor;
   }
@@ -496,7 +490,7 @@ namespace ChimeraTK::MotorDriver {
     return convertCurrentScaletoAmps(configuredCurrentScale);
   }
 
-  unsigned int MotorControllerImpl::validateVMaxForHardware(double calculatedVmax) {
+  unsigned int MotorControllerImpl::validateVMaxForHardware(double calculatedVmax) const {
     unsigned int maxLimitForVmax = _controllerConfig.maximumVelocity;
     unsigned int minLimitForVmax = _controllerConfig.minimumVelocity;
     if(calculatedVmax > maxLimitForVmax) {

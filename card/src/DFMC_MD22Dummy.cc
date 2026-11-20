@@ -117,7 +117,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void DFMC_MD22Dummy::setFirmwareVersion(uint32_t version) {
-    setConstantPCIeRegister(PROJECT_VERSION_ADDRESS_STRING, version);
+    setConstantPCIeRegister(PROJECT_VERSION_ADDRESS_STRING, static_cast<int32_t>(version));
   }
 
   void DFMC_MD22Dummy::resetFirmwareVersion() {
@@ -125,7 +125,7 @@ namespace ChimeraTK::MotorDriver {
         static_cast<int32_t>(static_cast<uint32_t>(MINIMAL_FIRMWARE_VERSION) | 0xFFFFU));
   }
 
-  void DFMC_MD22Dummy::setConstantPCIeRegister(std::string registerName, int32_t content) {
+  void DFMC_MD22Dummy::setConstantPCIeRegister(const std::string& registerName, int32_t content) {
     auto addressRange = AddressRange(_registerMap.getBackendRegister(_moduleName / registerName));
     size_t addressIndex = addressRange.offset / sizeof(uint32_t);
     _barContents[addressRange.bar][addressIndex] = content;
@@ -263,7 +263,7 @@ namespace ChimeraTK::MotorDriver {
   uint32_t DFMC_MD22Dummy::readTMC260Register(uint32_t motorID, TMC260Register configuredRegister) {
     auto registerAddress = static_cast<unsigned int>(configuredRegister);
     auto registerDataPayload = _driverSPIs[motorID].addressSpace.at(registerAddress);
-    return (registerDataPayload);
+    return registerDataPayload;
   }
 
   uint32_t DFMC_MD22Dummy::getDatalengthFromMask(uint32_t mask) {
@@ -285,8 +285,8 @@ namespace ChimeraTK::MotorDriver {
       // register) and 1/1 of the current scaling value. Just setting it to 1/1
       // (which seems to be happenening during my tests) should be fine
       StallGuardControlData stallGuardControlData(payloadData);
-      setConstantPCIeRegister(
-          createMotorRegisterName(ID, COOL_STEP_VALUE_SUFFIX), stallGuardControlData.getCurrentScale());
+      setConstantPCIeRegister(createMotorRegisterName(ID, COOL_STEP_VALUE_SUFFIX),
+          static_cast<int32_t>(stallGuardControlData.getCurrentScale()));
     }
   }
 
@@ -300,7 +300,8 @@ namespace ChimeraTK::MotorDriver {
     TMC429OutputWord outputWord;
     // FIXME: set the status bits correctly. We currently leave them at 0;
     outputWord.setDATA(_controllerSpiAddressSpace.at(controllerSpiAddress));
-    writeRegisterWithoutCallback(_controllerSpiBar, _controllerSpiReadbackAddress, outputWord.getDataWord());
+    writeRegisterWithoutCallback(
+        _controllerSpiBar, _controllerSpiReadbackAddress, static_cast<int32_t>(outputWord.getDataWord()));
   }
 
   void DFMC_MD22Dummy::triggerActionsOnControllerSpiWrite(TMC429InputWord const& inputWord) {
@@ -326,7 +327,7 @@ namespace ChimeraTK::MotorDriver {
     // no actions defined at the moment
   }
 
-  bool DFMC_MD22Dummy::isPowerUp() {
+  bool DFMC_MD22Dummy::isPowerUp() const {
     return _powerIsUp;
   }
 
@@ -346,13 +347,13 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  void DFMC_MD22Dummy::writeControllerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, std::string suffix) {
+  void DFMC_MD22Dummy::writeControllerSpiRegisterToFpga(unsigned int ID, unsigned int IDX, const std::string& suffix) {
     unsigned int controllerSpiAddress = spiAddressFromSmdaIdxJdx(ID, IDX);
     std::string registerName = createMotorRegisterName(ID, suffix);
 
     auto registerInformation = _registerMap.getBackendRegister(_moduleName / registerName);
-    writeRegisterWithoutCallback(
-        registerInformation.bar, registerInformation.address, _controllerSpiAddressSpace[controllerSpiAddress]);
+    writeRegisterWithoutCallback(registerInformation.bar, registerInformation.address,
+        static_cast<int32_t>(_controllerSpiAddressSpace[controllerSpiAddress]));
   }
 
   unsigned int DFMC_MD22Dummy::readDriverSpiRegister(unsigned int motorID, unsigned int driverSpiAddress) {
@@ -394,7 +395,8 @@ namespace ChimeraTK::MotorDriver {
   }
 
   boost::shared_ptr<ChimeraTK::DeviceBackend> DFMC_MD22Dummy::createInstance(
-      std::string address, std::map<std::string, std::string> parameters) {
+      std::string address, // NOLINT(performance-unnecessary-value-param) prescribed by the backend registration
+      std::map<std::string, std::string> parameters) {
 #ifdef _DEBUG
     std::cout << "DFMC_MD22Dummy createInstance" << std::endl;
 #endif

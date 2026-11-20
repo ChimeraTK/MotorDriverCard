@@ -12,8 +12,6 @@
 
 namespace ChimeraTK::MotorDriver {
 
-  StepperMotorFactory::StepperMotorFactory() : _factoryMutex{}, _existingMotors{} {}
-
   StepperMotorFactory& StepperMotorFactory::instance() {
     static StepperMotorFactory instance;
     return instance;

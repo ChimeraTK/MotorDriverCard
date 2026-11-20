@@ -66,8 +66,8 @@ namespace ChimeraTK::MotorDriver {
   }
   void LinearStepperMotorStateMachine::calculateToleranceValues() {
     // Linear
-    _motor._tolerancePositiveEndSwitch.exchange(getToleranceEndSwitch(Sign::POSITIVE));
-    _motor._toleranceNegativeEndSwitch.exchange(getToleranceEndSwitch(Sign::NEGATIVE));
+    _motor._tolerancePositiveEndSwitch.exchange(static_cast<float>(getToleranceEndSwitch(Sign::POSITIVE)));
+    _motor._toleranceNegativeEndSwitch.exchange(static_cast<float>(getToleranceEndSwitch(Sign::NEGATIVE)));
   }
 
   void LinearStepperMotorStateMachine::findEndSwitch(Sign sign) {
@@ -89,9 +89,7 @@ namespace ChimeraTK::MotorDriver {
     if(sign == Sign::POSITIVE) {
       return _motor._calibPositiveEndSwitchInSteps.load();
     }
-    else {
-      return _motor._calibNegativeEndSwitchInSteps.load();
-    }
+    return _motor._calibNegativeEndSwitchInSteps.load();
   }
 
 } // namespace ChimeraTK::MotorDriver

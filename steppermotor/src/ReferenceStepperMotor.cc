@@ -238,13 +238,13 @@ namespace ChimeraTK::MotorDriver {
 
     if(_toleranceCalculated) {
       if(posActive) {
-        if(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load()) >
+        if(static_cast<float>(std::abs(_motorController->getActualPosition() - _calibPositiveEndSwitchInSteps.load())) >
             3 * _tolerancePositiveEndSwitch.load()) {
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }
       }
       else if(negActive) {
-        if(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load()) >
+        if(static_cast<float>(std::abs(_motorController->getActualPosition() - _calibNegativeEndSwitchInSteps.load())) >
             3 * _toleranceNegativeEndSwitch.load()) {
           _errorMode.exchange(Error::CALIBRATION_ERROR);
         }

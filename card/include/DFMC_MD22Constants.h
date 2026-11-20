@@ -55,7 +55,7 @@ namespace ChimeraTK::MotorDriver::dfmc_md22 {
   /// Creates a string dependent on the motor ID and register name suffix.
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.
   /// FIXME: get the 'off by one' consistent
-  inline std::string createMotorRegisterName(unsigned int motorID, std::string registerNameSuffix) {
+  inline std::string createMotorRegisterName(unsigned int motorID, const std::string& registerNameSuffix) {
     return std::string(MOTOR_REGISTER_PREFIX) + std::to_string(motorID + 1) + "_" + registerNameSuffix;
   }
 

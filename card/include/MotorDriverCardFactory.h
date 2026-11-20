@@ -46,14 +46,14 @@ namespace ChimeraTK::MotorDriver {
     /** Access the single instance of the factory.
      */
     static MotorDriverCardFactory& instance();
-    bool getDummyMode();
+    bool getDummyMode() const;
     void setDummyMode(bool dummyMode = true);
     /** Create a motor driver card from the device alias, the module name in the
      * map file (there might be more than one MD22 on the carrier), and the file
      * name for the motor config.
      */
     boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
-        std::string alias, std::string mapModuleName, std::string motorConfigFileName);
+        const std::string& alias, const std::string& mapModuleName, const std::string& motorConfigFileName);
 
     /** Set the application wide dmap file to use.
      *  \attention This static function is setting the dmap file for ALL devices

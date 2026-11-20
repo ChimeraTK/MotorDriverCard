@@ -143,7 +143,7 @@ namespace ChimeraTK::MotorDriver {
         return "Emergency stop";
       default:
         assert(false);
-        return ("Unknown error");
+        return "Unknown error";
     }
   }
 } // namespace ChimeraTK::MotorDriver

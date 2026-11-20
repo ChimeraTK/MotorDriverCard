@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
   int endSwitchConfig;
   if(argc > 6) {
-    endSwitchConfig = atof(argv[6]);
+    endSwitchConfig = static_cast<int>(atof(argv[6]));
   }
   else {
     endSwitchConfig = 0x0;
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
   int microsteps;
   if(argc > 7) {
-    microsteps = atof(argv[7]);
+    microsteps = static_cast<int>(atof(argv[7]));
   }
   else {
     microsteps = 16;
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 
   ParametersCalculator::ChipParameters chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
 
-  if(chipParameters.warnings.size()) {
+  if(!chipParameters.warnings.empty()) {
     std::cout << "\n Warnings during conversion:" << std::endl;
     for(const auto& warning : chipParameters.warnings) {
       std::cout << warning << std::endl;
@@ -81,5 +81,5 @@ int main(int argc, char* argv[]) {
 
   ChimeraTK::MotorDriver::MotorDriverCardConfigXML::writeSparse(argv[1], cardConfig);
 
-  return chipParameters.warnings.size();
+  return static_cast<int>(chipParameters.warnings.size());
 }

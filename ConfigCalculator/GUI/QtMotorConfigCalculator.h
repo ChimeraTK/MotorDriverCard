@@ -33,6 +33,7 @@ class QtMotorConfigCalculator : public QWidget {
   std::vector<ParametersPanel*> motorExpertWidgets;
   ParametersPanel* cardExpertWidget{nullptr};
 
+  // NOLINTNEXTLINE(readability-redundant-access-specifiers) Qt slots are declared with the slots keyword for moc
  private slots:
   // Get the file name via dialogue and perform the writing.
   void write();

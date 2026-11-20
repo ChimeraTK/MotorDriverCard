@@ -120,20 +120,20 @@ BOOST_AUTO_TEST_CASE(testCurrents) {
   physicalParameters.iMax = 0.06;
   chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
   BOOST_CHECK(chipParameters.currentScale == 0);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   // A current scale of 31 without warning is only possible with exactly
   // 1.8
   physicalParameters.iMax = 1.8;
   chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
   BOOST_CHECK(chipParameters.currentScale == 31);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   // slighly below the current scale already is 30
   physicalParameters.iMax = 1.79;
   chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
   BOOST_CHECK(chipParameters.currentScale == 30);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   // 0 is not a reasonable coil current
   physicalParameters.iMax = 0;
@@ -196,7 +196,7 @@ BOOST_AUTO_TEST_CASE(testPluseDivVMaxRanges) {
 
   chipParameters = ParametersCalculator::calculateParameters(largePulseDivParameters);
   BOOST_CHECK(chipParameters.pulseDiv == 13);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   // check with settings where the not rounded
   // value of pulseDiv is ]0..-1[, so the special case
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(testPluseDivVMaxRanges) {
   chipParameters = ParametersCalculator::calculateParameters(smallPulseDivParameters);
   BOOST_CHECK(chipParameters.pulseDiv == 0);
   BOOST_CHECK(chipParameters.vMax == 1747);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   // If the requested speed is way too slow vMax will be calculated as 0,
   // which will lead to an exception
@@ -254,7 +254,7 @@ BOOST_AUTO_TEST_CASE(testRampDivAMaxRanges) {
 
   chipParameters = ParametersCalculator::calculateParameters(largeRampDivParameters);
   BOOST_CHECK(chipParameters.rampDiv == 13);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   // Tuned so the other parameters stay in range.
   // Check with settings where the not rounded
@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE(testRampDivAMaxRanges) {
   chipParameters = ParametersCalculator::calculateParameters(smallRampDivParameters);
   BOOST_CHECK(chipParameters.rampDiv == 0);
   BOOST_CHECK(chipParameters.aMax == 1789);
-  BOOST_CHECK(chipParameters.warnings.size() == 0);
+  BOOST_CHECK(chipParameters.warnings.empty());
 
   ParametersCalculator::PhysicalParameters lowAMaxParameters = vt21Parameters;
   lowAMaxParameters.timeToVMax = 150; // extremely low acceleration

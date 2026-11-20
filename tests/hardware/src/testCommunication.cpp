@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   // get the first device alias from the dmap file and tell the factory to use
   // this dmap file
   std::string dmapFileName = argv[1];
-  std::string deviceAlias = ChimeraTK::DMapFileParser().parse(dmapFileName)->begin()->deviceName;
+  std::string deviceAlias = ChimeraTK::DMapFileParser::parse(dmapFileName)->begin()->deviceName;
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(dmapFileName);
 
   std::string moduleName = argv[2];

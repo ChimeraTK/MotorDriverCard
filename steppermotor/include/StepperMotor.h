@@ -448,7 +448,7 @@ namespace ChimeraTK::MotorDriver {
 
    private:
     /// This is a singleton and can only be retrieved by the instance() method
-    StepperMotorFactory();
+    StepperMotorFactory() = default;
 
     /// Allow thread-safe usage of create() function
     std::mutex _factoryMutex;

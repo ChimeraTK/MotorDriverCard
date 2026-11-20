@@ -18,12 +18,12 @@ namespace ChimeraTK::MotorDriver {
 
     /// Although contained in a 32 bit variable, only nBits are set in the custom
     /// int. Fills in the leading 'Fs' for negative values.
-    int32_t customToThirtyTwo(int32_t const& customInt);
+    int32_t customToThirtyTwo(int32_t const& customInt) const;
 
     /// Although the return value is 32 bit, it is truncated to nBits.
     /// No range check is performed, the bits are just cropped. You might
     /// lose data!
-    int32_t thirtyTwoToCustom(int32_t const& thirtyTwoBitInt);
+    int32_t thirtyTwoToCustom(int32_t const& thirtyTwoBitInt) const;
 
    private:
     uint32_t _bitMask;     ///< The mask which bits are present in the signed int

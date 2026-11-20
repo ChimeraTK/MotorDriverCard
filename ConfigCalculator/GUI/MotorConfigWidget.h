@@ -47,6 +47,7 @@ class MotorConfigWidget : public QWidget {
   void recalculateChipParameters();
   void setMotorExpertTabEnabled(bool enabled);
 
+  // NOLINTNEXTLINE(readability-redundant-access-specifiers) terminates the preceding slots section for moc
  private:
   ParametersCalculator::ChipParameters _chipParameters;
   void updateChipParameters();

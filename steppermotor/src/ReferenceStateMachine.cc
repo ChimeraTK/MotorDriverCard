@@ -44,7 +44,6 @@ namespace ChimeraTK::MotorDriver {
 
   void ReferenceStateMachine::actionStop() {
     _stopAction.exchange(true);
-    return;
   }
 
   void ReferenceStateMachine::actionStartCalib() {
@@ -133,9 +132,7 @@ namespace ChimeraTK::MotorDriver {
     if(sign == Sign::POSITIVE) {
       return _motor._calibPositiveEndSwitchInSteps.load();
     }
-    else {
-      return _motor._calibNegativeEndSwitchInSteps.load();
-    }
+    return _motor._calibNegativeEndSwitchInSteps.load();
   }
 
   double ReferenceStateMachine::getToleranceEndSwitch(Sign sign) {

@@ -203,7 +203,7 @@ BOOST_FIXTURE_TEST_CASE(testDerivedStateMachine, DerivedStateMachine) {
   _counter.store(0);
   BOOST_CHECK_NO_THROW(setAndProcessUserEvent(DerivedStateMachine::userEvent3));
 
-  while(_asyncActionActive.load() == true) {
+  while(_asyncActionActive.load()) {
   }
 
   BOOST_CHECK_EQUAL(getCurrentState()->getName(), "fourthState");

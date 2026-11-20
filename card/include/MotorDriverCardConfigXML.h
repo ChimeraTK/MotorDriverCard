@@ -8,12 +8,12 @@ namespace ChimeraTK::MotorDriver {
 
   class MotorDriverCardConfigXML {
    public:
-    static MotorDriverCardConfig read(std::string fileName);
-    static void write(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig);
-    static void writeSparse(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig);
+    static MotorDriverCardConfig read(const std::string& fileName);
+    static void write(const std::string& fileName, MotorDriverCardConfig const& motorDriverCardConfig);
+    static void writeSparse(const std::string& fileName, MotorDriverCardConfig const& motorDriverCardConfig);
 
    private:
-    static void write(std::string fileName, MotorDriverCardConfig const& motorDriverCardConfig, bool sparse);
+    static void write(const std::string& fileName, MotorDriverCardConfig const& motorDriverCardConfig, bool sparse);
   };
 
 } // namespace ChimeraTK::MotorDriver

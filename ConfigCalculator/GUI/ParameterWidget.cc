@@ -11,8 +11,8 @@ ParameterWidget::ParameterWidget(QWidget* parent_, std::string const& parameterN
   horizontalLayout->addWidget(label);
 
   parameterSpinBox = new HexSpinBox(this);
-  parameterSpinBox->setRange(0x80000000, 0x7FFFFFFF);
-  parameterSpinBox->setValue(defaultValue);
+  parameterSpinBox->setRange(static_cast<int>(0x80000000U), 0x7FFFFFFF);
+  parameterSpinBox->setValue(static_cast<int>(defaultValue));
   horizontalLayout->addWidget(parameterSpinBox);
 
   defaultValueLabel = new QLabel(QString("0x%1 ").arg(defaultValue, 0, 16), this);
@@ -27,5 +27,5 @@ uint32_t ParameterWidget::getValue() {
 }
 
 void ParameterWidget::setValue(uint32_t value) {
-  parameterSpinBox->setValue(value);
+  parameterSpinBox->setValue(static_cast<int>(value));
 }

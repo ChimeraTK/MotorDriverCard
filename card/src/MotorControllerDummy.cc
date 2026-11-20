@@ -219,17 +219,17 @@ namespace ChimeraTK::MotorDriver {
     _targetPosition = steps;
   }
 
-  void MotorControllerDummy::roundToNextFullStep(int& targetPosition) {
+  void MotorControllerDummy::roundToNextFullStep(int& targetPosition) const {
     int delta = targetPosition - _currentPosition;
-    int deltaMicroStep = delta * _userMicroStepSize;
+    int deltaMicroStep = static_cast<int>(delta * _userMicroStepSize);
     unsigned int actualMicroStepCount = static_cast<unsigned int>((_currentPosition * _userMicroStepSize) - 1) & 0x3FFU;
     unsigned int newActualMicroStepCount = static_cast<unsigned int>(actualMicroStepCount + deltaMicroStep) & 0x3FFU;
     unsigned int distanceToPreviousFullStep = (newActualMicroStepCount + 1) % 256;
     if(distanceToPreviousFullStep < 128) {
-      targetPosition = targetPosition - distanceToPreviousFullStep / _userMicroStepSize;
+      targetPosition = targetPosition - static_cast<int>(distanceToPreviousFullStep / _userMicroStepSize);
     }
     else {
-      targetPosition = targetPosition + (256 - distanceToPreviousFullStep) / _userMicroStepSize;
+      targetPosition = targetPosition + static_cast<int>((256 - distanceToPreviousFullStep) / _userMicroStepSize);
     }
   }
 
@@ -296,8 +296,10 @@ namespace ChimeraTK::MotorDriver {
     return static_cast<unsigned int>(isPositiveEndSwitchActive() || isNegativeEndSwitchActive());
   }
 
-  bool MotorControllerDummy::isPositiveEndSwitchActive() {
-    if(_bothEndSwitchesAlwaysOn) return true;
+  bool MotorControllerDummy::isPositiveEndSwitchActive() const {
+    if(_bothEndSwitchesAlwaysOn) {
+      return true;
+    }
 
     return _positiveEndSwitchEnabled && (_hardwarePosition >= _positiveEndSwitchHardwarePosition);
   }
@@ -358,8 +360,10 @@ namespace ChimeraTK::MotorDriver {
     return _endSwitchPowerEnabled;
   }
 
-  bool MotorControllerDummy::isNegativeEndSwitchActive() {
-    if(_bothEndSwitchesAlwaysOn) return true;
+  bool MotorControllerDummy::isNegativeEndSwitchActive() const {
+    if(_bothEndSwitchesAlwaysOn) {
+      return true;
+    }
 
     return _negativeEndSwitchEnabled && (_hardwarePosition <= _negativeEndSwitchHardwarePosition);
   }
@@ -397,7 +401,7 @@ namespace ChimeraTK::MotorDriver {
     }
 
     // calculate the new abolute target position for this move operation
-    int relativeSteps = (_targetPosition - _currentPosition) * fraction;
+    int relativeSteps = static_cast<int>(static_cast<float>(_targetPosition - _currentPosition) * fraction);
     int absoluteTargetInThisMove = _hardwarePosition + relativeSteps;
     int targetInThisMove = _currentPosition + relativeSteps;
 
