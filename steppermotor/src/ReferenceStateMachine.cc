@@ -7,6 +7,8 @@
 
 #include <ChimeraTK/Exception.h>
 
+#include <exception>
+#include <iostream>
 #include <thread>
 
 constexpr unsigned wakeupPeriodInMilliseconds = 500U;
@@ -45,6 +47,21 @@ namespace ChimeraTK::MotorDriver {
   void ReferenceStateMachine::actionStop() {
     _stopAction.exchange(true);
     return;
+  }
+
+  void ReferenceStateMachine::invalidateCalibration(bool reportCalibrationError) {
+    try {
+      _motor._motorController->setCalibrationTime(0);
+    }
+    catch(const std::exception& e) {
+      std::cerr << "ReferenceStateMachine::invalidateCalibration(): could not clear calibration time: " << e.what()
+                << std::endl;
+    }
+    _motor._calibrationFailed.store(true);
+    if(reportCalibrationError) {
+      _motor._errorMode.store(Error::CALIBRATION_ERROR);
+    }
+    _motor._calibrationMode.store(CalibrationMode::NONE);
   }
 
   void ReferenceStateMachine::actionStartCalib() {

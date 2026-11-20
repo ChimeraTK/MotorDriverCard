@@ -6,6 +6,8 @@
 #include "LinearStepperMotor.h"
 #include "MotorControler.h"
 
+#include <mutex>
+
 namespace ChimeraTK::MotorDriver {
   LinearStepperMotorStateMachine::LinearStepperMotorStateMachine(LinearStepperMotor& motor)
   : ReferenceStateMachine(motor) {}
@@ -21,10 +23,8 @@ namespace ChimeraTK::MotorDriver {
 
       // At least one end switch disabled -> calibration not possible
       if(!(_motor._positiveEndSwitchEnabled.load() && _motor._negativeEndSwitchEnabled.load())) {
-        _motor._motorController->setCalibrationTime(0);
-
-        _motor._calibrationFailed.exchange(true);
-        _motor._calibrationMode.exchange(CalibrationMode::NONE);
+        std::lock_guard<boost::mutex> lock(_motor._mutex);
+        invalidateCalibration(false);
       }
       else {
         findEndSwitch(Sign::POSITIVE);
@@ -32,12 +32,9 @@ namespace ChimeraTK::MotorDriver {
         findEndSwitch(Sign::NEGATIVE);
         calibNegativeEndSwitchInSteps = _motor.getCurrentPositionInSteps();
 
+        std::lock_guard<boost::mutex> lock(_motor._mutex);
         if(_moveInterrupted.load() || _stopAction.load()) {
-          _motor._motorController->setCalibrationTime(0);
-
-          _motor._calibrationFailed.exchange(true);
-          _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-          _motor._calibrationMode.exchange(CalibrationMode::NONE);
+          invalidateCalibration();
         }
         else {
           // Define positive axis with negative end switch as zero
@@ -56,11 +53,8 @@ namespace ChimeraTK::MotorDriver {
       }
     }
     catch(ChimeraTK::runtime_error&) {
-      _motor._motorController->setCalibrationTime(0);
-
-      _motor._calibrationFailed.exchange(true);
-      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-      _motor._calibrationMode.exchange(CalibrationMode::NONE);
+      std::lock_guard<boost::mutex> lock(_motor._mutex);
+      invalidateCalibration();
     }
 
     _asyncActionActive.exchange(false);

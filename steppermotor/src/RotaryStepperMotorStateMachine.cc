@@ -10,6 +10,7 @@
 
 #include <exception>
 #include <iostream>
+#include <mutex>
 namespace ChimeraTK::MotorDriver {
 
   RotaryStepperMotorStateMachine::RotaryStepperMotorStateMachine(RotaryStepperMotor& motor)
@@ -29,11 +30,11 @@ namespace ChimeraTK::MotorDriver {
     // down: the cleanup I/O is allowed to fail.
     auto failCalibration = [this]() {
       std::lock_guard<boost::mutex> lock(_motor._mutex);
+      invalidateCalibration();
       try {
         // Clear the calibration data in the firmware and re-base the hardware
         // counter, so that a subsequent calibration attempt starts from a
         // known origin instead of drifting further with every retry.
-        _motor._motorController->setCalibrationTime(0);
         _motor._motorController->setPositiveReferenceSwitchCalibration(0);
         _motor._motorController->setNegativeReferenceSwitchCalibration(0);
         _motor.resetMotorControllerPositions(0);
@@ -44,9 +45,6 @@ namespace ChimeraTK::MotorDriver {
       }
       _motor._calibPositiveEndSwitchInSteps.exchange(0);
       _motor._calibNegativeEndSwitchInSteps.exchange(0);
-      _motor._calibrationFailed.exchange(true);
-      _motor._errorMode.exchange(Error::CALIBRATION_ERROR);
-      _motor._calibrationMode.exchange(CalibrationMode::NONE);
     };
     try {
       // Establish a fixed origin for the home search: re-base the hardware
@@ -79,8 +77,8 @@ namespace ChimeraTK::MotorDriver {
         // counter value, so the persisted calibration stays valid across a
         // restart.
         std::cerr << "rotary calibration: home switch found at position " << homePosition << " steps" << std::endl;
-        int calibPositiveEndSwitchInSteps = 0;
-        int calibNegativeEndSwitchInSteps = 0;
+        constexpr int calibPositiveEndSwitchInSteps = 0;
+        constexpr int calibNegativeEndSwitchInSteps = 0;
 
         // Re-base the counter to the home switch as origin BEFORE declaring the
         // calibration valid: the search left the counter at the search offset,
