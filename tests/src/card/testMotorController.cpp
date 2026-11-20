@@ -110,7 +110,7 @@ namespace ChimeraTK::MotorDriver {
   class MotorControllerTest {
    public:
     MotorControllerTest(
-        boost::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
+        std::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice);
     // getID() is tested in the MotorDriver card, where
     // different ID are known. This test is for just one
     // Motor with one ID, which is now known to be ok.
@@ -183,7 +183,7 @@ namespace ChimeraTK::MotorDriver {
     void testGetDriverConfigData();
     void testSetDriverConfigData();
 
-    void testGetReferenceSwitchData(const boost::shared_ptr<MotorDriverCardImpl>& motorDriverCard);
+    void testGetReferenceSwitchData(const std::shared_ptr<MotorDriverCardImpl>& motorDriverCard);
     void testSetReferenceSwitchEnabled();
 
     void testTargetPositionReached();
@@ -193,7 +193,7 @@ namespace ChimeraTK::MotorDriver {
     void testSetEndSwitchPowerEnabled();
 
    private:
-    boost::shared_ptr<MotorControllerImpl> _motorController;
+    std::shared_ptr<MotorControllerImpl> _motorController;
     boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
 
     template<class T>
@@ -211,16 +211,16 @@ namespace ChimeraTK::MotorDriver {
         unsigned int testPattern);
 
     unsigned int testWordFromPCIeSuffix(std::string const& registerSuffix);
-    static void listOfMotorControllerPubilcMethods(const boost::shared_ptr<MotorController>& controller);
-    static boost::shared_ptr<MotorController> createMotorController(const std::string& deviceName);
+    static void listOfMotorControllerPubilcMethods(const std::shared_ptr<MotorController>& controller);
+    static std::shared_ptr<MotorController> createMotorController(const std::string& deviceName);
 
   }; /*class MotorControllerTest*/
 
   template<unsigned int motorId>
   class MotorControllerTestFixture : public test_suite {
    protected:
-    boost::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
-    boost::shared_ptr<MotorControllerTest> _motorControllerTest;
+    std::shared_ptr<MotorDriverCardImpl> _motorDriverCard;
+    std::shared_ptr<MotorControllerTest> _motorControllerTest;
 
    public:
     explicit MotorControllerTestFixture() : test_suite(" MotorController test suite" + std::to_string(motorId)) {
@@ -231,7 +231,7 @@ namespace ChimeraTK::MotorDriver {
 
       boost::shared_ptr<DFMC_MD22Dummy> dummyDevice = boost::dynamic_pointer_cast<DFMC_MD22Dummy>(
           ChimeraTK::BackendFactory::getInstance().createBackend("DFMC_MD22"));
-      boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device());
+      auto device = std::make_shared<ChimeraTK::Device>();
       MotorDriverCardConfig motorDriverCardConfig;
 
       device->open("DFMC_MD22");
@@ -239,14 +239,14 @@ namespace ChimeraTK::MotorDriver {
       // We need the motor driver card as private variable because it has to
       // survive the constructor. Otherwise the MotorControllers passed to
       // the tests will be invalid.
-      // The constructor is private, so boost::make_shared cannot be used here.
+      // The constructor is private, so std::make_shared cannot be used here.
       // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
       _motorDriverCard.reset(new MotorDriverCardImpl(device, MODULE_NAME_0, motorDriverCardConfig));
 
       dummyDevice->setRegistersForTesting();
 
       _motorControllerTest =
-          boost::make_shared<MotorControllerTest>(_motorDriverCard->getMotorController(motorId), dummyDevice);
+          std::make_shared<MotorControllerTest>(_motorDriverCard->getMotorController(motorId), dummyDevice);
     }
   };
 
@@ -316,8 +316,8 @@ namespace ChimeraTK::MotorDriver {
   ADD_TEST(SetEndSwitchPowerEnabled);
 
   MotorControllerTest::MotorControllerTest(
-      boost::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
-  : _motorController(boost::dynamic_pointer_cast<MotorControllerImpl>(motorController)),
+      std::shared_ptr<MotorController> const& motorController, boost::shared_ptr<DFMC_MD22Dummy> dummyDevice)
+  : _motorController(std::dynamic_pointer_cast<MotorControllerImpl>(motorController)),
     _dummyDevice(std::move(dummyDevice)) {}
 
   DEFINE_SIGNED_GET_SET_TEST(ActualPosition, ChimeraTK::MotorDriver::tmc429::IDX_ACTUAL_POSITION, 24)
@@ -483,7 +483,7 @@ namespace ChimeraTK::MotorDriver {
   DEFINE_GET_SET_DRIVER_SPI_DATA(
       DriverConfigData, ChimeraTK::MotorDriver::tmc260::ADDRESS_DRIVER_CONFIG, DRIVER_CONFIG_DEFAULT, 0x1AAAA)
 
-  void MotorControllerTest::testGetReferenceSwitchData(const boost::shared_ptr<MotorDriverCardImpl>& motorDriverCard) {
+  void MotorControllerTest::testGetReferenceSwitchData(const std::shared_ptr<MotorDriverCardImpl>& motorDriverCard) {
     // This approach is intentinally clumsy and manual in order not to use the
     // same algorithm as in the implementation, but still be felxible if the
     // register content changes.
@@ -552,8 +552,8 @@ namespace ChimeraTK::MotorDriver {
         _motorController->getReferenceSwitchBit());
   }
 
-  void MotorControllerTest::listOfMotorControllerPubilcMethods(const boost::shared_ptr<MotorController>& controller) {
-    auto controllerImpl = boost::dynamic_pointer_cast<MotorControllerImpl>(controller);
+  void MotorControllerTest::listOfMotorControllerPubilcMethods(const std::shared_ptr<MotorController>& controller) {
+    auto controllerImpl = std::dynamic_pointer_cast<MotorControllerImpl>(controller);
     controllerImpl->getID();
     controllerImpl->getStatus();
 
@@ -611,10 +611,12 @@ namespace ChimeraTK::MotorDriver {
     controllerImpl->setDriverConfigData(controllerImpl->getDriverConfigData());
   }
 
-  boost::shared_ptr<MotorController> MotorControllerTest::createMotorController(const std::string& deviceName) {
-    boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device());
+  std::shared_ptr<MotorController> MotorControllerTest::createMotorController(const std::string& deviceName) {
+    auto device = std::make_shared<ChimeraTK::Device>();
     device->open(deviceName);
-    boost::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));
+    // The constructor is private, so std::make_shared cannot be used here.
+    // NOLINTNEXTLINE(modernize-make-shared)
+    std::shared_ptr<MotorDriverCardImpl> driver(new MotorDriverCardImpl(device, "MD22_0", MotorDriverCardConfig()));
     return driver->getMotorController(0);
   }
 

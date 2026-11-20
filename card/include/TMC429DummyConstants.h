@@ -6,9 +6,9 @@
 
 namespace ChimeraTK::MotorDriver::tmc429 {
 
-  uint32_t const SIZE_OF_SPI_ADDRESS_SPACE = 0x40;
-  uint32_t const CONTROLLER_CHIP_VERSION = 0x429101;
-  uint32_t const SPI_DATA_MASK = 0xFFFFFF;
+  inline constexpr uint32_t SIZE_OF_SPI_ADDRESS_SPACE = 0x40;
+  inline constexpr uint32_t CONTROLLER_CHIP_VERSION = 0x429101;
+  inline constexpr uint32_t SPI_DATA_MASK = 0xFFFFFF;
 
-  unsigned int const DEFAULT_DUMMY_SPI_DELAY = 32; ///< 32 microseconds
+  inline constexpr unsigned int DEFAULT_DUMMY_SPI_DELAY = 32; ///< 32 microseconds
 } // namespace ChimeraTK::MotorDriver::tmc429

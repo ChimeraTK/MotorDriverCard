@@ -38,10 +38,10 @@ namespace ChimeraTK::MotorDriver {
     MotorDriverCardTest();
 
     // needed because the constructor of MotorDriverCardImpl is private, and the test is a friend
-    static boost::shared_ptr<MotorDriverCardImpl> createCard(boost::shared_ptr<ChimeraTK::Device> const& device,
+    static std::shared_ptr<MotorDriverCardImpl> createCard(std::shared_ptr<ChimeraTK::Device> const& device,
         std::string const& moduleName, MotorDriverCardConfig const& cardConfiguration);
 
-    boost::shared_ptr<MotorDriverCardImpl> motorDriverCard;
+    std::shared_ptr<MotorDriverCardImpl> motorDriverCard;
     boost::shared_ptr<DFMC_MD22Dummy> dummyDevice;
 
     unsigned int asciiToInt(std::string text);
@@ -53,10 +53,9 @@ namespace ChimeraTK::MotorDriver {
     ChimeraTK::setDMapFilePath("./dummies.dmap");
   }
 
-  boost::shared_ptr<MotorDriverCardImpl> MotorDriverCardTest::createCard(
-      boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
-      MotorDriverCardConfig const& cardConfiguration) {
-    return boost::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl(device, moduleName, cardConfiguration));
+  std::shared_ptr<MotorDriverCardImpl> MotorDriverCardTest::createCard(std::shared_ptr<ChimeraTK::Device> const& device,
+      std::string const& moduleName, MotorDriverCardConfig const& cardConfiguration) {
+    return std::shared_ptr<MotorDriverCardImpl>(new MotorDriverCardImpl(device, moduleName, cardConfiguration));
   }
 
   void testConfiguration(MotorDriverCardConfig const& motorDriverCardConfig);
@@ -64,7 +63,7 @@ namespace ChimeraTK::MotorDriver {
   BOOST_AUTO_TEST_CASE(TestConstuctor) {
     gTest.dummyDevice =
         boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
-    boost::shared_ptr<Device> device(new Device());
+    auto device = std::make_shared<Device>();
 
     MotorDriverCardConfig motorDriverCardConfig;
     motorDriverCardConfig.coverDatagram = asciiToInt("DTGR");
@@ -108,7 +107,7 @@ namespace ChimeraTK::MotorDriver {
         gTest.motorDriverCard = gTest.createCard(device, MODULE_NAME_0, motorDriverCardConfig), ChimeraTK::logic_error);
 
     // try opening with bad mapping, also has to throw
-    //  boost::shared_ptr<ChimeraTK::DeviceBackend> dummyDevice ( new
+    //  std::shared_ptr<ChimeraTK::DeviceBackend> dummyDevice ( new
     //  ChimeraTK::PcieBackend("/dev/mtcadummys0", BROKEN_MAP_FILE_NAME));
     boost::shared_ptr<ChimeraTK::DeviceBackend> brokenDummyDevice =
         boost::dynamic_pointer_cast<ChimeraTK::DeviceBackend>(
@@ -164,8 +163,8 @@ namespace ChimeraTK::MotorDriver {
         gTest.motorDriverCard->getStepperMotorGlobalParameters() == motorDriverCardConfig.stepperMotorGlobalParameters);
 
     for(unsigned int motorID = 0; motorID < motorDriverCardConfig.motorControllerConfigurations.size(); ++motorID) {
-      boost::shared_ptr<MotorControllerExpert> motorController =
-          boost::dynamic_pointer_cast<MotorControllerExpert>(gTest.motorDriverCard->getMotorController(motorID));
+      std::shared_ptr<MotorControllerExpert> motorController =
+          std::dynamic_pointer_cast<MotorControllerExpert>(gTest.motorDriverCard->getMotorController(motorID));
       MotorControllerConfig motorControllerConfig = motorDriverCardConfig.motorControllerConfigurations[motorID];
 
       // only the data content is identical. The motorID is - for the config, and

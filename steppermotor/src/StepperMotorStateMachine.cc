@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BasicStepperMotor.h"
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorController.h"
 
 namespace ChimeraTK::MotorDriver {

@@ -48,16 +48,14 @@ int main(int argc, char* argv[]) {
 
   std::string moduleName = argv[2];
   std::string motorConfig = argv[3];
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard =
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard =
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, moduleName,
           motorConfig); // default motor config
 
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerExpert> motor0 =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerExpert>(
-          motorDriverCard->getMotorController(0));
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerExpert> motor1 =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerExpert>(
-          motorDriverCard->getMotorController(1));
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorControllerExpert> motor0 =
+      std::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerExpert>(motorDriverCard->getMotorController(0));
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorControllerExpert> motor1 =
+      std::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerExpert>(motorDriverCard->getMotorController(1));
 
   uint64_t runCounter = 0;
   uint64_t errorCounter = 0;
@@ -74,7 +72,7 @@ int main(int argc, char* argv[]) {
   while(true) {
     // controller registers (only they can be read back)
     for(unsigned int motorID = 0; motorID <= 1; ++motorID) {
-      boost::shared_ptr<ChimeraTK::MotorDriver::MotorController> motor = motorDriverCard->getMotorController(motorID);
+      std::shared_ptr<ChimeraTK::MotorDriver::MotorController> motor = motorDriverCard->getMotorController(motorID);
 
       // test that writing values in a row work
       // mask then in case the initial values are at the 24 bit data word

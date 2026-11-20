@@ -3,6 +3,7 @@
 
 #include "RotaryStepperMotorStateMachine.h"
 
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorController.h"
 #include "RotaryStepperMotor.h"
 

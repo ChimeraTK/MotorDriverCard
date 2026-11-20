@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Deutsches Elektronen-Synchrotron DESY, MSK, ChimeraTK Project <chimeratk-support@desy.de>
 // SPDX-License-Identifier: LGPL-3.0-or-later
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorController.h"
 #include "MotorDriverCardExpert.h"
 #include "MotorDriverCardFactory.h"
@@ -77,7 +78,7 @@ static int run(int argc, char** argv) {
   boardResetN = 1;
   boardResetN.write();
 
-  auto motorDriverCard = boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorDriverCardExpert>(
+  auto motorDriverCard = std::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorDriverCardExpert>(
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(deviceAlias, argv[2], argv[3]));
 
   // until now it is a copy of initialiseDFMC-MC22, now we start moving the

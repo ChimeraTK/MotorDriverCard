@@ -4,6 +4,7 @@
 #include "LinearStepperMotorStateMachine.h"
 
 #include "LinearStepperMotor.h"
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorController.h"
 
 namespace ChimeraTK::MotorDriver {

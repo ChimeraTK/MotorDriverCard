@@ -5,6 +5,7 @@
 #include "TMC260Words.h"
 #include "TMC429Words.h"
 
+#include <sstream>
 #include <stdexcept>
 using namespace ChimeraTK::MotorDriver;
 

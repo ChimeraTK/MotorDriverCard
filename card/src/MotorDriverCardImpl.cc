@@ -14,7 +14,7 @@ using namespace ChimeraTK::MotorDriver::tmc429;
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
 
 namespace ChimeraTK::MotorDriver {
-  MotorDriverCardImpl::MotorDriverCardImpl(boost::shared_ptr<ChimeraTK::Device> const& device,
+  MotorDriverCardImpl::MotorDriverCardImpl(std::shared_ptr<ChimeraTK::Device> const& device,
       std::string const& moduleName,
       MotorDriverCardConfig const& cardConfiguration)
   :                  // done later in the constructor body
@@ -29,8 +29,8 @@ namespace ChimeraTK::MotorDriver {
     // any new can throw, it might be that the other object is allocated, but the
     // corresponding smart pointer is not initialised yet, which would lead to a
     // memory leak.
-    _powerMonitor = boost::make_shared<PowerMonitor>();
-    _controllerSPI = boost::make_shared<TMC429SPI>(device, moduleName, CONTROLLER_SPI_WRITE_ADDRESS_STRING,
+    _powerMonitor = std::make_shared<PowerMonitor>();
+    _controllerSPI = std::make_shared<TMC429SPI>(device, moduleName, CONTROLLER_SPI_WRITE_ADDRESS_STRING,
         CONTROLLER_SPI_SYNC_ADDRESS_STRING, CONTROLLER_SPI_READBACK_ADDRESS_STRING,
         cardConfiguration.controllerSpiWaitingTime);
 
@@ -47,12 +47,12 @@ namespace ChimeraTK::MotorDriver {
     // initialise motors
     _motorControllers.resize(N_MOTORS_MAX);
     for(unsigned int i = 0; i < _motorControllers.size(); ++i) {
-      _motorControllers[i] = boost::make_shared<MotorControllerImpl>(
+      _motorControllers[i] = std::make_shared<MotorControllerImpl>(
           i, device, moduleName, _controllerSPI, cardConfiguration.motorControllerConfigurations[i]);
     }
   }
 
-  boost::shared_ptr<MotorController> MotorDriverCardImpl::getMotorController(unsigned int motorControllerID) {
+  std::shared_ptr<MotorController> MotorDriverCardImpl::getMotorController(unsigned int motorControllerID) {
     try {
       return _motorControllers.at(motorControllerID);
     }

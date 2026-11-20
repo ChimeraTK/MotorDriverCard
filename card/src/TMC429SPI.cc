@@ -6,9 +6,9 @@
 
 namespace ChimeraTK::MotorDriver {
 
-  // TMC429SPI::TMC429SPI(  boost::shared_ptr< Device<BaseDevice> > const &
+  // TMC429SPI::TMC429SPI(  std::shared_ptr< Device<BaseDevice> > const &
   // device,
-  TMC429SPI::TMC429SPI(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+  TMC429SPI::TMC429SPI(std::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
       std::string const& writeRegisterName, std::string const& syncRegisterName,
       std::string const& readbackRegisterName, unsigned int spiWaitingTime)
   : _spiViaPCIe(device, moduleName, writeRegisterName, syncRegisterName, readbackRegisterName, spiWaitingTime) {}

@@ -26,8 +26,8 @@ namespace ChimeraTK::MotorDriver {
      * goes out of scope. The config is only used in the constuctor, no reference
      * is kept in the class.
      */
-    MotorControllerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
-        std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controllerSPI,
+    MotorControllerImpl(unsigned int ID, std::shared_ptr<ChimeraTK::Device> const& device,
+        std::string const& moduleName, std::shared_ptr<TMC429SPI> const& controllerSPI,
         MotorControllerConfig const& motorControllerConfig);
 
     /// The class is non-copyable
@@ -212,7 +212,7 @@ namespace ChimeraTK::MotorDriver {
     // Reason for mtable keyword:
     // http://stackoverflow.com/questions/25521570/can-mutex-locking-function-be-marked-as-const
     mutable std::mutex _mutex;
-    boost::shared_ptr<ChimeraTK::Device> _device;
+    std::shared_ptr<ChimeraTK::Device> _device;
 
     unsigned int _id;
     const MotorControllerConfig _controllerConfig;
@@ -254,7 +254,7 @@ namespace ChimeraTK::MotorDriver {
     ChimeraTK::ScalarRegisterAccessor<int32_t> _endSwitchPowerIndicator;
 
     SPIviaPCIe _driverSPI;
-    boost::shared_ptr<TMC429SPI> _controllerSPI;
+    std::shared_ptr<TMC429SPI> _controllerSPI;
 
     static const unsigned int MD_22_DEFAULT_CLOCK_FREQ_MHZ = 32;
 

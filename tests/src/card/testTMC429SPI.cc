@@ -26,11 +26,11 @@ class TMC429SPITestFixture {
 
  protected:
   boost::shared_ptr<DFMC_MD22Dummy> _dummyDevice;
-  boost::shared_ptr<ChimeraTK::Device> _mappedDevice;
-  boost::shared_ptr<TMC429SPI> _tmc429Spi;
+  std::shared_ptr<ChimeraTK::Device> _mappedDevice;
+  std::shared_ptr<TMC429SPI> _tmc429Spi;
 };
 
-TMC429SPITestFixture::TMC429SPITestFixture() : _mappedDevice{boost::make_shared<ChimeraTK::Device>()} {
+TMC429SPITestFixture::TMC429SPITestFixture() : _mappedDevice{std::make_shared<ChimeraTK::Device>()} {
   ChimeraTK::setDMapFilePath("./dummies.dmap");
   _dummyDevice =
       boost::dynamic_pointer_cast<DFMC_MD22Dummy>(ChimeraTK::BackendFactory::getInstance().createBackend(DFMC_ALIAS));
@@ -40,7 +40,7 @@ TMC429SPITestFixture::TMC429SPITestFixture() : _mappedDevice{boost::make_shared<
   _mappedDevice->open(DFMC_ALIAS);
   _dummyDevice->setRegistersForTesting();
 
-  _tmc429Spi = boost::make_shared<TMC429SPI>(_mappedDevice, MODULE_NAME_0, CONTROLLER_SPI_WRITE_ADDRESS_STRING,
+  _tmc429Spi = std::make_shared<TMC429SPI>(_mappedDevice, MODULE_NAME_0, CONTROLLER_SPI_WRITE_ADDRESS_STRING,
       CONTROLLER_SPI_SYNC_ADDRESS_STRING, CONTROLLER_SPI_READBACK_ADDRESS_STRING);
 }
 

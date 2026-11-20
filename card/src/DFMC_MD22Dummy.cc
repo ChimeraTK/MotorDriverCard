@@ -10,9 +10,8 @@ using namespace ChimeraTK::MotorDriver::dfmc_md22;
 #include "TMC429DummyConstants.h"
 #include "TMC429Words.h"
 
-#include <boost/lambda/lambda.hpp>
-
 #include <algorithm>
+#include <utility>
 using namespace ChimeraTK::MotorDriver::tmc429;
 
 namespace ChimeraTK::MotorDriver {
@@ -138,7 +137,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void DFMC_MD22Dummy::setControllerSpiRegistersForOperation() {
-    std::ranges::for_each(_controllerSpiAddressSpace, boost::lambda::_1 = 0);
+    std::ranges::fill(_controllerSpiAddressSpace, 0U);
 
     // Information from the data sheet:
     size_t controllerSpiAddress = spiAddressFromSmdaIdxJdx(SMDA_COMMON, JDX_CHIP_VERSION);
@@ -190,13 +189,13 @@ namespace ChimeraTK::MotorDriver {
       writeControllerSpiContentToReadbackRegister(controllerSpiAddress);
       // it takes some time to perform this in firmware. Implement a short delay,
       // which proabaly will cause rescheduling, twice for write and read
-      boost::this_thread::sleep(boost::posix_time::microseconds(2 * _microsecondsControllerSpiDelay));
+      std::this_thread::sleep_for(std::chrono::microseconds(2 * _microsecondsControllerSpiDelay));
     }
     else {
       writeContentToControllerSpiRegister(inputWord.getDATA(), controllerSpiAddress);
       // it takes some time to perform this in firmware. Implement a short delay,
       // which proabaly will cause rescheduling.
-      boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsControllerSpiDelay));
+      std::this_thread::sleep_for(std::chrono::microseconds(_microsecondsControllerSpiDelay));
     }
 
     triggerActionsOnControllerSpiWrite(inputWord);
@@ -232,7 +231,7 @@ namespace ChimeraTK::MotorDriver {
     unsigned int spiAddress = tmc260::spiAddressFromDataWord(writtenSpiWord);
     unsigned int payloadDataMask = tmc260::dataMaskFromSpiAddress(spiAddress);
 
-    boost::this_thread::sleep(boost::posix_time::microseconds(_microsecondsDriverSpiDelay));
+    std::this_thread::sleep_for(std::chrono::microseconds(_microsecondsDriverSpiDelay));
 
     _driverSPIs[ID].addressSpace.at(spiAddress) = writtenSpiWord & payloadDataMask;
 
@@ -259,7 +258,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   uint32_t DFMC_MD22Dummy::readTMC260Register(uint32_t motorID, TMC260Register configuredRegister) {
-    auto registerAddress = static_cast<unsigned int>(configuredRegister);
+    auto registerAddress = std::to_underlying(configuredRegister);
     auto registerDataPayload = _driverSPIs[motorID].addressSpace.at(registerAddress);
     return registerDataPayload;
   }

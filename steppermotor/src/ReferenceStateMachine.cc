@@ -3,12 +3,15 @@
 
 #include "ReferenceStateMachine.h"
 
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorController.h"
 
 #include <array>
+#include <cmath>
 #include <thread>
 
-constexpr unsigned wakeupPeriodInMilliseconds = 500U;
+using namespace std::chrono_literals;
+constexpr auto wakeupPeriod = 500ms;
 
 namespace ChimeraTK::MotorDriver {
 
@@ -84,12 +87,12 @@ namespace ChimeraTK::MotorDriver {
 
   void ReferenceStateMachine::moveToEndSwitch(Sign sign) {
     {
-      boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+      std::scoped_lock lck(_motor._mutex);
       _motor._motorController->setTargetPosition(
           _motor._motorController->getActualPosition() + static_cast<int>(sign) * getOffset());
     }
     while(_motor._motorController->isMotorMoving()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+      std::this_thread::sleep_for(wakeupPeriod);
     }
   }
 
@@ -149,11 +152,11 @@ namespace ChimeraTK::MotorDriver {
 
       // Move close to end switch
       {
-        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        std::scoped_lock lck(_motor._mutex);
         _motor._motorController->setTargetPosition(endSwitchPosition - static_cast<int>(sign) * 1000);
       }
       while(_motor._motorController->isMotorMoving()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+        std::this_thread::sleep_for(wakeupPeriod);
       }
 
       // Check if in expected position
@@ -164,11 +167,11 @@ namespace ChimeraTK::MotorDriver {
 
       // Try to move beyond end switch
       {
-        boost::lock_guard<boost::mutex> lck(_motor._mutex);
+        std::scoped_lock lck(_motor._mutex);
         _motor._motorController->setTargetPosition(endSwitchPosition + static_cast<int>(sign) * 1000);
       }
       while(_motor._motorController->isMotorMoving()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(wakeupPeriodInMilliseconds));
+        std::this_thread::sleep_for(wakeupPeriod);
       }
       if(!_motor.isEndSwitchActive(sign)) {
         _moveInterrupted.exchange(true);

@@ -4,7 +4,8 @@
 
 #include "TMC429Constants.h"
 
-#include <boost/lexical_cast.hpp>
+#include <string>
+#include <string_view>
 
 namespace ChimeraTK::MotorDriver::dfmc_md22 {
 
@@ -14,49 +15,53 @@ namespace ChimeraTK::MotorDriver::dfmc_md22 {
 
   /// @todo FIXME This has to be WORD_PROJ_VERSION in the project, but how to
   /// identify the project?
-  std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM";
-  std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID";
-  std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION";
-  std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET";
-  std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT";
+  inline std::string const PROJECT_MAGIC_ADDRESS_STRING = "WORD_PROJ_MAGIC_NUM";
+  inline std::string const PROJECT_ID_ADDRESS_STRING = "WORD_PROJ_ID";
+  inline std::string const PROJECT_VERSION_ADDRESS_STRING = "WORD_PROJ_VERSION";
+  inline std::string const PROJECT_RESET_ADDRESS_STRING = "WORD_PROJ_RESET";
+  inline std::string const PROJECT_NEXT_ADDRESS_STRING = "WORD_PROJ_NEXT";
 
-  std::string const CONTROLLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
-  std::string const CONTROLLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
-  std::string const CONTROLLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
-  std::string const CONTROLLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
+  inline std::string const CONTROLLER_SPI_WRITE_ADDRESS_STRING = "WORD_CTRL_SPI_WRITE";
+  inline std::string const CONTROLLER_SPI_READBACK_ADDRESS_STRING = "WORD_CTRL_SPI_READBACK";
+  inline std::string const CONTROLLER_SPI_SYNC_ADDRESS_STRING = "WORD_CTRL_SPI_SYNC";
+  inline std::string const CONTROLLER_STATUS_BITS_ADDRESS_STRING = "WORD_CTRL_STATUS_BITS";
 
   int32_t const SPI_SYNC_OK = 0;
   int32_t const SPI_SYNC_REQUESTED = 0xFF;
   int32_t const SPI_SYNC_ERROR = 0xAA;
 
-  uint32_t const N_MOTORS_MAX = 2;
+  inline constexpr uint32_t N_MOTORS_MAX = 2;
 
-  std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
+  inline std::string const MOTOR_REGISTER_PREFIX = "WORD_M";
 
-  std::string const SPI_WRITE_SUFFIX = "SPI_WRITE";
-  std::string const SPI_SYNC_SUFFIX = "SPI_SYNC";
-  std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
-  std::string const ACTUAL_VELOCITY_SUFFIX = "V_ACTUAL";
-  std::string const ACTUAL_ACCELERATION_SUFFIX = "ACT_ACCEL";
-  std::string const MICRO_STEP_COUNT_SUFFIX = "MSTEP_VAL";
-  std::string const COOL_STEP_VALUE_SUFFIX = "CoolStep_VAL";
-  std::string const STALL_GUARD_VALUE_SUFFIX = "SGUARD_VAL";
-  std::string const STATUS_SUFFIX = "STATUS";
-  std::string const MOTOR_CURRENT_ENABLE_SUFFIX = "ENABLE";
-  std::string const ENDSWITCH_ENABLE_SUFFIX = "VOLTAGE_EN";
-  std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
-  std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
-  std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME";          // Added as support for newer FW > r2591
-  std::string const END_SWITCH_POSITIVE_SUFFIX = "CAL_END_SW_POS"; // Added as support for newer FW > r2591
-  std::string const END_SWITCH_NEGATIVE_SUFFIX = "CAL_END_SW_NEG"; // Added as support for newer FW > r2591
+  inline std::string const SPI_WRITE_SUFFIX = "SPI_WRITE";
+  inline std::string const SPI_SYNC_SUFFIX = "SPI_SYNC";
+  inline std::string const ACTUAL_POSITION_SUFFIX = "ACTUAL_POS";
+  inline std::string const ACTUAL_VELOCITY_SUFFIX = "V_ACTUAL";
+  inline std::string const ACTUAL_ACCELERATION_SUFFIX = "ACT_ACCEL";
+  inline std::string const MICRO_STEP_COUNT_SUFFIX = "MSTEP_VAL";
+  inline std::string const COOL_STEP_VALUE_SUFFIX = "CoolStep_VAL";
+  inline std::string const STALL_GUARD_VALUE_SUFFIX = "SGUARD_VAL";
+  inline std::string const STATUS_SUFFIX = "STATUS";
+  inline std::string const MOTOR_CURRENT_ENABLE_SUFFIX = "ENABLE";
+  inline std::string const ENDSWITCH_ENABLE_SUFFIX = "VOLTAGE_EN";
+  inline std::string const DECODER_READOUT_MODE_SUFFIX = "DEK_MUX";
+  inline std::string const DECODER_POSITION_SUFFIX = "DEK_POS";
+  inline std::string const CALIBRATION_TIME_SUFFIX = "CAL_TIME";          // Added as support for newer FW > r2591
+  inline std::string const END_SWITCH_POSITIVE_SUFFIX = "CAL_END_SW_POS"; // Added as support for newer FW > r2591
+  inline std::string const END_SWITCH_NEGATIVE_SUFFIX = "CAL_END_SW_NEG"; // Added as support for newer FW > r2591
 
-  uint32_t const INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
+  inline constexpr uint32_t INVALID_SPI_READBACK_VALUE = 0xFFFFFFFF;
 
   /// Creates a string dependent on the motor ID and register name suffix.
   /// The result is WORD_M1_SUFFIX for motor ID = 0 and suffix = SUFFIX.
   /// FIXME: get the 'off by one' consistent
-  inline std::string createMotorRegisterName(unsigned int motorID, const std::string& registerNameSuffix) {
-    return std::string(MOTOR_REGISTER_PREFIX) + std::to_string(motorID + 1) + "_" + registerNameSuffix;
+  inline std::string createMotorRegisterName(unsigned int motorID, std::string_view registerNameSuffix) {
+    std::string registerName{MOTOR_REGISTER_PREFIX};
+    registerName += std::to_string(motorID + 1);
+    registerName += '_';
+    registerName.append(registerNameSuffix);
+    return registerName;
   }
 
 } // namespace ChimeraTK::MotorDriver::dfmc_md22

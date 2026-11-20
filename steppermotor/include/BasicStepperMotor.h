@@ -5,12 +5,12 @@
 #include "StateMachine.h"
 #include "StepperMotor.h"
 
-#include <boost/shared_ptr.hpp> // Boost kept for compatibility with the lower layers
-#include <boost/thread.hpp>
-
 #include <atomic>
+#include <memory> // Boost kept for compatibility with the lower layers
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 namespace ChimeraTK::MotorDriver {
   class MotorDriverCard;
@@ -458,7 +458,7 @@ namespace ChimeraTK::MotorDriver {
       State _disabled{"disabled"};
       State _error{"error"};
       BasicStepperMotor& _stepperMotor;
-      boost::shared_ptr<ChimeraTK::MotorDriver::MotorController>& _motorController;
+      std::shared_ptr<ChimeraTK::MotorDriver::MotorController>& _motorController;
       void getActionCompleteEvent();
       void waitForStandstill();
       void actionIdleToMove();
@@ -497,8 +497,8 @@ namespace ChimeraTK::MotorDriver {
     /// Common actions for translateAxis for this and derived classes
     void translateAxisActions(int translationInSteps);
 
-    boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
-    boost::shared_ptr<ChimeraTK::MotorDriver::MotorController> _motorController;
+    std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
+    std::shared_ptr<ChimeraTK::MotorDriver::MotorController> _motorController;
 
     std::shared_ptr<utility::MotorStepsConverter> _stepperMotorUnitsConverter;
     std::shared_ptr<utility::EncoderStepsConverter> _encoderUnitsConverter;
@@ -511,7 +511,7 @@ namespace ChimeraTK::MotorDriver {
     bool _softwareLimitsEnabled{false};
 
     // Mutex protecting the state machine access
-    mutable boost::mutex _mutex;
+    mutable std::mutex _mutex;
     std::shared_ptr<utility::StateMachine> _stateMachine;
 
     std::atomic<Error> _errorMode{Error::NO_ERROR};

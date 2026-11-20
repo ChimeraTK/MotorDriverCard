@@ -64,12 +64,12 @@ using namespace ChimeraTK::MotorDriver::tmc429;
     setTypedDriverData<NAME>(driverData, LOCAL_DATA_INSTANCE);                                                         \
   }
 
-using lock_guard = std::lock_guard<std::mutex>;
+using lock_guard = std::scoped_lock<std::mutex>;
 using unique_lock = std::unique_lock<std::mutex>;
 
 namespace ChimeraTK::MotorDriver {
-  MotorControllerImpl::MotorControllerImpl(unsigned int ID, boost::shared_ptr<ChimeraTK::Device> const& device,
-      std::string const& moduleName, boost::shared_ptr<TMC429SPI> const& controllerSPI,
+  MotorControllerImpl::MotorControllerImpl(unsigned int ID, std::shared_ptr<ChimeraTK::Device> const& device,
+      std::string const& moduleName, std::shared_ptr<TMC429SPI> const& controllerSPI,
       MotorControllerConfig const& motorControllerConfig)
   : _device(device), _id(ID), _controllerConfig(motorControllerConfig),
     _conversionFactor(calculateConversionFactor(motorControllerConfig)),

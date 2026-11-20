@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <charconv>
 #include <iostream>
+#include <sstream>
 
 namespace detail {
   class NodeFiller {
@@ -101,7 +102,7 @@ namespace ChimeraTK::MotorDriver {
     }
 
     auto base = 10;
-    if(stringValue.find("0x") == 0 || stringValue.find("0X") == 0) {
+    if(stringValue.starts_with("0x") || stringValue.starts_with("0X")) {
       base = 16;
       if(stringValue.size() == 2) {
         throw ChimeraTK::logic_error("Invalid XML");

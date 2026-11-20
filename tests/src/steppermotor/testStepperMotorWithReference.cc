@@ -5,9 +5,11 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <chrono>
 #include <memory>
 #include <thread>
 using namespace boost::unit_test_framework;
+using namespace std::chrono_literals;
 
 #include "LinearStepperMotor.h"
 #include "MotorControllerDummy.h"
@@ -57,16 +59,16 @@ class StepperMotorWithReferenceTestFixture {
  protected:
   StepperMotorParameters _stepperMotorParameters;
   std::shared_ptr<LinearStepperMotor> _stepperMotor;
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerDummy> _motorControllerDummy;
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorControllerDummy> _motorControllerDummy;
 };
 
 StepperMotorWithReferenceTestFixture::StepperMotorWithReferenceTestFixture() : _stepperMotorParameters() {
   ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().setDummyMode();
   _motorDriverCard = ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
-  _motorControllerDummy = boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerDummy>(
-      _motorDriverCard->getMotorController(0));
+  _motorControllerDummy =
+      std::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerDummy>(_motorDriverCard->getMotorController(0));
 
   // Define dummy end switches and reset the dummy
   _motorControllerDummy->setPositiveEndSwitch(POS_POSITIVE_ENDSWITCH_MOTORCONTROLLER);
@@ -103,7 +105,7 @@ bool StepperMotorWithReferenceTestFixture::waitForState(
 
 void StepperMotorWithReferenceTestFixture::waitToSetTargetPos(int targetPos) {
   while(true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(100ms);
     if(_stepperMotor->getTargetPositionInSteps() == targetPos) {
       break;
     }
@@ -112,7 +114,7 @@ void StepperMotorWithReferenceTestFixture::waitToSetTargetPos(int targetPos) {
 
 void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive() {
   while(true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(100ms);
     _stepperMotor->_mutex.lock();
     if(!_stepperMotor->_motorController->getReferenceSwitchData().getPositiveSwitchActive()) {
       _stepperMotor->_mutex.unlock();
@@ -126,7 +128,7 @@ void StepperMotorWithReferenceTestFixture::waitForPositiveEndSwitchActive() {
 
 void StepperMotorWithReferenceTestFixture::waitForNegativeEndSwitchActive() {
   while(true) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(100ms);
     _stepperMotor->_mutex.lock();
     if(!_stepperMotor->_motorController->getReferenceSwitchData().getNegativeSwitchActive()) {
       _stepperMotor->_mutex.unlock();

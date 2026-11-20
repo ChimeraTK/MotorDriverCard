@@ -18,7 +18,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   std::shared_ptr<StepperMotor> StepperMotorFactory::create(const StepperMotorParameters& parameters) {
-    std::lock_guard<std::mutex> lck(_factoryMutex);
+    std::scoped_lock lck(_factoryMutex);
 
     // Check if instance already exists and
     // return it, if this is given

@@ -91,7 +91,7 @@ void DerivedStateMachine::assertRequestedState(StateMachine::State* referenceSta
 void DerivedStateMachine::actionIdleToFirstState() {
   _asyncActionActive.exchange(true);
   std::thread asyncActionIdleToFirst([this] {
-    std::lock_guard<std::mutex> lck(_stateMachineMutex);
+    std::scoped_lock lck(_stateMachineMutex);
     performTransition(_state1to2Event);
     _asyncActionActive.exchange(false);
   });
@@ -132,7 +132,7 @@ void DerivedStateMachine::actionExtern2() {
 void DerivedStateMachine::actionThirdToFirstState() {
   _asyncActionActive.exchange(true);
   std::thread asyncAction3rdTo1st([this] {
-    std::lock_guard<std::mutex> lck(_stateMachineMutex);
+    std::scoped_lock lck(_stateMachineMutex);
     performTransition(_state1to4Event);
     _asyncActionActive.exchange(false);
   });

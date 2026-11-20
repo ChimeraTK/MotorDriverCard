@@ -4,7 +4,7 @@
 
 #include <ChimeraTK/Exception.h>
 
-using LockGuard = std::lock_guard<std::mutex>;
+using LockGuard = std::scoped_lock<std::mutex>;
 using UniqueLog = std::unique_lock<std::mutex>;
 
 namespace ChimeraTK::MotorDriver {

@@ -54,23 +54,23 @@ BOOST_AUTO_TEST_CASE(testCreate) {
 
   // Prepare the dummy device. It has to have the correct firmware number in the
   // corresponding register.
-  // boost::shared_ptr < Device<BaseDevice> > 	mappedMtcadummy =
+  // std::shared_ptr < Device<BaseDevice> > 	mappedMtcadummy =
   // DeviceFactory::getInstance().createDevice(DUMMY_DEV_ALIAS);
   std::string testFilePath = "dummies.dmap";
   ChimeraTK::BackendFactory::getInstance().setDMapFilePath(testFilePath);
 
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard_PCIe1 =
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard_PCIe1 =
       // MotorDriverCardFactory::instance().createMotorDriverCard(DUMMY_DEV_PATH,
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
           DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
   BOOST_CHECK(true);
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> md22_dummy1 =
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> md22_dummy1 =
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
           DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
   BOOST_CHECK(motorDriverCard_PCIe1.get() != md22_dummy1.get());
   // there is one instance here. The factory has a weak reference
   BOOST_CHECK_EQUAL(md22_dummy1.use_count(), 1);
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> md22_dummy2 =
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> md22_dummy2 =
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
           DFMC_ALIAS, MODULE_NAME_0, CONFIG_FILE);
 
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(testCreate) {
   // there are two instances here, a weak one in the factory
   BOOST_CHECK_EQUAL(md22_dummy1.use_count(), 2);
 
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard_PCIe2 =
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> motorDriverCard_PCIe2 =
       ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
           DFMC_ALIAS2, MODULE_NAME_0, CONFIG_FILE);
 
@@ -92,8 +92,8 @@ BOOST_AUTO_TEST_CASE(testCreate) {
 BOOST_AUTO_TEST_CASE(testCreateDummy) {
 #pragma GCC diagnostic pop
   ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().setDummyMode(true);
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCardDummy> motorDriverCardDummy =
-      boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorDriverCardDummy>(
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCardDummy> motorDriverCardDummy =
+      std::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorDriverCardDummy>(
           ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard("/dummy/MotorDriverCard",
 
               MODULE_NAME_0, "alsoIrrelevant"));

@@ -19,15 +19,15 @@ namespace ChimeraTK::MotorDriver {
     return motorDriverCardFactory;
   }
 
-  boost::shared_ptr<MotorDriverCard> MotorDriverCardFactory::createMotorDriverCard(
+  std::shared_ptr<MotorDriverCard> MotorDriverCardFactory::createMotorDriverCard(
       const std::string& alias, const std::string& mapModuleName, const std::string& motorConfigFileName) {
-    boost::lock_guard<boost::mutex> guard(_factoryMutex);
+    std::scoped_lock guard(_factoryMutex);
 
     auto id = std::make_pair(alias, mapModuleName);
     if(_dummyMode) {
       auto card = _dummyMotorDriverCards[id];
       if(!card) {
-        // The constructor is private, so boost::make_shared cannot be used here.
+        // The constructor is private, so std::make_shared cannot be used here.
         // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
         _dummyMotorDriverCards[id].reset(new MotorDriverCardDummy());
       }
@@ -46,14 +46,14 @@ namespace ChimeraTK::MotorDriver {
       }
     }
 
-    boost::shared_ptr<MotorDriverCard> motorDriverCard;
+    std::shared_ptr<MotorDriverCard> motorDriverCard;
     {
-      boost::shared_ptr<ChimeraTK::Device> device(new ChimeraTK::Device);
+      auto device = std::make_shared<ChimeraTK::Device>();
       device->open(alias);
       MotorDriverCardConfig cardConfig = MotorDriverCardConfigXML::read(motorConfigFileName);
 
-      // The constructor is private, so boost::make_shared cannot be used here.
-      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+      // The constructor is private, so std::make_shared cannot be used here.
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory,modernize-make-shared)
       motorDriverCard.reset(new MotorDriverCardImpl(device, mapModuleName, cardConfig));
     }
     _motorDriverCards[id] = motorDriverCard;

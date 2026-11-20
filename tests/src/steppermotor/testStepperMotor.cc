@@ -20,9 +20,9 @@ using namespace ChimeraTK::MotorDriver;
 static const std::string stepperMotorDeviceConfigFile("VT21-MotorDriverCardConfig.xml");
 static const std::string moduleName;
 // static ChimeraTK::MotorDriver::TMC429OutputWord
-// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
+// readDFMCDummyMotor0VMaxRegister(std::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md22); static ChimeraTK::MotorDriver::StallGuardControlData
-// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
+// readDFMCDummyMotor0CurrentScale(std::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md2);
 
 using namespace ChimeraTK::MotorDriver;
@@ -36,7 +36,7 @@ class TestUnitConverter : public utility::MotorStepsConverter {
 };
 
 // static ChimeraTK::MotorDriver::TMC429OutputWord
-// readDFMCDummyMotor0VMaxRegister(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
+// readDFMCDummyMotor0VMaxRegister(std::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md22){
 //  ChimeraTK::MotorDriver::TMC429InputWord readVmaxRegister;
 //  readVmaxRegister.setSMDA(0);
@@ -47,7 +47,7 @@ class TestUnitConverter : public utility::MotorStepsConverter {
 //}
 
 // static ChimeraTK::MotorDriver::StallGuardControlData
-// readDFMCDummyMotor0CurrentScale(boost::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
+// readDFMCDummyMotor0CurrentScale(std::shared_ptr<ChimeraTK::MotorDriver::DFMC_MD22Dummy>&
 // dfmc_md2){
 //  auto motorId = 0U;
 //  return ChimeraTK::MotorDriver::StallGuardControlData(dfmc_md2->readTMC260Register(
@@ -65,8 +65,8 @@ class StepperMotorChimeraTKFixture {
 
  protected:
   std::unique_ptr<StepperMotor> _stepperMotor;
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
-  boost::shared_ptr<ChimeraTK::MotorDriver::MotorControllerDummy> _motorControllerDummy;
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorDriverCard> _motorDriverCard;
+  std::shared_ptr<ChimeraTK::MotorDriver::MotorControllerDummy> _motorControllerDummy;
   std::shared_ptr<TestUnitConverter> _testUnitConverter;
 };
 
@@ -77,8 +77,8 @@ StepperMotorChimeraTKFixture::StepperMotorChimeraTKFixture() {
   ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().setDummyMode();
   _motorDriverCard = ChimeraTK::MotorDriver::MotorDriverCardFactory::instance().createMotorDriverCard(
       DUMMY_DEVICE_FILE_NAME, moduleName, stepperMotorDeviceConfigFile);
-  _motorControllerDummy = boost::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerDummy>(
-      _motorDriverCard->getMotorController(0));
+  _motorControllerDummy =
+      std::dynamic_pointer_cast<ChimeraTK::MotorDriver::MotorControllerDummy>(_motorDriverCard->getMotorController(0));
 
   // Omit the optional 5th argument for the units converter here so we get the
   // default 1:1 converter for the encoder readout

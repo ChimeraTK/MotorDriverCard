@@ -7,9 +7,9 @@
 
 #include <ChimeraTK/Exception.h>
 
-#include <boost/make_shared.hpp>
-
 #include <iostream>
+#include <memory>
+#include <sstream>
 
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
 
@@ -18,11 +18,11 @@ namespace ChimeraTK::MotorDriver {
   MotorDriverCardDummy::MotorDriverCardDummy() {
     _motorControllers.reserve(N_MOTORS_MAX);
     for(unsigned int id = 0; id < N_MOTORS_MAX; ++id) {
-      _motorControllers.emplace_back(boost::make_shared<MotorControllerDummy>(id));
+      _motorControllers.emplace_back(std::make_shared<MotorControllerDummy>(id));
     }
   }
 
-  boost::shared_ptr<MotorController> MotorDriverCardDummy::getMotorController(unsigned int motorControllerID) {
+  std::shared_ptr<MotorController> MotorDriverCardDummy::getMotorController(unsigned int motorControllerID) {
     try {
       return _motorControllers.at(motorControllerID);
     }

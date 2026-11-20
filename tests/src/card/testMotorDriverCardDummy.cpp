@@ -18,13 +18,13 @@ namespace ChimeraTK::MotorDriver {
   };
 
   BOOST_FIXTURE_TEST_CASE(TestMotorController, MotorDriverCardDummyTest) {
-    boost::shared_ptr<MotorController> controller0 = _motorDriverCardDummy.getMotorController(0);
+    std::shared_ptr<MotorController> controller0 = _motorDriverCardDummy.getMotorController(0);
 
     BOOST_CHECK(controller0->getID() == 0);
 
     // check that we actually get a MotorControllerDummy
-    boost::shared_ptr<MotorControllerDummy> controller1 =
-        boost::dynamic_pointer_cast<MotorControllerDummy>(_motorDriverCardDummy.getMotorController(1));
+    std::shared_ptr<MotorControllerDummy> controller1 =
+        std::dynamic_pointer_cast<MotorControllerDummy>(_motorDriverCardDummy.getMotorController(1));
 
     // this will cause an exception if the cast failed
     BOOST_CHECK(controller1->getID() == 1);

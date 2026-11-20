@@ -4,7 +4,8 @@
 
 #include <ChimeraTK/Device.h>
 
-#include <boost/thread/recursive_mutex.hpp>
+#include <chrono>
+#include <mutex>
 namespace ChimeraTK::MotorDriver {
 
   /** This class implements synchronous SPI operation over PCIexpress, using an
@@ -31,12 +32,12 @@ namespace ChimeraTK::MotorDriver {
      * this class, so the SPIviaPCIe always stays valid, even if the original
      * shared pointer goes out of scope.
      */
-    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+    SPIviaPCIe(std::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
         std::string const& writeRegisterName, std::string const& syncRegisterName,
         unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
 
     /// Constructor for write and readback.
-    SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+    SPIviaPCIe(std::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
         std::string const& writeRegisterName, std::string const& syncRegisterName,
         std::string const& readbackRegisterName, unsigned int spiWaitingTime = SPI_DEFAULT_WAITING_TIME);
 
@@ -76,14 +77,14 @@ namespace ChimeraTK::MotorDriver {
      * bus
      */
 
-    boost::chrono::microseconds _spiWaitingTime;
+    std::chrono::microseconds _spiWaitingTime;
     // store module name for debug purposes
     std::string _moduleName;
     // store these two register names for debug output (exception messages)
     std::string _writeRegisterName;
     std::string _syncRegisterName;
 
-    mutable boost::recursive_mutex _spiMutex;
+    mutable std::recursive_mutex _spiMutex;
   };
 
 } // namespace ChimeraTK::MotorDriver

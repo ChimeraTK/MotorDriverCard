@@ -8,8 +8,6 @@
 #include <ChimeraTK/DeviceAccessVersion.h>
 #include <ChimeraTK/DummyBackend.h>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
 namespace ChimeraTK::MotorDriver {
 
   // forward declarations
@@ -142,7 +140,9 @@ namespace ChimeraTK::MotorDriver {
      */
     uint32_t readTMC260Register(uint32_t motorID, TMC260Register configuredRegister);
 
-    // NOLINTNEXTLINE(performance-unnecessary-value-param) the signature is prescribed by the backend registration
+    /// The return type and the parameter list are prescribed by
+    /// ChimeraTK::BackendFactory::registerBackendType(), which still uses boost::shared_ptr.
+    // NOLINTNEXTLINE(performance-unnecessary-value-param)
     static boost::shared_ptr<ChimeraTK::DeviceBackend> createInstance(
         std::string address, std::map<std::string, std::string> parameters);
 
@@ -205,8 +205,10 @@ namespace ChimeraTK::MotorDriver {
                                        // _causeSpiTimeouts back to false
     bool _causeSpiErrors{false};
 
+    // NOLINTBEGIN(modernize-use-default-member-init) the default values live in headers not included here
     unsigned int _microsecondsControllerSpiDelay;
     unsigned int _microsecondsDriverSpiDelay;
+    // NOLINTEND(modernize-use-default-member-init)
 
     ChimeraTK::RegisterPath _moduleName;
 

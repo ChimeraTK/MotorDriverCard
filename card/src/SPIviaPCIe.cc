@@ -8,17 +8,19 @@
 #include <ChimeraTK/Device.h>
 
 #include <cerrno>
+#include <chrono>
 #include <ctime>
+#include <sstream>
 
 using namespace ChimeraTK::MotorDriver::dfmc_md22;
 
 namespace ChimeraTK::MotorDriver {
 
-  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+  SPIviaPCIe::SPIviaPCIe(std::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
       std::string const& writeRegisterName, std::string const& syncRegisterName, unsigned int spiWaitingTime)
   : SPIviaPCIe(device, moduleName, writeRegisterName, syncRegisterName, writeRegisterName, spiWaitingTime) {}
 
-  SPIviaPCIe::SPIviaPCIe(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+  SPIviaPCIe::SPIviaPCIe(std::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
       std::string const& writeRegisterName, std::string const& syncRegisterName,
       std::string const& readbackRegisterName, unsigned int spiWaitingTime)
   : _writeRegister(device->getScalarRegisterAccessor<int32_t>(
@@ -31,7 +33,7 @@ namespace ChimeraTK::MotorDriver {
     _syncRegisterName(syncRegisterName) {}
 
   void SPIviaPCIe::write(int32_t spiCommand) {
-    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
+    std::scoped_lock guard(_spiMutex);
     // try three times to mitigate effects of a firmware bug
     for(int i = 0; i < 3; ++i) {
       // Implement the write handshake
@@ -48,7 +50,7 @@ namespace ChimeraTK::MotorDriver {
 
       for(size_t syncCounter = 0; (_synchronisationRegister == SPI_SYNC_REQUESTED) && (syncCounter < 10);
           ++syncCounter) {
-        boost::this_thread::sleep_for(_spiWaitingTime);
+        std::this_thread::sleep_for(_spiWaitingTime);
 
         _synchronisationRegister.read();
       }
@@ -78,7 +80,7 @@ namespace ChimeraTK::MotorDriver {
   }
 
   uint32_t SPIviaPCIe::read(int32_t spiCommand) {
-    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
+    std::scoped_lock guard(_spiMutex);
 
     // this is easy: the write does all the sync. And after a successful sync we
     // know that the readback word is valid.
@@ -89,12 +91,12 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void SPIviaPCIe::setSpiWaitingTime(unsigned int microSeconds) {
-    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
-    _spiWaitingTime = boost::chrono::microseconds(microSeconds);
+    std::scoped_lock guard(_spiMutex);
+    _spiWaitingTime = std::chrono::microseconds(microSeconds);
   }
 
   unsigned int SPIviaPCIe::getSpiWaitingTime() const {
-    boost::lock_guard<boost::recursive_mutex> guard(_spiMutex);
+    std::scoped_lock guard(_spiMutex);
     return static_cast<unsigned int>(_spiWaitingTime.count());
   }
 

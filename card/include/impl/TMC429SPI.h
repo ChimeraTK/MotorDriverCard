@@ -11,7 +11,7 @@ namespace ChimeraTK::MotorDriver {
    */
   class TMC429SPI {
    public:
-    TMC429SPI(boost::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
+    TMC429SPI(std::shared_ptr<ChimeraTK::Device> const& device, std::string const& moduleName,
         std::string const& writeRegisterName, std::string const& syncRegisterName,
         std::string const& readbackRegisterName, unsigned int spiWaitingTime = SPIviaPCIe::SPI_DEFAULT_WAITING_TIME);
 

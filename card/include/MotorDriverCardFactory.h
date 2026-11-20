@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-
 #include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 
 namespace ChimeraTK::MotorDriver {
@@ -31,13 +30,13 @@ namespace ChimeraTK::MotorDriver {
     MotorDriverCardFactory() = default;
 
     /// Mutex to allow access from multiple threads.
-    boost::mutex _factoryMutex;
+    std::mutex _factoryMutex;
 
     using MotorDriverCardKey = std::pair<std::string, std::string>;
 
     /// Map of all devices which have ever been requested.
-    std::map<MotorDriverCardKey, boost::weak_ptr<MotorDriverCard>> _motorDriverCards;
-    std::map<MotorDriverCardKey, boost::shared_ptr<MotorDriverCard>> _dummyMotorDriverCards;
+    std::map<MotorDriverCardKey, std::weak_ptr<MotorDriverCard>> _motorDriverCards;
+    std::map<MotorDriverCardKey, std::shared_ptr<MotorDriverCard>> _dummyMotorDriverCards;
     bool _dummyMode{false};
 
    public:
@@ -52,7 +51,7 @@ namespace ChimeraTK::MotorDriver {
      * map file (there might be more than one MD22 on the carrier), and the file
      * name for the motor config.
      */
-    boost::shared_ptr<MotorDriverCard> createMotorDriverCard(
+    std::shared_ptr<MotorDriverCard> createMotorDriverCard(
         const std::string& alias, const std::string& mapModuleName, const std::string& motorConfigFileName);
 
     /** Set the application wide dmap file to use.

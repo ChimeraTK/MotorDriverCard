@@ -4,7 +4,7 @@
 
 #include "TMC429Words.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace ChimeraTK::MotorDriver {
   class MotorController;
@@ -20,7 +20,7 @@ namespace ChimeraTK::MotorDriver {
      *  Valid IDs are 0 and 1.
      *  Throws a MotorDriverException if the ID is invalid.
      */
-    virtual boost::shared_ptr<MotorController> getMotorController(unsigned int motorControllerID) = 0;
+    virtual std::shared_ptr<MotorController> getMotorController(unsigned int motorControllerID) = 0;
 
     /// Get a reference to the power monitor.
     virtual PowerMonitor& getPowerMonitor() = 0;

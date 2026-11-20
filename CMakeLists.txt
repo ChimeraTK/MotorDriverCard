@@ -137,6 +137,7 @@ add_custom_command(
 
 # Define the main library
 add_library(${PROJECT_NAME} SHARED ${library_sources} ${library_includes} schema.h)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_FULL_LIBRARY_VERSION} SOVERSION ${${PROJECT_NAME}_SOVERSION})
 target_link_libraries(${PROJECT_NAME} PUBLIC ChimeraTK::ChimeraTK-DeviceAccess Boost::thread Boost::system ChimeraTK::ChimeraTK-cppext
   PRIVATE PkgConfig::LibXML++ CTK_OBJECTS_TARGET)

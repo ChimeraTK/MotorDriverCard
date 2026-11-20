@@ -3,7 +3,9 @@
 
 #include "BasicStepperMotor.h"
 
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorController.h"
+// NOLINTNEXTLINE(misc-include-cleaner) the calls through it need the complete type
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
 
@@ -11,7 +13,7 @@
 
 #include <cmath>
 
-using LockGuard = boost::lock_guard<boost::mutex>;
+using LockGuard = std::scoped_lock<std::mutex>;
 
 namespace ChimeraTK::MotorDriver {
 

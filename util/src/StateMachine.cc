@@ -58,7 +58,7 @@ namespace ChimeraTK::MotorDriver {
     /******************************************************************************************************************/
 
     StateMachine::State* StateMachine::getCurrentState() {
-      std::lock_guard<std::mutex> lck(_stateMachineMutex);
+      std::scoped_lock lck(_stateMachineMutex);
 
       auto* state = _currentState;
       _internalEventCallback();
@@ -69,7 +69,7 @@ namespace ChimeraTK::MotorDriver {
     /******************************************************************************************************************/
 
     void StateMachine::setAndProcessUserEvent(const Event& event) {
-      std::lock_guard<std::mutex> lck(_stateMachineMutex);
+      std::scoped_lock lck(_stateMachineMutex);
       performTransition(event);
     }
 
