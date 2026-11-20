@@ -83,7 +83,7 @@ Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
   - `MotorDriverCardFactory`
   - `MotorDriverCard/<moduleName>`, and `MotorDriverCard/dummy` for the dummy card
   - `MotorControler/<moduleName>/<id>`
-  - `SPI/<moduleName>/<writeRegisterName>`
+  - `SPI/<moduleName>`
   - `StepperMotor/<deviceName>/<moduleName>/<driverId>`
   - Each instrumented class builds its topic once in the constructor and keeps it in a `std::string _logTopic` member,
     so no call site repeats the format.
@@ -155,11 +155,11 @@ Location: `backend/include/impl/MotorControlerImpl.h` (modified), `backend/src/M
 
 Location: `backend/include/impl/SPIviaPCIe.h` (modified), `backend/src/SPIviaPCIe.cc` (modified)
 
-- Messages, topic `SPI/<moduleName>/<writeRegisterName>`:
+- Messages, topic `SPI/<moduleName>`:
   - `error` with the existing error details, then throw `ChimeraTK::runtime_error`, for the error handshake result.
-  - No message for a successful or a repeated handshake.
+  - No message for a successful or a repeated handshake, and none per register access.
 - `TMC429SPI` and the other SPI helpers keep their signatures and stay silent.
-- New private `std::string _logTopic`, built in the constructor from the module name and the write register name.
+- New private `std::string _logTopic`, built in the constructor from the module name.
 
 ### MotorDriverCardDummy (modified)
 
@@ -274,7 +274,7 @@ Location: `CMakeLists.txt` (modified)
   - `OldFirmwareIsLogged`: the fixture map, which lacks `WORD_M1_VOLTAGE_EN`, yields the accessor-creation `debug`.
     - Covers the condition that the silent getters never report; the fixture map makes it deterministic.
 - `tests/src/backend/testSPIviaPCIe.cpp` (modified)
-  - `HandshakeErrorIsLogged`: an invalid SPI datagram makes the dummy answer with the error handshake; the `SPI/...`
+  - `HandshakeErrorIsLogged`: an invalid SPI datagram makes the dummy answer with the error handshake; the `SPI/<moduleName>`
     `error` arrives before the `ChimeraTK::runtime_error`.
     - Covers the SPI error site; the existing cases only use valid datagrams.
 - `tests/src/steppermotor/testStepperMotor.cc` (modified)
