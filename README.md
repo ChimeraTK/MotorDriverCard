@@ -18,7 +18,7 @@ The library is based on [ChimeraTK-DeviceAccess](https://github.com/ChimeraTK/De
 
 ## Requirements
 
-- A C++17 capable compiler (as required by ChimeraTK-DeviceAccess)
+- A C++23 capable compiler (as required by ChimeraTK-cppext)
 - CMake
 - ChimeraTK-DeviceAccess
 - ChimeraTK-cppext
@@ -29,26 +29,31 @@ The library is based on [ChimeraTK-DeviceAccess](https://github.com/ChimeraTK/De
 ## Building and installing
 
 ```sh
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=../install -GNinja ..
-ninja
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/wherever/you/want/to/install /path/to/the/source/code
+make
+make install
 ```
 
 Tests are built by default; disable them with `-DBUILD_TESTS=OFF`.
-Doxygen documentation is generated with `make doc` if Doxygen is available.
+Doxygen documentation is built by default as well and can be suppressed with
+`-DSUPPRESS_AUTO_DOC_BUILD=true`; `make doc` builds it on demand. Disabling the
+tests and the documentation build saves compilation time, but tests should not
+stay disabled permanently during development.
 
 ## Using the library
 
 Find the package in the `CMakeLists.txt` of your project:
 
 ```cmake
-find_package(ChimeraTK-DeviceAccess REQUIRED)
 find_package(mtca4u-MotorDriverCard REQUIRED)
 
 add_executable(myApp myApp.cpp)
 target_link_libraries(myApp PRIVATE ChimeraTK::mtca4u-MotorDriverCard)
 ```
+
+ChimeraTK-DeviceAccess is a dependency of the library and is pulled in by
+`find_package` and the exported targets, so it needs no separate
+`find_package` call.
 
 Header installation paths:
 
@@ -79,8 +84,9 @@ config file from physical motor parameters:
 MotorConfigCalculator out.xml iMax nStepsPerTurn maxRPM [timeToVMax] [endSwitchConfig] [microsteps]
 ```
 
-Alternatively, `QtMotorConfigCalculator` offers the same calculation in a
-graphical form, and `write_default_config` (run automatically by the build)
+`QtMotorConfigCalculator` is a graphical user interface for the same purpose
+that covers the configuration much more completely than the basic command line
+tool. In addition, `write_default_config` (run automatically by the build)
 produces `MotorDriverCardDefaultConfig.xml` with all default parameters.
 
 ## Repository layout
