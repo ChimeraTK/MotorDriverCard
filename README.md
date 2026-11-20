@@ -45,15 +45,12 @@ stay disabled permanently during development.
 Find the package in the `CMakeLists.txt` of your project:
 
 ```cmake
+find_package(ChimeraTK-DeviceAccess REQUIRED)
 find_package(mtca4u-MotorDriverCard REQUIRED)
 
 add_executable(myApp myApp.cpp)
 target_link_libraries(myApp PRIVATE ChimeraTK::mtca4u-MotorDriverCard)
 ```
-
-ChimeraTK-DeviceAccess is a dependency of the library and is pulled in by
-`find_package` and the exported targets, so it needs no separate
-`find_package` call.
 
 Header installation paths:
 
