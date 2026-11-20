@@ -14,10 +14,16 @@ The library reports its lifecycle and its own error sites through a logger that 
 
 - Use one logger for the whole process.
   - The caller may install one before the first card is created; until then a built-in default is used.
-- Accept any object an lvalue of which provides `debug()`, `info()`, `warn()` and `error()`.
-  - Each method takes a `std::string` topic.
-  - A topic is a short string naming the message source, so output can be filtered by prefix.
-  - Each method returns `std::ostream&`.
+- Accept either of two shapes, duck-typed at compile time; no inheritance either way.
+  - Topic-taking: `debug(std::string)`, `info(std::string)`, `warn(std::string)` and `error(std::string)`, each
+    returning `std::ostream&`.
+  - Module-style: `debug()`, `info()`, `warning()` (or `warn()`) and `error()`, each returning an `std::ostream`-derived
+    object that emits the line when it is destroyed.
+  - A `ChimeraTK::ApplicationModule` fits the module-style shape unchanged, so it can be installed with
+    `Logger::setGlobal(module)`.
+- A topic is a short string naming the message source, so output can be filtered by prefix.
+  - The topic-taking shape receives it as the argument; for the module-style shape the library prepends it to the
+    text.
 - Accept the object without inheritance: no pure virtual interface, no base class to derive from.
 - Provide a built-in default logger, so an unconfigured library still reports.
   - `debug` and `info` go to `stdout`, `warn` and `error` to `stderr`.
@@ -26,6 +32,8 @@ The library reports its lifecycle and its own error sites through a logger that 
 - Allow calls from any thread.
   - The library adds no locking around the caller's logger; it may call it while holding its own mutexes.
   - A logger method may log through the installed logger, and must not call back into the library.
+  - Nested calls on one thread work with the topic-taking shape; the module-style shape supports several threads but
+    not nesting.
 - Emit diagnostics at lifecycle points and at error sites.
   - Each class subsection under Specifications lists the messages it emits; no other class emits any.
   - No per-register logging.
@@ -44,16 +52,30 @@ Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
   - `util` becomes the shared base layer used by both `mtca4u` and `ChimeraTK::MotorDriver` code.
   - Library sources include `"Logger.h"`; installed callers include `ChimeraTK/MotorDriverCard/Logger.h`.
   - The existing install rule also exposes the header under `mtca4u/MotorDriverCard/`.
-- `template<typename L> concept LoggerLike`
+- `template<typename L> concept TopicLogger`
   - Satisfied when an lvalue of `L` provides `debug`, `info`, `warn` and `error`.
   - Each takes `std::string` and returns exactly `std::ostream&`.
-  - The concept is the only contract; the logger type stays unknown to the library.
+- `template<typename L> concept ModuleLogger`
+  - Satisfied when an lvalue of `L` provides `debug()`, `info()` and `error()` with no argument, and `warning()` or
+    `warn()` with no argument.
+  - Each returns a type derived from `std::ostream`; the object is a temporary that emits on destruction, as
+    `ChimeraTK::Logger::StreamProxy` and `ApplicationModule::debug()` do.
+- `template<typename L> concept LoggerLike = TopicLogger<L> || ModuleLogger<L>`
+  - The concepts are the only contract; the logger type stays unknown to the library.
 - `class Logger`
   - Concrete, non-virtual, non-owning handle; trivially copyable.
   - Manual type erasure: one `void*` for the logger object and four function pointers of type
     `std::ostream& (*)(void*, std::string)`.
   - `template<LoggerLike L> Logger(L& logger)`
     - Stores the logger address and instantiates the four forwarders; the logger object itself is never copied.
+    - `TopicLogger` forwarders pass object, topic and stream through unchanged.
+    - `ModuleLogger` forwarders normalise to the same signature:
+      - Per level, a function that replaces a `thread_local` heap-allocated line object with the one the logger
+        returns, then writes `topic` and `": "` into it, and returns its `std::ostream&`.
+      - The heap object is constructed with guaranteed copy elision, so a non-movable `StreamProxy` works.
+      - Replacing the object destroys the previous one, which emits the previous line; the `thread_local` holder
+        does the same at thread exit.
+      - The forwarder looks up the topic-taking member first and falls back to `warning()` for `warn`.
     - Not `explicit`, so a logger object converts where a `Logger` is expected.
     - Constrained to reject `L = Logger`: otherwise this constructor would beat the copy constructor for a non-const
       `Logger` lvalue and store a pointer to a handle.
@@ -63,6 +85,8 @@ Location: `util/include/Logger.h` (new), `util/src/Logger.cc` (new)
   - `std::ostream& debug(std::string topic) const`
     - Same for `info`, `warn` and `error`.
     - Forwards object, topic and the returned stream reference; no other work.
+    - With a module-style logger the reference stays valid until the next log call on the same thread.
+    - With a module-style logger the returned reference stays valid until the next log call on the same thread.
   - `static void setGlobal(Logger logger)`
     - Replaces the process-wide handle.
     - The caller keeps ownership: the library stores a pointer to the logger object, not a copy.
@@ -222,6 +246,8 @@ Location: `CMakeLists.txt` (modified)
 - `std::function` per level instead of function pointers: allocates and adds an indirection per call for no gain.
 - An unbound handle that discards: an unconfigured library would stay silent, contrary to the default-logger
   requirement.
+- Requiring the caller to write an adapter for `ApplicationModule`: the module already has the four stream accessors, so
+  the library normalises them instead of pushing that boilerplate onto every application.
 
 ## Test plan
 
@@ -231,9 +257,15 @@ Location: `CMakeLists.txt` (modified)
   - `RecordsLevelTopicAndText`: a recording logger installed with `setGlobal()` receives the topic and the streamed
     text on each of the four levels; a message written through a copy of the handle arrives at the same logger.
     - Covers the four forwarders, the topic argument, `setGlobal()`/`global()` and the defaulted copy operations.
-  - `ConceptAcceptsAndRejects`: `static_assert` that a recording logger satisfies `LoggerLike`, that a type missing
-    one method does not, and that a method returning `std::ostream` by value does not.
-    - Covers the concept constraint and the exact return type, which no runtime case can show.
+  - `ConceptAcceptsAndRejects`: `static_assert` that a recording logger satisfies `TopicLogger`, that a mock module
+    with `debug()`, `info()`, `warning()` and `error()` satisfies `ModuleLogger`, that a type missing one method
+    satisfies neither, and that a method returning `std::ostream` by value does not satisfy `TopicLogger`.
+    - Covers both concept constraints and the exact return type, which no runtime case can show.
+  - `AcceptsModuleStyleLogger`: a mock module whose accessors return a `std::ostream`-derived temporary emitting on
+    destruction is installed with `setGlobal()`; a message arrives as `<topic>: <text>` and the level maps `warn` to
+    `warning()`.
+    - Covers the module-style normalisation, the topic prefix and the delayed emission; the topic-taking path is
+      covered by `RecordsLevelTopicAndText`.
   - `CPlusPlusVersion`: `static_assert(__cplusplus >= 202302L)`.
     - Covers the C++23 setting of the test targets; the library has no runtime check.
   - `DefaultLoggerIsUsedUntilReplaced`: a handle taken from `global()` before any `setGlobal()` writes a line; after
