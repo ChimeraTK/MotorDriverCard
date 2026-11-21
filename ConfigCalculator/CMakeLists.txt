@@ -49,4 +49,11 @@ if(TESTING_IS_ENABLED)
 
 endif(TESTING_IS_ENABLED)
 
-add_subdirectory(GUI)
+# The GUI is optional: it needs Qt, which is not available on every build host. The version bound matches the
+# requirement of the GUI, so an older Qt skips the GUI instead of failing inside it.
+find_package(QT 5.14 NAMES Qt6 Qt5 COMPONENTS Core Network Widgets Gui)
+if(QT_FOUND)
+  add_subdirectory(GUI)
+else()
+  message(STATUS "Qt not found, not building the ConfigCalculator GUI")
+endif()

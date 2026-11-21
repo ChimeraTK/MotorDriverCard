@@ -16,7 +16,14 @@ namespace ChimeraTK::MotorDriver {
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
     try {
-      findEndSwitch(Sign::POSITIVE); // "home direction search"
+      // A switch which is already active has to release first, otherwise homing would not leave its position.
+      if(_motor.isEndSwitchActive(Sign::POSITIVE)) {
+        moveOffEndSwitch();
+      }
+
+      if(!_stopAction.load() && !_moveInterrupted.load()) {
+        findEndSwitch(Sign::POSITIVE); // "home direction search"
+      }
       int homePosition = _motor.getCurrentPositionInSteps();
 
       if(_moveInterrupted.load() || _stopAction.load()) {
@@ -53,25 +60,53 @@ namespace ChimeraTK::MotorDriver {
     _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
   }
 
-  void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
+  bool RotaryStepperMotorStateMachine::waitForSwitchState(Sign watchSign, Sign direction, bool wanted) {
+    // A motor that does not move for a chunk leaves target and position untouched, so the search would take the full
+    // timeout. Detect that per chunk instead.
     auto startTime = std::chrono::steady_clock::now();
-    constexpr int HOMING_TIMEOUT_MS = 60000;
-    while(!_motor.isEndSwitchActive(sign)) {
-      if(_stopAction.load() || _moveInterrupted.load()) {
-        return;
+    while(_motor.isEndSwitchActive(watchSign) != wanted) {
+      // A stop is an abort, not an interruption, so _moveInterrupted stays untouched.
+      if(_stopAction.load()) {
+        return false;
+      }
+      if(_moveInterrupted.load()) {
+        return false;
       }
       auto now = std::chrono::steady_clock::now();
       if(std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count() > HOMING_TIMEOUT_MS) {
         _moveInterrupted.exchange(true);
-        return;
+        return false;
       }
+      int targetPositionBeforeMove = _motor.getTargetPositionInSteps();
+      moveToEndSwitch(direction);
+      if(_motor.getTargetPositionInSteps() == targetPositionBeforeMove) {
+        _moveInterrupted.exchange(true);
+        return false;
+      }
+      if(_moveInterrupted.load()) {
+        return false;
+      }
+      // A move which leaves the target behind while neither reference is active is blocked.
       if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
           !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
         _moveInterrupted.exchange(true);
-        return;
+        return false;
       }
-      moveToEndSwitch(sign);
     }
+
+    return true;
+  }
+
+  /********************************************************************************************************************/
+
+  void RotaryStepperMotorStateMachine::moveOffEndSwitch() {
+    waitForSwitchState(Sign::POSITIVE, Sign::NEGATIVE, false);
+  }
+
+  /********************************************************************************************************************/
+
+  void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
+    waitForSwitchState(sign, sign, true);
   }
 
   int RotaryStepperMotorStateMachine::getPositionEndSwitch(Sign sign) {

@@ -14,6 +14,12 @@ namespace ChimeraTK::MotorDriver {
 
    protected:
     void performCalibration() override;
+    /// Searches for the wanted watch switch state in chunks of getOffset() towards direction. Aborts on stop, on a
+    /// blocked move, on a move while neither reference is active, and on timeout; sets _moveInterrupted for the latter
+    /// two, and for the move check, but not for a stop.
+    bool waitForSwitchState(Sign watchSign, Sign direction, bool wanted);
+    /// Moves the motor negatively in chunks of getOffset() until an active positive end switch releases.
+    void moveOffEndSwitch();
     void calculateToleranceValues() override;
     int getPositionEndSwitch(Sign) override;
     void findEndSwitch(Sign sign) override;

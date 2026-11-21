@@ -3,11 +3,23 @@
 
 #include "RotaryStepperMotor.h"
 
+#include "MotorControler.h"
 #include "RotaryStepperMotorStateMachine.h"
 
 namespace ChimeraTK::MotorDriver {
 
   RotaryStepperMotor::RotaryStepperMotor(const StepperMotorParameters& parameters)
   : ReferenceStepperMotor(parameters, std::make_shared<RotaryStepperMotorStateMachine>(*this)) {}
+
+  /********************************************************************************************************************/
+
+  bool RotaryStepperMotor::verifyMoveAction() {
+    // Verifies that a completed move ran to its end, not that the motor is calibrated. The negative switch bit is
+    // meaningless here and would mask a blocked move, so it is not consulted.
+    bool endSwitchActive = isEndSwitchActive(Sign::POSITIVE);
+    bool positionMatch = _motorController->getTargetPosition() == _motorController->getActualPosition();
+
+    return endSwitchActive || positionMatch;
+  }
 
 } // namespace ChimeraTK::MotorDriver
