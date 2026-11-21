@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: IMPLEMENTED (from DONE)
+- Status: READY TO TEST (from DONE)
 
 ## Requirements
 
@@ -254,6 +254,17 @@ Fixture premises for the cases above:
 
 ## Deferred issue
 
-- DI-1 [IMPLEMENTED] Class comment of `RotaryStepperMotor`: specify the four
-  points and mark the XML example with a fenced code block, so Doxygen keeps it
-  verbatim and reports no warning.
+- DI-1 [DONE] Class comment of `RotaryStepperMotor`: specify the four points and
+  mark the XML example with a fenced code block, so Doxygen keeps it verbatim
+  and reports no warning.
+- DI-2 [ACCEPTED] The fixture block of the Test plan
+  (`tests/src/steppermotor/testRotaryStepperMotor.cc`) says
+  `resetInternalStateToDefaults()` does not restore the end-switch positions, so
+  the fixture sets both. `RotaryStepperMotorFixture`
+  (tests/src/steppermotor/testRotaryStepperMotor.cc:102-104) calls
+  `setPositiveEndSwitch()`/`setNegativeEndSwitch()` before
+  `resetInternalStateToDefaults()`, but the latter only resets the enable flags
+  and not the positions (backend/src/MotorControlerDummy.cc,
+  `resetInternalStateToDefaults()`). The stated reasoning is therefore wrong,
+  while the resulting fixture is correct and has to stay. The premise should be
+  corrected in a later plan revision.
