@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: TESTS PASSED (from DONE)
+- Status: STYLE REVIEWED (from DONE)
 
 ## Requirements
 
@@ -399,3 +399,13 @@ Fixture premises for the cases above:
   `BOOST_TEST(static_cast<int>(_stepperMotor->getError()) ==
   static_cast<int>(Error::CALIBRATION_ERROR));` to the case; no implementation
   change is needed.
+- DI-17 [ACCEPTED] Two comment-only additions are outside the change request's
+  specified change set and no Deferred issue records them: a Doxygen block for
+  `utility::StateMachine::getCurrentState()` in
+  `util/include/StateMachine.h:111-119` (that file is not listed in any
+  Specification Location) and the missing `@param stateMachine` added to the
+  constructor comment in `steppermotor/include/ReferenceStepperMotor.h:29` (the
+  file is listed, the member comment change is not). Neither changes behaviour,
+  both are accurate and consistent with the existing comment style, so they do
+  not justify another round; recorded so the final review sees the unreported
+  extra edit.
