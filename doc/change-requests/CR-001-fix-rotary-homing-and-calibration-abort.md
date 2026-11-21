@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: IMPLEMENTATION REVIEWED (from DONE)
+- Status: IMPLEMENTED (from DONE)
 
 ## Requirements
 
@@ -385,3 +385,17 @@ Fixture premises for the cases above:
   asserted at `:456-457`, so only the quotation marks misattribute wording that
   the document does not contain. A wording fix in the test comment is not worth
   another round.
+- DI-16 [DEFECT] Test case `StopDuringCalibrationStopsMotor` lacks the error
+  assertion the Test plan requires. The plan bullet
+  `StopDuringHomingSearchStopsMotor` states "The error is
+  `Error::CALIBRATION_ERROR` and the mode `CalibrationMode::NONE`", but the case
+  (tests/src/steppermotor/testRotaryStepperMotor.cc:375-394) only checks
+  standstill, target equality, the `idle` state and `CalibrationMode::NONE` at
+  :393, with no `getError()` check. Its sibling
+  `StopDuringReleaseSearchStopsMotor` does assert it (:431), and the assertion
+  holds for this path too, because `performCalibration()` sets
+  `Error::CALIBRATION_ERROR` on abort when `_stopAction` is set
+  (steppermotor/src/RotaryStepperMotorStateMachine.cc:28-33). Add
+  `BOOST_TEST(static_cast<int>(_stepperMotor->getError()) ==
+  static_cast<int>(Error::CALIBRATION_ERROR));` to the case; no implementation
+  change is needed.
