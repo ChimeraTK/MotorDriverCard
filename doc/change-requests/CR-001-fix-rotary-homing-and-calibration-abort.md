@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: READY TO TEST (from DONE)
+- Status: IMPLEMENTED (from DONE)
 
 ## Requirements
 
@@ -268,3 +268,25 @@ Fixture premises for the cases above:
   `resetInternalStateToDefaults()`). The stated reasoning is therefore wrong,
   while the resulting fixture is correct and has to stay. The premise should be
   corrected in a later plan revision.
+- DI-3 [DEFECT] Test plan of `tests/src/steppermotor/testRotaryStepperMotor.cc`
+  lists the case `MoveAwayFromSwitchCompletes` (plain move away from the switch,
+  covers the disjunction of `verifyMoveAction()` while the positive switch is
+  inactive), naming the test case and its reasoning. The case does not exist:
+  `tests/src/steppermotor/testRotaryStepperMotor.cc` defines no such
+  `BOOST_AUTO_TEST_CASE` and `./testRotaryStepperMotor --list_content` does not
+  show it, so the planned test is missing.
+- DI-4 [ACCEPTED] The case names in the test plan and in the code differ for
+  several cases whose behaviour is covered:
+  `BlockedReleaseSearchReportsCalibrationError` vs
+  `BlockedMotorDuringReleaseSearchFailsWithCalibrationError`,
+  `NegativeSwitchBitIgnoredForRotary` vs `NegativeSwitchBitIsIgnored`,
+  `BlockedRotaryMoveReportedInterrupted` vs `BlockedMoveReportedAsInterrupted`,
+  `DisableDuringCalibrationStopsMotor` vs
+  `DisableDuringCalibrationStopsMotorAndDisables`. Behaviour and coverage match
+  the plan; only the names differ.
+- DI-5 [ACCEPTED] Beyond the `MoveAwayFromSwitchCompletes` content, the
+  disjunction of `verifyMoveAction()` while the positive switch is inactive is
+  covered by `ToleranceCalculationSucceedsAfterHoming`, which the Test plan does
+  not list. The other direction of the disjunction (switch bit accepts a move
+  that stopped at the switch with target above actual) is not exercised by any
+  test, because the plan's cases leave the calibration guard out of scope.
