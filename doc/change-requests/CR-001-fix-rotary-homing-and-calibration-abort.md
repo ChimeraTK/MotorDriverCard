@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: STYLE REVIEWED (from DONE)
+- Status: IMPLEMENTATION REVIEWED (from DONE)
 
 ## Requirements
 
@@ -360,3 +360,28 @@ Fixture premises for the cases above:
   the existing test sources (e.g.
   tests/src/steppermotor/testStepperMotor.cc:4-5), and the types are used, so
   the includes were kept. Left as is rather than diverging from the other tests.
+- DI-14 [ACCEPTED] The two new `_calibrating` transitions do not pass
+  `actionEndCallback()` as their internal callback, although the Specifications
+  say each `keeps actionEndCallback() as its internal callback`:
+  `steppermotor/src/ReferenceStateMachine.cc:33-36` (stop) and `:44-45`
+  (disable) pass only the entry lambda, so
+  `StateMachine::State::setTransition()` (`util/include/StateMachine.h:91-93`)
+  installs its default empty callback. The behaviour still matches the
+  Specifications: the internal callback installed when `_calibrating` is entered
+  is `actionEndCallback` (`:26`), and `performTransition()` defers the state
+  change while `_asyncActionActive` is set (`util/src/StateMachine.cc:87-92`),
+  so the end callback still moves the machine to `_idle`/`_disabled` after the
+  worker has cleared the flag, and `motorActive()` stays true until then. Only
+  the callback that `_idle`/`_disabled` receives afterwards differs, and neither
+  state has an internal event. Passing the redundant argument would change
+  nothing, so no rework is requested.
+- DI-15 [ACCEPTED] The comment of
+  `DisableDuringCalibrationStopsMotorAndDisables` quotes the second requirement
+  with an extra clause: `tests/src/steppermotor/testRotaryStepperMotor.cc:438`
+  quotes "The motor must end in the disabled state with motor current and
+  end-switch power off.", but the Requirements only read "The motor must end in
+  the disabled state." The additional clause is true per the Specifications
+  (`actionDisable()` switches motor current and end-switch power off) and is
+  asserted at `:456-457`, so only the quotation marks misattribute wording that
+  the document does not contain. A wording fix in the test comment is not worth
+  another round.
