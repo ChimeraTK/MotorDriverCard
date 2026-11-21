@@ -249,6 +249,37 @@ BOOST_AUTO_TEST_CASE(ToleranceCalculationSucceedsAfterHoming) {
 }
 
 /**
+ * Specification: `RotaryStepperMotor::verifyMoveAction()`.
+ *
+ * "Accept the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target position equals the actual
+ * position."
+ *
+ * A plain move away from the switch completes with the positive switch inactive and the target reached. With the two
+ * conditions combined as a conjunction the completed move would be reported as interrupted.
+ */
+BOOST_AUTO_TEST_CASE(MoveAwayFromSwitchCompletes) {
+  startCalibration();
+  runCalibrationToEnd();
+  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
+
+  // Calibration left the motor on the positive end switch, so the target has to be below the switch for the move to
+  // run with the switch inactive.
+  const int moveTarget = POSITIVE_END_SWITCH_POSITION - END_SWITCH_SEARCH_OFFSET;
+  BOOST_TEST_REQUIRE(
+      static_cast<int>(_stepperMotor->setTargetPositionInSteps(moveTarget)) == static_cast<int>(ExitStatus::SUCCESS));
+  _stepperMotor->start();
+  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->getState() == "moving"; }));
+
+  driveTo(moveTarget);
+  BOOST_TEST(_motorControlerDummy->isMotorMoving() == false);
+
+  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
+  BOOST_TEST(_stepperMotor->isPositiveReferenceActive() == false);
+  BOOST_TEST(_stepperMotor->getCurrentPositionInSteps() == moveTarget);
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::NO_ERROR));
+}
+
+/**
  * Specification: `ReferenceStateMachine`.
  *
  * "`_calculatingTolerance` shares `actionStop()`, so stopping a tolerance calculation also commands standstill."

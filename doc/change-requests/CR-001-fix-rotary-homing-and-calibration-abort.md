@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: IMPLEMENTED (from DONE)
+- Status: READY TO TEST (from DONE)
 
 ## Requirements
 
@@ -268,10 +268,11 @@ Fixture premises for the cases above:
   `resetInternalStateToDefaults()`). The stated reasoning is therefore wrong,
   while the resulting fixture is correct and has to stay. The premise should be
   corrected in a later plan revision.
-- DI-3 [DEFECT] Test plan of `tests/src/steppermotor/testRotaryStepperMotor.cc`
-  lists the case `MoveAwayFromSwitchCompletes` (plain move away from the switch,
-  covers the disjunction of `verifyMoveAction()` while the positive switch is
-  inactive), naming the test case and its reasoning. The case does not exist:
+- DI-3 [IMPLEMENTED] Test plan of
+  `tests/src/steppermotor/testRotaryStepperMotor.cc` lists the case
+  `MoveAwayFromSwitchCompletes` (plain move away from the switch, covers the
+  disjunction of `verifyMoveAction()` while the positive switch is inactive),
+  naming the test case and its reasoning. The case does not exist:
   `tests/src/steppermotor/testRotaryStepperMotor.cc` defines no such
   `BOOST_AUTO_TEST_CASE` and `./testRotaryStepperMotor --list_content` does not
   show it, so the planned test is missing.
