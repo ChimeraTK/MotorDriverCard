@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: READY TO TEST (from DONE)
+- Status: TESTS PASSED (from DONE)
 
 ## Requirements
 
