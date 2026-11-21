@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: READY TO TEST (from DONE)
+- Status: TESTS PASSED (from DONE)
 
 ## Requirements
 
@@ -385,8 +385,8 @@ Fixture premises for the cases above:
   asserted at `:456-457`, so only the quotation marks misattribute wording that
   the document does not contain. A wording fix in the test comment is not worth
   another round.
-- DI-16 [IMPLEMENTED] Test case `StopDuringCalibrationStopsMotor` lacks the
-  error assertion the Test plan requires. The plan bullet
+- DI-16 [DONE] Test case `StopDuringCalibrationStopsMotor` lacks the error
+  assertion the Test plan requires. The plan bullet
   `StopDuringHomingSearchStopsMotor` states "The error is
   `Error::CALIBRATION_ERROR` and the mode `CalibrationMode::NONE`", but the case
   (tests/src/steppermotor/testRotaryStepperMotor.cc:375-394) only checks
