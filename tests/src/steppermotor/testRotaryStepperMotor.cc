@@ -391,6 +391,7 @@ BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
   BOOST_TEST(_stepperMotor->getCurrentPositionInSteps() == positionAfterStop);
   BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
   BOOST_TEST(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::NONE));
+  BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::CALIBRATION_ERROR));
 }
 
 /**
