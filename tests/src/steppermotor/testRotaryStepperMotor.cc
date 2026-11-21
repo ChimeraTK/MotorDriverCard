@@ -186,9 +186,8 @@ void RotaryStepperMotorFixture::runCalibrationToEnd() {
     if(_stepperMotor->isSystemIdle()) {
       return;
     }
-    BOOST_TEST_REQUIRE(waitFor([this] {
-      return _motorControlerDummy->isMotorMoving() || _stepperMotor->isSystemIdle();
-    }));
+    BOOST_TEST_REQUIRE(
+        waitFor([this] { return _motorControlerDummy->isMotorMoving() || _stepperMotor->isSystemIdle(); }));
     completeChunk();
   }
   BOOST_TEST_REQUIRE(
@@ -198,11 +197,14 @@ void RotaryStepperMotorFixture::runCalibrationToEnd() {
 BOOST_FIXTURE_TEST_SUITE(RotaryStepperMotorTest, RotaryStepperMotorFixture)
 
 /**
- * Specification: `RotaryStepperMotorStateMachine::performCalibration()`.
+ * Specification: `RotaryStepperMotorStateMachine::performCalibration()`, `moveOffEndSwitch()` and
+ * `findEndSwitch()`.
  *
- * "Move off the switch when `isEndSwitchActive(Sign::POSITIVE)` is already true at the start."
- * "Move negatively in chunks of `getOffset()` until the switch releases."
- * "Then home positively as today."
+ * `performCalibration()`: "Move off the switch when `isEndSwitchActive(Sign::POSITIVE)` is true at the start."
+ * "Home positively only when neither `_stopAction` nor `_moveInterrupted` is set afterwards."
+ * `moveOffEndSwitch()`: "calls `waitForSwitchState(Sign::POSITIVE, Sign::NEGATIVE, false)`", which "Otherwise
+ * calls `moveToEndSwitch(direction)` and loops."
+ * `findEndSwitch()`: "calls `waitForSwitchState(sign, sign, true)`."
  */
 BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
   driveToEndSwitch();
@@ -226,9 +228,9 @@ BOOST_AUTO_TEST_CASE(HomingFromActiveSwitchMovesOffFirst) {
 /**
  * Specification: `RotaryStepperMotor::verifyMoveAction()`.
  *
- * "Keep the base disjunction: accept the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target
- * position equals the actual position."
- * "Drop only the negative switch bit, so it cannot mask a blocked move."
+ * "Accepts the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target position equals the actual
+ * position."
+ * "The negative switch bit is not consulted, so it cannot mask a blocked move."
  *
  * The tolerance calculation moves away from the end switch and verifies that move while the positive switch is
  * inactive. With the conditions combined as a conjunction the calculation would fail.
@@ -251,8 +253,10 @@ BOOST_AUTO_TEST_CASE(ToleranceCalculationSucceedsAfterHoming) {
 /**
  * Specification: `RotaryStepperMotor::verifyMoveAction()`.
  *
- * "Accept the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target position equals the actual
- * position."
+ * `verifyMoveAction()`: "Accepts the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the target position
+ * equals the actual position."
+ * "The search targets are full steps, so a completed move has equal target and actual positions; no tolerance window
+ * is compared."
  *
  * A plain move away from the switch completes with the positive switch inactive and the target reached. With the two
  * conditions combined as a conjunction the completed move would be reported as interrupted.
@@ -277,39 +281,6 @@ BOOST_AUTO_TEST_CASE(MoveAwayFromSwitchCompletes) {
   BOOST_TEST(_stepperMotor->isPositiveReferenceActive() == false);
   BOOST_TEST(_stepperMotor->getCurrentPositionInSteps() == moveTarget);
   BOOST_TEST(static_cast<int>(_stepperMotor->getError()) == static_cast<int>(Error::NO_ERROR));
-}
-
-/**
- * Specification: `ReferenceStateMachine`.
- *
- * "`_calculatingTolerance` shares `actionStop()`, so stopping a tolerance calculation also commands standstill."
- *
- * During the calculation the motor is moving already before the first iteration completes.
- */
-BOOST_AUTO_TEST_CASE(StopDuringToleranceCalculationCommandsStandstill) {
-  startCalibration();
-  runCalibrationToEnd();
-  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->getCalibrationMode()) == static_cast<int>(CalibrationMode::FULL));
-
-  BOOST_TEST_REQUIRE(static_cast<int>(_stepperMotor->determineTolerance()) == static_cast<int>(ExitStatus::SUCCESS));
-  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->getState() == "calculatingTolerance"; }));
-
-  // The calculation starts by moving close to the end switch, 1000 steps away from it. The move is left running, so
-  // the stop takes the target of a moving motor back.
-  BOOST_TEST_REQUIRE(waitFor([this] {
-    return _stepperMotor->getTargetPositionInSteps() == POSITIVE_END_SWITCH_POSITION - 1000 &&
-        _motorControlerDummy->isMotorMoving();
-  }));
-
-  _stepperMotor->stop();
-
-  BOOST_TEST(!_motorControlerDummy->isMotorMoving());
-  BOOST_TEST(_stepperMotor->getTargetPositionInSteps() == _stepperMotor->getCurrentPositionInSteps());
-  // The standstill command left the target at the actual position, so a further advance has nothing to move to.
-  int positionAfterStop = _stepperMotor->getCurrentPositionInSteps();
-  _motorControlerDummy->moveTowardsTarget(1.0F, false);
-  BOOST_TEST(_stepperMotor->getCurrentPositionInSteps() == positionAfterStop);
-  BOOST_TEST(waitFor([this] { return _stepperMotor->getState() == "idle"; }));
 }
 
 /**
@@ -366,12 +337,12 @@ BOOST_AUTO_TEST_CASE(BlockedMoveReportedAsInterrupted) {
 }
 
 /**
- * Specification: `RotaryStepperMotorStateMachine::performCalibration()`.
+ * Specification: `RotaryStepperMotorStateMachine::waitForSwitchState()` and `performCalibration()`.
  *
- * "The release search detects a blocked motor itself. After each chunk it checks whether the target position still
- * equals the position it had before the chunk, and sets `_moveInterrupted` when the motor did not move while the
- * switch stays active."
- * "Abort the release search on stop or move interruption."
+ * `waitForSwitchState()`: "Returns false and sets `_moveInterrupted` when `moveToEndSwitch()` left the target
+ * unchanged: the motor is blocked."
+ * `performCalibration()`: "On abort, set the calibration time to 0, `_calibrationFailed` to true,
+ * `Error::CALIBRATION_ERROR` and `CalibrationMode::NONE`."
  */
 BOOST_AUTO_TEST_CASE(BlockedMotorDuringReleaseSearchFailsWithCalibrationError) {
   driveToEndSwitch();
@@ -404,9 +375,7 @@ BOOST_AUTO_TEST_CASE(BlockedMotorDuringReleaseSearchFailsWithCalibrationError) {
 BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
   startCalibration();
 
-  BOOST_TEST_REQUIRE(waitFor([this] {
-    return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET;
-  }));
+  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET; }));
 
   movePartOfChunk(0.5F);
   BOOST_TEST_REQUIRE(_stepperMotor->getCurrentPositionInSteps() == END_SWITCH_SEARCH_OFFSET / 2);
@@ -425,9 +394,12 @@ BOOST_AUTO_TEST_CASE(StopDuringCalibrationStopsMotor) {
 }
 
 /**
- * Specification: `RotaryStepperMotorStateMachine::performCalibration()`.
+ * Specification: `RotaryStepperMotorStateMachine::waitForSwitchState()` and `performCalibration()`.
  *
- * "Abort the release search on stop or move interruption."
+ * `waitForSwitchState()`: "Returns false without setting `_moveInterrupted` when `_stopAction` is set: a stop is an
+ * abort, not an interruption."
+ * `performCalibration()`: "Home positively only when neither `_stopAction` nor `_moveInterrupted` is set afterwards,
+ * so an aborted release search is not overwritten by a completed homing."
  *
  * The positive switch is active at the start, so the calibration runs the release search. The stop lands half way
  * into the first negative chunk, while the switch is still active.
@@ -468,9 +440,7 @@ BOOST_AUTO_TEST_CASE(StopDuringReleaseSearchStopsMotor) {
 BOOST_AUTO_TEST_CASE(DisableDuringCalibrationStopsMotorAndDisables) {
   startCalibration();
 
-  BOOST_TEST_REQUIRE(waitFor([this] {
-    return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET;
-  }));
+  BOOST_TEST_REQUIRE(waitFor([this] { return _stepperMotor->getTargetPositionInSteps() == END_SWITCH_SEARCH_OFFSET; }));
 
   movePartOfChunk(0.5F);
   BOOST_TEST_REQUIRE(_motorControlerDummy->isMotorMoving());

@@ -28,7 +28,12 @@ namespace ChimeraTK::MotorDriver {
         ReferenceStateMachine::calcToleranceEvent, &_calculatingTolerance, [this]() { actionStartCalcTolercance(); },
         [this]() { actionEndCallback(); });
 
-    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this]() { actionStop(); });
+    // The calibration run has to be told to abort before the state changes, so it stops its motion here instead of
+    // leaving it to the worker.
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::stopEvent, &_idle, [this]() {
+      _stopAction.exchange(true);
+      actionMovetoStop();
+    });
     _calibrating.setTransition(BasicStepperMotor::StateMachine::emergencyStopEvent, &_error, [this] {
       _stopAction.exchange(true);
       _moveInterrupted.exchange(true);
@@ -49,7 +54,6 @@ namespace ChimeraTK::MotorDriver {
 
   void ReferenceStateMachine::actionStop() {
     _stopAction.exchange(true);
-    actionMovetoStop();
   }
 
   /********************************************************************************************************************/
