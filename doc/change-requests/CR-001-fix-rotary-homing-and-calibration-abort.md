@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: TESTS PASSED (from DONE)
+- Status: STYLE REVIEWED (from DONE)
 
 ## Requirements
 
@@ -324,3 +324,39 @@ Fixture premises for the cases above:
   has to quote the matching bullet of the current Specifications (respectively
   the `performCalibration()`, `RotaryStepperMotor::verifyMoveAction()` and
   `waitForSwitchState()` bullets) and name it.
+- DI-9 [ACCEPTED] The opening sentence of the RotaryStepperMotor class comment
+  reads "Rotate a stage continuously over 360 degrees on a stage without a
+  physical negative reference switch."
+  (steppermotor/include/RotaryStepperMotor.h:11). It duplicates "stage" and
+  phrases the class in the imperative rather than describing it. The four DI-1
+  points and the fenced XML block are present; only this first sentence is
+  clumsy.
+- DI-10 [ACCEPTED] The implementation extracts the disable transition of
+  _calibrating into a new protected member `void actionCalibDisable()`
+  (steppermotor/include/ReferenceStateMachine.h:37,
+  steppermotor/src/ReferenceStateMachine.cc:61-65), which the Specifications do
+  not list; they describe the three steps as the content of the lambda itself.
+  Behaviour and callback ordering match the Specifications, and the helper keeps
+  the transition readable, so no rework is requested.
+- DI-11 [ACCEPTED] Besides the specified changes,
+  steppermotor/src/ReferenceStateMachine.cc touches the tolerance calculation: a
+  new file-scope constant `tolerancePollPeriodInMilliseconds = 5U` (:15)
+  replaces `wakeupPeriodInMilliseconds` in both polls of
+  `getToleranceEndSwitch()` (:187, :205), and three `if(_stopAction.load()) {
+  break; }` guards were added (:173, :195). The Specifications say nothing about
+  this, and the Test plan states "No case for the tolerance calculation, which
+  the plan leaves untouched". Without the shorter poll the tolerance test cannot
+  finish inside its 10 s wait, so the change is necessary for the tests; the
+  plan wording is what became stale.
+- DI-12 [ACCEPTED] The declaration comment of `waitForSwitchState()`
+  (steppermotor/include/RotaryStepperMotorStateMachine.h:17-19) lists four abort
+  reasons in running text and then says "sets _moveInterrupted for the latter
+  two, and for the move check, but not for a stop". "the latter two" is
+  ambiguous and the four reasons would read better as sub-bullets; no functional
+  statement is wrong.
+- DI-13 [ACCEPTED] clang-tidy reports `misc-include-cleaner` for
+  `<boost/pointer_cast.hpp>` and `<boost/shared_ptr.hpp>` in the new test file
+  (tests/src/steppermotor/testRotaryStepperMotor.cc:14-15). The pattern matches
+  the existing test sources (e.g.
+  tests/src/steppermotor/testStepperMotor.cc:4-5), and the types are used, so
+  the includes were kept. Left as is rather than diverging from the other tests.

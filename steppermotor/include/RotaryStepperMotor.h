@@ -8,32 +8,28 @@ namespace ChimeraTK::MotorDriver {
   class RotaryStepperMotorStateMachine; // forward declare
 
   /**
-   * Rotate a stage continuously over 360 degrees on a stage without a physical
-   * negative reference switch.
+   * Rotate a stage continuously over 360 degrees on a stage without a physical negative reference switch.
    *
    * Switch semantics:
    *
    * - The stage has no physical negative reference switch.
-   * - hasNegativeReferenceSwitch() returns false, so isEndSwitchActive() ignores
-   *   the negative switch: it reports it as inactive, raises no error for both
-   *   end switches being active, and the negative branch of the tolerance check
-   *   is skipped.
+   * - hasNegativeReferenceSwitch() returns false, so isEndSwitchActive() ignores the negative switch: it reports it as
+   *   inactive, raises no error for both end switches being active, and the negative branch of the tolerance check is
+   *   skipped.
    * - limitsOK() skips the end-switch range check.
-   * - verifyMoveAction() does not consult the negative switch, so its bit cannot
-   *   mask a blocked move.
+   * - verifyMoveAction() does not consult the negative switch, so its bit cannot mask a blocked move.
    *
    * Hardware configuration:
    *
-   * At the hardware level, the TMC429 chip can also be configured to ignore end
-   * switches via the referenceConfigAndRampModeData register. The following XML
-   * entry sets this:
+   * At the hardware level, the TMC429 chip can also be configured to ignore end switches via the
+   * referenceConfigAndRampModeData register. The following XML entry sets this:
    *
    * ```
    * <Register name="referenceConfigAndRampModeData" value="0x300"/>
    * ```
    *
-   * The value 0x300 sets both the DISABLE_STOP_L and DISABLE_STOP_R bits, which
-   * tells the TMC429 to ignore both the left and the right end switch.
+   * The value 0x300 sets both the DISABLE_STOP_L and DISABLE_STOP_R bits, which tells the TMC429 to ignore both the
+   * left and the right end switch.
    */
   class RotaryStepperMotor : public ReferenceStepperMotor {
    public:

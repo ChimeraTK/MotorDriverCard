@@ -142,6 +142,7 @@ namespace ChimeraTK::MotorDriver {
     std::atomic<int> _calibPositiveEndSwitchInSteps{std::numeric_limits<int>::max()};
     std::atomic<float> _tolerancePositiveEndSwitch{0};
     std::atomic<float> _toleranceNegativeEndSwitch{0};
+
    protected:
     virtual bool positiveSwitchActive() const;
     virtual bool negativeSwitchActive() const;
