@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: IN PROGRESS (from DONE)
+- Status: PLANNED (from DONE)
 
 ## Requirements
 
@@ -26,6 +26,8 @@ Calibration abort:
 
 Rotary switch semantics:
 
+- The stage's negative reference switch is physically present and does not stop
+  the motion when passed.
 - A rotary motor must report the negative end switch as inactive.
 - The both-end-switches-active error must never be raised for a rotary motor.
 - Move verification must not treat the negative switch bit as a reason to
@@ -47,6 +49,7 @@ Location: `steppermotor/include/RotaryStepperMotorStateMachine.h`,
   protected):
   - Loops while `isEndSwitchActive(watchSign) != wanted`.
   - Checks in this order.
+  - Returns false when `_moveInterrupted` is already set.
   - Returns false without setting `_moveInterrupted` when `_stopAction` is set:
     a stop is an abort, not an interruption.
   - Returns false and sets `_moveInterrupted` when `HOMING_TIMEOUT_MS` expires.
@@ -111,7 +114,8 @@ Location: `steppermotor/include/ReferenceStepperMotor.h`,
 - `bool hasNegativeReferenceSwitch() const` (new, virtual, protected): returns
   true.
   - `RotaryStepperMotor` overrides it to false.
-  - This is the single place which decides that a negative switch is absent.
+  - This is the single place which decides the negative switch's part in homing
+    and in the limits.
 - `bool isEndSwitchActive(Sign sign)` (modified):
   - Computes the negative state as
     `hasNegativeReferenceSwitch() && negativeSwitchActive()`.
@@ -136,23 +140,24 @@ Location: `steppermotor/include/RotaryStepperMotor.h`,
     target position equals the actual position.
   - The switch bit accepts a move which stopped at the switch and left the
     target above the actual position.
-  - The search targets are full steps, so a completed move has equal target and
-    actual positions; no tolerance window is compared.
+  - The reached target accepts the move: a completed move leaves target and
+    actual position equal, so no tolerance window is compared.
   - The negative switch bit is not consulted, so it cannot mask a blocked move.
   - A calibration guard and a hardware tolerance stay out of scope.
   - Callers: `BasicStepperMotor::StateMachine::waitForStandstill()` and
     `ReferenceStateMachine::getToleranceEndSwitch()`.
-- Class comment (modified):
+- Class comment (modified), positive statements only:
+  - Describe the class as a stage which rotates continuously over 360 degrees.
   - State that the stage has a physical negative reference switch which does
     not stop the motion when passed.
   - State that `hasNegativeReferenceSwitch()` returns false, so the rotary
-    motor reports the negative end switch as inactive and `limitsOK()`
-    compares against the travel range only.
-  - State that the TMC429 can ignore end switches via
-    `referenceConfigAndRampModeData`.
+    motor reports the negative end switch as inactive and `limitsOK()` applies
+    the configured position limits instead of the calibrated end-switch
+    positions.
+  - State that the TMC429 end-switch stop inputs are configured through
+    `referenceConfigAndRampModeData`, with the rotary value `0x300`.
   - Mark the XML example with a fenced code block, so Doxygen keeps it
     verbatim.
-  - Documents the rotary switch semantics requirement.
 - Declaration comment of `verifyMoveAction()`, name the reached target, not
   "the position matches".
 
@@ -235,8 +240,9 @@ Fixture premises for the cases above:
   controller.
 - `moveTowardsTarget(1.0)` covers the whole remaining distance in one call, so a
   chunk is only open after a fractional move.
-- The dummy reports moving only while motor current is enabled and the target
-  differs from the actual position.
+- The dummy reports moving only while motor current is enabled, the target
+  differs from the actual position and the end switch in the travel direction
+  is inactive.
 - The dummy driver card is shared between the cases and
   `resetInternalStateToDefaults()` does not restore its end-switch positions, so
   the fixture sets both.
@@ -245,6 +251,9 @@ Fixture premises for the cases above:
 - Not covered: the `HOMING_TIMEOUT_MS` expiry, which outlasts the fixture's 10 s
   wait, and the active-reference exit, which needs a reference to report active
   while the target differs from the actual position.
+- Not covered: the XML value `0x300`, a deployment setting.
+- Not covered: the home position lands within one search offset of the switch;
+  narrowing that offset is outside this change.
 - No case for the tolerance calculation, which the plan leaves untouched.
 
 ### Qt-less configure (new)
@@ -425,19 +434,8 @@ Fixture premises for the cases above:
   class comment to state the physical switch and its semantics with positive
   statements about what the class does (rotation, the switch not stopping the
   motion when passed, the negative switch reporting as inactive, the
-  travel-range check), and drop the 'does not'/'ignores'/'skips' phrasing. Also
-  fix the mirrored wording in the Specification bullet, reported as a spec-edit
-  in the next problem.
-- DI-19 [SPEC-EDIT] The Specification prescribes the wrong class-comment content
-  and the 'what the code does not do' phrasing the user rejects. The stage has a
-  physical negative reference switch which does not stop the motion when passed,
-  and the comment must state positive facts only. The bullet count and structure
-  stay as they are; the code comment change is reported as a defect. Replace
-  ``- Class comment (modified): - State that the stage has no physical negative
-  reference switch. - State that `hasNegativeReferenceSwitch()` returns false
-  and that `limitsOK()` skips the end-switch range check.`` by ``- Class comment
-  (modified): - State that the stage has a physical negative reference switch
-  which does not stop the motion when passed. - State that
-  `hasNegativeReferenceSwitch()` returns false, so the rotary motor reports the
-  negative end switch as inactive and `limitsOK()` compares against the travel
-  range only.``.
+  travel-range check), and drop the 'does not'/'ignores'/'skips' phrasing.
+- DI-19 [FOLDED-IN] Class-comment Specification: state the physical negative
+  reference switch and its semantics, positive statements only, bullet count
+  and structure unchanged. Applied to the `RotaryStepperMotor` bullet list and
+  to the rotary switch semantics Requirement.
