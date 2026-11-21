@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: IN PROGRESS (from DONE)
+- Status: PLANNED (from DONE)
 
 ## Requirements
 
@@ -38,91 +38,136 @@ Build without Qt:
 
 ## Specifications
 
-`RotaryStepperMotorStateMachine::performCalibration()`:
+### RotaryStepperMotorStateMachine (modified)
 
-- Move off the switch when `isEndSwitchActive(Sign::POSITIVE)` is already true
-  at the start.
-- Move negatively in chunks of `getOffset()` until the switch releases.
-- Then home positively as today.
-- The release search detects a blocked motor itself. After each chunk it checks
-  whether the target position still equals the position it had before the
-  chunk, and sets `_moveInterrupted` when the motor did not move while the
-  switch stays active.
-- Abort the release search on stop or move interruption.
-- Share the homing timeout with `findEndSwitch()`; hoist the timeout constant so
-  both use it. Expiry follows the existing interrupted path.
+Location: `steppermotor/include/RotaryStepperMotorStateMachine.h`,
+`steppermotor/src/RotaryStepperMotorStateMachine.cc` (both modified).
 
-`ReferenceStateMachine`:
+- `bool waitForSwitchState(Sign watchSign, Sign direction, bool wanted)` (new,
+  protected):
+  - Loops while `isEndSwitchActive(watchSign) != wanted`.
+  - Checks in this order.
+  - Returns false without setting `_moveInterrupted` when `_stopAction` is set:
+    a stop is an abort, not an interruption.
+  - Returns false and sets `_moveInterrupted` when `HOMING_TIMEOUT_MS` expires.
+  - Returns false and sets `_moveInterrupted` when `moveToEndSwitch()` left the
+    target unchanged: the motor is blocked.
+  - Returns false and sets `_moveInterrupted` when the target differs from the
+    actual position while neither reference is active.
+  - Otherwise calls `moveToEndSwitch(direction)` and loops.
+- `void moveOffEndSwitch()` (new, protected): calls
+  `waitForSwitchState(Sign::POSITIVE, Sign::NEGATIVE, false)`.
+- `void findEndSwitch(Sign sign)` (modified): calls
+  `waitForSwitchState(sign, sign, true)`.
+- `void performCalibration()` (modified):
+  - Move off the switch when `isEndSwitchActive(Sign::POSITIVE)` is true at the
+    start.
+  - Home positively only when neither `_stopAction` nor `_moveInterrupted` is
+    set afterwards, so an aborted release search is not overwritten by a
+    completed homing.
+  - Store the home position as both calibrated end-switch positions.
+  - On abort, set the calibration time to 0, `_calibrationFailed` to true,
+    `Error::CALIBRATION_ERROR` and `CalibrationMode::NONE`.
+  - The `ChimeraTK::runtime_error` catch reports the same abort.
 
-- `actionStop()` sets `_stopAction` and commands standstill via
-  `actionMovetoStop()`.
-- The ordering of the standstill command and the worker's chunk targets comes
-  from the caller holding `_motor._mutex` while it dispatches the event
-  (`stop()`, `setEnabled()` and `calibrate()` all lock it before
-  `setAndProcessUserEvent()`). `actionStop()`, the disable action and
-  `actionMovetoStop()` must therefore not lock `_motor._mutex`; it is a
-  non-recursive `boost::mutex` and locking it again self-deadlocks.
-- The worker re-checks `_stopAction` while holding that mutex immediately before
-  issuing each chunk target, so no chunk is issued after a stop has been
-  processed.
-- The guarantee holds for the release search and for `findEndSwitch()` alike.
-- Add a `disableEvent` transition from `_calibrating` to `_disabled`.
-- Disable action: set `_stopAction`, command standstill, perform
-  `actionDisable()`.
-- The transition keeps the end callback of `_calibrating`, so the machine stays
-  in `_calibrating` until the worker has finished and cleared
-  `_asyncActionActive`. The callback then applies the requested `_disabled`
-  state: `actionEndCallback()` moves to the requested state before it performs
-  the stop transition, and `_disabled` has no stop transition. An aborted
-  calibration can therefore report its error before the disabled state is
-  entered.
-- An abort which came back without motion is reported as interrupted.
-  `performCalibration()` homes only when neither `_stopAction` nor
-  `_moveInterrupted` is set after the release search, so `findEndSwitch()`
-  cannot overwrite the early abort with a completed homing.
-- The background thread only clears `_asyncActionActive`. The requested state is
-  applied by the current state's internal end callback on the next state query.
-- Calibration end handling stays as is and reports the abort as a calibration
-  error.
+### ReferenceStateMachine (modified)
 
-`ReferenceStepperMotor::isEndSwitchActive(Sign)`:
+Location: `steppermotor/include/ReferenceStateMachine.h`,
+`steppermotor/src/ReferenceStateMachine.cc` (both modified).
 
-- Skip the negative switch checks when `hasNegativeReferenceSwitch()` is false.
-  The affected checks are the both-end-switches-active error, the tolerance
-  check and the `Sign::NEGATIVE` return value.
-- `negativeSwitchActive()` still reports the hardware bit. A motor without a
-  physical negative switch overrides `hasNegativeReferenceSwitch()` instead of
-  the bit itself.
-- Update the `RotaryStepperMotor` class comment accordingly.
+- `static constexpr int HOMING_TIMEOUT_MS = 60000` (new, protected): the search
+  timeout, owned here so further searches can share it.
+- Stop transition of `_calibrating` (modified): the lambda sets `_stopAction`
+  and calls `actionMovetoStop()`. The transition requests `_idle` and keeps
+  `actionEndCallback()` as its internal callback.
+- `disableEvent` transition from `_calibrating` to `_disabled` (new): the lambda
+  sets `_stopAction`, calls `actionMovetoStop()`, then `actionDisable()`.
+  `actionDisable()` moves to the full step and switches motor current and
+  end-switch power off. The transition keeps `actionEndCallback()` as its
+  internal callback.
+- `actionStop()` keeps its present body, so no other state which shares it
+  changes.
+- These lambdas and `actionMovetoStop()` do not lock `_motor._mutex`: `stop()`,
+  `setEnabled()` and `calibrate()` hold it while they dispatch the event, and it
+  is a non-recursive `boost::mutex`.
+- `void moveToEndSwitch(Sign sign)` (modified): re-checks `_stopAction` under
+  `_motor._mutex` immediately before setting the target, so no chunk target
+  follows a processed stop.
+- Both new transitions keep the end callback of `_calibrating`, so the machine
+  stays in `_calibrating` and `motorActive()` stays true until the worker has
+  cleared `_asyncActionActive`.
+  - `actionEndCallback()` then moves to the requested `_idle` or `_disabled`
+    state, so no second calibration can run beside the worker.
+  - `_disabled` has no stop transition, so the aborted calibration reports its
+    error before the disabled state is entered.
+- The background thread only clears `_asyncActionActive`; the calibration flags
+  are reset when the next calibration starts.
 
-`RotaryStepperMotor::verifyMoveAction()`:
+### ReferenceStepperMotor (modified)
 
-- Verifies that a completed move ran to its end, not that the motor is
-  calibrated.
-- Called after every move, from
-  `BasicStepperMotor::StateMachine::waitForStandstill()`.
-- Keep the base disjunction: accept the move when
-  `isEndSwitchActive(Sign::POSITIVE)` is true or the target position equals the
-  actual position.
-- The switch bit accepts a move which stopped at the switch and therefore left
-  the target above the actual position.
-- The search targets are full steps, so a completed move has equal target and
-  actual positions; no tolerance window is compared.
-- Drop only the negative switch bit, so it cannot mask a blocked move.
-- A calibration guard and a hardware tolerance stay out of scope.
-- Declaration comment in `steppermotor/include/RotaryStepperMotor.h`: name the
-  reached target, not "the position matches".
+Location: `steppermotor/include/ReferenceStepperMotor.h`,
+`steppermotor/src/ReferenceStepperMotor.cc` (both modified).
 
-`ConfigCalculator/CMakeLists.txt`:
+- `bool hasNegativeReferenceSwitch() const` (new, virtual, protected): returns
+  true.
+  - `RotaryStepperMotor` overrides it to false.
+  - This is the single place which decides that a negative switch is absent.
+- `bool isEndSwitchActive(Sign sign)` (modified):
+  - Computes the negative state as
+    `hasNegativeReferenceSwitch() && negativeSwitchActive()`.
+  - Skips the both-end-switches-active error and the `Sign::NEGATIVE` return
+    value when the negative switch is absent.
+  - The tolerance check keeps its positive branch; only the negative branch is
+    skipped.
+  - `negativeSwitchActive()` still reports the hardware bit.
+
+### RotaryStepperMotor (modified)
+
+Location: `steppermotor/include/RotaryStepperMotor.h`,
+`steppermotor/src/RotaryStepperMotor.cc` (both modified).
+
+- `bool hasNegativeReferenceSwitch() const override` (new): returns false.
+  - Replaces the present `negativeSwitchActive()` override, which hid the
+    hardware bit.
+- `bool verifyMoveAction() override` (new):
+  - Verifies that a completed move ran to its end, not that the motor is
+    calibrated.
+  - Accepts the move when `isEndSwitchActive(Sign::POSITIVE)` is true or the
+    target position equals the actual position.
+  - The switch bit accepts a move which stopped at the switch and left the
+    target above the actual position.
+  - The search targets are full steps, so a completed move has equal target and
+    actual positions; no tolerance window is compared.
+  - The negative switch bit is not consulted, so it cannot mask a blocked move.
+  - A calibration guard and a hardware tolerance stay out of scope.
+  - Callers: `BasicStepperMotor::StateMachine::waitForStandstill()` and
+    `ReferenceStateMachine::getToleranceEndSwitch()`.
+- Class comment (modified):
+  - State that the stage has no physical negative reference switch.
+  - State that `hasNegativeReferenceSwitch()` returns false and that
+    `limitsOK()` skips the end-switch range check.
+  - State that the TMC429 can ignore end switches via
+    `referenceConfigAndRampModeData`.
+  - Mark the XML example with a fenced code block, so Doxygen keeps it
+    verbatim.
+  - Documents the rotary switch semantics requirement.
+- Declaration comment of `verifyMoveAction()`, name the reached target, not
+  "the position matches".
+
+### ConfigCalculator/CMakeLists.txt (modified)
+
+Location: `ConfigCalculator/CMakeLists.txt` (modified).
 
 - Probe Qt once with
-  `find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network Widgets Gui)` and add
-  the `GUI` subdirectory only when `QT_FOUND` is set.
-- Skip the GUI with a status message when Qt is missing. The library and its
-  tests then configure and build on a host without Qt, while a host with Qt
+  `find_package(QT 5.14 NAMES Qt6 Qt5 COMPONENTS Core Network Widgets Gui)` and
+  add the `GUI` subdirectory only when `QT_FOUND` is set.
+  - The version bound matches the GUI's own Qt 5.14 requirement, so an older Qt
+    skips the GUI instead of failing inside it.
+- Skip the GUI with a status message when Qt is missing.
+- The library and its tests configure and build without Qt; a host with Qt
   keeps building the GUI as before.
-- The build settings are reproducible without a manual edit of the tree. No
-  library or test code changes.
+- Verification: configure with `-DCMAKE_DISABLE_FIND_PACKAGE_QT=ON` and with Qt
+  present.
 
 ### Alternatives considered
 
@@ -134,76 +179,81 @@ Build without Qt:
 - Running the internal event callback before returning the state from
   `utility::StateMachine::getCurrentState()`: rejected. For an instantaneous
   action the transition happens inside that callback, so the caller would never
-  observe the `moving` state. The one-call delay is intentional. The reorder
-  currently in `util/src/StateMachine.cc` and the matching
-  `tests/src/steppermotor/testStateMachine.cc` assertions are reverted.
+  observe the `moving` state. The one-call delay is intentional.
+- One search loop for both directions without a helper: rejected, the two loops
+  differ in their exit condition and share everything else, so
+  `waitForSwitchState()` carries the difference as a parameter.
 
 ## Test plan
 
-- Rotary motor, positive switch already active: motor moves off, ends in
-  `CalibrationMode::FULL`, both calibrated positions equal.
-- Rotary motor, positive switch forced to stay active and motor blocked: the
-  per-chunk blocked-move check aborts the release search; calibration error,
-  `CalibrationMode::NONE`.
-- Stop during calibration of the homing search (positive switch inactive at the
-  start): the motor is stopped half way into the first chunk, stands still and
-  ends idle.
-- Stop during calibration while the release search runs (positive switch active
-  at the start): the motor is stopped half way into the first negative chunk,
-  which releases the switch, while the motor is still on its way to the chunk
-  target. It ends idle. This covers the stop half of the release-search abort,
-  while the blocked-move case covers the interruption half.
-- `moveTowardsTarget(1.0)` completes the whole remaining distance to the target
-  in one call and returns without moving when the target equals the actual
-  position, so a chunk is only open after a fractional move. The dummy also
-  reports a motor as moving as soon as a target differs from its actual
-  position, so `isMotorMoving()` in a test means a chunk target was issued, not
-  that a step happened.
-- A stop between two chunks needs no coverage: the state machine issues the next
-  chunk only after the previous one stands still.
-- After the stop the tests complete the pending chunk once more and assert the
-  position does not change: the standstill command left the target at the actual
-  position, so the dummy has nothing to move to.
-- Disable during calibration: motor stopped half way into the first chunk, state
-  disabled.
-- Rotary motor with the negative switch bit set: negative reference inactive,
-  no both-switches error. The dummy has no setter for its both-end-switches
-  flag, it is only a `moveTowardsTarget()` parameter, so a fixture helper sets
-  it with a zero fraction and documents that this is not a move. The fixture
-  also sets both end switch positions, because the dummy driver card is shared
-  between the test cases and `resetInternalStateToDefaults()` does not restore
-  them.
-- Blocked rotary move: reported as interrupted, not as successful.
-- Rotary motor, plain move away from the switch: the move completes, the motor
-  ends idle and the error stays `Error::NO_ERROR`. Covers the disjunction in
-  `verifyMoveAction()` where the positive switch is inactive, so a conjunction
-  would report an interrupted move.
-- The stopped calibration leaves its iteration on `_stopAction` before issuing
-  the second move and settles in the idle state, so the test asserts standstill,
-  target equal to actual position and, finally, the idle state.
-- The rotary cases use a rotary fixture which creates a `RotaryStepperMotor` on
-  the dummy motor controller.
-- The fixture helpers only step the dummy and return whether the step was
-  possible. Every assertion sits in the test case, which wraps the helpers in
-  `BOOST_TEST_REQUIRE`.
+### `tests/src/steppermotor/testRotaryStepperMotor.cc` (modified)
+
+- `HomingFromActiveSwitchMovesOffFirst`: positive switch active at the start.
+  - The motor moves off, ends in `CalibrationMode::FULL`, both calibrated
+    positions equal.
+  - Covers the release search and the homing of `performCalibration()`.
+- `BlockedReleaseSearchReportsCalibrationError`: positive switch forced active
+  and motor blocked.
+  - The unchanged target aborts the search; calibration error and
+    `CalibrationMode::NONE`.
+  - Covers the blocked-move check of `waitForSwitchState()`.
+- `StopDuringHomingSearchStopsMotor`: positive switch inactive at the start,
+  stop half way into the first chunk.
+  - The motor stands still, target equals the actual position, then idle.
+  - The error is `Error::CALIBRATION_ERROR` and the mode
+    `CalibrationMode::NONE`.
+  - Covers the stop abort on the interrupted path.
+- `StopDuringReleaseSearchStopsMotor`: positive switch active at the start,
+  stop half way into the first negative chunk while the motor is still on its
+  way to the chunk target.
+  - The motor stands still, ends idle, with calibration error and
+    `CalibrationMode::NONE`.
+  - Covers the stop abort of the release search, which the blocked case does not
+    reach.
+- `DisableDuringCalibrationStopsMotor`: disable half way into the first chunk.
+  - The motor is stopped and the machine ends in the disabled state.
+  - Covers the new `disableEvent` transition and its ordering against the end
+    callback.
+- `NegativeSwitchBitIgnoredForRotary`: negative switch bit set.
+  - The negative reference reports inactive and no both-end-switches error is
+    raised.
+  - Covers `isEndSwitchActive()`; the bit alone is not a move.
+- `BlockedRotaryMoveReportedInterrupted`: a blocked move.
+  - Reported as interrupted, not as successful.
+  - Covers the dropped negative bit in `verifyMoveAction()`.
+- `MoveAwayFromSwitchCompletes`: plain move away from the switch.
+  - The move completes, the motor ends idle and the error stays
+    `Error::NO_ERROR`.
+  - Covers the disjunction of `verifyMoveAction()` while the positive switch is
+    inactive, where a conjunction would report an interrupted move.
+
+Fixture premises for the cases above:
+
+- The rotary fixture creates a `RotaryStepperMotor` on the dummy motor
+  controller.
+- `moveTowardsTarget(1.0)` covers the whole remaining distance in one call, so a
+  chunk is only open after a fractional move.
+- The dummy reports moving only while motor current is enabled and the target
+  differs from the actual position.
+- The dummy driver card is shared between the cases and
+  `resetInternalStateToDefaults()` does not restore its end-switch positions, so
+  the fixture sets both.
+- The dummy has no setter for the both-end-switches flag; a fixture helper sets
+  it through a zero fraction and documents that this is not a move.
+- Not covered: the `HOMING_TIMEOUT_MS` expiry, which outlasts the fixture's 10 s
+  wait, and the active-reference exit, which needs a reference to report active
+  while the target differs from the actual position.
+- No case for the tolerance calculation, which the plan leaves untouched.
+
+### Qt-less configure (new)
+
+- Configure with `-DCMAKE_DISABLE_FIND_PACKAGE_QT=ON` and build.
+- The GUI subdirectory is skipped with a status message, the library and the
+  tests build.
+- Covers the build-without-Qt requirement, which no unit test reaches.
 
 ## Deferred issue
 
-- DI-1 [SPEC-EDIT] The specified class comment for RotaryStepperMotor contains
-  the XML example `<Register name="referenceConfigAndRampModeData"
-  value="0x300"/>`, which Doxygen parses as an unsupported HTML tag and reports
-  as a warning. The build scans the Doxygen log, so the no-warnings policy
-  cannot be met with the comment as specified. Fence the example as a code block
-  (or indent it) so Doxygen treats it verbatim. Replace - Update the
-  `RotaryStepperMotor` class comment accordingly. In that comment, mention that
-  the rotary stage has no negative reference switch, that
-  `hasNegativeReferenceSwitch()` is overridden to false, and that the TMC429 can
-  also be configured to ignore end switches via
-  `referenceConfigAndRampModeData = 0x300`. by - Update the
-  `RotaryStepperMotor` class comment accordingly. In that comment, mention that
-  the rotary stage has no negative reference switch, that
-  `hasNegativeReferenceSwitch()` is overridden to false, and that the TMC429 can
-  also be configured to ignore end switches via
-  `referenceConfigAndRampModeData = 0x300`. Present the XML configuration
-  example as a Doxygen code block so the tag does not produce a Doxygen
-  warning.
+- DI-1 [FOLDED-IN] Class comment of `RotaryStepperMotor`: specify the four
+  points and mark the XML example with a fenced code block, so Doxygen keeps it
+  verbatim and reports no warning.
