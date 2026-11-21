@@ -26,6 +26,7 @@ namespace ChimeraTK::MotorDriver {
     /**
      * @brief  Constructor of the class object
      * @param  parameters Configuration parameters of type StepperMotorParameters
+     * @param  stateMachine State machine driving this motor
      */
     ReferenceStepperMotor(const StepperMotorParameters&, std::shared_ptr<utility::StateMachine>);
 
@@ -148,6 +149,8 @@ namespace ChimeraTK::MotorDriver {
     void resetAsyncFlags();
     // void handleCalibrationError();
 
+    /// Single place which decides whether a negative reference switch is present. Without one, isEndSwitchActive()
+    /// reports the negative switch as inactive and skips the both-end-switches-active error.
     virtual bool hasNegativeReferenceSwitch() const { return true; }
   };
 } // namespace ChimeraTK::MotorDriver

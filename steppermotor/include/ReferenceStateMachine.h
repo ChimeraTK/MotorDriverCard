@@ -31,6 +31,9 @@ namespace ChimeraTK::MotorDriver {
     std::atomic<bool> _stopAction;
     std::atomic<bool> _moveInterrupted;
 
+    /// The end switch searches of a derived class share this timeout.
+    static constexpr int HOMING_TIMEOUT_MS = 60000;
+
     void actionStop();
     /// Aborts a running calibration and disables the motor.
     void actionCalibDisable();

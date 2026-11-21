@@ -14,7 +14,8 @@ namespace ChimeraTK::MotorDriver {
   /********************************************************************************************************************/
 
   bool RotaryStepperMotor::verifyMoveAction() {
-    // Same disjunction as the base class; the negative switch bit is meaningless here and would mask a blocked move.
+    // Verifies that a completed move ran to its end, not that the motor is calibrated. The negative switch bit is
+    // meaningless here and would mask a blocked move, so it is not consulted.
     bool endSwitchActive = isEndSwitchActive(Sign::POSITIVE);
     bool positionMatch = _motorController->getTargetPosition() == _motorController->getActualPosition();
 

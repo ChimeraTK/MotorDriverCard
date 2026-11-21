@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: READY TO IMPLEMENT (from DONE)
+- Status: IMPLEMENTED (from DONE)
 
 ## Requirements
 
@@ -254,6 +254,6 @@ Fixture premises for the cases above:
 
 ## Deferred issue
 
-- DI-1 [FOLDED-IN] Class comment of `RotaryStepperMotor`: specify the four
+- DI-1 [IMPLEMENTED] Class comment of `RotaryStepperMotor`: specify the four
   points and mark the XML example with a fenced code block, so Doxygen keeps it
   verbatim and reports no warning.
