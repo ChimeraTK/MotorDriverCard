@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: TESTS PASSED (from DONE)
+- Status: READY TO IMPLEMENT (from DONE)
 
 ## Requirements
 
@@ -290,3 +290,37 @@ Fixture premises for the cases above:
   not list. The other direction of the disjunction (switch bit accepts a move
   that stopped at the switch with target above actual) is not exercised by any
   test, because the plan's cases leave the calibration guard out of scope.
+- DI-6 [DEFECT] The implementation changes `actionStop()` although the
+  Specifications say it keeps its present body.
+  `steppermotor/src/ReferenceStateMachine.cc:50-54` now calls
+  `actionMovetoStop()` from `actionStop()`, and the stop transition of
+  `_calibrating` (`:31`) uses that shared action instead of calling
+  `actionMovetoStop()` in its own lambda. `actionStop()` is also the stop action
+  of `_calculatingTolerance` (`:42`), so stopping a tolerance calculation now
+  commands standstill, which the Specification explicitly excludes:
+  "`actionStop()` keeps its present body, so no other state which shares it
+  changes." The stop transition of `_calibrating` must set `_stopAction` and
+  call `actionMovetoStop()` itself, leaving `actionStop()` as it is in the
+  current code base. `StopDuringToleranceCalculationCommandsStandstill`
+  (`tests/src/steppermotor/testRotaryStepperMotor.cc:288`) asserts the behaviour
+  the Specification excludes and its doc comment quotes a sentence that the
+  specification revision removed; that case has to go with the code change.
+- DI-7 [DEFECT] The Qt probe lacks the version bound the Specifications require.
+  `ConfigCalculator/CMakeLists.txt:53` reads `find_package(QT NAMES Qt6 Qt5
+  COMPONENTS Core Network Widgets Gui)`, the Specification reads
+  `find_package(QT 5.14 NAMES Qt6 Qt5 COMPONENTS Core Network Widgets Gui)` and
+  states that the bound matches the GUI's own Qt 5.14 requirement. Without it a
+  host with Qt older than 5.14 passes the probe and then fails inside
+  `ConfigCalculator/GUI/CMakeLists.txt:4` (`REQUIRED`, version 5.14), instead of
+  skipping the GUI as specified.
+- DI-8 [DEFECT] The specification quotes in the tests were not updated to the
+  revised Specifications. `tests/src/steppermotor/testRotaryStepperMotor.cc`
+  quotes sentences which no longer exist, so the reasoning no longer names the
+  wording it claims to cover: `:202-204` ("is already true at the start", "Move
+  negatively in chunks of `getOffset()`", "Then home positively as today"),
+  `:228-230` ("Keep the base disjunction"), `:253-254` ("Accept the move when
+  ..."), `:370-373` ("The release search detects a blocked motor itself ..."),
+  `:427` ("Abort the release search on stop or move interruption"). Each comment
+  has to quote the matching bullet of the current Specifications (respectively
+  the `performCalibration()`, `RotaryStepperMotor::verifyMoveAction()` and
+  `waitForSwitchState()` bullets) and name it.
