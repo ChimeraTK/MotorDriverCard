@@ -4,7 +4,7 @@
 
 - Synopsis: A rotary stage whose reference switch is already active cannot
   calibrate. Calibration can only be aborted by disabling the motor.
-- Status: TESTS REVIEWED (from DONE)
+- Status: IN PROGRESS (from DONE)
 
 ## Requirements
 
@@ -143,9 +143,11 @@ Location: `steppermotor/include/RotaryStepperMotor.h`,
   - Callers: `BasicStepperMotor::StateMachine::waitForStandstill()` and
     `ReferenceStateMachine::getToleranceEndSwitch()`.
 - Class comment (modified):
-  - State that the stage has no physical negative reference switch.
-  - State that `hasNegativeReferenceSwitch()` returns false and that
-    `limitsOK()` skips the end-switch range check.
+  - State that the stage has a physical negative reference switch which does
+    not stop the motion when passed.
+  - State that `hasNegativeReferenceSwitch()` returns false, so the rotary
+    motor reports the negative end switch as inactive and `limitsOK()`
+    compares against the travel range only.
   - State that the TMC429 can ignore end switches via
     `referenceConfigAndRampModeData`.
   - Mark the XML example with a fenced code block, so Doxygen keeps it
@@ -324,7 +326,7 @@ Fixture premises for the cases above:
   has to quote the matching bullet of the current Specifications (respectively
   the `performCalibration()`, `RotaryStepperMotor::verifyMoveAction()` and
   `waitForSwitchState()` bullets) and name it.
-- DI-9 [ACCEPTED] The opening sentence of the RotaryStepperMotor class comment
+- DI-9 [REPLACED] The opening sentence of the RotaryStepperMotor class comment
   reads "Rotate a stage continuously over 360 degrees on a stage without a
   physical negative reference switch."
   (steppermotor/include/RotaryStepperMotor.h:11). It duplicates "stage" and
@@ -409,3 +411,33 @@ Fixture premises for the cases above:
   both are accurate and consistent with the existing comment style, so they do
   not justify another round; recorded so the final review sees the unreported
   extra edit.
+- DI-18 [DEFECT] The RotaryStepperMotor class comment is factually wrong about
+  the switch hardware and enumerates what the code does not do.
+  steppermotor/include/RotaryStepperMotor.h:11 reads 'Rotate a stage
+  continuously over 360 degrees on a stage without a physical negative reference
+  switch.' and :15 reads '- The stage has no physical negative reference
+  switch.', but a rotary stage does have a physical negative reference switch;
+  it just does not stop the motion when it is passed. The bullets at :16-20 then
+  state absences ('isEndSwitchActive() ignores the negative switch: it reports
+  it as inactive', 'limitsOK() skips the end-switch range check',
+  'verifyMoveAction() does not consult the negative switch'). The user
+  instructs: do not state in comments what the code does not do. Rewrite the
+  class comment to state the physical switch and its semantics with positive
+  statements about what the class does (rotation, the switch not stopping the
+  motion when passed, the negative switch reporting as inactive, the
+  travel-range check), and drop the 'does not'/'ignores'/'skips' phrasing. Also
+  fix the mirrored wording in the Specification bullet, reported as a spec-edit
+  in the next problem.
+- DI-19 [SPEC-EDIT] The Specification prescribes the wrong class-comment content
+  and the 'what the code does not do' phrasing the user rejects. The stage has a
+  physical negative reference switch which does not stop the motion when passed,
+  and the comment must state positive facts only. The bullet count and structure
+  stay as they are; the code comment change is reported as a defect. Replace
+  ``- Class comment (modified): - State that the stage has no physical negative
+  reference switch. - State that `hasNegativeReferenceSwitch()` returns false
+  and that `limitsOK()` skips the end-switch range check.`` by ``- Class comment
+  (modified): - State that the stage has a physical negative reference switch
+  which does not stop the motion when passed. - State that
+  `hasNegativeReferenceSwitch()` returns false, so the rotary motor reports the
+  negative end switch as inactive and `limitsOK()` compares against the travel
+  range only.``.
