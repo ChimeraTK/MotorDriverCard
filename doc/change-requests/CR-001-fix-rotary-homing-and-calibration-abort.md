@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: READY TO IMPLEMENT
+- Status: IN PROGRESS (from READY TO IMPLEMENT)
 
 ## Requirements
 
@@ -165,6 +165,10 @@ Fixture premises:
 - The cases use the existing `StepperMotorRotaryTestFixture`.
 - The dummy reports a switch active only while that switch is enabled, and it
   stays put while the active switch lies in the travel direction.
+- The `StepperMotorRotaryTestFixture` constructor ends with
+  `_motorControlerDummy->moveTowardsTarget(0, false, false, true)`: the reboot
+  leaves both hardware stops enabled and the motor current off, so the fixture
+  switches the stops off and the motor current on afterwards.
 - After calibration both stops are disabled and the dummy counter still sits on
   the positive switch. The move case enables the positive stop at runtime, which
   breaks the configuration the constructor allows, to make the dummy report the
@@ -177,3 +181,42 @@ Not covered:
 - An abort before the calibration thread starts: no hook places one in that
   window, so the reset in `actionStartCalib()` is verified by inspection.
 - The documentation bullets: checked by reading the class comment.
+
+## Deferred issue
+
+- DI-1 [SPEC-EDIT] The two abort test cases plan a running home search created
+  by `moveTowardsTarget(0.5)` on a search target that differs from the actual
+  position. That cannot happen with the fixture as specified: the dummy steps
+  only while its motor current is enabled (`MotorControlerDummy::isStepping()`
+  at backend/src/MotorControlerDummy.cc:403 is reached only when current is on),
+  and the fixture turns the motor off with `moveTowardsTarget(0, false, false,
+  true)` without turning it back on
+  (backend/src/MotorControlerDummy.cc:386-392). Right after
+  `awaitCalibrationSearch()` the motor therefore does not move, the worker's
+  stall guard sets `_moveInterrupted`, and no chunk is in flight. The cases
+  still pass today, but assert nothing about a running search:
+  `testStopDuringCalibrationStopsTheSearch`'s `BOOST_REQUIRE_LT` documents the
+  opposite, and `testDisableDuringCalibrationStopsAndDisables` leaves
+  `_moveInterrupted` set, so its target reset comes from the stall guard, not
+  from the planned thread race the case is meant to make reproducible. I
+  verified this with a temporary probe (reverted, working tree is clean): at
+  `awaitCalibrationSearch()` the dummy reports `target=5000 enabled=false`, and
+  the re-enabled move reaches the positive stop at exactly 5000, i.e.
+  `findEndSwitch()` returns the earlier stall-guard abort, not the switch. The
+  same reboot leaves the searches in
+  `testCancellationClearsTargetDespiteReferenceWriteFailure` and
+  `testPositiveSwitchDoesNotVerifyMove` not stepping, which contradicts the
+  fixture premise that after calibration the dummy's counter sits on the
+  positive switch. Fix: add the motor-current switch to the fixture reboot, so
+  the search really runs. Replace `- After calibration both stops are disabled
+  and the dummy counter still sits on the positive switch. The move case enables
+  the positive stop at runtime, which breaks the configuration the constructor
+  allows, to make the dummy report the switch active.` by `- The
+  `StepperMotorRotaryTestFixture` constructor ends with
+  `_motorControlerDummy->moveTowardsTarget(0, false, false, true)`: the reboot
+  leaves both hardware stops enabled and the motor current off, so the fixture
+  switches the stops off and the motor current on afterwards. - After
+  calibration both stops are disabled and the dummy counter still sits on the
+  positive switch. The move case enables the positive stop at runtime, which
+  breaks the configuration the constructor allows, to make the dummy report the
+  switch active.`.
