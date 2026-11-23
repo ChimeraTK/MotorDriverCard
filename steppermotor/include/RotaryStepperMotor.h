@@ -7,18 +7,28 @@
 namespace ChimeraTK::MotorDriver {
   class RotaryStepperMotorStateMachine; // forward declare
 
-  /** Rotary stepper motor (continuous 360° rotation, no negative end switch).
+  /** Rotary stepper motor, rotating continuously over 360 degrees.
    *
-   *  The rotary stage has no physical negative end switch. The software handles
-   *  this by overriding hasNegativeReferenceSwitch() and negativeSwitchActive()
-   *  to return false, and limitsOK() to skip the end-switch range check.
+   *  The stage has a physical negative reference switch. It does not stop the
+   *  motion when it is passed, so the class reports it as inactive:
+   *  hasNegativeReferenceSwitch() and negativeSwitchActive() return false, and
+   *  limitsOK() skips the end-switch range check.
    *
-   *  At the hardware level, the TMC429 chip can also be configured to ignore
-   *  end switches via the referenceConfigAndRampModeData register.
-   *  For a rotary motor, set this in the XML config:
+   *  Both hardware stops stay disabled for normal movement; the constructor
+   *  requires them disabled. The calibration search drives the positive stop,
+   *  which is enabled for that search only.
+   *
+   *  verifyMoveAction() accepts a move only when it reached its target, because
+   *  normal movement does not stop at a switch.
+   *
+   *  At the hardware level, the TMC429 end-switch stop inputs are configured
+   *  through the referenceConfigAndRampModeData register. A rotary stage needs
+   *  the value 0x300 there, which sets the DISABLE_STOP_L and DISABLE_STOP_R
+   *  bits. Set it in the XML config:
+   *
+   *  @code{.xml}
    *  <Register name="referenceConfigAndRampModeData" value="0x300"/>
-   *  Value 0x300 sets both DISABLE_STOP_L and DISABLE_STOP_R bits,
-   *  telling the TMC429 to ignore both left and right end switches.
+   *  @endcode
    */
   class RotaryStepperMotor : public ReferenceStepperMotor {
    public:
@@ -27,6 +37,11 @@ namespace ChimeraTK::MotorDriver {
     ~RotaryStepperMotor() override = default;
 
     bool limitsOK(int newPositionInSteps) override { return BasicStepperMotor::limitsOK(newPositionInSteps); }
+
+    /// Accepts a finished move only when it reached its target position. The
+    /// inherited verification, which also accepts an active reference switch,
+    /// does not apply: the rotary stage does not stop at a switch.
+    bool verifyMoveAction() override { return BasicStepperMotor::verifyMoveAction(); }
 
    protected:
     bool hasNegativeReferenceSwitch() const override { return false; }
