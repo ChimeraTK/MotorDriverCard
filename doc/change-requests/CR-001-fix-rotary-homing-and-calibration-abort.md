@@ -9,31 +9,32 @@
 
 ## Requirements
 
+A rotary calibration cannot be aborted by disabling the motor.
+
 Calibration abort:
 
 - Disabling a rotary motor during calibration must stop the motion.
 - The motor must end in the disabled state.
 - The aborted calibration must report a calibration error and reset the
   calibration mode.
-- A disable issued before the calibration worker starts must not be lost.
+- A disable or stop issued after `calibrate()` but before the calibration thread
+  starts must not be lost.
 
 Rotary move verification:
 
-- Move verification must accept a move which reached its target.
-- Move verification must report any other finished move as interrupted.
-- An active reference switch must not make a rotary move count as successful:
-  normal movement stops at neither switch.
+- Move verification must accept a rotary move which reached its target.
+- Move verification must report any other finished rotary move as interrupted.
+- An active reference switch must not make a rotary move count as successful.
 
 Rotary switch documentation:
 
-- The class documentation must state that the stage has a physical negative
-  reference switch which does not stop the motion when passed and which the
-  class reports as inactive.
-- The documentation must state that both hardware stops stay disabled for
-  normal movement, and that the calibration search enables the positive stop and
-  disables it again.
-- The documentation must name the stop configuration register and the value a
-  rotary stage needs.
+- The `RotaryStepperMotor` class comment must state that the stage has a
+  physical negative reference switch which does not stop the motion when passed
+  and which the class reports as inactive.
+- It must state that both hardware stops stay disabled for normal movement, and
+  that the calibration search drives the positive stop.
+- It must name `referenceConfigAndRampModeData` and the value `0x300` a rotary
+  stage needs.
 
 ## Specifications
 
@@ -41,42 +42,38 @@ Rotary switch documentation:
 
 Location: `steppermotor/src/ReferenceStateMachine.cc` (modified).
 
-- `actionStartCalib()` (modified): resets `_stopAction` before `_asyncActionActive`
-  is set and the worker starts.
-  - A disable dispatched between `calibrate()` and the worker start is therefore
-    not overwritten.
-  - The reset comes before the event dispatch returns, so no disable can precede
-    it.
-  - The linear machine resets the flag again in its worker, so its behaviour is
-    unchanged.
+- `actionStartCalib()` (modified): clears the abort flag `_stopAction` before
+  `_asyncActionActive` is set and the worker starts.
+  - `calibrate()` dispatches the event under `_motor._mutex` and returns after
+    the entry action, so a disable or stop dispatched afterwards is not
+    overwritten.
 
 ### RotaryStepperMotorStateMachine (modified)
 
 Location: `steppermotor/src/RotaryStepperMotorStateMachine.cc` (modified).
 
-- Constructor: `_calibrating` gains a `disableEvent` transition to `_disabled`
-  (new):
-  - The entry lambda calls `actionStop()`, which sets `_stopAction`, and then
-    `actionDisable()`.
-  - `actionDisable()` moves the motor to the full step and switches motor
-    current and end-switch power off.
-  - The lambda does not lock `_motor._mutex`: `setEnabled()` holds it while it
-    dispatches the event, and the mutex is a non-recursive `boost::mutex`.
-  - The lambda runs at dispatch; only the state change waits while
-    `_asyncActionActive` is set. `actionEndCallback()` applies `_disabled` on the
+- Constructor: `BasicStepperMotor::StateMachine::disableEvent` gains a
+  transition from `_calibrating` to `_disabled` (new):
+  - The entry action calls `actionStop()` and then `actionDisable()`.
+  - `actionStop()` sets `_stopAction`; `actionDisable()` moves the motor to the
+    full step and switches motor current and end-switch power off.
+  - The entry action does not lock `_motor._mutex`: `setEnabled()` holds it
+    while it dispatches the event, and the mutex is a non-recursive
+    `boost::mutex`.
+  - `actionDisable()` writes the standstill target without that mutex,
+    concurrently with `moveToEndSwitch()`; `failCalibration()` resets the target
+    under the mutex afterwards.
+  - The entry action runs in the disabling thread. The state change waits while
+    `_asyncActionActive` is set: `actionEndCallback()` applies `_disabled` on the
     next state query, after the worker has cleared the flag.
-  - Its trailing `stopEvent` has no transition in `_disabled` and is dropped, as
-    it already is in `_idle` after a stop abort.
-  - The transition is added here and not in `ReferenceStateMachine`, so the
-    linear machine keeps dropping the event.
-- `performCalibration()` (modified): drops its `_stopAction` reset, which moves
-  to `actionStartCalib()`. `_calibrationFailed` and `_moveInterrupted` stay reset
-  at the start.
+  - The transition registers no internal callback. The `stopEvent` which
+    `actionEndCallback()` emits afterwards is dropped, as `_disabled` has no
+    transition for it.
+- `performCalibration()` (modified): no longer clears `_stopAction`;
+  `actionStartCalib()` does.
 - Abort path (unchanged): `findEndSwitch()` and the final check see
   `_stopAction`, and `failCalibration()` reports `Error::CALIBRATION_ERROR`,
   sets `CalibrationMode::NONE` and clears the calibration data.
-  - A search target written by a racing `moveToEndSwitch()` is cleared there;
-    the current is already off.
   - The stall guard may set `_moveInterrupted` when the disable prevented the
     first step; the reported outcome is the same.
 
@@ -84,21 +81,20 @@ Location: `steppermotor/src/RotaryStepperMotorStateMachine.cc` (modified).
 
 Location: `steppermotor/include/RotaryStepperMotor.h` (modified).
 
-- `bool verifyMoveAction() override` (new, public):
+- `bool verifyMoveAction() override` (new, public, defined inline as
+  `limitsOK()` is):
   - Returns `BasicStepperMotor::verifyMoveAction()`, which compares the target
     position with the actual position.
-  - No switch bit is consulted: normal rotary movement stops at neither switch,
-    so neither bit may accept a move.
+  - The inherited `ReferenceStepperMotor::verifyMoveAction()`, which also
+    accepts an active switch, no longer applies.
   - A move which finished anywhere but on its target is reported as interrupted.
-- Class comment (modified), positive statements only:
+- Class comment (modified):
   - Describe the stage as rotating continuously over 360 degrees.
   - State the physical negative reference switch, that it does not stop the
     motion when passed, and that the class reports it as inactive.
   - State that both hardware stops stay disabled for normal movement, that the
-    constructor requires them disabled, and that the calibration search enables
-    the positive stop and disables it again.
-  - State that `limitsOK()` applies the configured position limits instead of
-    the calibrated end-switch positions.
+    constructor requires them disabled, and that the calibration search drives
+    the positive stop.
   - State that `verifyMoveAction()` accepts a move only when it reached its
     target.
   - State that the TMC429 end-switch stop inputs are configured through
@@ -107,57 +103,57 @@ Location: `steppermotor/include/RotaryStepperMotor.h` (modified).
 
 ### Alternatives considered
 
-- Overriding `verifyMoveAction()` to accept the positive switch or the reached
-  target: rejected, normal movement does not stop at the switch, which is
-  enabled for the calibration search only.
+- Accepting the positive switch or the reached target: rejected, normal
+  movement does not stop at the switch, which is driven for the calibration
+  search only.
 - Correcting `ReferenceStepperMotor::verifyMoveAction()` for every reference
   stage: rejected, a linear stage does stop at its switches and must accept a
   move which stopped there.
 - Adding the transition in `ReferenceStateMachine`: rejected, the change covers
-  the rotary abort; the linear abort stays as it is.
+  the rotary abort; the linear machine keeps dropping the event.
 
 ## Test plan
 
 - `tests/src/steppermotor/testStepperMotorRotary.cc` (modified)
   - `testDisableDuringCalibrationStopsAndDisables`: disable while the home
     search runs.
-    - Waits with a bounded deadline for a search target that differs from the
-      actual position, then disables.
+    - Starts a calibration, waits with a bounded deadline for a search target
+      that differs from the actual position, advances the dummy with
+      `moveTowardsTarget(0.5)` and disables while the motor is still moving.
     - Asserts the `disabled` state through `waitForState()`, `getEnabled()`
       false, target and actual position equal, `getCalibrationFailed()`,
       `Error::CALIBRATION_ERROR`, `CalibrationMode::NONE` and a calibration time
       of 0.
-    - The error and the failed flag are the assertions which fail without the
-      abort; the mode and the time already have these values on an uncalibrated
-      motor.
+    - The error and the failed flag differ between today's code and the fix; the
+      mode and the time already hold on an uncalibrated motor.
     - Covers the new `disableEvent` transition and the abort path; no existing
       case disables during calibration.
-  - `testSwitchStopDoesNotVerifyMove`: a negative move which the dummy stops
-    short of its target with the negative switch active.
-    - Sets the target, waits for the `moving` state, drives the dummy with
-      `moveTowardsTarget(1.0)` and lets it stop at the switch.
-    - Asserts the `error` state and `Error::MOVE_INTERRUPTED`.
-    - Covers the interrupted half of the verification; the reached-target half
-      is exercised by `testCalibrateRebasesToZero` and
-      `testCalibrationSurvivesRestart`.
+  - `testPositiveSwitchDoesNotVerifyMove`: a positive move which the dummy
+    refuses to step.
+    - Runs after `performCalibrationForTest()`, then enables the positive stop,
+      which reports active because the dummy counter sits on it.
+    - Sets a target above the actual position, calls `start()` and asserts the
+      `error` state and `Error::MOVE_INTERRUPTED`.
+    - Covers the target-only verification; without the override the active
+      switch bit accepts the move.
+    - The reached-target half is exercised by `testCalibrateRebasesToZero` and
+      `testCalibrationSurvivesRestart`, which fail if a reached target is
+      rejected.
 
 Fixture premises:
 
 - The cases use the existing `StepperMotorRotaryTestFixture`.
-- The dummy reports a switch active only while that switch is enabled. After
-  calibration both are disabled, so the move case enables the negative switch
-  itself, deliberately breaking the constructor's configuration invariant to
-  make the dummy report the switch active.
-- The dummy's hardware counter still sits on the positive switch after
-  calibration. The move case places the negative switch at 49900, just below the
-  positive switch at 50000, so the dummy stops the negative move at the switch
-  and reports standstill with the target still beyond the actual position.
+- The dummy reports a switch active only while that switch is enabled, and it
+  stays put while the active switch lies in the travel direction.
+- After calibration both stops are disabled and the dummy counter still sits on
+  the positive switch. The move case enables the positive stop at runtime, which
+  breaks the configuration the constructor allows, to make the dummy report the
+  switch active.
+- `driveUntilEndSwitchActive()` asserts that the negative stop is disabled, so
+  the move case enables the positive stop only.
 
 Not covered:
 
-- The requirement bullet about a disable before the worker start: no test hook
-  places a disable in that window. The reset in `actionStartCalib()` is what the
-  specification states; the observable part, a second calibration after an
-  abort, already works with the reset in the worker.
-- The positive switch cannot mark a rotary move as successful in a test: normal
-  movement keeps both stops disabled.
+- A disable before the calibration thread starts: no hook places one in that
+  window, so the reset in `actionStartCalib()` is verified by inspection.
+- The documentation bullets: checked by reading the class comment.
