@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: READY TO IMPLEMENT
+- Status: IMPLEMENTED
 
 ## Requirements
 
@@ -193,3 +193,11 @@ Not covered:
   `awaitCalibrationSearch()` reports `currentOn=1`, `moving=1`, target 5000 and
   an actual position of 2500 after `moveTowardsTarget(0.5)`, so the search chunk
   is in flight. The fixture premise now states the enabled motor explicitly.
+- DI-2 [ACCEPTED] Pre-existing test failure outside CR-001's scope:
+  StepperMotorRotaryTest/testRequiresDisabledHardwareStops fails (also
+  standalone) with a fatal ChimeraTK::logic_error at
+  tests/src/steppermotor/testStepperMotorRotary.cc:174, because the test expects
+  std::logic_error while ChimeraTK::logic_error derives from std::exception.
+  Both the throwing constructor (steppermotor/src/RotaryStepperMotor.cc) and
+  that test case come from commit af6e8f4 and are untouched by CR-001. All
+  CR-001 cases pass; fixing this test is not part of this change request.
