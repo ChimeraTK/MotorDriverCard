@@ -7,6 +7,7 @@
 #include "MotorDriverCard.h"
 #include "MotorDriverCardFactory.h"
 
+#include <ChimeraTK/cppext/finally.hpp>
 #include <ChimeraTK/Exception.h>
 
 #include <cmath>
@@ -280,8 +281,14 @@ namespace ChimeraTK::MotorDriver {
     // Restore the previous enable state only after both writes succeed.
     bool enable = _motorController->isEnabled();
     _motorController->setEnabled(false);
-    _motorController->setActualPosition(actualPositionInSteps);
-    _motorController->setTargetPosition(actualPositionInSteps);
+    {
+      // A coordinate reset needs identical register values even in full-step mode.
+      const bool fullStepping = _motorController->isFullStepping();
+      auto restoreFullStepping = cppext::finally([&] { _motorController->enableFullStepping(fullStepping); });
+      _motorController->enableFullStepping(false);
+      _motorController->setActualPosition(actualPositionInSteps);
+      _motorController->setTargetPosition(actualPositionInSteps);
+    }
     _motorController->setEnabled(enable);
   }
 

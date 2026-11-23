@@ -145,6 +145,7 @@ namespace mtca4u {
     bool isMotorMoving() override;
 
     void setPositiveEndSwitch(int endSwitchPos);
+    void setPositiveSwitchStuckActive(bool active);
     int getPositiveEndSwitch();
     void setNegativeEndSwitch(int endSwitchNeg);
     int getNegativeEndSwitch();
@@ -192,6 +193,7 @@ namespace mtca4u {
 
     bool _blockMotor{false};
     bool _bothEndSwitchesAlwaysOn{false};
+    bool _positiveSwitchStuckActive{false};
     ReferenceSwitchFailure _referenceSwitchFailure{ReferenceSwitchFailure::NONE};
     unsigned _homingTargetReadsToFail{0};
     unsigned int _userMicroStepSize{4};

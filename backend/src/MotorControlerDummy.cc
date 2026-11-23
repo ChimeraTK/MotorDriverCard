@@ -16,6 +16,11 @@ namespace mtca4u {
     _positiveEndSwitchHardwarePosition = endSwitchPos;
   }
 
+  void MotorControlerDummy::setPositiveSwitchStuckActive(bool active) {
+    LockGuard guard(_motorControllerDummyMutex);
+    _positiveSwitchStuckActive = active;
+  }
+
   int MotorControlerDummy::getPositiveEndSwitch() {
     LockGuard guard(_motorControllerDummyMutex);
     return _positiveEndSwitchHardwarePosition;
@@ -311,7 +316,7 @@ namespace mtca4u {
   }
 
   bool MotorControlerDummy::isPositiveEndSwitchActive() {
-    if(_bothEndSwitchesAlwaysOn) return true;
+    if(_bothEndSwitchesAlwaysOn || _positiveSwitchStuckActive) return true;
 
     return _positiveEndSwitchEnabled && (_hardwarePosition >= _positiveEndSwitchHardwarePosition);
   }
@@ -350,6 +355,7 @@ namespace mtca4u {
     _positiveEndSwitchEnabled = true;
     _negativeEndSwitchEnabled = true;
     _bothEndSwitchesAlwaysOn = false;
+    _positiveSwitchStuckActive = false;
     _referenceSwitchFailure = ReferenceSwitchFailure::NONE;
     _homingTargetReadsToFail = 0;
     _blockMotor = false;

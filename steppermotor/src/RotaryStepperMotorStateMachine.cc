@@ -7,32 +7,37 @@
 #include "RotaryStepperMotor.h"
 
 #include <ChimeraTK/cppext/finally.hpp>
+#include <ChimeraTK/Exception.h>
 
+#include <chrono>
+#include <cmath>
 #include <exception>
 #include <iostream>
 #include <mutex>
+#include <string>
+#include <thread>
 namespace ChimeraTK::MotorDriver {
 
   RotaryStepperMotorStateMachine::RotaryStepperMotorStateMachine(RotaryStepperMotor& motor)
   : ReferenceStateMachine(motor) {}
 
   void RotaryStepperMotorStateMachine::performCalibration() {
-    // This function runs in a detached thread (see ReferenceStateMachine::actionStartCalib)
-    // and must not let an exception escape: that would terminate the process
-    // and leave _asyncActionActive stuck, locking the machine in "calibrating".
-    // The guard guarantees the flag is cleared on every exit path.
+    // Publish worker completion after all homing cleanup.
     auto asyncActionGuard = cppext::finally([&] { _asyncActionActive.store(false); });
     std::cerr << "rotary calibration: starting home search" << std::endl;
     _motor._calibrationFailed.exchange(false);
     _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
-    // Shared failure handling. Safe to run even if the communication link is
-    // down: the cleanup I/O is allowed to fail.
+    // Confirm the target is cleared before releasing the hardware stop.
     bool searchTargetCleared = false;
     auto clearSearchTarget = [&] {
       searchTargetCleared = false;
       _motor.resetMotorControllerPositions(0);
-      searchTargetCleared = _motor._motorController->getTargetPosition() == 0;
+      const int target = _motor._motorController->getTargetPosition();
+      searchTargetCleared = target == 0;
+      if(!searchTargetCleared) {
+        std::cerr << "Rotary homing target readback: expected 0, got " << target << std::endl;
+      }
     };
     auto failCalibration = [&] {
       std::lock_guard<boost::mutex> lock(_motor._mutex);
@@ -54,16 +59,26 @@ namespace ChimeraTK::MotorDriver {
       _motor._calibPositiveEndSwitchInSteps.exchange(0);
       _motor._calibNegativeEndSwitchInSteps.exchange(0);
     };
+    bool calibrationInvalidated = false;
     try {
-      // Establish a fixed origin for the home search: re-base the hardware
-      // counter (actual and target) to 0. Homing then always starts from a
-      // known position, and a stale target left over from an interrupted move
-      // cannot abort the search with a "position mismatch" either.
+      double savedSpeed;
       {
-        boost::lock_guard<boost::mutex&> lck(_motor._mutex);
+        std::lock_guard<boost::mutex> lock(_motor._mutex);
+        savedSpeed = _motor._motorController->getUserSpeedLimit();
+        if(!std::isfinite(savedSpeed) || savedSpeed <= 0 || !_motor._motorController->isMotorCurrentEnabled()) {
+          std::cerr << "Rotary homing requires a positive speed limit and enabled motor current" << std::endl;
+          invalidateCalibration();
+          return;
+        }
+
+        // Invalidate the previous origin before changing the hardware counters.
+        _motor._motorController->setCalibrationTime(0);
+        calibrationInvalidated = true;
+        _motor._calibrationMode.store(CalibrationMode::NONE);
         _motor.resetMotorControllerPositions(0);
       }
       bool stopDisabled = false;
+      bool speedRestored = true;
       int homePosition = 0;
       {
         auto restoreStop = cppext::finally([&] {
@@ -79,9 +94,25 @@ namespace ChimeraTK::MotorDriver {
             std::cerr << "Could not disable rotary home stop: " << e.what() << std::endl;
           }
         });
+        auto restoreSpeed = cppext::finally([&] {
+          if(!speedRestored) {
+            try {
+              _motor._motorController->setUserSpeedLimit(savedSpeed);
+              speedRestored = true;
+            }
+            catch(const std::exception& e) {
+              std::cerr << "Could not restore rotary speed limit: " << e.what() << std::endl;
+            }
+          }
+        });
         try {
           _motor._motorController->setPositiveReferenceSwitchEnabled(true);
-          findEndSwitch(Sign::POSITIVE);
+          // Share one deadline across the coarse search, back-off, and fine approach.
+          auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(60);
+          // The base class never calls findEndSwitch. The virtual declaration and rotary wrapper can be removed.
+          findEndSwitch(Sign::POSITIVE, deadline);
+
+          refineHomePosition(deadline, savedSpeed, speedRestored);
           homePosition = _motor.getCurrentPositionInSteps();
           std::unique_lock<boost::mutex> lock(_motor._mutex);
           if(_moveInterrupted.load() || _stopAction.load()) {
@@ -100,7 +131,7 @@ namespace ChimeraTK::MotorDriver {
       }
 
       std::unique_lock<boost::mutex> lock(_motor._mutex);
-      if(!stopDisabled || _moveInterrupted.load() || _stopAction.load()) {
+      if(!stopDisabled || !speedRestored || _moveInterrupted.load() || _stopAction.load()) {
         lock.unlock();
         failCalibration();
       }
@@ -120,60 +151,111 @@ namespace ChimeraTK::MotorDriver {
         // validity flag in the firmware map, the end switch registers do).
         _motor._motorController->setCalibrationTime(time(nullptr));
 
+        // A successful retry clears only the calibration error.
+        auto previousError = Error::CALIBRATION_ERROR;
+        _motor._errorMode.compare_exchange_strong(previousError, Error::NO_ERROR);
         _motor._calibrationMode.exchange(CalibrationMode::FULL);
       }
     }
-    catch(ChimeraTK::runtime_error& e) {
-      std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): homing failed: " << e.what() << std::endl;
-      failCalibration();
-    }
     catch(const std::exception& e) {
-      std::cerr << "RotaryStepperMotorStateMachine::performCalibration(): unexpected exception during homing: "
-                << e.what() << std::endl;
-      failCalibration();
+      std::cerr << "Rotary calibration failed: " << e.what() << std::endl;
+      if(calibrationInvalidated) {
+        failCalibration();
+      }
+      else {
+        std::lock_guard<boost::mutex> lock(_motor._mutex);
+        invalidateCalibration();
+      }
     }
   }
 
-  void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
-    auto startTime = std::chrono::steady_clock::now();
-    constexpr int HOMING_TIMEOUT_MS = 60000;
-    int loopIterations = 0;
-    int lastPosition = _motor.getCurrentPositionInSteps();
-    while(!_motor.isEndSwitchActive(sign)) {
-      ++loopIterations;
-      if(_stopAction.load() || _moveInterrupted.load()) {
-        std::cerr << "findEndSwitch: stopped by user after " << loopIterations << " iterations" << std::endl;
-        return;
+  void RotaryStepperMotorStateMachine::calculateToleranceValues() {
+    _motor._tolerancePositiveEndSwitch = getToleranceEndSwitch(Sign::POSITIVE);
+    _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
+  }
+
+  void RotaryStepperMotorStateMachine::refineHomePosition(
+      HomingDeadline deadline, double savedSpeed, bool& speedRestored) {
+    // Move backward until the positive switch clears, including on an active start.
+    constexpr int backOffSteps = 100;
+    const int switchActivePosition = _motor.getCurrentPositionInSteps();
+    for(int attempt = 0; _motor.isEndSwitchActive(Sign::POSITIVE); ++attempt) {
+      if(attempt == 50) {
+        throw ChimeraTK::runtime_error("Rotary home switch did not clear during back-off");
       }
-      auto now = std::chrono::steady_clock::now();
-      if(std::chrono::duration_cast<std::chrono::milliseconds>(now - startTime).count() > HOMING_TIMEOUT_MS) {
-        std::cerr << "findEndSwitch: timeout after " << loopIterations << " iterations, end switch not found"
-                  << std::endl;
-        _moveInterrupted.exchange(true);
-        return;
-      }
-      if(_motor.getTargetPositionInSteps() != _motor.getCurrentPositionInSteps() &&
-          !_motor.isPositiveReferenceActive() && !_motor.isNegativeReferenceActive()) {
-        std::cerr << "findEndSwitch: position mismatch (motor did not move) after " << loopIterations << " iterations"
-                  << std::endl;
-        _moveInterrupted.exchange(true);
-        return;
-      }
-      moveToEndSwitch(sign);
-      // moveToEndSwitch() blocks while the motor is moving. A motor that cannot
-      // move at all (e.g. blocked, no current) reports "not moving" instantly, so
-      // without this guard the loop would spin at full speed until the 60 s
-      // timeout. Detect a stalled motor instead.
-      int position = _motor.getCurrentPositionInSteps();
-      if(position == lastPosition) {
-        std::cerr << "findEndSwitch: motor stalled at position " << position << " after " << loopIterations
-                  << " iterations" << std::endl;
-        _moveInterrupted.exchange(true);
-        return;
-      }
-      lastPosition = position;
+      moveForHoming(-backOffSteps, deadline);
     }
-    std::cerr << "findEndSwitch: end switch active after " << loopIterations << " iterations" << std::endl;
+    // Leave clearance before reversing for the final approach.
+    moveForHoming(-backOffSteps, deadline);
+    if(_motor.isEndSwitchActive(Sign::POSITIVE)) {
+      throw ChimeraTK::runtime_error("Rotary home switch active after clearance move");
+    }
+
+    // Approach the same switch edge at reduced speed from either starting state.
+    speedRestored = false;
+    const double appliedSpeed = _motor._motorController->setUserSpeedLimit(savedSpeed / 4);
+    if(!std::isfinite(appliedSpeed) || appliedSpeed <= 0 || appliedSpeed >= savedSpeed) {
+      throw ChimeraTK::runtime_error("Controller cannot apply a reduced rotary homing speed");
+    }
+    // Search back to the known active position with one increment of margin.
+    const int fineStart = _motor.getCurrentPositionInSteps();
+    const int fineMoveSteps = switchActivePosition - fineStart + backOffSteps;
+    if(fineMoveSteps <= 0) {
+      throw ChimeraTK::runtime_error("Rotary back-off did not establish a forward approach");
+    }
+    moveForHoming(fineMoveSteps, deadline);
+    if(!_motor.isEndSwitchActive(Sign::POSITIVE)) {
+      throw ChimeraTK::runtime_error(
+          "Rotary home switch did not activate during final approach (known active position " +
+          std::to_string(switchActivePosition) + ", start " + std::to_string(fineStart) + ", requested forward steps " +
+          std::to_string(fineMoveSteps) + ", final position " + std::to_string(_motor.getCurrentPositionInSteps()) +
+          ")");
+    }
+  }
+
+  void RotaryStepperMotorStateMachine::checkHomingDeadline(HomingDeadline deadline) {
+    if(_stopAction.load() || _moveInterrupted.load()) {
+      throw ChimeraTK::runtime_error("Rotary homing cancelled");
+    }
+    if(std::chrono::steady_clock::now() >= deadline) {
+      throw ChimeraTK::runtime_error("Rotary homing timed out");
+    }
+  }
+
+  void RotaryStepperMotorStateMachine::moveForHoming(int offset, HomingDeadline deadline) {
+    int startPosition;
+    {
+      std::lock_guard<boost::mutex> lock(_motor._mutex);
+      checkHomingDeadline(deadline);
+      startPosition = _motor._motorController->getActualPosition();
+      _motor._motorController->setTargetPosition(startPosition + offset);
+    }
+    while(_motor._motorController->isMotorMoving()) {
+      checkHomingDeadline(deadline);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    checkHomingDeadline(deadline);
+    if(_motor.getCurrentPositionInSteps() == startPosition &&
+        !(offset > 0 && _motor.isEndSwitchActive(Sign::POSITIVE))) {
+      throw ChimeraTK::runtime_error("Rotary motor made no progress during homing");
+    }
+  }
+
+  void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign, HomingDeadline deadline) {
+    if(sign != Sign::POSITIVE) {
+      throw ChimeraTK::logic_error("Rotary homing requires the positive reference input");
+    }
+    for(int attempt = 0; !_motor.isEndSwitchActive(sign); ++attempt) {
+      if(attempt == 100) {
+        throw ChimeraTK::runtime_error("Rotary home switch not found within search travel");
+      }
+      moveForHoming(getOffset(), deadline);
+    }
+    checkHomingDeadline(deadline);
+  }
+
+  void RotaryStepperMotorStateMachine::findEndSwitch(Sign sign) {
+    findEndSwitch(sign, std::chrono::steady_clock::now() + std::chrono::seconds(60));
   }
 
   int RotaryStepperMotorStateMachine::getPositionEndSwitch(Sign sign) {

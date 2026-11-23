@@ -5,6 +5,8 @@
 
 #include "ReferenceStateMachine.h"
 
+#include <chrono>
+
 namespace ChimeraTK::MotorDriver {
   class RotaryStepperMotor;
   class RotaryStepperMotorStateMachine : public ReferenceStateMachine {
@@ -19,5 +21,12 @@ namespace ChimeraTK::MotorDriver {
     /// Offset in steps used when searching for the end switch from the current position.
     static constexpr int END_SWITCH_SEARCH_OFFSET = 5000;
     int getOffset() const override { return END_SWITCH_SEARCH_OFFSET; }
+
+   private:
+    using HomingDeadline = std::chrono::steady_clock::time_point;
+    void refineHomePosition(HomingDeadline deadline, double savedSpeed, bool& speedRestored);
+    void checkHomingDeadline(HomingDeadline deadline);
+    void moveForHoming(int offset, HomingDeadline deadline);
+    void findEndSwitch(Sign sign, HomingDeadline deadline);
   };
 } // namespace ChimeraTK::MotorDriver
