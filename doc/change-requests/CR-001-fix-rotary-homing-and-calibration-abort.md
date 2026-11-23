@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: READY TO TEST
+- Status: TESTS PASSED
 
 ## Requirements
 
@@ -193,7 +193,7 @@ Not covered:
   `awaitCalibrationSearch()` reports `currentOn=1`, `moving=1`, target 5000 and
   an actual position of 2500 after `moveTowardsTarget(0.5)`, so the search chunk
   is in flight. The fixture premise now states the enabled motor explicitly.
-- DI-2 [ACCEPTED] Pre-existing test failure outside CR-001's scope:
+- DI-2 [REPLACED] Pre-existing test failure outside CR-001's scope:
   StepperMotorRotaryTest/testRequiresDisabledHardwareStops fails (also
   standalone) with a fatal ChimeraTK::logic_error at
   tests/src/steppermotor/testStepperMotorRotary.cc:174, because the test expects
@@ -201,3 +201,13 @@ Not covered:
   Both the throwing constructor (steppermotor/src/RotaryStepperMotor.cc) and
   that test case come from commit af6e8f4 and are untouched by CR-001. All
   CR-001 cases pass; fixing this test is not part of this change request.
+- DI-3 [DEFECT] testRequiresDisabledHardwareStops expected std::logic_error, but
+  RotaryStepperMotor's constructor throws ChimeraTK::logic_error, so the whole
+  module aborted (Boost fatal error) and took every CR-001 case down with it.
+  The test now expects ChimeraTK::logic_error
+  (tests/src/steppermotor/testStepperMotorRotary.cc:174,177), and the
+  constructor comment in steppermotor/include/RotaryStepperMotor.h:35 names
+  ChimeraTK::logic_error to match the implemented and documented behaviour. DI-2
+  wrongly recorded this as a pre-existing failure outside the scope: the throw
+  site is on master and the test file is only touched here, so the tests-write
+  phase is responsible for correcting a test it edits.
