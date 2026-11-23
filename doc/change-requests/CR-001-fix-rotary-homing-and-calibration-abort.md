@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: TESTS PASSED
+- Status: STYLE REVIEWED
 
 ## Requirements
 
@@ -201,13 +201,24 @@ Not covered:
   Both the throwing constructor (steppermotor/src/RotaryStepperMotor.cc) and
   that test case come from commit af6e8f4 and are untouched by CR-001. All
   CR-001 cases pass; fixing this test is not part of this change request.
-- DI-3 [DEFECT] testRequiresDisabledHardwareStops expected std::logic_error, but
-  RotaryStepperMotor's constructor throws ChimeraTK::logic_error, so the whole
-  module aborted (Boost fatal error) and took every CR-001 case down with it.
-  The test now expects ChimeraTK::logic_error
+- DI-3 [IMPLEMENTED] testRequiresDisabledHardwareStops expected
+  std::logic_error, but RotaryStepperMotor's constructor throws
+  ChimeraTK::logic_error, so the whole module aborted (Boost fatal error) and
+  took every CR-001 case down with it. The test now expects
+  ChimeraTK::logic_error
   (tests/src/steppermotor/testStepperMotorRotary.cc:174,177), and the
   constructor comment in steppermotor/include/RotaryStepperMotor.h:35 names
   ChimeraTK::logic_error to match the implemented and documented behaviour. DI-2
   wrongly recorded this as a pre-existing failure outside the scope: the throw
   site is on master and the test file is only touched here, so the tests-write
   phase is responsible for correcting a test it edits.
+- DI-4 [ACCEPTED] clang-tidy reports bugprone-parent-virtual-call on the new
+  RotaryStepperMotor::verifyMoveAction() body
+  (steppermotor/include/RotaryStepperMotor.h:44): 'qualified name
+  BasicStepperMotor::verifyMoveAction refers to a member overridden in subclass;
+  did you mean ReferenceStepperMotor'. The base qualification is deliberate: the
+  whole point of the override is to bypass ReferenceStepperMotor's
+  switch-accepting verification, and the Specifications require exactly this
+  call. The identical pattern and warning already exist on master for limitsOK
+  (line 39), so a NOLINT here would only add noise; it also matches the
+  neighbouring override.

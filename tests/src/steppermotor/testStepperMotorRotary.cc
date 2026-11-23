@@ -7,7 +7,6 @@
 
 #include <chrono>
 #include <memory>
-#include <stdexcept>
 #include <thread>
 
 using namespace boost::unit_test_framework;
