@@ -164,8 +164,8 @@ install(TARGETS ${PROJECT_NAME}
 
 # dependencies which are part of the public interface of this library and hence have to be found when the
 # installed package is used via find_package
+# ChimeraTK-cppext is not used by the public headers; it is pulled in through ChimeraTK-DeviceAccess.
 list(APPEND ${PROJECT_NAME}_PUBLIC_DEPENDENCIES "ChimeraTK-DeviceAccess 02.04")
-list(APPEND ${PROJECT_NAME}_PUBLIC_DEPENDENCIES "ChimeraTK-cppext 01.05")
 list(APPEND ${PROJECT_NAME}_PUBLIC_DEPENDENCIES "Boost COMPONENTS thread system")
 
 set(PROVIDES_EXPORTED_TARGETS 1)
