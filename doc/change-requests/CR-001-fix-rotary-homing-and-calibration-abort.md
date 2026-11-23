@@ -2,9 +2,9 @@
 
 ## Header
 
-- Synopsis: Disabling a rotary motor during calibration has no effect today.
-  Move verification counts an active reference switch as a completed move, which
-  a rotary stage never stops at.
+- Synopsis: Disabling a rotary motor during calibration has no effect today,
+  while stopping it aborts the calibration. Move verification counts an active
+  reference switch as a completed move, which a rotary stage never stops at.
 - Status: PLANNED
 
 ## Requirements
@@ -13,12 +13,13 @@ A rotary calibration cannot be aborted by disabling the motor.
 
 Calibration abort:
 
-- Disabling a rotary motor during calibration must stop the motion.
-- The motor must end in the disabled state.
-- The aborted calibration must report a calibration error and reset the
-  calibration mode.
-- A disable or stop issued after `calibrate()` but before the calibration thread
-  starts must not be lost.
+- Stopping a rotary motor during calibration must stop the motion, end the
+  calibration and leave the motor idle.
+- Disabling a rotary motor during calibration must stop the motion and leave the
+  motor disabled.
+- Either abort must report a calibration error and reset the calibration mode.
+- An abort issued after `calibrate()` but before the calibration thread starts
+  must not be lost.
 
 Rotary move verification:
 
@@ -74,6 +75,9 @@ Location: `steppermotor/src/RotaryStepperMotorStateMachine.cc` (modified).
 - Abort path (unchanged): `findEndSwitch()` and the final check see
   `_stopAction`, and `failCalibration()` reports `Error::CALIBRATION_ERROR`,
   sets `CalibrationMode::NONE` and clears the calibration data.
+  - The existing `stopEvent` transition of `_calibrating` takes this path. It
+    sets `_stopAction` and leaves for `_idle`, so the motor stays in the chunk it
+    is in and the target reset of `failCalibration()` leaves it standing.
   - The stall guard may set `_moveInterrupted` when the disable prevented the
     first step; the reported outcome is the same.
 
@@ -115,6 +119,11 @@ Location: `steppermotor/include/RotaryStepperMotor.h` (modified).
 ## Test plan
 
 - `tests/src/steppermotor/testStepperMotorRotary.cc` (modified)
+  - `testCancellationClearsTargetDespiteReferenceWriteFailure` (modified): the
+    existing stop during the home search, extended with `getCalibrationFailed()`
+    and `Error::CALIBRATION_ERROR`.
+    - Covers the stop half of the abort requirement; the case already asserts
+      idle, a cleared target and `CalibrationMode::NONE`.
   - `testDisableDuringCalibrationStopsAndDisables`: disable while the home
     search runs.
     - Starts a calibration, waits with a bounded deadline for a search target
@@ -154,6 +163,6 @@ Fixture premises:
 
 Not covered:
 
-- A disable before the calibration thread starts: no hook places one in that
+- An abort before the calibration thread starts: no hook places one in that
   window, so the reset in `actionStartCalib()` is verified by inspection.
 - The documentation bullets: checked by reading the class comment.
