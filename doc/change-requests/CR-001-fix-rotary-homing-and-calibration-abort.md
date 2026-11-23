@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: IMPLEMENTATION REVIEWED
+- Status: TESTS REVIEWED
 
 ## Requirements
 
@@ -201,11 +201,10 @@ Not covered:
   Both the throwing constructor (steppermotor/src/RotaryStepperMotor.cc) and
   that test case come from commit af6e8f4 and are untouched by CR-001. All
   CR-001 cases pass; fixing this test is not part of this change request.
-- DI-3 [IMPLEMENTED] testRequiresDisabledHardwareStops expected
-  std::logic_error, but RotaryStepperMotor's constructor throws
-  ChimeraTK::logic_error, so the whole module aborted (Boost fatal error) and
-  took every CR-001 case down with it. The test now expects
-  ChimeraTK::logic_error
+- DI-3 [DONE] testRequiresDisabledHardwareStops expected std::logic_error, but
+  RotaryStepperMotor's constructor throws ChimeraTK::logic_error, so the whole
+  module aborted (Boost fatal error) and took every CR-001 case down with it.
+  The test now expects ChimeraTK::logic_error
   (tests/src/steppermotor/testStepperMotorRotary.cc:174,177), and the
   constructor comment in steppermotor/include/RotaryStepperMotor.h:35 names
   ChimeraTK::logic_error to match the implemented and documented behaviour. DI-2
@@ -222,3 +221,12 @@ Not covered:
   call. The identical pattern and warning already exist on master for limitsOK
   (line 39), so a NOLINT here would only add noise; it also matches the
   neighbouring override.
+- DI-5 [ACCEPTED] The Test plan's fixture premise still claims the
+  StepperMotorRotaryTestFixture constructor ends with
+  `_motorControlerDummy->moveTowardsTarget(0, false, false, true)`. It does not:
+  the constructor calls setPositiveEndSwitch(), resetInternalStateToDefaults(),
+  disables both stops and calls setEnabled(true)
+  (tests/src/steppermotor/testStepperMotorRotary.cc:67-79, no moveTowardsTarget
+  call anywhere in the constructor). The bullet also contradicts the first
+  premise bullet, which DI-1 corrected to state the enabled motor. Descriptive
+  only, the tests themselves are correct.
