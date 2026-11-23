@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: TESTS REVIEWED
+- Status: DONE
 
 ## Requirements
 
@@ -166,16 +166,3 @@ Not covered:
 - An abort before the calibration thread starts: no hook places one in that
   window, so the reset in `actionStartCalib()` is verified by inspection.
 - The documentation bullets: checked by reading the class comment.
-
-## Deferred issue
-
-- DI-1 [ACCEPTED] tests/src/steppermotor/testStepperMotorRotary.cc:158
-  testRequiresDisabledHardwareStops fails, and did so before this change: the
-  unmodified baseline reproduces the same fatal logic_error at the final
-  BOOST_CHECK_NO_THROW at line 167. Its cause lies in the dummy:
-  MotorControlerDummy::moveTowardsTarget(0, false, true) re-enables both stops
-  and sets _bothEndSwitchesAlwaysOn, and resetInternalStateToDefaults() leaves
-  them enabled, so the constructor's stop-disabled check still throws. The case
-  aborts and so hides the other eight cases' output, but running it with
-  --report_level=detailed shows all eight of them passing. The change request
-  calls this fixture premise "existing", so repairing it is outside this change.
