@@ -5,7 +5,7 @@
 - Synopsis: Disabling a rotary motor during calibration has no effect today,
   while stopping it aborts the calibration. Move verification counts an active
   reference switch as a completed move, which a rotary stage never stops at.
-- Status: DONE
+- Status: PLANNED
 
 ## Requirements
 
@@ -124,6 +124,17 @@ Location: `steppermotor/include/RotaryStepperMotor.h` (modified).
     and `Error::CALIBRATION_ERROR`.
     - Covers the stop half of the abort requirement; the case already asserts
       idle, a cleared target and `CalibrationMode::NONE`.
+  - `testStopDuringCalibrationStopsTheSearch`: stop while the home search runs.
+    - Advances half of the running chunk, calls `stop()`, finishes the chunk and
+      waits for idle.
+    - Asserts idle, the motor still enabled, target and actual position equal,
+      `getCalibrationFailed()`, `Error::CALIBRATION_ERROR`,
+      `CalibrationMode::NONE`, a calibration time of 0, and an unchanged target
+      after more than one wakeup period of the search loop.
+    - Covers the stop half of the abort requirement and that the abort commands
+      no further search chunk; the extended
+      `testCancellationClearsTargetDespiteReferenceWriteFailure` covers the
+      teardown which must also work when the calibration write fails.
   - `testDisableDuringCalibrationStopsAndDisables`: disable while the home
     search runs.
     - Starts a calibration, waits with a bounded deadline for a search target

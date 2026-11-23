@@ -233,6 +233,38 @@ BOOST_AUTO_TEST_CASE(testDisableDuringCalibrationStopsAndDisables) {
 }
 
 /**
+ * Stopping the motor while the home search runs must end the calibration and
+ * leave the motor standing, without commanding another search chunk.
+ */
+BOOST_AUTO_TEST_CASE(testStopDuringCalibrationStopsTheSearch) {
+  awaitCalibrationSearch();
+
+  // Advance part of the running chunk, so the stop lands in a moving search.
+  _motorControlerDummy->moveTowardsTarget(0.5);
+  BOOST_REQUIRE_LT(_stepperMotor->getCurrentPositionInSteps(), _stepperMotor->getTargetPositionInSteps());
+
+  _stepperMotor->stop();
+
+  // Finish the chunk the worker is waiting in, so it reaches its abort check.
+  _motorControlerDummy->moveTowardsTarget(1);
+  BOOST_REQUIRE(waitForCalibrationFinished());
+
+  BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
+  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
+  BOOST_CHECK_EQUAL(_motorControlerDummy->getCalibrationTime(), 0U);
+
+  // No further search chunk: the target stays where the abort left it, even
+  // beyond one wakeup period of the search loop.
+  auto const targetAfterAbort = _stepperMotor->getTargetPositionInSteps();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), targetAfterAbort);
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
+}
+
+/**
  * A rotary move verification must not accept a move which stopped away from its
  * target just because a reference switch is active.
  */
