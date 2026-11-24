@@ -157,10 +157,10 @@ BOOST_FIXTURE_TEST_SUITE(StepperMotorRotaryTest, StepperMotorRotaryTestFixture)
 
 BOOST_AUTO_TEST_CASE(testRequiresDisabledHardwareStops) {
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(true);
-  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), std::logic_error);
+  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), ChimeraTK::logic_error);
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
-  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), std::logic_error);
+  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), ChimeraTK::logic_error);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
   _motorControlerDummy->moveTowardsTarget(0, false, true);
   BOOST_REQUIRE(_motorControlerDummy->getReferenceSwitchData().getPositiveSwitchActive());
