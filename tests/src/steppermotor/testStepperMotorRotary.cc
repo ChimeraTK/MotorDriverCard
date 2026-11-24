@@ -7,7 +7,6 @@
 
 #include <chrono>
 #include <memory>
-#include <stdexcept>
 #include <thread>
 
 using namespace boost::unit_test_framework;
@@ -37,6 +36,7 @@ class StepperMotorRotaryTestFixture {
   StepperMotorRotaryTestFixture();
   void waitToSetTargetPos(int targetPos);
   void waitForPositiveEndSwitchActive();
+  void awaitCalibrationSearch();
   bool waitForState(std::string stateName, unsigned timeoutInSeconds);
   bool waitForCalibrationFinished(unsigned timeoutInSeconds);
 
@@ -124,6 +124,19 @@ void StepperMotorRotaryTestFixture::waitForPositiveEndSwitchActive() {
   }
 }
 
+void StepperMotorRotaryTestFixture::awaitCalibrationSearch() {
+  BOOST_REQUIRE(waitForState("idle"));
+  BOOST_REQUIRE(_stepperMotor->calibrate() == ExitStatus::SUCCESS);
+  BOOST_REQUIRE(waitForState("calibrating"));
+  // The worker thread has started the search once the dummy holds a search
+  // target that differs from the position it started from.
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while(std::chrono::steady_clock::now() < deadline && _stepperMotor->getTargetPositionInSteps() == 0) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  BOOST_REQUIRE_NE(_stepperMotor->getTargetPositionInSteps(), 0);
+}
+
 void StepperMotorRotaryTestFixture::driveUntilEndSwitchActive() {
   auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
   while(std::chrono::steady_clock::now() < deadline && _stepperMotor->getState() == "calibrating") {
@@ -157,10 +170,10 @@ BOOST_FIXTURE_TEST_SUITE(StepperMotorRotaryTest, StepperMotorRotaryTestFixture)
 
 BOOST_AUTO_TEST_CASE(testRequiresDisabledHardwareStops) {
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(true);
-  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), std::logic_error);
+  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), ChimeraTK::logic_error);
   _motorControlerDummy->setPositiveReferenceSwitchEnabled(false);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(true);
-  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), std::logic_error);
+  BOOST_CHECK_THROW(std::make_shared<RotaryStepperMotor>(_stepperMotorParameters), ChimeraTK::logic_error);
   _motorControlerDummy->setNegativeReferenceSwitchEnabled(false);
   _motorControlerDummy->moveTowardsTarget(0, false, true);
   BOOST_REQUIRE(_motorControlerDummy->getReferenceSwitchData().getPositiveSwitchActive());
@@ -188,6 +201,94 @@ BOOST_AUTO_TEST_CASE(testCancellationClearsTargetDespiteReferenceWriteFailure) {
   BOOST_CHECK(!switches.getPositiveSwitchEnabled());
   BOOST_CHECK(!switches.getNegativeSwitchEnabled());
   BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
+  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
+}
+
+/**
+ * Disabling the motor while the home search runs must stop the motion, leave
+ * the motor disabled and report the aborted calibration.
+ */
+BOOST_AUTO_TEST_CASE(testDisableDuringCalibrationStopsAndDisables) {
+  awaitCalibrationSearch();
+  auto switches = _motorControlerDummy->getReferenceSwitchData();
+  BOOST_REQUIRE(switches.getPositiveSwitchEnabled());
+  BOOST_REQUIRE(!switches.getNegativeSwitchEnabled());
+
+  // The dummy stops at the enabled home stop, which lies beyond the search
+  // target, so a partial step leaves the motor short of its target.
+  _motorControlerDummy->moveTowardsTarget(0.5);
+  BOOST_REQUIRE_LT(_stepperMotor->getCurrentPositionInSteps(), _stepperMotor->getTargetPositionInSteps());
+
+  _stepperMotor->setEnabled(false);
+
+  BOOST_CHECK(waitForState("disabled"));
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), false);
+  BOOST_CHECK_EQUAL(_stepperMotor->getCurrentPositionInSteps(), _stepperMotor->getTargetPositionInSteps());
+  BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
+  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK_EQUAL(_motorControlerDummy->getCalibrationTime(), 0U);
+}
+
+/**
+ * Stopping the motor while the home search runs must end the calibration and
+ * leave the motor standing, without commanding another search chunk.
+ */
+BOOST_AUTO_TEST_CASE(testStopDuringCalibrationStopsTheSearch) {
+  awaitCalibrationSearch();
+
+  // Advance part of the running chunk, so the stop lands in a moving search.
+  _motorControlerDummy->moveTowardsTarget(0.5);
+  BOOST_REQUIRE_LT(_stepperMotor->getCurrentPositionInSteps(), _stepperMotor->getTargetPositionInSteps());
+
+  _stepperMotor->stop();
+
+  // Finish the chunk the worker is waiting in, so it reaches its abort check.
+  _motorControlerDummy->moveTowardsTarget(1);
+  BOOST_REQUIRE(waitForCalibrationFinished());
+
+  BOOST_CHECK_EQUAL(getCalibrationFailed(), true);
+  BOOST_CHECK(_stepperMotor->getError() == Error::CALIBRATION_ERROR);
+  BOOST_CHECK(_stepperMotor->getCalibrationMode() == CalibrationMode::NONE);
+  BOOST_CHECK_EQUAL(_stepperMotor->getEnabled(), true);
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), _stepperMotor->getCurrentPositionInSteps());
+  BOOST_CHECK_EQUAL(_motorControlerDummy->getCalibrationTime(), 0U);
+
+  // No further search chunk: the target stays where the abort left it, even
+  // beyond one wakeup period of the search loop.
+  auto const targetAfterAbort = _stepperMotor->getTargetPositionInSteps();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+  BOOST_CHECK_EQUAL(_stepperMotor->getTargetPositionInSteps(), targetAfterAbort);
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "idle");
+}
+
+/**
+ * A rotary move verification must not accept a move which stopped away from its
+ * target just because a reference switch is active.
+ */
+BOOST_AUTO_TEST_CASE(testPositiveSwitchDoesNotVerifyMove) {
+  performCalibrationForTest();
+
+  // The dummy counter still sits on the positive switch, which reports active
+  // once enabled. The dummy then refuses to move in its direction.
+  _motorControlerDummy->setPositiveReferenceSwitchEnabled(true);
+  BOOST_REQUIRE(_motorControlerDummy->getReferenceSwitchData().getPositiveSwitchActive());
+
+  BOOST_CHECK(
+      _stepperMotor->setTargetPositionInSteps(_stepperMotor->getCurrentPositionInSteps() + 100) == ExitStatus::SUCCESS);
+  BOOST_CHECK_NO_THROW(_stepperMotor->start());
+
+  // Poll for the outcome: the move is only verified after the worker thread
+  // has seen the standstill, and the error state hides the switch status.
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while(std::chrono::steady_clock::now() < deadline && _stepperMotor->getState() == "moving") {
+    _motorControlerDummy->moveTowardsTarget(1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  BOOST_CHECK_EQUAL(_stepperMotor->getState(), "error");
+  BOOST_CHECK(_stepperMotor->getError() == Error::MOVE_INTERRUPTED);
 }
 
 BOOST_AUTO_TEST_CASE(testSearchExceptionDisablesHomeStop) {

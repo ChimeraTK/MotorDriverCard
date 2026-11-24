@@ -53,6 +53,10 @@ namespace ChimeraTK::MotorDriver {
   }
 
   void ReferenceStateMachine::actionStartCalib() {
+    // Clear the abort flag before the worker starts. calibrate() dispatches the
+    // event under the motor mutex, so an abort dispatched afterwards by another
+    // thread cannot be overwritten by this reset.
+    _stopAction.exchange(false);
     _asyncActionActive.store(true);
     std::thread(&ReferenceStateMachine::calibrationThreadFunction, this).detach();
   }

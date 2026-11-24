@@ -14,7 +14,15 @@
 namespace ChimeraTK::MotorDriver {
 
   RotaryStepperMotorStateMachine::RotaryStepperMotorStateMachine(RotaryStepperMotor& motor)
-  : ReferenceStateMachine(motor) {}
+  : ReferenceStateMachine(motor) {
+    _calibrating.setTransition(BasicStepperMotor::StateMachine::disableEvent, &_disabled, [this] {
+      // The entry action runs in the disabling thread, which holds the motor
+      // mutex (setEnabled()). The mutex is not recursive, so it must not be
+      // locked here.
+      actionStop();
+      actionDisable();
+    });
+  }
 
   void RotaryStepperMotorStateMachine::performCalibration() {
     // This function runs in a detached thread (see ReferenceStateMachine::actionStartCalib)
@@ -24,7 +32,6 @@ namespace ChimeraTK::MotorDriver {
     auto asyncActionGuard = cppext::finally([&] { _asyncActionActive.store(false); });
     std::cerr << "rotary calibration: starting home search" << std::endl;
     _motor._calibrationFailed.exchange(false);
-    _stopAction.exchange(false);
     _moveInterrupted.exchange(false);
     // Shared failure handling. Safe to run even if the communication link is
     // down: the cleanup I/O is allowed to fail.
