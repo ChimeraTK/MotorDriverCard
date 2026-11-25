@@ -33,7 +33,7 @@ const double ParametersCalculator::maximumAllowedRampDiv = 13;
 // 5 % as recommended in section 9.11 page 24
 const double ParametersCalculator::reductionValue = 0.05;
 
-const double ParametersCalculator::iMaxTMC260 = 1.8;
+const double ParametersCalculator::iMaxTMC260 = 1.1;
 const double ParametersCalculator::nCurrentScaleValues = 32;
 const double ParametersCalculator::minimumAllowedCurrentScale = 0;
 
@@ -261,7 +261,7 @@ std::list<std::string> ParametersCalculator::inputcheck(PhysicalParameters physi
   }
 
   if(physicalParameters.iMax > iMaxTMC260) {
-    warnings.push_back("iMax is too large. Current is limited to 1.8 A");
+    warnings.push_back("iMax is too large. Current is limited to 1.1 A");
   }
 
   return warnings;

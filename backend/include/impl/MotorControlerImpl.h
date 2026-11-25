@@ -227,7 +227,8 @@ namespace mtca4u {
     unsigned int _currentVmax;
     unsigned int _usrSetCurrentScale;
 
-    constexpr static double iMaxTMC260C_IN_AMPS = 1.8;
+    // VSENSE = 1, RSENSE = 0.15Ω => I1.1A Peak
+    constexpr static double iMaxTMC260C_IN_AMPS = 1.1;
     constexpr static int iMaxTMC260C_CURRENT_SCALE_VALUES = 32;
     constexpr static unsigned int iMaxTMC260C_MIN_CURRENT_SCALE_VALUE = 0;
 
@@ -287,7 +288,7 @@ namespace mtca4u {
 
     double convertCurrentScaletoAmps(unsigned int currentScale);
     double convertAmpsToCurrentScale(double currentInAmps);
-    unsigned int limitCurrentScale(double calculatedCurrentScale);
+    unsigned int limitCurrentScale(double currentInAmps);
     void setCurrentScale(unsigned int currentScale);
 
     void roundToNextFullStep(int& targetPosition);
