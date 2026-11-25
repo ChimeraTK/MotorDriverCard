@@ -100,14 +100,14 @@ BOOST_AUTO_TEST_CASE(testCurrents) {
 
   ParametersCalculator::PhysicalParameters physicalParameters = vt21Parameters;
 
-  // above 1.8 A there is a warning that the current scale might be too
+  // above 1.1 A there is a warning that the current scale might be too
   // low
   physicalParameters.iMax = 2;
   ParametersCalculator::ChipParameters chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
   BOOST_CHECK(chipParameters.currentScale == 31);
   BOOST_CHECK(chipParameters.warnings.size() == 1);
 
-  // if the current is smaller than 1.8 A / 32 it is smaller than
+  // if the current is smaller than 1.1 A / 32 it is smaller than
   // the smallest value in the current scale. This gives a warning
   physicalParameters.iMax = 0.001;
   chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
@@ -121,8 +121,8 @@ BOOST_AUTO_TEST_CASE(testCurrents) {
   BOOST_CHECK(chipParameters.warnings.size() == 0);
 
   // A current scale of 31 without warning is only possible with exactly
-  // 1.8
-  physicalParameters.iMax = 1.8;
+  // 1.1
+  physicalParameters.iMax = 1.1;
   chipParameters = ParametersCalculator::calculateParameters(physicalParameters);
   BOOST_CHECK(chipParameters.currentScale == 31);
   BOOST_CHECK(chipParameters.warnings.size() == 0);

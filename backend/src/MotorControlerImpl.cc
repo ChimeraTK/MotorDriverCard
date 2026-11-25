@@ -9,6 +9,7 @@ using namespace mtca4u::tmc429;
 
 #include <ChimeraTK/Device.h>
 
+#include <algorithm>
 #include <cmath>
 
 // just save some typing...
@@ -475,7 +476,7 @@ namespace mtca4u {
   }
 
   double MotorControlerImpl::setUserCurrentLimit(double currentLimit) {
-    auto currentScale = limitCurrentScale(convertAmpsToCurrentScale(currentLimit));
+    auto currentScale = limitCurrentScale(currentLimit);
     // setCurrent scale internally acquires mutex and is protected against
     // parallel access.
     setCurrentScale(currentScale);
@@ -519,15 +520,17 @@ namespace mtca4u {
     return currentScale;
   }
 
-  unsigned int MotorControlerImpl::limitCurrentScale(double calculatedCurrentScale) {
+  unsigned int MotorControlerImpl::limitCurrentScale(double currentInAmps) {
     auto hardLimitForCurrentScale = _controlerConfig.stallGuardControlData.getCurrentScale();
-    if(calculatedCurrentScale < iMaxTMC260C_MIN_CURRENT_SCALE_VALUE) {
-      return iMaxTMC260C_MIN_CURRENT_SCALE_VALUE;
+    auto requestedCurrentScale = static_cast<unsigned int>(std::round(convertAmpsToCurrentScale(currentInAmps)));
+    auto currentScale =
+        std::clamp(requestedCurrentScale, iMaxTMC260C_MIN_CURRENT_SCALE_VALUE, hardLimitForCurrentScale);
+
+    // Make sure that we do not exceed the requested current
+    if(currentScale > iMaxTMC260C_MIN_CURRENT_SCALE_VALUE && convertCurrentScaletoAmps(currentScale) > currentInAmps) {
+      --currentScale;
     }
-    if(calculatedCurrentScale > hardLimitForCurrentScale) {
-      return hardLimitForCurrentScale;
-    }
-    return (static_cast<unsigned int>(std::floor(calculatedCurrentScale))); // floor so that we dont exceed the set limt
+    return currentScale;
   }
 
   bool MotorControlerImpl::isMotorMoving() {
