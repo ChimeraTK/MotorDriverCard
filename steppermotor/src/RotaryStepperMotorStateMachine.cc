@@ -169,11 +169,6 @@ namespace ChimeraTK::MotorDriver {
     }
   }
 
-  void RotaryStepperMotorStateMachine::calculateToleranceValues() {
-    _motor._tolerancePositiveEndSwitch = getToleranceEndSwitch(Sign::POSITIVE);
-    _motor._toleranceNegativeEndSwitch = _motor._tolerancePositiveEndSwitch.load();
-  }
-
   void RotaryStepperMotorStateMachine::refineHomePosition(
       HomingDeadline deadline, double savedSpeed, bool& speedRestored) {
     // Move backward until the positive switch clears, including on an active start.
