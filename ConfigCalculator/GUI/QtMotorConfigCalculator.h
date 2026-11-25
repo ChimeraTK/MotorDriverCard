@@ -8,8 +8,14 @@
 #include <QScrollArea>
 #include <QTabWidget>
 
+class QComboBox;
+
+namespace mtca4u {
+  struct MotorDriverCardConfig;
+} // namespace mtca4u
+
 /** A widget containing two MotorConfigWidget in a TabWidget,
- *  and a write button which write the config to an XML file\
+ *  and buttons which load a config from and write it to an XML file.
  */
 class QtMotorConfigCalculator : public QWidget {
   Q_OBJECT
@@ -25,15 +31,20 @@ class QtMotorConfigCalculator : public QWidget {
  private:
   QVBoxLayout* verticalLayout;
   QTabWidget* motorTabWidget;
+  QPushButton* loadButton;
   QPushButton* writeButton;
+  QComboBox* endSwitchConfigurationCombo;
 
   QTabWidget* expertTabWidget;
   std::vector<MotorConfigWidget*> motorConfigWidgets;
   std::vector<ParametersPanel*> motorExpertWidgets;
   ParametersPanel* cardExpertWidget;
 
+  void applyConfig(mtca4u::MotorDriverCardConfig const& config);
+
  private slots:
-  // Get the file name via dialogue and perform the writing.
+  // Get the file name via dialogue and perform the loading/writing.
+  void load();
   void write();
   void updateCardExpertPanel(int index);
 };

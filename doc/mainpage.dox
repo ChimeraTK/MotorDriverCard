@@ -44,6 +44,10 @@ firmware and probably will never change.
 
 \image html QtMotorConfigCalculator00.06.01.png
 
+An existing config file can be opened with the "Load XML file" button. This restores the expert settings and the
+enabled state of both motors. A motor is activated if the file enables it or contains settings which differ from the
+defaults. The basic configuration cannot be reconstructed from the chip parameters, so its fields keep their values
+and recalculate the affected expert settings when they are changed.
 
 \section expert_parameters Expert Section: Manually editing the config XML file
 

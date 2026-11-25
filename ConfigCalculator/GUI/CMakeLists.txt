@@ -28,3 +28,20 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+if(TESTING_IS_ENABLED)
+  add_executable(testSetParameters
+    tests/testSetParameters.cpp
+    ParametersPanel.cc ParametersPanel.h
+    ParameterWidget.cc ParameterWidget.h
+    populatePanels.cc populatePanels.h
+    getParameters.cc getParameters.h
+    HexSpinBox.cpp HexSpinBox.h)
+  target_include_directories(testSetParameters PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(testSetParameters PRIVATE mtca4u-MotorDriverCard ConfigCalculator
+    Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Gui
+    Boost::unit_test_framework)
+  add_test(NAME testSetParameters COMMAND testSetParameters)
+  # the panels are widgets, but no display is needed for the test
+  set_tests_properties(testSetParameters PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()

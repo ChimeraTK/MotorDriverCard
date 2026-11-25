@@ -16,4 +16,13 @@ mtca4u::MotorControlerConfig getMotorParameters(ParametersPanel* parametersPanel
  */
 mtca4u::MotorDriverCardConfig getMotorDriverCardParameters(ParametersPanel* parametersPanel);
 
+/** Set the motor parameters in the motor panel, e.g. after loading a config file.
+ */
+void setMotorParameters(ParametersPanel* parametersPanel, mtca4u::MotorControlerConfig const& config);
+
+/** Set the motor driver card parameters in the card panel, e.g. after loading a
+ * config file.
+ */
+void setMotorDriverCardParameters(ParametersPanel* parametersPanel, mtca4u::MotorDriverCardConfig const& config);
+
 #endif /* _GET_MOTOR_PARAMETERS_H_ */

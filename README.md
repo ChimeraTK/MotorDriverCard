@@ -86,8 +86,10 @@ MotorConfigCalculator out.xml iMax nStepsPerTurn maxRPM [timeToVMax] [endSwitchC
 
 `QtMotorConfigCalculator` is a graphical user interface for the same purpose
 that covers the configuration much more completely than the basic command line
-tool. In addition, `write_default_config` (run automatically by the build)
-produces `MotorDriverCardDefaultConfig.xml` with all default parameters.
+tool. It can load an existing config file into its expert settings and write
+the result back to a (sparse) config file. In addition, `write_default_config`
+(run automatically by the build) produces `MotorDriverCardDefaultConfig.xml`
+with all default parameters.
 
 ## Repository layout
 
